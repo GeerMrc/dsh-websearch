@@ -18,7 +18,6 @@
     "lib",
     "cordis.patch.yml"
   ],
-  "dsh.bundle.patch": "./cordis.patch.yml",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },
@@ -50,5 +49,10 @@
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
   }
 }
