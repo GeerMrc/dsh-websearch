@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
-import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
+import type { WebSearchProvider } from '@deepseek-ai/dsh-web'
 import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 

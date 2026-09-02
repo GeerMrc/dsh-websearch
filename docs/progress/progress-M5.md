@@ -17,7 +17,7 @@
 
 ## 进行中
 
-- Session 08（e2e 场景收口）——T0 进行中，T1-T8 待执行
+- Session 08（e2e 场景收口）——T0-T5 完成，T6 门墙收口中，T7/T8 待执行
 
 ## 待启动
 
@@ -25,7 +25,33 @@
 
 ## 已完成
 
-（S08 批次表随执行落此）
+### S08 e2e 收口批（2026-09-02，分支 feat/s08-e2e-loopback）
+
+阶段 0 独立审核 S07 **PASS**（🔴×0；🟡 新增×0；client 39 + chain 33 子集亲跑 + 9 commits
+逐枚吻合 + 🟡 三笔清偿核验 + 誊写纪律抽查通过）→ plan 008 落盘 → 阶段 2 轮 1 **NEEDS
+REVISION**（必改 ×1：M1 断言可观察面——reason 是 message 非 code、降级场景无摘要对象；
+建议 ×3）→ 全数吸收 → 同 Agent 点验 **APPROVED**（6/6 闭合，41 锚点 0 虚构）→ 阶段 2.5
+**用户真实批准**「批准，自主推进」（第 2 次真实人工批准，S05b 后首例；本记录与 session
+记录双落）。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 008 + 阶段 0/2 audit-log + STATUS 启动刷新 + progress-M5 新开 | 完成（`796b011`，master 直提） |
+| T1 | fakeCtx 抽取 `tests/helpers/fake-ctx.ts`（apply.test.ts 迁移）+ `tests/e2e/helpers/loopback-server.ts`（瞬时端口/行为表/到达序/closedPort/teardown） | 完成（`bd25257`；apply 11 passed 零漂移；TS18047 narrowing 修正） |
+| T2 | 场景批 A：断网降级 / 429 降级 / 超时降级 | 完成（`b67bcf3`；3 passed；首轮红 = exa 线材缺 highlights（测试线材非产品码）；**牙齿证明**：链序反转探针红→还原实录） |
+| T3 | 场景批 B：顺序保持（到达序逐位=config 序）+ skip 不计序 + 全败（EXHAUSTED+逐成员行+cause） | 完成（`ca4fe6d`；6 passed 累计；TS2352 cast 修正） |
+| T4 | 场景批 C：钉死直连不降级（直调注册表实例 → 成员码原样 + 零链介入） | 完成（`2acfb01`；7 passed 累计；servedBy 双承载已随批 A/B 落地） |
+| T5 | 链级真实 API smoke（tests/e2e.real/chain.real.test.ts，无 key 自跳） | 完成（`bc5d068`；2 skipped 亲见） |
+| T6 | 门墙七命令 + lint warning 清偿 + 本台账 + Agent Note（docs/notes/2026-09-02-s08-e2e-loopback.md） | 完成（数字见下节门墙表；**T1 迁移残留未用导入 warning 由 T6 门墙抓获清偿**——T1 时 lint 只核了末行未核 Found 行，教训在案） |
+| T7 | 阶段 4/5 独立验证 | 进行中 |
+| T8 | 收尾 | 待执行 |
+
+### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
+
+| 棒 | 命令（七件全名） | 数字 |
+|---|---|---|
+| S06/S07 | （历史）test / typecheck / lint / build / npm pack --dry-run / check:i18n | 正本 progress-M4 门墙表 |
+| S08 | ①`pnpm test` → **23 passed files + 1 skipped file（24），Tests 203 passed \| 8 skipped (211)**（202→211：loopback +7 + 链级真实 smoke skip 2；8 skipped = 6 既有 + 2 新自跳）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（42 files，96 rules）**④`pnpm build` → **node 面 49.00+21.89 + client.js 20.54 kB 与 S07 逐字节零漂移（src 零变更预期兑现）**⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（19 keys + 15 files）⑦`git status --short` 前置/后置 clean | S08 T6 提交态亲跑 |
 
 ## 阶段验收（R1-R5，阶段收官时填）
 
