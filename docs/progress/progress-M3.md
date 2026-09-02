@@ -101,6 +101,8 @@
 | R4 | 真实 API e2e 无 key 自跳实测 | PASS | e2e.real 两文件 env 存在性自跳；本机双 key unset 实测 2 skipped；keyless 锚点断言照常跑（`8815edd`） |
 | R5 | 门墙实测数字 + 收尾 6 件套 + 原子翻转 + 分支闭环 | PASS | 四命令独立亲跑与台账逐位一致（93 passed \| 2 skipped (95; 11 files) / typecheck exit 0 / lint 0w0e 18 files / build 29.55+13.19 kB）；收尾件套 = 本 R 表 + session-04 记录 + STATUS/roadmap 翻转 + CHANGELOG + 接力指令 + audit-logs 3 份——同一序列完成；`--no-ff` merge commit 留痕（吸收阶段 0 观察级） |
 
+### S03 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02）
+
 | 条目 | 内容 | 结论 | 证据 |
 |---|---|---|---|
 | R1 | 前序审核 🟡×3 清偿可重放 | PASS | progress-M1.md:14 M2 行 ✅ / progress-M2.md:52-54 收官对账补注 / STATUS.md:36,40-46 启动刷新——阶段 4 独立 Agent 逐项 file:line 核验（`c691caa`） |
