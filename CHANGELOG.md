@@ -46,6 +46,39 @@
 
 ---
 
+## 2026-09-02 — e2e 场景收口（Session 08，M5 e2e 腿）
+
+**新增**
+- loopback e2e 层（`tests/e2e/`）：真实 `node:http` 监听 stub（listen(0) 瞬时端口/四形态行为表/跨端点到达序日志/closeAllConnections 收口）+ 全装配 e2e（entry config → 真实 `apply()` → ctx.web 注册表 → 链）——七场景全绿：断网降级（closedPort 真连接拒绝）/429 降级（钉 tavily + body `{}` 保状态字样）/超时降级（hang + 150ms 预算，`DSHWS_MEMBER_TIMEOUT` 入 reason）/顺序保持（到达序逐位 = config 序）/skip 成员不计序（`enabled:false` 选择门跳过零到达）/全败（`DSHWS_CHAIN_EXHAUSTED` + 三摘要行按走序 + cause = 末位成员错误）/钉死直连不降级（ctx.web 注册表实例直调 → 成员码原样 + 零链日志——S03 T11 范围锚定的端到端闭合）
+- servedBy 双承载断言：content 首行署名 ×5 场景（perplexity 胜出场景带正文）+ logger `[dshws-chain] served-by:` 行 ×3 场景
+- 链级真实 API smoke（`tests/e2e.real/chain.real.test.ts`，链层真实 API 覆盖空白补齐）：无 `DEEPSEEK_API_KEY` 自跳（本地 2 skipped 亲见），有 key 环境跑 served-by 首行真实验证
+- 测试台架共享化：fakeCtx/flushGate → `tests/helpers/fake-ctx.ts`（apply.test.ts 机械迁移零漂移；扩展点 = logger 行捕获）
+- 测试基线 202→**211**（203 passed | 8 skipped；24 files：loopback +7 + 链级自跳 +2）；**src 零变更兑现**（build 三件与 S07 逐字节零漂移——S03 链语义/装配面经真实网络层复证）
+- Agent Note `docs/notes/2026-09-02-s08-e2e-loopback.md`（e2e 分层地图/loopback 契约/可观察面口径——S09 正素材）；audit-logs 3 份
+
+**清偿（2 笔）**
+- 阶段 4/5 抓获 🟡×1（assemble 内部失败路径服务器泄漏缺口——测试头注释在该分支不成立）：T8 catch-close 加固清偿 + 7 passed 复验
+- T6 门墙抓获 lint warning ×1（T1 台架迁移残留未用导入；T1 时 lint 只核末行未核 Found 行——教训在案）：清偿后 0w0e 42 files
+
+**治理**
+- 阶段 0 独立审核 S07 **PASS**（🔴0 🟡新增0；client 39 + chain 33 子集亲跑；原文 s08-stage0-review-of-s07.md）
+- 阶段 2 两轮：轮 1 **NEEDS REVISION**（必改×1 断言可观察面〔reason=message 非 code、降级场景无摘要对象〕+ 建议×3）→ 全数吸收 → 轮 2 **APPROVED**（6/6 闭合，41 锚点 0 虚构；原文 s08-stage2-plan-review.md）
+- 阶段 2.5：**用户真实批准**「批准，自主推进」（第 2 次真实人工批准，S05b 后首例；双落 session 记录 + progress-M5）
+- 阶段 4/5 **PASS / COMPLETE**（七场景逐条对峙 + 门墙七命令亲跑 + lsof 残留抽查 + 三问全过；原文 s08-stage45-verification.md）
+
+**诚实标注（遗留项）**
+- M5 保持 🚧：e2e 收口腿本棒关死，文档腿（README/迁移/升级手册）归 S09
+- 牙齿证明（验证类任务的变异探针惯例）候选沉淀为治理流程通用实践（T7 前瞻建议，未写入）
+- T4 commit message「content 首行 ×4」与实际 5 处差一（簿记措辞级，T7 注记在档）
+- M3 with-key 用户槽位不变；链级真实 smoke 与其互补不重叠（无 key 环境两者皆自跳/待回填）
+
+**跟踪（观察期）**
+- 测试基线链：S06 184|6(190) → S07 196|6(202) → **S08 203|8(211)**（24 files）；typecheck 双面 exit 0 / lint 0w0e 42 files / build node+client 三件零漂移 / pack 五件 / check:i18n exit 0
+- 里程碑：M1 ✅ M2 ✅ M4 ✅；**M5 🚧（e2e 腿 ✅，文档腿 S09）**；M3 🚧（余用户 with-key 回填）；M6 ⏳
+- dont-do 累计 4 条（本棒无新增）；下一棒 = Session 09 README+迁移+升级手册（验收 = 独立审核 Agent 照手册从零 scratch 走通）
+
+---
+
 ## 2026-09-02 — 「网页搜索」设置页骨架（Session 06，M4 第 1 棒）
 
 **新增**
@@ -111,7 +144,6 @@
 - dont-do 新增 1 条（收官状态区刷新，累计 3 条）；里程碑：M3 🚧 机械面收官；下一棒 Session 06（「网页搜索」设置页骨架）
 
 ---
-
 
 ## 2026-09-02 — exa/perplexity/firecrawl + settings 热改（Session 05a，M3 第 3 棒）
 

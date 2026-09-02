@@ -12,16 +12,17 @@
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
 | M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S05b；余用户 with-key 槽位回填——指引 docs/notes/2026-09-02-s05b-install-runbook.md §4） |
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07；热生效复合证据 plan 007 D6） |
-| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（S08 e2e 收口棒进行中；文档腿归 S09） |
+| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S09——两腿齐后填 ✅） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
 
 ## 进行中
 
-- Session 08（e2e 场景收口）——T0-T5 完成，T6 门墙收口中，T7/T8 待执行
+- 无（S08 收官；下一棒 S09 待启动）
 
 ## 待启动
 
-- 无（S08 收官后下一棒 = S09 README+迁移+升级手册，由 S08 收官序列刷新）
+- Session 09（README + 迁移 + 升级手册）——前置：S08 已收官（e2e 腿关死；S09 素材在档：
+  S08/S06/S07 notes + S05b runbook）
 
 ## 已完成
 
@@ -43,8 +44,8 @@ REVISION**（必改 ×1：M1 断言可观察面——reason 是 message 非 code
 | T4 | 场景批 C：钉死直连不降级（直调注册表实例 → 成员码原样 + 零链介入） | 完成（`2acfb01`；7 passed 累计；servedBy 双承载已随批 A/B 落地） |
 | T5 | 链级真实 API smoke（tests/e2e.real/chain.real.test.ts，无 key 自跳） | 完成（`bc5d068`；2 skipped 亲见） |
 | T6 | 门墙七命令 + lint warning 清偿 + 本台账 + Agent Note（docs/notes/2026-09-02-s08-e2e-loopback.md） | 完成（数字见下节门墙表；**T1 迁移残留未用导入 warning 由 T6 门墙抓获清偿**——T1 时 lint 只核了末行未核 Found 行，教训在案） |
-| T7 | 阶段 4/5 独立验证 | 进行中 |
-| T8 | 收尾 | 待执行 |
+| T7 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS：七场景断言面逐条亲验 + 门墙七命令亲跑零偏差 + src 零触碰 diff 全景 + apply 测试体逐字节一致 + 三问全过；**🟡 ×1 抓获：assemble 内部失败路径服务器泄漏缺口**→T8 清偿；🟢×4 簿记级注记；audit-log 正本 docs/sessions/audit-logs/2026-09-02-s08-stage45-verification.md） |
+| T8 | 收尾（🟡-1 assemble catch-close 加固随批 + 本文件 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge `--no-ff` + 接力指令） | 完成（本序列；加固后 loopback 7 passed 复验 + typecheck/lint 绿） |
 
 ### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
 
@@ -55,7 +56,15 @@ REVISION**（必改 ×1：M1 断言可观察面——reason 是 message 非 code
 
 ## 阶段验收（R1-R5，阶段收官时填）
 
-（S08 验收表随阶段 4/5 落此）
+### S08 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | 七场景 e2e 绿 | PASS | 亲跑 7 passed (7)；断言面逐场景核对：断网（reason 前缀正则 + 到达序 [exa]）/429（HTTP 429 + body {}）/超时（MEMBER_TIMEOUT 标记 + elapsed 下界）/顺序保持（到达序逐位=config 序）/skip 不计序（零到达）/全败（EXHAUSTED+三行按序+cause.code）/钉死直连（成员码原样+零链日志）；servedBy content 首行 ×5 处 |
+| R2 | 真实 API 自跳 | PASS | 无 key 环境亲跑：chain.real 2 skipped 亲见 + 既有五件零触碰（diff 仅新增）；有 key 路径代码走查沿先例 |
+| R3 | 装配零回归 | PASS | apply 11 + chain 33 = 44 passed 亲跑；fakeCtx 抽取机械一致性逐行比对（唯一行为差 = logger 捕获）；apply.test.ts 测试体逐字节一致 |
+| R4 | 门墙七命令（提交态） | PASS | test 203\|8(211) / typecheck exit 0 / lint 0w0e 42 files / build 三件与 S07 零漂移 + **src/ 零触碰**（diff 全景 11 文件 = docs×6 + tests×5）/ pack 五件 / check:i18n exit 0；前后 git status clean |
+| R5 | 五子证据 | PASS | ①隔离（零实例/零浏览器/零 /tmp；端口 ephemeral 亲读；lsof 零残留）②门墙（上）③收尾件套（T8 序列）④原子翻转 + `--no-ff` ⑤audit-log 三份正本 |
 
 ## 技术债（台账）
 

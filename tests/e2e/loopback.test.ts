@@ -42,19 +42,26 @@ async function assemble(
   overrides?: AssembleOverrides,
 ): Promise<Assembly> {
   const server = await startLoopback(behavior)
-  const handle = fakeCtx({ withSettings: false })
-  for (const ref of REFS) handle.configured.add(ref)
-  apply(handle.ctx as unknown as Context, {
-    searchChain: overrides?.searchChain ?? [...MEMBERS],
-    perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
-    tavily: { baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily` },
-    exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
-    perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
-  })
-  const chain = handle.providers.get('dshws-chain') as WebSearchProvider
-  await flushGate()
-  expect(chain.available()).toBe(true)
-  return { server, chain, handle }
+  try {
+    const handle = fakeCtx({ withSettings: false })
+    for (const ref of REFS) handle.configured.add(ref)
+    apply(handle.ctx as unknown as Context, {
+      searchChain: overrides?.searchChain ?? [...MEMBERS],
+      perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
+      tavily: { baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily` },
+      exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
+      perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
+    })
+    const chain = handle.providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain.available()).toBe(true)
+    return { server, chain, handle }
+  } catch (error: unknown) {
+    // A failure inside assembly must not leak the scenario server: the caller
+    // never receives it, so its finally could not close it (stage 4/5 🟡-1).
+    await server.close()
+    throw error
+  }
 }
 
 describe('loopback e2e — full assembly through the chain (plan 008)', () => {
