@@ -11,8 +11,9 @@
  * @module dsh-websearch
  */
 import type { Context } from '@deepseek-ai/cordis'
+import type { WebFetchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
-import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
+import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 
 export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
@@ -44,11 +45,18 @@ export { Config }
  */
 export function apply(ctx: Context, config: Config): void {
   const resolved = resolveConfig(config)
-  const registry = new MemberRegistry()
+  const searchMembers = new MemberRegistry()
+  const fetchMembers = new MemberRegistry<WebFetchProvider>()
   const log = (message: string) => ctx.logger.info(message)
   ctx.web.registerSearchProvider(new ChainSearchProvider({
-    members: registry.toResolver(),
+    members: searchMembers.toResolver(),
     order: resolved.searchChain,
+    perMemberTimeoutMs: resolved.perMemberTimeoutMs,
+    log,
+  }))
+  ctx.web.registerFetchProvider(new ChainFetchProvider({
+    members: fetchMembers.toResolver(),
+    order: resolved.fetchChain,
     perMemberTimeoutMs: resolved.perMemberTimeoutMs,
     log,
   }))

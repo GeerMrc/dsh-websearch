@@ -24,7 +24,7 @@ interface FakeMember {
   provider: WebSearchProvider
 }
 
-function resolver(members: Record<string, FakeMember>): ChainMemberResolver {
+function resolver(members: Record<string, FakeMember>): ChainMemberResolver<WebSearchProvider> {
   return {
     resolve: (id) => {
       const member = members[id]

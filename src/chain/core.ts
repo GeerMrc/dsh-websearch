@@ -2,20 +2,22 @@
  * Chain core: the orchestration behind the `dshws-chain` meta providers.
  * HTTP-free by design (architecture §3 boundary) — members are reached
  * through the {@link ChainMemberResolver} port, so tests substitute fakes and
- * S04/S05a wire the real registry, settings, and credentials ports.
+ * S04/S05a wire the real registry, settings, and credentials ports. One
+ * {@link ChainCore} instance drives each capability kind; the capability
+ * classes are thin typed shells over it.
  *
  * @module dsh-websearch/chain/core
  */
-import type { WebSearchProvider, WebSearchRequest, WebSearchResult } from '@deepseek-ai/dsh-web'
+import type { WebFetchProvider, WebFetchResult, WebFetchRequest, WebSearchProvider, WebSearchRequest, WebSearchResult } from '@deepseek-ai/dsh-web'
 import { CHAIN_ERROR_CODES, createChainExhaustedError, DshwsError } from '../errors.ts'
 import type { ChainMemberFailure } from '../errors.ts'
 
 /** One chain member as resolved at call time. */
-export interface ChainMember {
+export interface ChainMember<P = unknown> {
   /** Member id (always the wrapped provider's `id`, `dshws-` prefixed). */
   readonly id: string
   /** The member's own provider implementation. */
-  readonly provider: WebSearchProvider
+  readonly provider: P
   /** False when the user disabled this member in settings. */
   readonly enabled: boolean
   /** True when the member's credential ref resolves (S04: credentials describe + refresh). */
@@ -23,16 +25,19 @@ export interface ChainMember {
 }
 
 /** Port that turns configured member ids into runnable members; `undefined` = unregistered. */
-export interface ChainMemberResolver {
-  resolve(memberId: string): ChainMember | undefined
+export interface ChainMemberResolver<P = unknown> {
+  resolve(memberId: string): ChainMember<P> | undefined
 }
 
 /** Log sink for chain observability (attribution and degradation lines). */
 export type ChainLogger = (message: string) => void
 
-/** Constructor options shared by the chain meta providers. */
-export interface ChainOptions {
-  readonly members: ChainMemberResolver
+/** Constructor options for a chain meta provider. */
+export interface ChainOptions<P> {
+  /** This chain's registry id (`dshws-chain` / `dshws-chain-fetch`). */
+  readonly id: string
+  /** The registry view members are resolved against. */
+  readonly members: ChainMemberResolver<P>
   /** Configured member order; the chain tries members in exactly this order. */
   readonly order: readonly string[]
   /** Timeout budget per member per call, in milliseconds. */
@@ -41,17 +46,6 @@ export interface ChainOptions {
   readonly log?: ChainLogger
 }
 
-/** Selection-level gates of architecture §4: an unusable member is skipped without being called. */
-function isUsable(member: ChainMember | undefined): member is ChainMember {
-  if (member === undefined) return false
-  if (!member.enabled) return false
-  if (!member.credentialsReady) return false
-  return member.provider.available()
-}
-
-/** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
-const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
-
 /**
  * Plugin-owned registry of bundled members. The host's provider registry is
  * private and not enumerable (ADR-0003), so the plugin keeps its own: every
@@ -59,11 +53,11 @@ const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
  * id, which is what lets users pin one member directly via the selection
  * scalar — direct connections bypass the chain entirely (ADR-0002 Decision 5).
  */
-export class MemberRegistry {
-  readonly #providers = new Map<string, WebSearchProvider>()
+export class MemberRegistry<P extends { readonly id: string } = WebSearchProvider> {
+  readonly #providers = new Map<string, P>()
 
   /** Register one member; returns the disposer. */
-  register(provider: WebSearchProvider): () => void {
+  register(provider: P): () => void {
     this.#providers.set(provider.id, provider)
     return () => {
       this.#providers.delete(provider.id)
@@ -75,7 +69,7 @@ export class MemberRegistry {
    * registered members report as enabled with credentials ready; S03 has no
    * bundled members, so chains built from this resolver are inert.
    */
-  toResolver(): ChainMemberResolver {
+  toResolver(): ChainMemberResolver<P> {
     return {
       resolve: (id) => {
         const provider = this.#providers.get(id)
@@ -85,26 +79,47 @@ export class MemberRegistry {
   }
 }
 
-/** Search chain: `dshws-chain` as a plain `WebSearchProvider` (ADR-0002). */
-export class ChainSearchProvider implements WebSearchProvider {
-  readonly id = 'dshws-chain'
+/**
+ * Capability-neutral orchestrator (architecture §4): selection-level skips,
+ * runtime degradation, per-member timeout budgets, terminal exhaustion, and
+ * the served-by log line. The result transform is the capability's
+ * attribution policy (search: content prefix, D2; fetch: log only, D3).
+ */
+class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Res> {
+  readonly #options: ChainOptions<P>
+  readonly #transform: (memberId: string, result: Res) => Res
 
-  constructor(private readonly options: ChainOptions) {}
+  constructor(options: ChainOptions<P>, transform: (memberId: string, result: Res) => Res) {
+    this.#options = options
+    this.#transform = transform
+  }
 
   /** Cheap local check (§4): true when at least one enabled member has credentials ready. */
   available(): boolean {
-    return this.options.order.some((id) => {
-      const member = this.options.members.resolve(id)
+    return this.#options.order.some((id) => {
+      const member = this.#options.members.resolve(id)
       return member !== undefined && member.enabled && member.credentialsReady
     })
   }
 
-  /** Try members in configured order; runtime failures and per-member timeouts degrade to the next member (ADR-0002 Decision 2). */
-  async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
+  /** Selection-level gates: an unusable member is skipped without being called. */
+  #isUsable(member: ChainMember<P> | undefined): member is ChainMember<P> {
+    if (member === undefined) return false
+    if (!member.enabled) return false
+    if (!member.credentialsReady) return false
+    return member.provider.available()
+  }
+
+  /** Try members in configured order; runtime failures and timeouts degrade to the next member. */
+  async run(
+    request: Req,
+    signal: AbortSignal | undefined,
+    invoke: (provider: P, request: Req, signal: AbortSignal | undefined) => Promise<Res>,
+  ): Promise<Res> {
     const failures: ChainMemberFailure[] = []
-    for (const id of this.options.order) {
-      const member = this.options.members.resolve(id)
-      if (!isUsable(member)) continue
+    for (const id of this.#options.order) {
+      const member = this.#options.members.resolve(id)
+      if (!this.#isUsable(member)) continue
       try {
         const controller = new AbortController()
         const abortFromOuter = () => controller.abort(signal?.reason)
@@ -117,16 +132,16 @@ export class ChainSearchProvider implements WebSearchProvider {
         const timer = setTimeout(() => {
           controller.abort()
           fireTimeout()
-        }, this.options.perMemberTimeoutMs)
+        }, this.#options.perMemberTimeoutMs)
         try {
-          const searchPromise = member.provider.search(request, controller.signal)
+          const memberPromise = invoke(member.provider, request, controller.signal)
           // After a timeout abort the member promise still rejects (typically
           // with an AbortError); that rejection is expected here — the timeout
           // is already recorded as the member's failure.
-          searchPromise.catch(() => {})
-          const result = await Promise.race([searchPromise, timedOut])
-          this.options.log?.(`[dshws-chain] served-by: ${id}`)
-          return withServedBy(id, result)
+          memberPromise.catch(() => {})
+          const result = await Promise.race([memberPromise, timedOut])
+          this.#options.log?.(`[dshws-chain] served-by: ${id}`)
+          return this.#transform(id, result)
         } finally {
           clearTimeout(timer)
           signal?.removeEventListener('abort', abortFromOuter)
@@ -137,18 +152,21 @@ export class ChainSearchProvider implements WebSearchProvider {
         if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
         const isTimeout = error === MEMBER_TIMED_OUT
         const reason = isTimeout
-          ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within ${this.options.perMemberTimeoutMs}ms`
+          ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within ${this.#options.perMemberTimeoutMs}ms`
           : error instanceof Error
             ? error.message
             : String(error)
         failures.push({ memberId: id, reason, error: isTimeout ? undefined : error })
-        this.options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
+        this.#options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
       }
     }
-    if (failures.length === 0) throw noMemberConfigured(this.options.order)
+    if (failures.length === 0) throw noMemberConfigured(this.#options.order)
     throw createChainExhaustedError(failures)
   }
 }
+
+/** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
+const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
 
 /** Build the fail-loud error for a chain whose members were all selection-skipped. */
 function noMemberConfigured(order: readonly string[]): DshwsError {
@@ -169,5 +187,47 @@ function withServedBy(memberId: string, result: WebSearchResult): WebSearchResul
   return {
     ...result,
     content: result.content === undefined ? line : `${line}\n${result.content}`,
+  }
+}
+
+/** Search chain meta provider, registered as `dshws-chain` (ADR-0002). */
+export class ChainSearchProvider implements WebSearchProvider {
+  readonly id = 'dshws-chain'
+
+  readonly #core: ChainCore<WebSearchProvider, WebSearchRequest, WebSearchResult>
+
+  constructor(options: Omit<ChainOptions<WebSearchProvider>, 'id'>) {
+    this.#core = new ChainCore({ ...options, id: this.id }, withServedBy)
+  }
+
+  available(): boolean {
+    return this.#core.available()
+  }
+
+  search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
+    return this.#core.run(request, signal, (provider, req, sig) => provider.search(req, sig))
+  }
+}
+
+/**
+ * Fetch chain meta provider, registered as `dshws-chain-fetch`. Attribution is
+ * the host log line only (D3): a fetched body is the resource itself, so the
+ * `[served-by:]` marker must not corrupt it.
+ */
+export class ChainFetchProvider implements WebFetchProvider {
+  readonly id = 'dshws-chain-fetch'
+
+  readonly #core: ChainCore<WebFetchProvider, WebFetchRequest, WebFetchResult>
+
+  constructor(options: Omit<ChainOptions<WebFetchProvider>, 'id'>) {
+    this.#core = new ChainCore({ ...options, id: this.id }, (_memberId, result) => result)
+  }
+
+  available(): boolean {
+    return this.#core.available()
+  }
+
+  fetch(request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
+    return this.#core.run(request, signal, (provider, req, sig) => provider.fetch(req, sig))
   }
 }
