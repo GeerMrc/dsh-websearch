@@ -73,9 +73,9 @@ REVISION**（必改 ×1：M1 断言可观察面——reason 是 message 非 code
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 007/008 债务映射节） |
 | fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
-| firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S08 loopback 不含 fetch 链（plan 008 D2），S09 复核 |
-| i18n CI 接线 | 🟢 观察 | S09 手册项 |
-| tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S09 升级演练顺手项 / 上游包产物 / 留痕口径 |
+| firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S08 loopback 不含 fetch 链（plan 008 D2），S12 复核 |
+| i18n CI 接线 | 🟢 观察 | S12 手册项 |
+| tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S12 升级演练顺手项 / 上游包产物 / 留痕口径 |
 
 ## 已验锚点（台账）
 

@@ -117,7 +117,7 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 | settingsScope/store 快照机制未用（骨架直连 remote 面） | 🟢 观察→**闭合**（S07） | plan 007 D3 定谳：排序与既有写动作同形，store 迁移零用户可见增益——维持自持控制器（S06 plan D1 观察就此关闭） |
 | fetch 链排序 UI（roadmap S07 仅 search 链） | 🟢 | 新登记 S07：候选不排期，用户反馈驱动（plan 007 D2） |
 | 「恢复默认序」按钮（需 patch 删除语义先行定谳） | 🟢 | 新登记 S07：候选不排期（plan 007 D4） |
-| tsdown 弃用警告 ×2（inlineDynamicImports/external） | 🟢 观察 | S09 升级演练时顺手迁移（语义同宿主 preset） |
+| tsdown 弃用警告 ×2（inlineDynamicImports/external） | 🟢 观察 | S12 升级演练时顺手迁移（原记 S09，2026-09-03 顺延；语义同宿主 preset） |
 | firecrawl fetch 面 402/429 it 缺独立覆盖 | 🟢 观察 | 不处置（M3 台账正本）；S08 e2e 若覆盖则自然收口 |
 
 ## 已验锚点（台账）

@@ -114,7 +114,7 @@ dsh-websearch:
 ## 7. 兼容性与升级
 
 - id 全前缀 `dshws-`：与上游（`deepseek-official`/`exa`/`perplexity`/`http`）及第三方（`anysearch`）零撞名。
-- 对上游唯一假设：seam 公开接口形状（provider 接口三方法 + 注册 API + 服务名注入）。升级演练 = 每 alpha 升级后按 `docs/upgrade.md`（S09 交付）跑安装→配置→搜索→降级→GUI 冒烟。
+- 对上游唯一假设：seam 公开接口形状（provider 接口三方法 + 注册 API + 服务名注入）。升级演练 = 每 alpha 升级后按 `docs/upgrade.md`（S12 交付——2026-09-03 顺延）跑安装→配置→搜索→降级→GUI 冒烟。
 - 本插件内重实现 deepseek 搜索（链成员需可直接调用的实例；上游注册表私有不可枚举）；与上游官方 provider 共用 `DEEPSEEK_API_KEY` ref，二者二选一启用。
 
 ## 8. 开放问题（S02 spike 定谳，ADR-0006/0007 承接——2026-09-02 全部定谳：1→ADR-0006 GO；2/5→ADR-0007；3/4 实测成立，证据见 session-02 记录 H3/H4）
