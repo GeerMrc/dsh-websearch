@@ -39,7 +39,7 @@
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **06** | 「网页搜索」设置页骨架 | settings.section 注入（形态按 ADR-0006）；provider 卡（key 输入→credentials、状态点、启停）；fetchChain 只读展示；复用 ui-primitives/alias 令牌 | jsdom 组件测试绿；浏览器实测 DOM 断言（页面出现/卡片渲染/key 写入后 credentials.describe 可见——写通路按 S02 结论） | 1-2 天 | ⏳ |
+| **06** | 「网页搜索」设置页骨架 | settings.section 注入（形态按 ADR-0006）；provider 卡（key 输入→credentials、状态点、启停）；fetchChain 只读展示；复用 ui-primitives/alias 令牌 | jsdom 组件测试绿；浏览器实测 DOM 断言（页面出现/卡片渲染/key 写入后 credentials.describe 可见——写通路按 S02 结论） | 1-2 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-06.md；双链只读 = fetchChain 项的对称扩展，plan T5 锚定说明） |
 | **07** | 优先级排序 + 覆盖标记 + i18n | search 链上移/下移排序写 settings；组合钉死覆盖标记；双语 typed dictionaries | 排序变更→`settings.yaml` 实测落盘→下次搜索生效；en/zh 字典 parity 校验绿；字典外文案检查脚本零命中（CJK 字面量 grep，脚本随本 session 交付） | 1-2 天 | ⏳ |
 
 **里程碑 M4 设置页完备**：GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 —— 完成时填 ✅ 日期（Session 07 证据）

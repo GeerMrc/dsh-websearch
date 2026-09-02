@@ -12,6 +12,35 @@
 
 ---
 
+## 2026-09-02 — 「网页搜索」设置页骨架（Session 06，M4 第 1 棒）
+
+**新增**
+- client half 端到端交付（ADR-0006 GO 形态首次落地）：`src/client/{index,controller,section,locales}` 四件 → `lib/client.js` 16.52 kB（构建契约复刻宿主四件套：cjs + client.js + inlineDynamicImports + ModuleLoader banner；external 恰三枚 require 零 react 内联）
+- manifest 三键：`exports["./client"]` + `dsh.client{platform:web, inject:[locale,ui-settings,api-remotes], external:[ui-primitives]}`（宿主读取语法 manifest.ts:196-206 亲证）
+- 设置节「网页搜索」：5 provider 卡（key 输入→credentials 写通路 / StateDot 状态点 / role=switch 启停热改）+ 双链只读展示（fetchChain 项的对称扩展）+ 超时展示；ui-primitives + `--dsw-alias-*` 令牌；双语 typed dictionaries（15 键 zh/en，编译期 parity）
+- 浏览器六断言（scratch 3412 agent 实测棒）：combo 200/5.1MB 含 id 注册；导航 en/zh 热切换；5 卡渲染；key 写入→Configured+服务端 refs；启停→settings.yaml 落盘；unset 复原→refs:{}
+- 测试基线 163→**190**（+27：locales 3/controller 10/section 8/entry 6）；vitest.config.ts（inline ui-primitives CSS module）+ tsconfig 双面拆分
+- devDeps +13（client 六包 alpha.4 含 ui-renderer〔T6 随批披露〕+ react 18 线 + types + jsdom + testing-library）；minimumReleaseAge exclude +7（pnpm 自动按预案落盘）
+- Agent Note `docs/notes/2026-09-02-s06-settings-gui.md`（构建/类型面/测试基建实录——S09 正素材）；audit-logs 3 份
+
+**清偿（1 笔）**
+- 阶段 0 新增 🟢×2 观察（tgz 尺寸转录漂移 / STATUS M3 总表口径）：T0 注记 + 统一双清偿（`3e4eb50`）
+
+**治理**
+- 阶段 0 独立审核 S05b **PASS**（🔴0 🟡0；原文 docs/sessions/audit-logs/2026-09-02-s06-stage0-review-of-s05b.md）
+- 阶段 2 两轮：轮 1 **NEEDS REVISION**（必改×1 + 建议×4）→ 全数吸收 → 轮 2 **APPROVED**（原文 s06-stage2-plan-review.md）
+- 阶段 2.5：AskUserQuestion 未获答 → 按接力序默认批准自主推进（披露，session 记录双落）
+- 阶段 4/5 **PASS / COMPLETE**（门墙亲跑零漂移 + 隔离法证 + 冒烟 27 passed；原文 s06-stage45-verification.md）
+
+**诚实标注（遗留项）**
+- 🟡×1（stage45 抓获）：section.spec 类型修复滞留工作区自 T6、提交态门墙 exit 2——`899e2fd` 补提交清偿 + 提交态门墙亲跑全绿后收官
+- 🟢 在档：react devDep 锚 ^18.3.1（D6 原声明 ^18.2.0，18 线内全绿）；tsdown 弃用警告 ×2（S09 迁移）；vitest 对 ui-primitives sourcemap 警告；settingsScope/store 机制未用（S07 再评估）；IAB locator click 挂起（evaluate 合成点击路径在档）；boot `--no-open` 未加致默认浏览器打开一次（无害，stage45 评估 🟢）
+- M3 with-key 用户槽位不变（本棒零接触）
+
+**跟踪（观察期）**
+- 测试 22 files / 184 passed | 6 skipped (190)；typecheck 双面 exit 0；lint 0w0e 38 files；build 49.00+21.89+16.52 kB；pack 五件
+- dont-do 维持 3 条（本棒零新增；T9 抓获的「提交态门墙」教训入 session 踩坑节，未达系统性门槛）
+- 下一棒：Session 07（优先级排序 + 覆盖标记 + i18n）
 
 ---
 

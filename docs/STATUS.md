@@ -37,13 +37,13 @@
 | 04 | 2026-09-02 | deepseek/tavily provider + 凭据接线（S03 假面替换） | ✅ | docs/sessions/2026-09-02-session-04.md（双 provider + CredentialGate + 假面替换 + 热刷新端到端；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（T0 清偿 `4fc4187`）🟢-2（假面 `b351d42`、L-1 deepseek 半清偿 `af3d9b7`） |
 | 05a | 2026-09-02 | exa/perplexity/firecrawl 三 provider + settings 节 | ✅ | docs/sessions/2026-09-02-session-05a.md（五成员收编 L-1 全清 + settings 热改链序/超时/启停 + D7 壳透传修正；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟢-1（L-1 全清 `730ef40`/`d4842a1`/`9a4eb74`） |
 | 05b | 2026-09-02 | 安装端到端 + 卸载复原（M3 收官棒） | ✅ | docs/sessions/2026-09-02-session-05b.md（安装/接线/复原三态 dump 对照 + boot 加载 + 隔离审计；**发现并修复 manifest 平铺键缺陷**；阶段 2 两轮审核 APPROVED + 用户真实批准；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（Y-1 T0 清偿）+ dont-do 第三条沉淀 |
-| 06 | 2026-09-02 | 「网页搜索」设置页骨架 | 🚧 | docs/sessions/2026-09-02-session-06.md（🚧 生成中） | 🟢+2 观察（s06-stage0：tgz 尺寸转录漂移、STATUS M3 行口径——后者已随启动刷新统一） |
+| 06 | 2026-09-02 | 「网页搜索」设置页骨架 | ✅ | docs/sessions/2026-09-02-session-06.md（client half 端到端：构建契约 + 5 provider 卡 + 双链只读 + 浏览器六断言；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE 含 🟡 提交态清偿；基线 184\|6(190)） | 🟡+1→0（stage45 抓获提交态不自洽，`899e2fd` 清偿）🟢 观察×4 注记 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 06（🚧 进行中 2026-09-02 启动）
-- **所处里程碑**: M4 设置页完备（🚧 S06 进行中）。M3 宿主包完备（🚧 机械面 ✅ S03-S05b；余用户 with-key 槽位回填——不阻塞 S06）
-- **上一棒**: Session 05b（安装端到端 + 卸载复原 + manifest 嵌套键修复；dump 三态对照全过）— 记录：docs/sessions/2026-09-02-session-05b.md
-- **下一棒**: 本棒收官后 = roadmap 下一 ⏳ 行 Session 07（优先级排序 + 覆盖标记 + i18n）
-- **活跃债务**: 🔴×0 🟡×0 🟢×1（L-2 二期）+ 观察×2 新增（s06-stage0 审核落盘）——正本：docs/progress/progress-M3.md
-- **更新时间**: 2026-09-02（S06 启动刷新）
+- **当前 session**: 无进行中（Session 06 ✅ 2026-09-02 收官）
+- **所处里程碑**: M4 设置页完备（🚧 S06 骨架棒 ✅；余 S07 排序+i18n）。M3 宿主包完备（🚧 机械面 ✅ S03-S05b；余用户 with-key 槽位回填——不阻塞 S07）
+- **上一棒**: Session 06（设置页骨架：client half 端到端 + 浏览器六断言 + 27 新测试）— 记录：docs/sessions/2026-09-02-session-06.md
+- **下一棒**: roadmap 第一个 ⏳ 行 = Session 07（优先级排序 + 覆盖标记 + i18n；链只读块即排序 UI 落点，settingsScope/store 机制 S07 再评估）
+- **活跃债务**: 🔴×0 🟡×0 🟢×1（L-2 二期）+ 观察（react 锚/tsdown 弃用/sourcemap/settingsScope）——正本：docs/progress/progress-M4.md
+- **更新时间**: 2026-09-02（S06 阶段 6 收尾）
