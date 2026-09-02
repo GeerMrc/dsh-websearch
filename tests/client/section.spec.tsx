@@ -43,6 +43,8 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     members,
     searchChain: BUILT_IN,
     fetchChain: BUILT_IN,
+    searchChainPinned: false,
+    fetchChainPinned: false,
     timeoutMs: 30000,
     revision: 0,
     writable: true,

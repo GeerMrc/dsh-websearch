@@ -79,6 +79,10 @@ export interface SectionSnapshot {
   readonly members: readonly MemberSnapshot[]
   readonly searchChain: readonly string[]
   readonly fetchChain: readonly string[]
+  /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
+  readonly searchChainPinned: boolean
+  /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
+  readonly fetchChainPinned: boolean
   readonly timeoutMs: number
   readonly revision: number | undefined
   readonly writable: boolean
@@ -115,6 +119,8 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     members,
     searchChain: value.searchChain?.length ? [...value.searchChain] : BUILT_IN_MEMBER_ORDER,
     fetchChain: value.fetchChain?.length ? [...value.fetchChain] : BUILT_IN_MEMBER_ORDER,
+    searchChainPinned: (value.searchChain?.length ?? 0) > 0,
+    fetchChainPinned: (value.fetchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     revision,
     writable,
@@ -194,6 +200,25 @@ export class WebSearchSettingsController {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { enabled } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    this.#value = (result.value.value ?? {}) as SectionValue
+    this.#revision = result.value.revision
+    this.#recompute()
+    return { ok: true }
+  }
+
+  /**
+   * Move one search-chain entry one slot, then patch the full array back
+   * (hot gate). Moving on the built-in order materializes the effective order
+   * as an explicit chain — which is itself what flips the pinned marker.
+   */
+  async moveSearchChainEntry(id: string, delta: -1 | 1): Promise<ActionResult> {
+    const chain = [...this.#snapshot.searchChain]
+    const from = chain.indexOf(id)
+    const to = from + delta
+    if (from < 0 || to < 0 || to >= chain.length) return { ok: false }
+    ;[chain[from], chain[to]] = [chain[to], chain[from]]
+    const result = await this.#ports.updateSettings(NS, { searchChain: chain }, this.#revision)
     if (!result.ok) return { ok: false }
     this.#value = (result.value.value ?? {}) as SectionValue
     this.#revision = result.value.revision
