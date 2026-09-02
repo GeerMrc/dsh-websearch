@@ -2,8 +2,7 @@ import { defineConfig } from 'tsdown'
 
 /**
  * Node-half bundle: `src/index.ts` → `lib/index.js` (ESM) + `lib/index.d.ts`.
- * The client-half bundle (cjs + ModuleLoader banner) is a separate tsdown
- * configuration added with the client half in S06 (ADR-0006 contract).
+ * The client half builds through `tsdown.client.config.ts` (`pnpm build:client`).
  */
 export default defineConfig({
   entry: ['src/index.ts'],
