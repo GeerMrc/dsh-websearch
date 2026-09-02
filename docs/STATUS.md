@@ -33,12 +33,13 @@
 |---|---|---|---|---|---|
 | 01 | 2026-09-02 | 治理套件安装 + 架构/WBS 定稿过审 | ✅ | docs/sessions/2026-09-02-session-01.md（规划四件套 + 治理套件安装 + 两轮审核 APPROVED） | 🟢+2 |
 | 02 | 2026-09-02 | Spike：外置 client half + 安装链路 + 交付形态定谳 | ✅ | docs/sessions/2026-09-02-session-02.md（五假设全定谳 + ADR-0006/0007 + 阶段 2 两轮审核 APPROVED） | 🟡-1（T0 清偿 `410d58f`）🟢+1（L-3） |
+| 03 | 2026-09-02 | 插件宿主骨架 + 链式 meta-provider | 🚧 | docs/plans/2026-09-02-003-s03-host-skeleton-chain-plan.md（进行中） | 🟡+3（阶段 0 审核新增，本棒 T0 清偿） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 02 ✅ 2026-09-02 收官）
-- **所处里程碑**: M2 可行性定谳 ✅（下一：M3 宿主包完备）
+- **当前 session**: Session 03（🚧 进行中，插件宿主骨架 + 链式 meta-provider）
+- **所处里程碑**: M3 宿主包完备（进行中）
 - **上一棒**: Session 02（Spike：五假设全定谳 GO；ADR-0006/0007 定稿）— 记录：docs/sessions/2026-09-02-session-02.md
-- **下一棒**: roadmap 第一个 ⏳ 行 = Session 03（插件宿主骨架 + 链式 meta-provider；包形态按 ADR-0007、构建契约按 ADR-0006）
-- **活跃债务**: 🔴×0 🟡×0 🟢×3（L-1/L-2/L-3）+ 备注×2 —— 正本：docs/progress/progress-M2.md
-- **更新时间**: 2026-09-02（阶段 6 收尾）
+- **下一棒**: 本棒进行中（roadmap S03 行）；收官后 = roadmap 下一 ⏳ 行 = Session 04（deepseek/tavily provider + 凭据接线）
+- **活跃债务**: 🔴×0 🟡×3（阶段 0 审核新增，T0 清偿中）🟢×3（L-1/L-2/L-3）+ 备注×2 —— 正本：docs/progress/progress-M2.md
+- **更新时间**: 2026-09-02（session 启动）

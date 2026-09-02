@@ -49,6 +49,10 @@
 | R4 | scratch 隔离可证 | PASS | 全程 `DSH_HOME=/tmp/dshws-s02-spike/home`、profile=`web`（scratch 内）、端口 3410（非 3080）、启动 cwd=deepseek-harness 仓根（源码启动相对路径所需；隔离语义由 DSH_HOME 重定向承载——阶段 5 勘正 V-01）、环境无真实密钥、真实 `~/.dsh` 零接触（时间戳核查）；凭据仅伪值且 unset 后 refs 空 |
 | R5 | 收尾 6 件套齐备且原子翻转 | PASS | session-02 记录（两新节+Spike 三节）/ progress-M2（本文件）/ STATUS 台账+当前位置块+里程碑 M2 ✅ / roadmap S02 行+M2 锚 ✅ / CHANGELOG / 接力指令（记录「下一 Session 启动指令」节 + 回复末尾）——阶段 6 同一序列完成 |
 
+### 收官对账补注（S03 阶段 0 审核 🟡-3 清偿，2026-09-02）
+
+阶段 4/5 独立验证结论 PASS-WITH-NOTES 的 V-01..V-04 逐条对账：**V-01**（🟡 R4 cwd 表述——隔离语义由 DSH_HOME 重定向承载，启动 cwd 仅源码启动所需）已随收官勘正落本文件 R4 行；**V-02**（🟢 R1 行数计数口径）已落 progress-M1 R1 行口径注；**V-03/V-04**（🟢 已采）正本文本未持久化、仅存于收官 commit `45ee143` message 摘要行——**留痕缺口如实承认**，可考的落地物为该 commit 实改集：`docs/00-architecture.md`（§8 开放问题定谳标注 + §9 ADR 对照表补 0006/0007 行）与 progress-M1 R1 口径注。流程改进：阶段 4/5 发现自本棒起逐条全文落 progress 台账，不得只存 commit message。同注（🟡-2 清偿）：R1「8 行」为**时点计数**，正本口径 = progress-M1 R1 行（性质分类零事实占位、非固定行数；后续重放命中 9 行系 session-02 记录自引条目自然增长，属预期）；次级载体（session-02 记录 / CHANGELOG / 本表 R1 证据列）为历史证据不回改，此后不再新增誊写。
+
 ## 技术债（台账）
 
 | 债务 | 等级 | 归属 |
