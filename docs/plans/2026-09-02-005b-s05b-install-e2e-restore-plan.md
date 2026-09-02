@@ -60,7 +60,7 @@ T0 补清偿（审核轮 1 必改 1）：progress-M3 里程碑区重复 M3 行�
 | # | 决策 | 依据 |
 |---|---|---|
 | D1 | scratch 隔离配方 = `DSH_HOME=/tmp/dshws-s05b/home` + `web` 模板（auto-scaffold，摸底实证）+ 实例端口 3411 + 启动 cwd=deepseek-harness 仓根 + 环境无真实密钥；真实 `~/.dsh` 与 3080 实例零接触（收尾列命令清单证明） | S02 配方直接复用；AGENTS.md 环境纪律 |
-| D2 | 对照观察面 = `--dump-config`（组合树，无实例无 LLM 无 key）：T1 基线（deepseek-official）/T3 接线（dshws-chain）/T5 复原（与基线 diff 零）三态对照；boot 实例（T4）只作加载证明（零 load 错误），不作选择标量观测 | dump-config 与 boot 共用同一组合函数（profile.ts:125-140 composeEntries 注释明示）——观测面即启动事实；无 LLM 环境下唯一可自主实测的路由证据 |
+| D2 | 对照观察面 = `--dump-config`（组合树，无实例无 LLM 无 key）：T1 基线（deepseek-official）/T3 接线（dshws-chain）/T5 复原（与基线 diff 零）三态对照；boot 实例（T4）只作加载证明（零 load 错误），不作选择标量观测 | dump-config 与 boot 共用同一组合函数（profile.ts:846-861 composeEntries 注释明示，复审残项修正）——观测面即启动事实；无 LLM 环境下唯一可自主实测的路由证据 |
 | D3 | 卸载语义**实测优先**：`dsh plugin remove` 对 `dsh.profile.bundles` 的 reconcile 行为未知（add 侧已证自动追加，remove 侧未证）——以实测为准；复原验收 = dump-config 与 T1 基线 diff 为零（不预设步骤）；精确卸载步骤实录入 Agent Note（S09 手册正素材） | roadmap 验收「卸载插件+删 patch 后上游行为复原」；不假设即不误写手册 |
 | D4 | with-key 结果面 = **用户实测槽位**（S10/M6 同构）：S05b 收官 = 机械面全绿 ✅；M3 里程碑行保持 🚧 附注「余用户 with-key 实测证据回填」；S06 启动不被阻塞（roadmap 顺序独立于该槽位） | 接力指令显式预告 user-paces-verification；真实 key 本机不存在（阶段 1 实测四 key 全 unset） |
 | D5 | 用户实测槽位载体 = session 记录「用户实测指引」节（精确命令序列：配 key→起实例→web_search→断言 `[served-by:]` 首行→收尾）+ scratch home **保留在接线态**（不清理，供用户直接使用；/tmp 易失性如实标注——用户可按指引重建） | user-paces 惯例（环境备好即停）；S02 scratch 清理先例（阶段 5 后仅清自建目录——本棒因槽位保留，差异显式声明） |
