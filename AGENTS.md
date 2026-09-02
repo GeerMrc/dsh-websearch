@@ -21,8 +21,8 @@ DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）�
 ## seam 依赖纪律（上游可持续契约）
 
 - 只依赖公开面：`@deepseek-ai/dsh-web` 的 provider 接口与 `ctx.web` 注册 API（type-only import）、credentials / settings 服务注入、client 公共 API（slots / locale / remote）。禁 import 上游内部模块、禁依赖上游私有注册表。
-- provider id 全前缀隔离：本插件注册的一切 provider id 以 `dshws-` 开头（如 `dshws-chain`、`dshws-tavily`），杜绝与上游及第三方插件（`deepseek-official`/`exa`/`perplexity`/`http`/`anysearch`）撞名触发 `WEB_DUPLICATE_PROVIDER`。
-- peer 依赖（`@deepseek-ai/cordis`、`@deepseek-ai/dsh-web`）版本域钉死 `0.1.2-alpha.x`；上游升级必须跑升级演练手册（`docs/upgrade.md`，S09 交付）后才可声明兼容。
+- provider id 全前缀隔离：本插件注册的一切 provider id 以 `dshws-` 开头（如 `dshws-chain`、`dshws-tavily`），杜绝与上游已注册 provider id 及第三方 id（`deepseek-official`/`exa`/`perplexity`/`http`/`anysearch`）撞名触发 `WEB_DUPLICATE_PROVIDER`。
+- peer 依赖版本域：`@deepseek-ai/cordis` 钉 `>=4.0.1-rc.1 <5`（宿主 vendored cordis 实为 4.0.2；anysearch 先例同域），`@deepseek-ai/dsh-web` 钉 `>=0.1.2-alpha.3 <0.1.3`——S03 落 package.json 时以 `npm view` 实测为准刷新；上游升级必须跑升级演练手册（`docs/upgrade.md`，S09 交付）后才可声明兼容。
 
 ## 测试要求
 
