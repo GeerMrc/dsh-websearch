@@ -44,12 +44,24 @@
 
 **里程碑 M4 设置页完备**：GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 —— ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言证据；热生效 = S05a 实测 + S07 热链序回归——复合证据按 plan 007 D6 尺，S07 阶段 4/5 裁定成立）
 
+## 功能扩展（M7 功能扩展）
+
+> 2026-09-03 用户需求扩展批次（ADR-0008/0009/0010 定谳；原 S09/S10 顺延为 S12/S13）。
+
+| Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
+|---|---|---|---|---|---|
+| **09** | 多 APIKEY 池 + 选择策略 | config 每成员 `extraApiKeyEnvs` + `keySelection`（order/round-robin/random，ADR-0008）；`src/keys.ts` KeyPool（thunk 落点，provider 零改动）；gate/prime 全池扩展；GUI 附加 keys 列表（自绘仿链排序）+ typed locales；loopback stub 记 Authorization header 轮换断言 | 不配置 = 现状零变化；round-robin 三 key 三连发逐把轮换（e2e 实测）+ random 冒烟 + order 首个就绪；全空池才 CREDENTIAL_MISSING；策略/池 settings 热生效实测；门墙全绿 | 1-2 天 | ⏳ |
+| **10** | anysearch 第六成员 | `src/providers/anysearch.ts` HTTP 自实现（ADR-0009：POST /v1/search + 信封 code≠0 → httpError + content→snippet 补映射）；`MEMBER_ERROR_CODES.anysearch` 五码族；config anysearch 节（enabled/apiKeyEnv/baseURL/zone）；BUILT_IN_MEMBER_ORDER 尾部追加；node 接线 + client 第 6 卡 + locales；单测（envelope/429/断网/超时）+ loopback 扩展 + 真实 API smoke 自跳 | 成员全链路绿（链可含 dshws-anysearch 降级/署名/排序）；GUI 六卡渲染 + key 写通路；与 3080 anysearch 插件共存语义在档；真实 smoke 无 key 自跳；门墙全绿 | 1-2 天 | ⏳ |
+| **11** | session 搜索溯源增强 | 插件 client half 接管 `tool.call.toolview` web_search key（priority shadow，ADR-0010）；解析 served-by 首行 → 折叠行服务徽标；回退语义（无署名/形状不符 → 宿主同构/generic）；成员名映射 + typed locales；jsdom 契约 + 浏览器实测（session 视图徽标可见 + 回退态） | 徽标在 session 工具调用行可见（浏览器实测）；直连/外来结果回退态正确；宿主源码零 diff 断言；门墙全绿（含 check:i18n 新键） | 1-2 天 | ⏳ |
+
+**里程碑 M7 功能扩展**：每成员多 APIKEY（多 ref 池 + order/round-robin/random）+ anysearch 第六成员 + session 工具调用溯源徽标（零内核侵入）—— 完成时填 ✅ 日期（Session 11 证据）；v2 backlog：各成员余额/积分定期统计与数据看板（ADR-0008 缓议章节，未排期）
+
 ## 验证与文档（M5 交付就绪）
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
 | **08** | e2e 场景收口 | loopback stub：断网降级/429 降级/超时降级/全败报错/顺序保持/servedBy 透出/钉死直连不降级；真实 API e2e 自跳 | 各场景 e2e 绿（时序断言：失败成员→下一成员的调用序；`DSHWS_CHAIN_EXHAUSTED` 与逐成员摘要断言；content 首行署名断言） | 1 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-08.md；loopback 七场景 + 链级真实 smoke 自跳；src 零变更兑现） |
-| **09** | README + 迁移 + 升级手册 | README（zh/en：安装/配置/GUI/链语义）；anysearch 迁移（**先删其 patch 两行标量覆盖，再写本插件两行，附顺序与验证命令**）；docs/upgrade.md 升级演练手册 | 由独立审核 Agent 照手册从零在 scratch profile 走通安装→搜索并留痕；演练手册步骤可独立执行 | 1 天 | ⏳ |
+| **12** | README + 迁移 + 升级手册（原 S09，2026-09-03 顺延——特性三棒前置，手册一次写全含 anysearch 迁移新现实） | README（zh/en：安装/配置/GUI/链语义/**多 key 池**）；anysearch 迁移（**先删其 patch 两行标量覆盖，再写本插件两行，附顺序与验证命令**；含官方 anysearch 插件共存/退役语义 ADR-0009）；docs/upgrade.md 升级演练手册（含溯源替身卡片维护点 ADR-0010） | 由独立审核 Agent 照手册从零在 scratch profile 走通安装→搜索并留痕；演练手册步骤可独立执行 | 1 天 | ⏳ |
 
 **里程碑 M5 交付就绪**：e2e 收口全绿，文档自洽可复现 —— 🚧 e2e 收口腿 ✅ 2026-09-02（Session 08 证据：loopback 七场景 + 真实 API 自跳）；文档腿 S09——两腿齐后填 ✅（Session 09 证据）
 
@@ -57,10 +69,10 @@
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **10** | 上游重建验收准备 | 全新上游 build 环境步骤；验收清单（无 DEEPSEEK key 可搜索/GUI 全流程/降级演示/卸载复原）；anysearch 退役步骤 | 清单文档 + 环境备好；实测环节由用户择机执行，STATUS.md 保持 M6 未决直至用户证据回填 | 0.5 天 | ⏳ |
+| **13** | 上游重建验收准备（原 S10，2026-09-03 顺延） | 全新上游 build 环境步骤；验收清单（无 DEEPSEEK key 可搜索/GUI 全流程/降级演示/卸载复原）；anysearch 退役步骤 | 清单文档 + 环境备好；实测环节由用户择机执行，STATUS.md 保持 M6 未决直至用户证据回填 | 0.5 天 | ⏳ |
 
 **里程碑 M6 上游验收通过**：用户在上游全新构建上完成验收清单 —— 完成时填 ✅ 日期（用户实测证据）
 
 ---
 
-阶段划分与里程碑受控词表：M1 治理与规划定稿 / M2 可行性定谳 / M3 宿主包完备 / M4 设置页完备 / M5 交付就绪 / M6 上游验收通过。新阶段在文件尾部追加，不动历史行。
+阶段划分与里程碑受控词表：M1 治理与规划定稿 / M2 可行性定谳 / M3 宿主包完备 / M4 设置页完备 / M5 交付就绪 / M6 上游验收通过 / **M7 功能扩展**（2026-09-03 ADR-0008/0009/0010 增设）。新阶段在文件尾部追加，不动历史行。
