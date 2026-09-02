@@ -10,5 +10,6 @@
     "src/client/**/*.tsx",
     "tests/client/**/*.ts",
     "tests/client/**/*.tsx"
-  ]
+  ],
+  "exclude": []
 }
