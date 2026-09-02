@@ -40,16 +40,16 @@ dsh-websearch/
 │   ├── index.ts                # 插件宿主：name/inject/Config/apply；只做装配，不含业务逻辑
 │   ├── config.ts               # Config schema（schemastery）：链序 + 每 provider 子节
 │   ├── chain/                  # 链式 meta-provider（本项目核心资产）
-│   │   ├── search-chain.ts     # dshws-chain：search 优先级链 + 降级
-│   │   └── fetch-chain.ts      # dshws-chain-fetch：fetch 同构
-│   ├── providers/              # 内置 provider 实现（每文件一个，互不依赖）
+│   │   └── core.ts             # 泛型编排 ChainCore + dshws-chain / dshws-chain-fetch 薄壳 + MemberRegistry
+│   ├── providers/              # 内置 provider 实现（每 provider 一文件 + 共享机械脚手架）
+│   │   ├── shared.ts           # 成员共享脚手架（取消/错误族/凭据解析包装；只放函数，不建类层次）
 │   │   ├── deepseek.ts         # dshws-deepseek（Anthropic 兼容 Messages + web_search server tool）
 │   │   ├── tavily.ts           # dshws-tavily（POST /search）
-│   │   ├── firecrawl.ts        # dshws-firecrawl（search + 抓取，同 key）
+│   │   ├── firecrawl.ts        # dshws-firecrawl（v2 search + scrape，单类双接口，同 key）
 │   │   ├── exa.ts              # dshws-exa（POST {baseURL}/search）
 │   │   └── perplexity.ts       # dshws-perplexity（OpenAI 兼容 chat-completions, sonar）
-│   ├── credentials.ts          # 每 provider key ref 解析 + available() 缓存 + credentials/reference-updated 刷新
-│   └── settings.ts             # installSection：链序等用户可热改字段
+│   ├── credentials.ts          # 凭据 gate：describe 缓存 + credentials/reference-updated 刷新（未 describe = 未就绪）
+│   └── settings.ts             # LiveResolvedConfig + installSection：链序/超时/启停热改
 ├── client/                     # client 半区（设置页）
 │   ├── index.ts                # apply：ctx.slots.inject('settings.section', ...)
 │   ├── WebSearchSection.tsx    # 「网页搜索」设置页：provider 卡 + search 链优先级排序 + 状态；fetchChain v1 只读展示
