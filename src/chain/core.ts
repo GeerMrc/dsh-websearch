@@ -63,24 +63,29 @@ export class ChainSearchProvider implements WebSearchProvider {
     })
   }
 
-  /** Try members in configured order; first success serves (degradation lands with its own task). */
+  /** Try members in configured order; runtime failures degrade to the next member (ADR-0002 Decision 2). */
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
     const failures: ChainMemberFailure[] = []
     for (const id of this.options.order) {
       const member = this.options.members.resolve(id)
       if (!isUsable(member)) continue
-      return member.provider.search(request, signal)
+      try {
+        return await member.provider.search(request, signal)
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error)
+        failures.push({ memberId: id, reason, error })
+        this.options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
+      }
     }
-    throw noMemberConfigured(this.options.order, failures)
+    if (failures.length === 0) throw noMemberConfigured(this.options.order)
+    throw createChainExhaustedError(failures)
   }
 }
 
 /** Build the fail-loud error for a chain whose members were all selection-skipped. */
-function noMemberConfigured(order: readonly string[], failures: readonly ChainMemberFailure[]): DshwsError {
+function noMemberConfigured(order: readonly string[]): DshwsError {
   return new DshwsError(
     CHAIN_ERROR_CODES.noMemberConfigured,
-    failures.length === 0
-      ? `${CHAIN_ERROR_CODES.noMemberConfigured}: no usable member on the chain (configured: ${order.join(', ')})`
-      : createChainExhaustedError(failures).message,
+    `${CHAIN_ERROR_CODES.noMemberConfigured}: no usable member on the chain (configured: ${order.join(', ')})`,
   )
 }

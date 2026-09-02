@@ -193,3 +193,49 @@ describe('chain availability (链自身 available())', () => {
     expect(chain.available()).toBe(false)
   })
 })
+
+function failingProvider(id: string, calls: string[], message: string): WebSearchProvider {
+  return {
+    id,
+    available: () => true,
+    search: async () => {
+      calls.push(id)
+      throw new Error(message)
+    },
+  }
+}
+
+describe('runtime degradation (必测④)', () => {
+  it('degrades to the next member when one member throws at runtime', async () => {
+    const calls: string[] = []
+    const logs: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-quota': { provider: failingProvider('dshws-quota', calls, '429 quota exceeded') },
+        'dshws-fresh': { provider: trackingProvider('dshws-fresh', calls) },
+      }),
+      order: ['dshws-quota', 'dshws-fresh'],
+      perMemberTimeoutMs: 1000,
+      log: (message) => logs.push(message),
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(calls).toEqual(['dshws-quota', 'dshws-fresh'])
+    expect(result.sources).toEqual([])
+    expect(logs.some((line) => line.includes('dshws-quota') && line.includes('429 quota exceeded'))).toBe(true)
+  })
+
+  it('degrades across several failing members, keeping the configured order', async () => {
+    const calls: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-a': { provider: failingProvider('dshws-a', calls, 'first down') },
+        'dshws-b': { provider: failingProvider('dshws-b', calls, 'second down') },
+        'dshws-c': { provider: trackingProvider('dshws-c', calls) },
+      }),
+      order: ['dshws-a', 'dshws-b', 'dshws-c'],
+      perMemberTimeoutMs: 1000,
+    })
+    await chain.search({ query: 'q' })
+    expect(calls).toEqual(['dshws-a', 'dshws-b', 'dshws-c'])
+  })
+})
