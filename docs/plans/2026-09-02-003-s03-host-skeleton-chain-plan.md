@@ -5,6 +5,10 @@
 > 契约/逻辑类任务先红后绿，机械/配置类任务验证手段 = 命令绿（豁免分类见执行纪律，须阶段 2
 > 审核 Agent 确认）。
 
+阶段 2 独立审核轮 1（2026-09-02）：**NEEDS REVISION**（F-001 🟡 分支纪律缺失 / F-002 🟡 链
+available() 语义缺测 / F-003 🟡 六件套枚举漏踩坑沉淀；F-004..F-008 🟢），本 plan 为修订版
+（全项吸收；复审续用同一审核 Agent）。
+
 ## 目标
 
 S03 交付 `dsh-websearch` 正式包骨架（node 半区）与链式 meta-provider 核心资产：manifest 按
@@ -56,25 +60,28 @@ ADR-0002；包形态正本 = ADR-0007；构建契约（client 侧）= ADR-0006�
 | 任务 | 内容 | 验收要点 | 类别 | 前置 |
 |---|---|---|---|---|
 | T0 | 前序 🟡×3 清偿 + STATUS 启动侧刷新：① progress-M1 里程碑表 M2 行 ⏳→✅（指针 progress-M2 阶段验收表）；② progress-M2 增「收官对账补注」（V-01..V-04 逐条对账 + V-03/V-04 留痕缺口如实承认 + 「8 行」时点计数口径指针 + 阶段 4/5 发现自本棒起逐条落台账的流程改进）；③ STATUS 台账加 S03 🚧行 + 当前位置块刷新 | 三处落盘 file:line 可查；与本 plan 同批 commit 留痕 | docs | 无 |
-| T1 | 包骨架：package.json（name `dsh-websearch`/version `0.1.0`/type module/engines/packageManager/exports["." types+import+default]/files `["lib","cordis.patch.yml"]`/`dsh.bundle.patch` 指向自带 cordis.patch.yml/peer 域 cordis `>=4.0.1-rc.1 <5` + dsh-web `>=0.1.2-alpha.3 <0.1.3`/dep schemastery `>=3.18.1-rc.1 <4`/devDeps 实钉 cordis 4.0.2 + dsh-web 0.1.2-alpha.4 + dsh-llm 0.1.2-alpha.4 + 工具链 D4 明细）+ tsconfig.json（strict、ESM、`.ts` 相对导入、noEmit typecheck 面）+ tsdown.config.ts（esm + dts → lib/，entry src/index.ts）+ cordis.patch.yml（insert `dsh-websearch` 插件行）+ .gitignore 核补 + 最小插件骨架 src/index.ts（name/inject/Config 占位/apply 空装配）+ `pnpm install` | ① install 0 error；② build 产出 lib/index.js + lib/index.d.ts；③ `tsc --noEmit` 0 error（对 npm 实钉 devDeps——即证 published dsh-web 类型面含 ctx.web 增强，不足则停下走范围变更回路，不私打补丁）；④ `pnpm pack --dry-run` 交付清单 = lib/* + cordis.patch.yml + package.json（docs/ 不入库） | 机械类 | T0 |
+| T1 | 包骨架：package.json（name `dsh-websearch`/version `0.1.0`/type module/engines/packageManager/exports["." types+import+default]/files `["lib","cordis.patch.yml"]`/`dsh.bundle.patch` 指向自带 cordis.patch.yml/peer 域 cordis `>=4.0.1-rc.1 <5` + dsh-web `>=0.1.2-alpha.3 <0.1.3`/dep schemastery `>=3.18.1-rc.1 <4`/devDeps 实钉 cordis 4.0.2 + dsh-web 0.1.2-alpha.4 + dsh-llm 0.1.2-alpha.4 + 工具链 D4 明细）+ tsconfig.json（strict、ESM、moduleResolution NodeNext——published d.ts 内部为 `.ts` 后缀相对导入、`.ts` 相对导入、noEmit typecheck 面）+ tsdown.config.ts（esm + dts → lib/，entry src/index.ts）+ cordis.patch.yml（insert `dsh-websearch` 插件行）+ .gitignore 核补 + 最小插件骨架 src/index.ts（name/inject/Config 占位/apply 空装配）+ `pnpm install` | ① install 0 error；② build 产出 lib/index.js + lib/index.d.ts；③ `tsc --noEmit` 0 error（对 npm 实钉 devDeps——即证 published dsh-web 类型面含 ctx.web 增强，不足则停下走范围变更回路，不私打补丁）；④ `pnpm pack --dry-run` 交付清单 = lib/* + cordis.patch.yml + package.json（docs/ 不入库） | 机械类 | T0 |
 | T2 | 工具链四命令脚本：`test` = vitest run（暂 `--passWithNoTests`，T3 落首个测试时移除）/ `typecheck` = tsc --noEmit / `lint` = oxlint src tests / `build` = tsdown | 四命令 exit 0，命令原文与数字入记录 | 机械类 | T1 |
 | T3 | src/errors.ts：`DshwsError`（code/message/cause）+ 链级码 `DSHWS_CHAIN_EXHAUSTED` / `DSHWS_NO_MEMBER_CONFIGURED` / `DSHWS_MEMBER_TIMEOUT`（日志码）+ 成员级码清单（deepseek/tavily/firecrawl/exa/perplexity 五族命名空间常量 + JSDoc 契约；具体成员码随 S04/S05a provider 落地扩充）+ 逐成员摘要格式化 helper（成员 id + 失败原因/码；全败错误的 cause = 末位成员错误） | 先红：错误携带 code、摘要含逐成员 id+原因、全败构造 cause=末位错误 → 后绿 → commit | TDD | T2 |
 | T4 | src/config.ts：Config interface + z schema（架构 §5 全字段：searchChain/fetchChain/perMemberTimeoutMs + 五 provider 子节）+ resolveConfig 显式默认化（链空 → 内置默认序 tavily→exa→perplexity→firecrawl→deepseek；timeout 默认 30000；子节字段默认）。默认化一律在 resolveConfig 显式做，不依赖 schema 默认值注入 | 先红：空链→默认序、显式链保序且容忍未知 id（运行期跳过语义，§4）、timeout 默认与非法值拒绝、子节默认 → 后绿 → commit | TDD | T2 |
 | T5 | 链核 src/chain/core.ts（泛型编排，HTTP-free；成员解析经 port：`resolve(id) → { provider; enabled; credentialsReady } | undefined`，核心零 cordis 耦合）+ 必测①顺序保持：fake 成员按配置序排列，首位可用成员先中、spy 调用序 = 配置序 | 先红 → 后绿 → commit | TDD | T4 |
-| T6 | 必测②未配置跳过 + ③不可用跳过（选择级：未注册/未启用/凭据未配置/available()=false 各形态跳过不消耗调用）+ 全跳过 → 抛 `DSHWS_NO_MEMBER_CONFIGURED` | 先红×3 → 后绿 → commit | TDD | T5 |
+| T6 | 必测②未配置跳过 + ③不可用跳过（选择级：未注册/未启用/凭据未配置/available()=false 各形态跳过不消耗调用）+ 全跳过 → 抛 `DSHWS_NO_MEMBER_CONFIGURED` + 链自身 `available()` 语义（§4 首条：≥1 个启用成员凭据就绪 → true、否则 false；便宜本地检查，port 驱动零网络） | 先红×3 → 后绿 → commit（available() 两断言并入同批红绿） | TDD | T5 |
 | T7 | 必测④运行失败降级：成员 search 抛错 → 记录摘要 → 降级下一成员成功返回 | 先红 → 后绿 → commit | TDD | T6 |
 | T8 | 必测⑤全败：全部成员运行失败 → 抛 `DSHWS_CHAIN_EXHAUSTED` + 逐成员摘要 + cause=末位错误 | 先红 → 后绿 → commit | TDD | T7 |
 | T9 | 必测⑥servedBy：成功结果 content 首行 `[served-by: <id>]`（有 content/无 content 两形态，D2）+ 宿主日志一行（log port 注入，测试捕获断言） | 先红 → 后绿 → commit | TDD | T8 |
 | T10 | 必测⑦超时降级：perMemberTimeoutMs 预算内未返回 → 视同失败，abort 该成员 signal，摘要记 `DSHWS_MEMBER_TIMEOUT`，降级下一成员（fake timers 优先，稳定性不足则真实短时延，风险节预案） | 先红 → 后绿 → commit | TDD | T9 |
-| T11 | 必测⑧钉死直连不降级 + apply 定形：成员注册 helper（成员按自身 id 独立注册 `ctx.web`、返回 disposer——上游标量钉死成员 id 即直连成员本体，链不介入）；直连调用错误原样传播断言（不经链、不包装）；src/index.ts apply 定形（inject `['web']`、注册 `dshws-chain`/`dshws-chain-fetch`、成员注册表接线、Config→resolveConfig→链构造） | 先红：fake ctx.web 断言双链注册形态 + disposer 生效 + 直连错误传播 → 后绿 → commit | TDD | T10 |
+| T11 | 必测⑧钉死直连不降级 + apply 定形：成员注册 helper（成员按自身 id 独立注册 `ctx.web`、返回 disposer——上游标量钉死成员 id 即直连成员本体，链不介入）；直连调用错误原样传播断言（不经链、不包装）；src/index.ts apply 定形（inject `['web']`、注册 `dshws-chain`/`dshws-chain-fetch`、成员注册表接线、Config→resolveConfig→链构造） | 先红：fake ctx.web 断言双链注册形态 + disposer 生效 + 直连错误传播 → 后绿 → commit；红绿证据附 scope 注：⑧端到端闭合（真实上游标量钉死成员）由 S08 loopback 场景收口，本棒验收面为插件自有注册层 | TDD | T10 |
 | T12 | fetch 链同构：链核泛型化覆契约 `WebFetchProvider`（`dshws-chain-fetch`），归因 = 宿主日志一行（D3）；fetch 面镜像必测子集：顺序保持 / 运行失败降级 / 全败 CHAIN_EXHAUSTED / 超时降级 / 归因日志（核心语义已由 search 面全测，本任务证 fetch 适配层接线正确，防双实现漂移） | 先红 → 后绿 → commit | TDD | T11 |
-| T13 | 门墙收口 + Agent Note：四命令全绿（`pnpm test`/`pnpm build`/`pnpm typecheck`/`pnpm lint`，命令原文与数字）；Agent Note 落 docs/notes/（链核 port 设计、fake 策略、servedBy 承载 D2、fetch 归因 D3、client 键延后 D1、core.ts 为架构 §3 树外新增文件的结构说明）；progress-M3 新开（任务表 + 债务台账 + 已验锚点台账） | 四命令绿 + Note 落盘 + progress-M3 骨架 | — | T12 |
+| T13 | 门墙收口 + Agent Note：四命令全绿（`pnpm test`/`pnpm build`/`pnpm typecheck`/`pnpm lint`，命令原文与数字）；Agent Note 落 docs/notes/（链核 port 设计、fake 策略、servedBy 承载 D2、fetch 归因 D3、client 键延后 D1、core.ts 为架构 §3 树外新增文件的结构说明）；progress-M3 新开（任务表 + 债务台账 + 已验锚点台账：本 plan 摸底实锚之 anysearch manifest 依赖纪律 / npm versions 全列表 / 上游 seam 行号一并入账） | 四命令绿 + Note 落盘 + progress-M3 骨架 | — | T12 |
 | T14 | 阶段 4/5 独立审核 + 交叉验证：R1-R5 逐条对峙（file:line + 实跑重放，全量测试唯一责任点）+ 安全/契约/前瞻三问 + 抽一条命令冒烟重放 | PASS / COMPLETE 结论落 progress-M3 | 独立 Agent | T13 |
-| T15 | 收尾 6 件套 + 原子翻转（STATUS 台账行 ✅ + 当前位置块 + roadmap S03 行 ✅ + progress-M3 阶段验收表，同一序列）+ 接力指令（当期格式五语义点，记录末节 + 回复末尾） | R5 全过 | — | T14 |
+| T15 | 收尾 6 件套 + 原子翻转（STATUS 台账行 ✅ + 当前位置块 + roadmap S03 行 ✅ + progress-M3 阶段验收表，同一序列）+ 踩坑沉淀（dont-do/RCA；无重大坑则显式声明零新增）+ 接力指令（当期格式五语义点，记录末节 + 回复末尾）+ `feat/s03-host-skeleton` 合入 master（阶段 4/5 PASS 后，分支闭环留痕） | R5 全过 | — | T14 |
 
-执行纪律：T0-T15 逐一串行，一任务一 commit（红→绿→commit），禁批量；写操作不并行。
-机械类（T1/T2）豁免红绿循环——豁免分类待阶段 2 审核 Agent 确认；其余任务全部先红后绿，
-红证据（测试失败输出原文）与绿证据（通过数字）随任务入 session 记录。
+执行纪律：本棒开发自 **`feat/s03-host-skeleton` 分支**推进（T1 起；T0/计划为治理文档提交，
+沿 S01/S02 纯文档直提 master 先例），阶段 4/5 PASS 后方合入 master（AGENTS.md 分支纪律；
+合并动作已列入高危预告披露）。T0-T15 逐一串行，一任务一 commit（红→绿→commit），禁批量；
+写操作不并行。机械类（T1/T2）豁免红绿循环，豁免类别 = governance §3.4.6「模板脚手架生成」
+（验证手段 = 一次全量命令覆盖，无逐文件红绿）——分类由阶段 2 审核 Agent 判定确认；其余任务
+全部先红后绿，红证据（测试失败输出原文）与绿证据（通过数字）随任务入 session 记录。
 
 ## 链语义必测 8 项 ↔ 任务映射
 
@@ -89,7 +96,7 @@ ADR-0002；包形态正本 = ADR-0007；构建契约（client 侧）= ADR-0006�
 | ⑦ | 超时降级 | T10 |
 | ⑧ | 钉死直连不降级 | T11 |
 
-（凭据热刷新按 roadmap 移 S04；`DSHWS_NO_MEMBER_CONFIGURED` 附加覆盖于 T6；fetch 同构 T12。）
+（凭据热刷新按 roadmap 移 S04；`DSHWS_NO_MEMBER_CONFIGURED` 与链自身 `available()` 语义附加覆盖于 T6；fetch 同构 T12。）
 
 ## 验收条目（R1-R5，progress-M3 阶段验收逐条对应）
 
@@ -97,7 +104,7 @@ ADR-0002；包形态正本 = ADR-0007；构建契约（client 侧）= ADR-0006�
 - **R2** 包骨架符合 ADR-0007 + dont-do 纪律：manifest 逐键核对（name/version/type/engines/exports/files/patch 键/peer 域与 npm 实测一致）；`pnpm pack --dry-run` 交付清单实测（docs/ 不入库）；`pnpm install`/`build`/`typecheck`/`lint` 全绿附命令原文
 - **R3** 链语义必测 8 项逐项红→绿留痕（每项红证据/绿证据/commit 三元组）+ `DSHWS_NO_MEMBER_CONFIGURED` 覆盖 + fetch 同构镜像
 - **R4** 门墙实测数字：`pnpm test`（N passed）、`pnpm typecheck`（0 error）、`pnpm lint`（0 error）、`pnpm build`（产物清单）——命令原文与数字，禁算术外推
-- **R5** 收尾 6 件套齐备且原子翻转：session 记录（含前序审核节 + 底部规范强化节）/ progress-M3（任务表 + 债务台账 + 已验锚点台账 + 阶段验收表）/ STATUS 台账 + 当前位置块 / roadmap S03 行 ✅ / CHANGELOG / 接力指令（记录末节 + 回复末尾双落位）
+- **R5** 收尾 6 件套齐备且原子翻转：session 记录（含前序审核节 + 底部规范强化节）/ progress-M3（任务表 + 债务台账 + 已验锚点台账 + 阶段验收表）/ STATUS 台账 + 当前位置块 / roadmap S03 行 ✅ / CHANGELOG / **踩坑沉淀（dont-do/RCA；无重大坑则显式声明零新增）** / 接力指令（记录末节 + 回复末尾双落位）；分支纪律闭环 = feat 分支合入 master 留痕
 
 ## 验证矩阵
 
@@ -116,7 +123,8 @@ ADR-0002；包形态正本 = ADR-0007；构建契约（client 侧）= ADR-0006�
 ## 高危命令预告（阶段 2.5 披露，对照 governance §3.4.7 清单）
 
 1. **依赖安装**：T1 `pnpm install`（新增 peer/dep/devDep 与工具链，非删除、非大版本变更——首装即锁定 pnpm-lock.yaml）
-2. **明确不做**：npm publish / git push / 真实凭据读写 / scratch profile 与实例启动 / `~/.dsh` 与 3080 实例触碰 / 仓库外路径写入 / 治理产物删除
+2. **本仓分支合并**：T15 将 `feat/s03-host-skeleton` 合入 master（阶段 4/5 PASS 之后执行；本地合并，无 push / 无 PR / 无 force）
+3. **明确不做**：npm publish / git push / 真实凭据读写 / scratch profile 与实例启动 / `~/.dsh` 与 3080 实例触碰 / 仓库外路径写入 / 治理产物删除
 
 ## 债务归属映射（🟢 延后项正本）
 
@@ -136,3 +144,4 @@ ADR-0002；包形态正本 = ADR-0007；构建契约（client 侧）= ADR-0006�
 - **schemastery API 面**（z.array / z.object / 校验语义）与预期不符 → 以实装 3.18.2 实测为准；默认化一律在 resolveConfig 显式做，不依赖 schema 默认值注入
 - **fake timers × AbortController 交互不稳** → 降级真实短时延（如 20ms 预算）；测试稳定性优先，决策随测试留痕
 - **超时/降级时序组合面大**（ADR-0002 已识别）→ 本棒只钉 8 项 + NO_MEMBER + fetch 镜像；时序组合 e2e 归 S08
+- **工具链组合（vitest 4 × TS 6 × oxlint）/ pnpm 11 单包仓** → 实质由 D4 消解：宿主仓正以同版本线（typescript ^6.0.3 + vitest ^4.1.8 + tsdown ^0.22.2 + oxlint 1.76.0 + @types/node ^22.20.0）运行中，pnpm@11.7.0 为 packageManager 钉死值——先例即活证；异常时按 dont-do 双实锚重核版本域
