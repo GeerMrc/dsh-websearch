@@ -20,9 +20,9 @@
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **02** | Spike：外置 client half + 安装链路 + 交付形态定谳 | scratch profile 实装：① `dsh plugin add` 本地路径安装；② client half 注入 settings.section + locale/remote 可用；③ installSection describe/mutate 通路；④ client 经 remote 的 credentials 写通路（set→describe 可见）；⑤ 包名/版本起点/交付形态（路径/tarball/npm）定谳 | 假设/验收标准/结论三节齐（含 ③④ 实测证据：安装日志、浏览器 DOM 断言、credentials.describe 返回）；ADR-0006（GUI GO/NO-GO）+ ADR-0007（包形态）落盘；NO-GO 时 fallback 方案与受影响 roadmap 行同步修订 | 1 天 | ⏳ |
+| **02** | Spike：外置 client half + 安装链路 + 交付形态定谳 | scratch profile 实装：① `dsh plugin add` 本地路径安装；② client half 注入 settings.section + locale/remote 可用；③ installSection describe/mutate 通路；④ client 经 remote 的 credentials 写通路（set→describe 可见）；⑤ 包名/版本起点/交付形态（路径/tarball/npm）定谳 | 假设/验收标准/结论三节齐（含 ③④ 实测证据：安装日志、浏览器 DOM 断言、credentials.describe 返回）；ADR-0006（GUI GO/NO-GO）+ ADR-0007（包形态）落盘；NO-GO 时 fallback 方案与受影响 roadmap 行同步修订 | 1 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-02.md） |
 
-**里程碑 M2 可行性定谳**：GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 —— 完成时填 ✅ 日期（Session 02 证据）
+**里程碑 M2 可行性定谳**：GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 —— ✅ 2026-09-02（Session 02 证据：docs/sessions/2026-09-02-session-02.md + progress-M2 阶段验收 R1-R5 全 PASS）
 
 ## 宿主包（M3 宿主包完备）
 

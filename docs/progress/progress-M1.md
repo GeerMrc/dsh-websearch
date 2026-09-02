@@ -52,7 +52,7 @@
 
 | 条目 | 内容 | 结论 | 证据 |
 |---|---|---|---|
-| R1 | 占位符清零（grep 实测，仅活占位） | PASS | 勘正（S02 T0，2026-09-02；原「命中 5 处」系内容词过滤口径的行数且不可复现——S02 阶段 0 审核 🟡-1）：`grep -rn '{{' .session-start docs/ --exclude-dir=_templates` 实测 **8 行**，逐行枚举均为非事实占位——`.session-start:202/221/226`（接力格式工作示例，`{{NN}}`/`{{目标一句话…}}` 活占位）、`session-roadmap.md:15`（S01 行验收条目自身 grep 字面量）、`governance-sessions.md:84`（§3.2 接力格式本体活占位）、`plans/2026-09-02-001:30`（S01 plan R1 条目 grep 字面量）、`progress-M1.md:55`（本行勘正说明自引）、`plans/2026-09-02-002:50`（S02 plan T0 勘正说明自引）；**项目级事实占位零残留**。口径注：出现次数随 grep 实现（macOS BSD `--include` 会过滤显式文件参数）与过滤词漂移，故钉命令原文 + 逐行枚举，不裸引次数 |
+| R1 | 占位符清零（grep 实测，仅活占位） | PASS | 勘正（S02 T0，2026-09-02；原「命中 5 处」系内容词过滤口径的行数且不可复现——S02 阶段 0 审核 🟡-1）：`grep -rn '{{' .session-start docs/ --exclude-dir=_templates` 实测 **8 行**，逐行枚举均为非事实占位——`.session-start:202/221/226`（接力格式工作示例，`{{NN}}`/`{{目标一句话…}}` 活占位）、`session-roadmap.md:15`（S01 行验收条目自身 grep 字面量）、`governance-sessions.md:84`（§3.2 接力格式本体活占位）、`plans/2026-09-02-001:30`（S01 plan R1 条目 grep 字面量）、`progress-M1.md:55`（本行勘正说明自引）、`plans/2026-09-02-002:50`（S02 plan T0 勘正说明自引）；**项目级事实占位零残留**。口径注：出现次数随 grep 实现（macOS BSD `--include` 会过滤显式文件参数）与过滤词漂移，故钉命令原文 + 逐行枚举，不裸引次数；命令自引类条目（验收/勘正文字引用本命令）随后续文档自然增长，重放比对以「性质分类零事实占位」为准，非固定行数（S02 阶段 5 V-02 注） |
 | R2 | governance §3.1.1/§3.4 保号 | PASS | `grep -c` 实测 §3.1.1×5、§3.4×14（阈值 ≥4/≥6）；`.session-start`/session 模板引用编号一致 |
 | R3 | 审核证据链（3 commit 实测） | PASS | `git log --oneline`：`7d5eadc`（规划）→`2f7ac3a`（F 修订）→`2c70bc8`（R 收尾），提交信息与 T5-T7 声称逐字相符 |
 | R4 | 用户批准时点落盘 | PASS | session 记录 T8、progress T8、CHANGELOG 治理节三处同日（2026-09-02）留痕 |

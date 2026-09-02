@@ -117,7 +117,7 @@ dsh-websearch:
 - 对上游唯一假设：seam 公开接口形状（provider 接口三方法 + 注册 API + 服务名注入）。升级演练 = 每 alpha 升级后按 `docs/upgrade.md`（S09 交付）跑安装→配置→搜索→降级→GUI 冒烟。
 - 本插件内重实现 deepseek 搜索（链成员需可直接调用的实例；上游注册表私有不可枚举）；与上游官方 provider 共用 `DEEPSEEK_API_KEY` ref，二者二选一启用。
 
-## 8. 开放问题（S02 spike 定谳，ADR-0006/0007 承接）
+## 8. 开放问题（S02 spike 定谳，ADR-0006/0007 承接——2026-09-02 全部定谳：1→ADR-0006 GO；2/5→ADR-0007；3/4 实测成立，证据见 session-02 记录 H3/H4）
 
 1. **外置 client half 能否注入 `settings.section` slot 并使用 locale/remote 公共 API**（决定 GUI 形态：插件自带 client half / fork 仓库独立 client 包目录 fallback）。
 2. `dsh plugin --profile web add <本地路径>` 安装链路端到端（本地目录/tarball 形态、peer 解析、bundle patch 自动接线）。
@@ -134,5 +134,5 @@ dsh-websearch:
 | ADR-0003 | 全 provider 收编单插件 + `dshws-` id 前缀隔离 |
 | ADR-0004 | v1 全局优先级（settings 落点，home 级共享）；per-profile 留 YAML patch；完全中立开箱与内置默认序 |
 | ADR-0005 | GUI 形态 spike-first（GO/NO-GO 由 ADR-0006 承接） |
-| ADR-0006 | （S02 待定）GUI client half 形态 go/fallback |
-| ADR-0007 | （S02 待定）包名/交付形态/版本策略 |
+| ADR-0006 | GUI 外置 client half GO（fallback 不启用；S02 spike 定谳） |
+| ADR-0007 | 包名 `dsh-websearch` + 独立 0.1.0 版本线 + 路径/tarball 交付、npm publish 延后（S02 定谳） |
