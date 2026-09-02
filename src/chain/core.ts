@@ -52,6 +52,39 @@ function isUsable(member: ChainMember | undefined): member is ChainMember {
 /** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
 const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
 
+/**
+ * Plugin-owned registry of bundled members. The host's provider registry is
+ * private and not enumerable (ADR-0003), so the plugin keeps its own: every
+ * bundled member registers here AND with `ctx.web` under the same `dshws-`
+ * id, which is what lets users pin one member directly via the selection
+ * scalar — direct connections bypass the chain entirely (ADR-0002 Decision 5).
+ */
+export class MemberRegistry {
+  readonly #providers = new Map<string, WebSearchProvider>()
+
+  /** Register one member; returns the disposer. */
+  register(provider: WebSearchProvider): () => void {
+    this.#providers.set(provider.id, provider)
+    return () => {
+      this.#providers.delete(provider.id)
+    }
+  }
+
+  /**
+   * Chain-facing view of the registry. Until S04 wires the real gates, all
+   * registered members report as enabled with credentials ready; S03 has no
+   * bundled members, so chains built from this resolver are inert.
+   */
+  toResolver(): ChainMemberResolver {
+    return {
+      resolve: (id) => {
+        const provider = this.#providers.get(id)
+        return provider === undefined ? undefined : { id, provider, enabled: true, credentialsReady: true }
+      },
+    }
+  }
+}
+
 /** Search chain: `dshws-chain` as a plain `WebSearchProvider` (ADR-0002). */
 export class ChainSearchProvider implements WebSearchProvider {
   readonly id = 'dshws-chain'

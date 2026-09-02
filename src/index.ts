@@ -12,6 +12,19 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-web'
+import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
+import { Config, resolveConfig } from './config.ts'
+
+export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
+export type {
+  DeepSeekSettings,
+  ExaSettings,
+  FirecrawlSettings,
+  PerplexitySettings,
+  ResolvedWebSearchConfig,
+  TavilySettings,
+} from './config.ts'
+export { CHAIN_ERROR_CODES, DshwsError, MEMBER_ERROR_CODES } from './errors.ts'
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'dsh-websearch'
@@ -19,10 +32,24 @@ export const name = 'dsh-websearch'
 /** The web seam this plugin registers its providers into. */
 export const inject = ['web']
 
-/** Plugin entry point; chain/provider registration lands with the chain core. */
-export function apply(ctx: Context): void {
-  // Compile-time probe: fails to compile if the published `@deepseek-ai/dsh-web`
-  // types stopped augmenting the cordis `Context` with `web`. No runtime effect —
-  // `inject: ['web']` guarantees the service is installed when this runs.
-  ctx satisfies { web: unknown }
+/** Validation schema + type for the `dsh-websearch` config section. */
+export { Config }
+
+/**
+ * Plugin entry point: build the priority chains from the resolved config and
+ * register them with `ctx.web`. Disposal is bound to the calling fiber by the
+ * seam's registration effect. Bundled members register themselves with the
+ * shared registry and `ctx.web` as they land (S04/S05a); until then both
+ * chains report unavailable and the host never selects them.
+ */
+export function apply(ctx: Context, config: Config): void {
+  const resolved = resolveConfig(config)
+  const registry = new MemberRegistry()
+  const log = (message: string) => ctx.logger.info(message)
+  ctx.web.registerSearchProvider(new ChainSearchProvider({
+    members: registry.toResolver(),
+    order: resolved.searchChain,
+    perMemberTimeoutMs: resolved.perMemberTimeoutMs,
+    log,
+  }))
 }
