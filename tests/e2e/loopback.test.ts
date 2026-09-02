@@ -218,4 +218,33 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       await server.close()
     }
   })
+
+  it('a directly pinned member fails loud with its own code and no chain involvement (钉死直连不降级)', async () => {
+    const { server, handle } = await assemble(
+      {
+        // The pinned member's endpoint fails hard; the other members would
+        // succeed if the chain were (wrongly) on the call path.
+        '/tavily/search': { kind: 'status', status: 500 },
+        '/exa/search': { kind: 'success', body: { results: [{ url: 'https://exa.test/pinned', highlights: ['x'] }] } },
+      },
+    )
+    try {
+      // The host's selection scalar pins `dshws-tavily`: the member instance
+      // from the ctx.web registry IS the chain member (double registration,
+      // one instance) — calling it directly is the pinned path.
+      const pinned = handle.providers.get('dshws-tavily') as WebSearchProvider
+      const thrown = await pinned.search({ query: 'pinned direct' }).then(() => null, (error: unknown) => error as Error)
+      expect(thrown).not.toBeNull()
+      const failure = thrown as unknown as { code: string; message: string }
+      // Exact member code: unwrapped, no DSHWS_CHAIN_EXHAUSTED in sight.
+      expect(failure.code).toBe('DSHWS_TAVILY_HTTP_ERROR')
+      expect(failure.code).not.toContain('CHAIN')
+      // No degradation: the failing pin ends the call; the next member is untouched.
+      expect(server.arrivals).toEqual(['POST /tavily/search'])
+      // The chain is not on the call path: zero chain log lines.
+      expect(handle.logLines.filter((line) => line.includes('[dshws-chain]'))).toEqual([])
+    } finally {
+      await server.close()
+    }
+  })
 })
