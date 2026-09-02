@@ -30,6 +30,8 @@ export interface LoopbackServer {
   readonly port: number
   /** `METHOD /path` entries in true arrival order across all endpoints. */
   readonly arrivals: readonly string[]
+  /** `Authorization` header per request, in arrival order (key-rotation assertions). */
+  readonly auths: readonly string[]
   close(): Promise<void>
 }
 
@@ -49,8 +51,10 @@ function respond(res: ServerResponse, status: number, body: unknown): void {
 /** Start one scenario server; the behavior table is fixed for its lifetime. */
 export async function startLoopback(behavior: Record<string, LoopbackBehavior>): Promise<LoopbackServer> {
   const arrivals: string[] = []
+  const auths: string[] = []
   const server: Server = createServer((req: IncomingMessage, res: ServerResponse) => {
     arrivals.push(`${req.method ?? 'GET'} ${req.url ?? '/'}`)
+    auths.push(String(req.headers.authorization ?? ''))
     const action = behavior[req.url ?? '/']
     if (action === undefined) {
       respond(res, 404, {})
@@ -74,6 +78,7 @@ export async function startLoopback(behavior: Record<string, LoopbackBehavior>):
   return {
     port,
     arrivals,
+    auths,
     close: async () => {
       server.closeAllConnections()
       server.close()
