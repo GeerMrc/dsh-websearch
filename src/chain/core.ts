@@ -49,6 +49,9 @@ function isUsable(member: ChainMember | undefined): member is ChainMember {
   return member.provider.available()
 }
 
+/** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
+const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
+
 /** Search chain: `dshws-chain` as a plain `WebSearchProvider` (ADR-0002). */
 export class ChainSearchProvider implements WebSearchProvider {
   readonly id = 'dshws-chain'
@@ -63,19 +66,49 @@ export class ChainSearchProvider implements WebSearchProvider {
     })
   }
 
-  /** Try members in configured order; runtime failures degrade to the next member (ADR-0002 Decision 2). */
+  /** Try members in configured order; runtime failures and per-member timeouts degrade to the next member (ADR-0002 Decision 2). */
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
     const failures: ChainMemberFailure[] = []
     for (const id of this.options.order) {
       const member = this.options.members.resolve(id)
       if (!isUsable(member)) continue
       try {
-        const result = await member.provider.search(request, signal)
-        this.options.log?.(`[dshws-chain] served-by: ${id}`)
-        return withServedBy(id, result)
+        const controller = new AbortController()
+        const abortFromOuter = () => controller.abort(signal?.reason)
+        signal?.addEventListener('abort', abortFromOuter, { once: true })
+        if (signal?.aborted) abortFromOuter()
+        let fireTimeout: () => void = () => {}
+        const timedOut = new Promise<never>((_, reject) => {
+          fireTimeout = () => reject(MEMBER_TIMED_OUT)
+        })
+        const timer = setTimeout(() => {
+          controller.abort()
+          fireTimeout()
+        }, this.options.perMemberTimeoutMs)
+        try {
+          const searchPromise = member.provider.search(request, controller.signal)
+          // After a timeout abort the member promise still rejects (typically
+          // with an AbortError); that rejection is expected here — the timeout
+          // is already recorded as the member's failure.
+          searchPromise.catch(() => {})
+          const result = await Promise.race([searchPromise, timedOut])
+          this.options.log?.(`[dshws-chain] served-by: ${id}`)
+          return withServedBy(id, result)
+        } finally {
+          clearTimeout(timer)
+          signal?.removeEventListener('abort', abortFromOuter)
+        }
       } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error)
-        failures.push({ memberId: id, reason, error })
+        // Caller cancellation is the caller's verdict, not a member failure:
+        // propagate it instead of degrading to further members.
+        if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
+        const isTimeout = error === MEMBER_TIMED_OUT
+        const reason = isTimeout
+          ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within ${this.options.perMemberTimeoutMs}ms`
+          : error instanceof Error
+            ? error.message
+            : String(error)
+        failures.push({ memberId: id, reason, error: isTimeout ? undefined : error })
         this.options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
       }
     }

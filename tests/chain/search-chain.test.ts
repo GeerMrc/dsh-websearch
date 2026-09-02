@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { WebSearchProvider, WebSearchResult } from '@deepseek-ai/dsh-web'
 import type { ChainMemberResolver } from '../../src/chain/core.ts'
 import { ChainSearchProvider } from '../../src/chain/core.ts'
@@ -350,5 +350,98 @@ describe('servedBy attribution (必测⑥)', () => {
     const result = await chain.search({ query: 'q' })
     expect(result.sources).toEqual([{ url: 'https://example.test/a', title: 'A' }])
     expect(result.truncated).toBe(true)
+  })
+})
+
+describe('per-member timeout (必测⑦)', () => {
+  function hangingProvider(id: string, calls: string[]): { provider: WebSearchProvider; signals: (AbortSignal | undefined)[] } {
+    const signals: (AbortSignal | undefined)[] = []
+    return {
+      signals,
+      provider: {
+        id,
+        available: () => true,
+        search: async (_request, signal) =>
+          new Promise<WebSearchResult>((_resolve, reject) => {
+            calls.push(id)
+            signals.push(signal)
+            signal?.addEventListener('abort', () => reject(new Error('aborted by chain')), { once: true })
+          }),
+      },
+    }
+  }
+
+  it('degrades with DSHWS_MEMBER_TIMEOUT when a member hangs past its budget', async () => {
+    vi.useFakeTimers()
+    try {
+      const calls: string[] = []
+      const logs: string[] = []
+      const hang = hangingProvider('dshws-hang', calls)
+      const chain = new ChainSearchProvider({
+        members: resolver({
+          'dshws-hang': { provider: hang.provider },
+          'dshws-fast': { provider: trackingProvider('dshws-fast', calls) },
+        }),
+        order: ['dshws-hang', 'dshws-fast'],
+        perMemberTimeoutMs: 1000,
+        log: (message) => logs.push(message),
+      })
+      const settled = chain.search({ query: 'q' })
+      await vi.advanceTimersByTimeAsync(1000)
+      const result = await settled
+      expect(calls).toEqual(['dshws-hang', 'dshws-fast'])
+      expect(result.content?.startsWith('[served-by: dshws-fast]')).toBe(true)
+      expect(logs.some((line) => line.includes('DSHWS_MEMBER_TIMEOUT') && line.includes('dshws-hang'))).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('aborts the hanging member request when the budget expires', async () => {
+    vi.useFakeTimers()
+    try {
+      const calls: string[] = []
+      const hang = hangingProvider('dshws-hang', calls)
+      const chain = new ChainSearchProvider({
+        members: resolver({
+          'dshws-hang': { provider: hang.provider },
+          'dshws-fast': { provider: trackingProvider('dshws-fast', calls) },
+        }),
+        order: ['dshws-hang', 'dshws-fast'],
+        perMemberTimeoutMs: 500,
+      })
+      const settled = chain.search({ query: 'q' })
+      await vi.advanceTimersByTimeAsync(500)
+      await settled
+      expect(hang.signals[0]?.aborted).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('propagates caller cancellation instead of degrading', async () => {
+    const calls: string[] = []
+    const abortable: WebSearchProvider = {
+      id: 'dshws-abortable',
+      available: () => true,
+      search: async (_request, signal) =>
+        new Promise<WebSearchResult>((_resolve, reject) => {
+          calls.push('dshws-abortable')
+          signal?.addEventListener('abort', () => reject(new Error('caller cancelled')), { once: true })
+        }),
+    }
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-abortable': { provider: abortable },
+        'dshws-next': { provider: trackingProvider('dshws-next', calls) },
+      }),
+      order: ['dshws-abortable', 'dshws-next'],
+      perMemberTimeoutMs: 1000,
+    })
+    const controller = new AbortController()
+    const settled = chain.search({ query: 'q' }, controller.signal)
+    controller.abort()
+    await expect(settled).rejects.toThrow('caller cancelled')
+    expect(calls).toEqual(['dshws-abortable'])
   })
 })
