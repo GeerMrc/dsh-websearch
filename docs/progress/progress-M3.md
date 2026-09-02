@@ -16,8 +16,9 @@
 
 ## 进行中
 
-- Session 05b（安装端到端 + 卸载复原）：plan 005b 审核推进中，T0（Y-1 清偿 + 状态区刷新 +
-  dont-do 第三条）完成；T-prep 起开发在 `feat/s05b-install-e2e`
+- Session 05b（安装端到端 + 卸载复原）：plan 005b 两轮审核 APPROVED（阶段 2.5 **用户真实批准**
+  「批准，自主执行到底」——S03 以来首次非默认推断），T0-T6 完成；T7（门墙 + Note + 台账）
+  收口中；T8/T9（阶段 4/5 + 收尾）待执行。开发在 `feat/s05b-install-e2e`
 
 ## 待启动
 
@@ -124,6 +125,33 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 > 留痕（阶段 4/5 F-1，T10 前置必修）：台账初稿 .d.ts 写 20.42/4.75 kB——T8 同批 config.ts
 > JSDoc 冷热标注流入 .d.ts，数字相对 HEAD 陈旧（测改时序）。T10 以 HEAD 重跑 build 修正为
 > 21.89/4.83；test/typecheck/lint 三数字阶段 4 亲跑复验与初稿一致，js 体积不受影响。
+
+### S05b 安装端到端批（2026-09-02，分支 feat/s05b-install-e2e）
+
+阶段 0 独立审核 S05a **PASS**（🔴×0；🟡×1 Y-1 = progress-M3 状态区家族第三次复发）→ T0 清偿
++ dont-do 第三条沉淀 → plan 005b 落盘 → 阶段 2 轮 1 **NEEDS REVISION**（必改 ×3 含 T0 清偿自身
+引入重复 M3 行——家族第 4 实例如实留痕；建议 ×5）→ 全数吸收 → 同 Agent 复审 **APPROVED**
+（残项 1：D2 锚点行号，已修 `2926723`）→ 阶段 2.5 **用户真实批准**（「批准，自主执行到底」）。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | Y-1 清偿 + STATUS 启动刷新 + dont-do 第三条 + plan 005b 落盘 | 完成（`19587ef`；清偿自身引入重复 M3 行，审核轮 1 抓获后 `65ac837` 修正——家族第 4 实例留痕） |
+| T-prep | build + pack tarball → /tmp/dshws-s05b/ | 完成（`62dd022`；16644B，四件清单；env v22.23.2/11.7.0） |
+| T1 | 基线对照 dump | 完成（`59d44fc`；auto-scaffold 四件 + dump-baseline.yml:351-352 deepseek-official/http 原态） |
+| T2 | 安装 + **manifest 缺陷发现与修复** | 完成（红：安装警告 `declares no dsh.bundle`、bundles 未追加——S03 平铺顶层键宿主从不读取；修复 `fdffe9e` 嵌套形态；绿：三处落盘全过 + dump diff insert 生效） |
+| T3 | 接线（用户层两行） | 完成（`9dcee6d`；dump-wired.yml:352-353 = dshws-chain/chain-fetch） |
+| T4 | boot 加载证明 | 完成（`06296b3`；3411 实例日志 3 行零错、401 健康、kill 零残留） |
+| T5 | 卸载复原 | 完成（`51f7b20`；remove 后 bundles reconcile 回模板（S-5 预注册兑现）+ 删两行 → dump 与基线 **diff 零输出**） |
+| T6 | 重装回接线态（用户槽位） | 完成（`9caca1a`；dump-wired.yml 恢复 352-353） |
+| T7 | 门墙四命令（漂移哨兵）+ Agent Note + 本台账 | 完成（下表 + docs/notes/2026-09-02-s05b-install-runbook.md；门墙与 S05a 终值逐位一致零漂移） |
+| T8/T9 | 阶段 4/5 独立验证 + 收尾 6 件套 | 待执行 |
+
+### 门墙实测数字（S05b T7 收口，node v22.23.2 / pnpm 11.7.0）
+
+- `pnpm test` → **Test Files 18 passed (18)，Tests 157 passed \| 6 skipped (163)**——与 S05a 终值逐位一致（本棒 manifest 修复仅触 package.json pack 面，零测试面漂移）
+- `pnpm typecheck` → exit 0（0 error）
+- `pnpm lint` → **0 warnings and 0 errors**（30 files，96 rules）
+- `pnpm build` → lib/index.js 49.00 kB + lib/index.d.ts 21.89 kB（gzip 12.34/4.83）——与 S05a 终值逐位一致
 
 ## 阶段验收（R1-R5，阶段收官时填）
 
