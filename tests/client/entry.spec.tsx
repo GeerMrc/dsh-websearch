@@ -31,7 +31,7 @@ function makeCtx() {
     },
     credentials: {
       describe: vi.fn(async () => ({ ok: true as const, value: { ...creds } })),
-      set: vi.fn(async (ref: string, value: string) => {
+      set: vi.fn(async (ref: string, _value: string) => {
         creds[ref] = { configured: true, source: 'file', writable: true }
         return { ok: true as const, value: undefined }
       }),
