@@ -47,6 +47,10 @@ describe('dshws-tavily option resolution', () => {
 })
 
 describe('dshws-tavily availability (local checks only)', () => {
+  it('registers under the dshws- prefixed member id', () => {
+    expect(new TavilySearchProvider(options).id).toBe(TAVILY_MEMBER_ID)
+  })
+
   it('is available with a parseable baseURL and, when set, a positive maxResults', () => {
     expect(new TavilySearchProvider(options).available()).toBe(true)
     expect(new TavilySearchProvider({ ...options, baseURL: 'not a url' }).available()).toBe(false)

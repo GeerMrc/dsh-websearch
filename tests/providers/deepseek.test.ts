@@ -54,6 +54,10 @@ describe('dshws-deepseek option resolution', () => {
 })
 
 describe('dshws-deepseek availability (local checks only)', () => {
+  it('registers under the dshws- prefixed member id', () => {
+    expect(new DeepSeekSearchProvider(options).id).toBe(DEEPSEEK_MEMBER_ID)
+  })
+
   it('is available with a parseable baseURL and a positive maxTokens', () => {
     expect(new DeepSeekSearchProvider(options).available()).toBe(true)
     expect(new DeepSeekSearchProvider({ ...options, baseURL: 'not a url' }).available()).toBe(false)

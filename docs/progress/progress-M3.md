@@ -80,10 +80,14 @@
 
 ### 门墙实测数字（S04 T8 收口，node v22.23.2 / pnpm 11.7.0）
 
-- `pnpm test` → **Test Files 11 passed (11)，Tests 91 passed \| 2 skipped (93)**，~341ms（skip = e2e real 无 key 自跳）
+- `pnpm test` → **Test Files 11 passed (11)，Tests 93 passed \| 2 skipped (95)**，~341ms（skip = e2e real 无 key 自跳）
 - `pnpm typecheck` → exit 0（0 error）
 - `pnpm lint` → **0 warnings and 0 errors**（18 files，96 rules）
 - `pnpm build` → lib/index.js 29.55 kB + lib/index.d.ts 13.19 kB（gzip 8.68/3.78 kB）
+
+> 留痕：首跑门墙 lint 报 2 warnings（单测导入了 `*_MEMBER_ID` 未使用）——验证输出截断漏看，
+> T8 内修复（id 常量改用于显式 id 契约断言，+2 测试）后复跑全绿；台账初稿误写 0w0e，以上为
+> 修正后终值。
 
 ## 阶段验收（R1-R5，阶段收官时填）
 
@@ -127,7 +131,7 @@
 | dsh-web published types 含 ctx.web 增强（`declare module '@deepseek-ai/cordis'`）+ 内部 import dsh-llm | 审核 Agent 下载 alpha.4 tarball 实证（lib/types/index.d.ts:13、types.d.ts:7）+ T11 typecheck/探测互证 |
 | schemastery 实例可调用归一化（无 .validate；空对象→结构骨架） | T4 红绿循环实测（node_modules lib/types/index.d.ts:124-125） |
 | cordis 日志面 ctx.logger（printf 风格） | vendor/cordis/src/logger.ts + webhook/settings 用例（webhook/src/index.ts:154）+ T11 typecheck 实证 |
-| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；**S04 批次后：91 passed \| 2 skipped（93；11 文件）**（skip = e2e real 无 key 自跳） |
+| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；**S04 批次后：93 passed \| 2 skipped（95；11 文件）**（skip = e2e real 无 key 自跳） |
 | credentials seam：credentialRef（index.ts:29）/resolve（:183）/describe（:191）/事件声明（types.ts:90）/环境层永不发事件（types.ts:80-84） | S04 阶段 1 亲读 + 阶段 2 审核 Agent 独立复核一致（宿主 dev@3281e04b59） |
 | 上游 provider 参考锚：web-search-deepseek/src/provider.ts（常量 :35/:38/:41/:44/:47、双头 :228-236、映射 :121-174）；web-search-exa/src/provider.ts（:22/:56-65/:89-94/:98-114） | S04 阶段 1 亲读 + 阶段 2 审核独立命中 |
 | Tavily 线格式（POST /search、Bearer、query/max_results、results[] 字段、401/429/432/433/500） | 官方 API reference 2026-09-02 取证（plan 004 背景节） |
