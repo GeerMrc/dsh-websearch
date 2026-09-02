@@ -225,6 +225,88 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.enabled).toBe(true)
   })
 
+  it('moveSearchChainEntry patches the full materialized order with the current revision', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    const result = await controller.moveSearchChainEntry('dshws-exa', -1)
+    expect(result.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      {
+        ns: 'dsh-websearch',
+        patch: {
+          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek'],
+        },
+        expectedRevision: 0,
+      },
+    ])
+    expect(controller.snapshot().searchChain[0]).toBe('dshws-exa')
+    expect(controller.snapshot().revision).toBe(1)
+  })
+
+  it('moving on the built-in order materializes the explicit chain and flips the pinned flag', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().searchChainPinned).toBe(false)
+    expect(controller.snapshot().fetchChainPinned).toBe(false)
+
+    const result = await controller.moveSearchChainEntry('dshws-tavily', 1)
+    expect(result.ok).toBe(true)
+    expect(controller.snapshot().searchChainPinned).toBe(true)
+    expect(controller.snapshot().fetchChainPinned).toBe(false)
+    expect(controller.snapshot().searchChain[0]).toBe('dshws-exa')
+  })
+
+  it('the pinned flags mark exactly the chains the section explicitly sets', async () => {
+    const remote = new FakeRemote()
+    remote.nsValue = { searchChain: ['dshws-deepseek'] }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    expect(controller.snapshot().searchChainPinned).toBe(true)
+    expect(controller.snapshot().fetchChainPinned).toBe(false)
+  })
+
+  it('a boundary move reports not-ok without calling the remote', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    const result = await controller.moveSearchChainEntry('dshws-tavily', -1)
+    expect(result.ok).toBe(false)
+    expect(remote.updateCalls).toEqual([])
+  })
+
+  it('a move of an unknown member id reports not-ok without calling the remote', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    const result = await controller.moveSearchChainEntry('dshws-unknown', 1)
+    expect(result.ok).toBe(false)
+    expect(remote.updateCalls).toEqual([])
+  })
+
+  it('a move conflict reports not-ok and keeps the described order', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    remote.failNextUpdate = true
+
+    const result = await controller.moveSearchChainEntry('dshws-tavily', 1)
+    expect(result.ok).toBe(false)
+    expect(controller.snapshot().searchChain).toEqual([
+      'dshws-tavily',
+      'dshws-exa',
+      'dshws-perplexity',
+      'dshws-firecrawl',
+      'dshws-deepseek',
+    ])
+    expect(controller.snapshot().searchChainPinned).toBe(false)
+  })
+
   it('a credentials/reference-updated event re-describes and notifies', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))

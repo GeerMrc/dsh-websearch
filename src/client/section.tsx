@@ -25,6 +25,7 @@ export interface SectionProps {
   onSaveKey: (memberKey: string, value: string) => Promise<ActionResult>
   onClearKey: (memberKey: string) => Promise<ActionResult>
   onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
+  onMoveSearch: (id: string, delta: -1 | 1) => Promise<ActionResult>
 }
 
 /**
@@ -46,6 +47,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSaveKey={(key, value) => controller.setKey(key, value)}
         onClearKey={(key) => controller.clearKey(key)}
         onToggleEnabled={(key, enabled) => controller.setEnabled(key, enabled)}
+        onMoveSearch={(id, delta) => controller.moveSearchChainEntry(id, delta)}
       />
     )
   }
@@ -75,7 +77,14 @@ const switchStyle = (enabled: boolean) =>
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch } = props
+  const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
+
+  const move = async (id: string, delta: -1 | 1): Promise<void> => {
+    const result = await onMoveSearch(id, delta)
+    setChainFeedback(result.ok ? undefined : 'failed')
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
@@ -95,23 +104,83 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         ))}
       </div>
       <section data-testid="dshws-chains" style={{ ...cardStyle, padding: 8 }}>
-        <h4 style={{ margin: 0 }}>{t('searchChain')}</h4>
-        <ol style={{ margin: 0, paddingLeft: 20 }}>
-          {snapshot.searchChain.map((id) => (
-            <li key={id}>{id}</li>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <h4 style={{ margin: 0 }}>{t('searchChain')}</h4>
+          <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
+        </div>
+        <ol data-testid="dshws-search-chain" style={{ margin: 0, paddingLeft: 20 }}>
+          {snapshot.searchChain.map((id, index) => (
+            <li key={id} data-testid={`dshws-chain-item-${id}`} style={chainItemStyle}>
+              <span>{id}</span>
+              {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
+              <button
+                type="button"
+                aria-label={`${id} ${t('moveUp')}`}
+                disabled={index === 0}
+                onClick={() => void move(id, -1)}
+                style={moveButtonStyle}
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                aria-label={`${id} ${t('moveDown')}`}
+                disabled={index === snapshot.searchChain.length - 1}
+                onClick={() => void move(id, 1)}
+                style={moveButtonStyle}
+              >
+                ↓
+              </button>
+            </li>
           ))}
         </ol>
-        <h4 style={{ margin: 0 }}>{t('fetchChain')}</h4>
-        <ol style={{ margin: 0, paddingLeft: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <h4 style={{ margin: 0 }}>{t('fetchChain')}</h4>
+          <ChainStateBadge pinned={snapshot.fetchChainPinned} t={t} />
+        </div>
+        <ol data-testid="dshws-fetch-chain" style={{ margin: 0, paddingLeft: 20 }}>
           {snapshot.fetchChain.map((id) => (
-            <li key={id}>{id}</li>
+            <li key={id}>
+              <span>{id}</span>
+            </li>
           ))}
         </ol>
         <span>
           {t('timeout')}: {snapshot.timeoutMs} ms
         </span>
+        {chainFeedback ? <span data-testid="dshws-chain-feedback">{t(chainFeedback)}</span> : null}
       </section>
     </div>
+  )
+}
+
+const chainItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  justifyContent: 'space-between',
+} as const
+
+const moveButtonStyle = {
+  width: 22,
+  height: 22,
+  lineHeight: 1,
+  padding: 0,
+  cursor: 'pointer',
+  border: '1px solid var(--dsw-alias-border-l2)',
+  borderRadius: 4,
+  background: 'var(--dsw-alias-bg-base)',
+} as const
+
+/** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1). */
+function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => string }) {
+  return (
+    <span
+      data-dshws-chain-state={props.pinned ? 'pinned' : 'default'}
+      style={{ fontSize: 12 }}
+    >
+      {props.pinned ? props.t('chainPinned') : props.t('chainDefault')}
+    </span>
   )
 }
 

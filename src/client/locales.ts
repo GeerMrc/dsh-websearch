@@ -30,6 +30,10 @@ export type DshWsLocaleKey =
   | 'saved'
   | 'cleared'
   | 'failed'
+  | 'moveUp'
+  | 'moveDown'
+  | 'chainDefault'
+  | 'chainPinned'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -54,6 +58,10 @@ export const en: Record<DshWsLocaleKey, string> = {
   saved: 'Saved',
   cleared: 'Cleared',
   failed: 'Action failed',
+  moveUp: 'Move up',
+  moveDown: 'Move down',
+  chainDefault: 'Built-in default order',
+  chainPinned: 'Pinned (overrides default)',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -73,4 +81,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   saved: '已保存',
   cleared: '已清除',
   failed: '操作失败',
+  moveUp: '上移',
+  moveDown: '下移',
+  chainDefault: '内置默认序',
+  chainPinned: '已钉死（覆盖默认序）',
 }
