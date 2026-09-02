@@ -36,6 +36,13 @@ export interface WebSearchSettingsPorts {
   onReferenceUpdated(handler: (ref: string) => void): () => void
 }
 
+/** One extra pool ref's render-ready fact row (ADR-0008). */
+export interface ExtraRefFact {
+  readonly ref: string
+  readonly configured: boolean
+  readonly writable: boolean
+}
+
 /** Bundled member display metadata; ids and default refs mirror the node half. */
 const MEMBERS = [
   { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY' },
@@ -52,15 +59,21 @@ const BUILT_IN_MEMBER_ORDER: readonly string[] = MEMBERS.map((member) => member.
 const DEFAULT_PER_MEMBER_TIMEOUT_MS = 30000
 
 /** The section-value fields the cards read (user-set only; everything else defaults). */
+interface MemberSectionValue {
+  enabled?: boolean
+  apiKeyEnv?: string
+  extraApiKeyEnvs?: string[]
+}
+
 interface SectionValue {
   searchChain?: string[]
   fetchChain?: string[]
   perMemberTimeoutMs?: number
-  tavily?: { enabled?: boolean; apiKeyEnv?: string }
-  exa?: { enabled?: boolean; apiKeyEnv?: string }
-  perplexity?: { enabled?: boolean; apiKeyEnv?: string }
-  firecrawl?: { enabled?: boolean; apiKeyEnv?: string }
-  deepseek?: { enabled?: boolean; apiKeyEnv?: string }
+  tavily?: MemberSectionValue
+  exa?: MemberSectionValue
+  perplexity?: MemberSectionValue
+  firecrawl?: MemberSectionValue
+  deepseek?: MemberSectionValue
 }
 
 /** One provider card's render-ready state. */
@@ -72,6 +85,8 @@ export interface MemberSnapshot {
   readonly configured: boolean
   readonly source: string | undefined
   readonly writable: boolean
+  /** Extra pool refs with their credential facts (primary ref lives in `refName`). */
+  readonly extraRefs: readonly ExtraRefFact[]
 }
 
 /** The whole section's render-ready state. */
@@ -105,6 +120,14 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     const section = value[member.key]
     const refName = section?.apiKeyEnv ?? member.defaultRef
     const fact = facts.get(refName)
+    const extraRefs = (section?.extraApiKeyEnvs ?? []).map((ref) => {
+      const extraFact = facts.get(ref)
+      return {
+        ref,
+        configured: extraFact?.configured === true,
+        writable: extraFact?.writable === true,
+      }
+    })
     return {
       key: member.key,
       label: member.label,
@@ -113,6 +136,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       configured: fact?.configured === true,
       source: fact?.source,
       writable: fact?.writable === true,
+      extraRefs,
     }
   })
   return {
@@ -175,24 +199,72 @@ export class WebSearchSettingsController {
     }
   }
 
-  /** Store `value` under the member's credential ref, then refresh the fact. */
-  async setKey(memberKey: string, value: string): Promise<ActionResult> {
-    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
-    if (!member) return { ok: false }
-    const result = await this.#ports.setCredential(this.#refNameOf(member.key), value)
+  /**
+   * Store `value` under an explicit ref of the member's pool, then refresh the
+   * facts. A ref outside the pool (primary or extras) is rejected without a
+   * remote call.
+   */
+  async setKey(memberKey: string, ref: string, value: string): Promise<ActionResult> {
+    if (!this.#poolOf(memberKey).includes(ref)) return { ok: false }
+    const result = await this.#ports.setCredential(ref, value)
     if (!result.ok) return { ok: false }
     await this.#refreshCredentials()
     return { ok: true }
   }
 
-  /** Remove the member's credential ref, then refresh the fact. */
-  async clearKey(memberKey: string): Promise<ActionResult> {
-    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
-    if (!member) return { ok: false }
-    const result = await this.#ports.unsetCredential(this.#refNameOf(member.key))
+  /** Remove an explicit pool ref's stored value, then refresh the facts. */
+  async clearKey(memberKey: string, ref: string): Promise<ActionResult> {
+    if (!this.#poolOf(memberKey).includes(ref)) return { ok: false }
+    const result = await this.#ports.unsetCredential(ref)
     if (!result.ok) return { ok: false }
     await this.#refreshCredentials()
     return { ok: true }
+  }
+
+  /**
+   * Append one extra ref to the member's pool (whole-array settings patch).
+   * Empty names, the primary ref, and already-listed refs are rejected
+   * without a remote call.
+   */
+  async addExtraKey(memberKey: string, refName: string): Promise<ActionResult> {
+    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
+    if (!member || refName.length === 0) return { ok: false }
+    const current = this.#value[member.key]?.extraApiKeyEnvs ?? []
+    if (refName === this.#refNameOf(memberKey) || current.includes(refName)) return { ok: false }
+    const result = await this.#ports.updateSettings(
+      NS,
+      { [member.key]: { extraApiKeyEnvs: [...current, refName] } },
+      this.#revision,
+    )
+    if (!result.ok) return { ok: false }
+    this.#value = (result.value.value ?? {}) as SectionValue
+    this.#revision = result.value.revision
+    this.#recompute()
+    return { ok: true }
+  }
+
+  /** Drop one extra ref from the member's pool (whole-array settings patch). */
+  async removeExtraKey(memberKey: string, refName: string): Promise<ActionResult> {
+    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
+    if (!member) return { ok: false }
+    const current = this.#value[member.key]?.extraApiKeyEnvs ?? []
+    const result = await this.#ports.updateSettings(
+      NS,
+      { [member.key]: { extraApiKeyEnvs: current.filter((ref) => ref !== refName) } },
+      this.#revision,
+    )
+    if (!result.ok) return { ok: false }
+    this.#value = (result.value.value ?? {}) as SectionValue
+    this.#revision = result.value.revision
+    this.#recompute()
+    return { ok: true }
+  }
+
+  /** The member's live pool: primary ref plus listed extras. */
+  #poolOf(memberKey: string): readonly string[] {
+    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
+    if (!member) return []
+    return [this.#refNameOf(memberKey), ...(this.#value[member.key]?.extraApiKeyEnvs ?? [])]
   }
 
   /** Toggle a member's `enabled` through the settings remote (hot gate). */
@@ -232,7 +304,7 @@ export class WebSearchSettingsController {
   }
 
   async #refreshCredentials(): Promise<void> {
-    const refs = MEMBERS.map((member) => this.#refNameOf(member.key))
+    const refs = MEMBERS.flatMap((member) => this.#poolOf(member.key))
     const described = await this.#ports.describeCredentials(refs)
     if (described.ok) {
       this.#facts = new Map(Object.entries(described.value))

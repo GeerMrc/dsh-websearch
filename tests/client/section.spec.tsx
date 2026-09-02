@@ -24,6 +24,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     configured: false,
     source: undefined,
     writable: true,
+    extraRefs: [],
     ...overrides,
   }
 }
@@ -58,6 +59,8 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onClearKey: vi.fn(async () => ({ ok: true }) as ActionResult),
     onToggleEnabled: vi.fn(async () => ({ ok: true }) as ActionResult),
     onMoveSearch: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onAddExtraKey: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onRemoveExtraKey: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -111,7 +114,7 @@ describe('WebSearchSettingsSection', () => {
     expect(input.getAttribute('type')).toBe('password')
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))
-    await waitFor(() => expect(onSaveKey).toHaveBeenCalledWith('tavily', 'sk-fake-tavily'))
+    await waitFor(() => expect(onSaveKey).toHaveBeenCalledWith('tavily', 'TAVILY_API_KEY', 'sk-fake-tavily'))
     await waitFor(() => expect(input.value).toBe(''))
     expect(screen.getByTestId('dshws-feedback-tavily').textContent).toBe(en.saved)
   })
@@ -134,7 +137,7 @@ describe('WebSearchSettingsSection', () => {
     const tavilyClear = within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Clear' })
     expect((tavilyClear as HTMLButtonElement).disabled).toBe(false)
     fireEvent.click(tavilyClear)
-    await waitFor(() => expect(onClearKey).toHaveBeenCalledWith('tavily'))
+    await waitFor(() => expect(onClearKey).toHaveBeenCalledWith('tavily', 'TAVILY_API_KEY'))
     const exaClear = within(screen.getByTestId('dshws-member-exa')).getByRole('button', { name: 'Exa Clear' })
     expect((exaClear as HTMLButtonElement).disabled).toBe(true)
   })
@@ -209,6 +212,46 @@ describe('WebSearchSettingsSection', () => {
       expect(badge.getAttribute('data-dshws-chain-state')).toBe('pinned')
       expect(badge.textContent).toBe(en.chainPinned)
     }
+  })
+
+  it('renders extra key rows with per-ref labels and forwards their writes', async () => {
+    const onSaveKey = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const onClearKey = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const members = defaultMembers()
+    members[0] = member('tavily', 'Tavily', {
+      extraRefs: [{ ref: 'TAVILY_SPARE', configured: true, writable: true }],
+    })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members), onSaveKey, onClearKey })} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    expect(card.textContent).toContain('TAVILY_SPARE')
+    const input = screen.getByLabelText('TAVILY_SPARE API Key') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'sk-spare' } })
+    fireEvent.click(within(card).getByRole('button', { name: 'TAVILY_SPARE Save' }))
+    await waitFor(() => expect(onSaveKey).toHaveBeenCalledWith('tavily', 'TAVILY_SPARE', 'sk-spare'))
+    const clear = within(card).getByRole('button', { name: 'TAVILY_SPARE Clear' })
+    fireEvent.click(clear)
+    await waitFor(() => expect(onClearKey).toHaveBeenCalledWith('tavily', 'TAVILY_SPARE'))
+  })
+
+  it('adding an extra key forwards the member key and ref name', async () => {
+    const onAddExtraKey = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onAddExtraKey })} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    const input = screen.getByLabelText('Tavily New ref name') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'TAVILY_SPARE' } })
+    fireEvent.click(within(card).getByRole('button', { name: 'Tavily Add' }))
+    await waitFor(() => expect(onAddExtraKey).toHaveBeenCalledWith('tavily', 'TAVILY_SPARE'))
+  })
+
+  it('removing an extra key forwards the member key and ref name', async () => {
+    const onRemoveExtraKey = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const members = defaultMembers()
+    members[0] = member('tavily', 'Tavily', {
+      extraRefs: [{ ref: 'TAVILY_SPARE', configured: false, writable: true }],
+    })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members), onRemoveExtraKey })} t={t} />)
+    fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'TAVILY_SPARE Remove' }))
+    await waitFor(() => expect(onRemoveExtraKey).toHaveBeenCalledWith('tavily', 'TAVILY_SPARE'))
   })
 
   it('a failed move shows failed feedback and a later success clears it', async () => {
