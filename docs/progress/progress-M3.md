@@ -134,7 +134,7 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 | 任务 | 内容 | 结果 |
 |---|---|---|
 | T0 | Y-1 清偿 + STATUS 启动刷新 + dont-do 第三条 + plan 005b 落盘 | 完成（`19587ef`；清偿自身引入重复 M3 行，审核轮 1 抓获后 `65ac837` 修正——家族第 4 实例留痕） |
-| T-prep | build + pack tarball → /tmp/dshws-s05b/ | 完成（`62dd022`；16644B，四件清单；env v22.23.2/11.7.0） |
+| T-prep | build + pack tarball → /tmp/dshws-s05b/ | 完成（`62dd022`；16644B，四件清单；env v22.23.2/11.7.0。注：16644B = 首包口径，fdffe9e 修复后重打包实态 16654B——s06-stage0 观察 🟢-5，/tmp 易失非判定依据） |
 | T1 | 基线对照 dump | 完成（`59d44fc`；auto-scaffold 四件 + dump-baseline.yml:351-352 deepseek-official/http 原态） |
 | T2 | 安装 + **manifest 缺陷发现与修复** | 完成（红：安装警告 `declares no dsh.bundle`、bundles 未追加——S03 平铺顶层键宿主从不读取；修复 `fdffe9e` 嵌套形态；绿：三处落盘全过 + dump diff insert 生效） |
 | T3 | 接线（用户层两行） | 完成（`9dcee6d`；dump-wired.yml:352-353 = dshws-chain/chain-fetch） |
