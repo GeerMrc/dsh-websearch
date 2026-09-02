@@ -54,6 +54,23 @@ export class KeyPool {
     this.#ports = ports
   }
 
+  /**
+   * The live pool snapshot — `[primary, ...extras]` as of this call — for
+   * gate priming and diagnostics (the commit-side re-prime fans out over it).
+   */
+  refs(): readonly string[] {
+    return this.#ports.refs()
+  }
+
+  /**
+   * Whether any ref in the live pool currently describes as configured — the
+   * member-gate readiness (`credentialsReady`), matching the pool the thunk
+   * would actually draw from.
+   */
+  ready(): boolean {
+    return this.#ports.refs().some((ref) => this.#ports.isReady(ref))
+  }
+
   /** The provider-facing thunk: select a ref from the pool, resolve its value. */
   async resolveApiKey(signal?: AbortSignal): Promise<string> {
     const { label, codes } = this.#ports

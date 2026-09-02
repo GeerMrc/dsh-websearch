@@ -60,6 +60,37 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     expect(chain.available()).toBe(false)
   })
 
+  it('an extra pool ref alone contributes readiness when the primary is unconfigured (ADR-0008)', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('TAVILY_SPARE')
+    apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain.available()).toBe(true)
+  })
+
+  it('an extra pool ref name outside the credential grammar fails loud at load', () => {
+    const { ctx } = fakeCtx()
+    expect(() => apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['not a valid ref!'] } }))
+      .toThrow(TypeError)
+  })
+
+  it('the pool thunk resolves through the first ready ref, skipping an unconfigured primary', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('TAVILY_SPARE')
+    apply(ctx as unknown as Context, {
+      tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'], keySelection: 'order' },
+    })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const result = await chain.search({ query: 'q' })
+    expect(result.sources).toEqual([{ url: 'https://tv.test' }])
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(new Headers(init.headers).get('authorization')).toBe('Bearer fake-key')
+  })
+
   it('a ref name outside the credential grammar fails loud at load (misconfiguration)', () => {
     const { ctx } = fakeCtx()
     expect(() => apply(ctx as unknown as Context, { tavily: { apiKeyEnv: 'not a valid ref!' } }))

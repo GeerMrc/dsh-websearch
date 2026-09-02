@@ -15,13 +15,16 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import type { CredentialProvider, CredentialRef } from '@deepseek-ai/dsh-credentials'
+import type { CredentialRef } from '@deepseek-ai/dsh-credentials'
 import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
+import type { KeySelection } from './config.ts'
 import { CredentialGate } from './credentials.ts'
+import { KeyPool } from './keys.ts'
+import { MEMBER_ERROR_CODES } from './errors.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
@@ -92,26 +95,45 @@ export function apply(ctx: Context, config: Config): void {
   const credentials = ctx.credentials
   const log = (message: string) => ctx.logger.info(message)
 
-  // Validate the configured references before anything registers: a name
-  // outside the credential grammar is a misconfiguration and must fail the
-  // load, not surface later as a rejected priming promise. apiKeyEnv is
-  // launch-static (plan D2), so the refs never change at runtime.
-  const refs = {
-    tavily: credentialRef(resolved.tavily.apiKeyEnv),
-    exa: credentialRef(resolved.exa.apiKeyEnv),
-    perplexity: credentialRef(resolved.perplexity.apiKeyEnv),
-    firecrawl: credentialRef(resolved.firecrawl.apiKeyEnv),
-    deepseek: credentialRef(resolved.deepseek.apiKeyEnv),
-  } as const
+  // Build each member's key pool (ADR-0008): the primary ref plus any
+  // configured extras. Entry-config names outside the credential grammar
+  // fail the load here; settings-sourced names are grammar-checked at resolve
+  // time and re-primed on every settings commit (see attachSettingsSection).
+  const poolRefs = (member: { apiKeyEnv: string; extraApiKeyEnvs: readonly string[] }): readonly CredentialRef[] =>
+    [credentialRef(member.apiKeyEnv), ...member.extraApiKeyEnvs.map((name) => credentialRef(name))]
 
   const gate = new CredentialGate({
     credentials,
     subscribe: (handler) => ctx.on('credentials/reference-updated', handler),
     log,
   })
-  const gates = (memberKey: MemberKey, ref: CredentialRef): MemberGates => ({
+
+  const keyPool = (
+    label: string,
+    codes: (typeof MEMBER_ERROR_CODES)[keyof typeof MEMBER_ERROR_CODES],
+    pool: readonly CredentialRef[],
+    selection: () => KeySelection,
+  ): KeyPool =>
+    new KeyPool({
+      refs: () => pool.map((ref) => String(ref)),
+      selection,
+      isReady: (ref) => gate.isReady(ref),
+      resolve: async (ref) => (await credentials.resolve(credentialRef(ref)))?.value,
+      label,
+      codes,
+    })
+
+  const pools = {
+    tavily: keyPool('Tavily', MEMBER_ERROR_CODES.tavily, poolRefs(resolved.tavily), () => live.current().tavily.keySelection),
+    exa: keyPool('Exa', MEMBER_ERROR_CODES.exa, poolRefs(resolved.exa), () => live.current().exa.keySelection),
+    perplexity: keyPool('Perplexity', MEMBER_ERROR_CODES.perplexity, poolRefs(resolved.perplexity), () => live.current().perplexity.keySelection),
+    firecrawl: keyPool('Firecrawl', MEMBER_ERROR_CODES.firecrawl, poolRefs(resolved.firecrawl), () => live.current().firecrawl.keySelection),
+    deepseek: keyPool('DeepSeek', MEMBER_ERROR_CODES.deepseek, poolRefs(resolved.deepseek), () => live.current().deepseek.keySelection),
+  } as const
+
+  const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({
     enabled: () => live.current()[memberKey].enabled,
-    credentialsReady: () => gate.isReady(String(ref)),
+    credentialsReady: () => pool.ready(),
   })
 
   const searchMembers = new MemberRegistry()
@@ -147,68 +169,68 @@ export function apply(ctx: Context, config: Config): void {
   // ctx.web for direct pinning, and in the plugin registry with its gates for
   // the chain (ADR-0002 Decision 5).
   const firecrawl = new FirecrawlProvider(
-    resolveFirecrawlMemberOptions(resolved.firecrawl, () => resolveCredentialValue(credentials, refs.firecrawl)),
+    resolveFirecrawlMemberOptions(resolved.firecrawl, () => pools.firecrawl.resolveApiKey()),
   )
   const members: readonly {
     provider: WebSearchProvider
     memberKey: MemberKey
-    ref: CredentialRef
+    pool: KeyPool
   }[] = [
     {
       provider: new TavilySearchProvider(
-        resolveTavilyMemberOptions(resolved.tavily, () => resolveCredentialValue(credentials, refs.tavily)),
+        resolveTavilyMemberOptions(resolved.tavily, () => pools.tavily.resolveApiKey()),
       ),
       memberKey: 'tavily',
-      ref: refs.tavily,
+      pool: pools.tavily,
     },
     {
       provider: new ExaSearchProvider(
-        resolveExaMemberOptions(resolved.exa, () => resolveCredentialValue(credentials, refs.exa)),
+        resolveExaMemberOptions(resolved.exa, () => pools.exa.resolveApiKey()),
       ),
       memberKey: 'exa',
-      ref: refs.exa,
+      pool: pools.exa,
     },
     {
       provider: new PerplexitySearchProvider(
-        resolvePerplexityMemberOptions(resolved.perplexity, () => resolveCredentialValue(credentials, refs.perplexity)),
+        resolvePerplexityMemberOptions(resolved.perplexity, () => pools.perplexity.resolveApiKey()),
       ),
       memberKey: 'perplexity',
-      ref: refs.perplexity,
+      pool: pools.perplexity,
     },
-    { provider: firecrawl, memberKey: 'firecrawl', ref: refs.firecrawl },
+    { provider: firecrawl, memberKey: 'firecrawl', pool: pools.firecrawl },
     {
       provider: new DeepSeekSearchProvider(
-        resolveDeepSeekMemberOptions(resolved.deepseek, () => resolveCredentialValue(credentials, refs.deepseek)),
+        resolveDeepSeekMemberOptions(resolved.deepseek, () => pools.deepseek.resolveApiKey()),
       ),
       memberKey: 'deepseek',
-      ref: refs.deepseek,
+      pool: pools.deepseek,
     },
   ]
-  for (const { provider, memberKey, ref } of members) {
+  for (const { provider, memberKey, pool } of members) {
     ctx.web.registerSearchProvider(provider)
-    searchMembers.register(provider, gates(memberKey, ref))
+    searchMembers.register(provider, gates(memberKey, pool))
   }
-  // The scrape face shares the firecrawl instance, credential, and gate.
+  // The scrape face shares the firecrawl instance, key pool, and gate.
   ctx.web.registerFetchProvider(firecrawl)
-  fetchMembers.register(firecrawl, gates('firecrawl', refs.firecrawl))
+  fetchMembers.register(firecrawl, gates('firecrawl', pools.firecrawl))
 
   // Hot settings section when the host has a settings service; no-op
-  // (entry config authoritative) otherwise.
-  attachSettingsSection(ctx, Config, config, live)
+  // (entry config authoritative) otherwise. A committed change re-primes the
+  // gate AFTER the refresh so newly added pool refs start being observed
+  // (prime is additive-idempotent; ADR-0008).
+  attachSettingsSection(ctx, Config, config, live, {
+    onCommitted: () => {
+      void gate.prime(Object.values(pools).flatMap((pool) => pool.refs())).catch((error: unknown) => {
+        log(`[dshws-websearch] credential gate re-priming failed unexpectedly: ${String(error)}`)
+      })
+    },
+  })
 
   // Fill the describe cache in the background; until it lands every member
   // reads not-ready. The refs are validated above and describe failures are
   // contained inside the gate, so this catch only keeps an unexpected bug
   // from becoming an unhandled rejection that could take the host down.
-  gate.prime(Object.values(refs).map((ref) => String(ref))).catch((error: unknown) => {
+  gate.prime(Object.values(pools).flatMap((pool) => pool.refs())).catch((error: unknown) => {
     log(`[dshws-websearch] credential gate priming failed unexpectedly: ${String(error)}`)
   })
-}
-
-/** Per-operation key resolution through the credentials service (values are never cached). */
-async function resolveCredentialValue(
-  credentials: CredentialProvider,
-  ref: CredentialRef,
-): Promise<string | undefined> {
-  return (await credentials.resolve(ref))?.value
 }
