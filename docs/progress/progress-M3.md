@@ -12,16 +12,17 @@
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
 | M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 ✅；S04 ✅；余 S05a/S05b） |
+| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03/S04/S05a ✅；余 S05b + 用户 with-key 槽位） |
 | M4-M6 | 设置页完备 / 交付就绪 / 上游验收通过 | ⏳ |
 
 ## 进行中
 
-- Session 05a（exa/perplexity/firecrawl + settings 节）：T0-T7b 完成；T8（门墙 + Note + 台账）
-  收口中；T9/T10（阶段 4/5 + 收尾）待执行。开发在 `feat/s05a-providers-settings`
+- Session 05b（安装端到端 + 卸载复原）：plan 005b 已过审，T0（Y-1 清偿 + 状态区刷新 +
+  dont-do 第三条）完成；T-prep 起开发在 `feat/s05b-install-e2e`
 
 ## 待启动
 
-- Session 05b（安装端到端 + 卸载复原）——前置：S05a 收官
+- Session 06（「网页搜索」设置页骨架）——前置：S05b 收官（M3 with-key 槽位不阻塞，D4）
 
 ## 已完成
 
@@ -111,7 +112,8 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 | T7 | 壳透传修正（D7）+ 五成员定形 + 热改链序/超时/启停 + 真实 seam | 完成（`458c6c1`；红 9 failed/2 passed → apply 11 passed） |
 | T7b | e2e real 三文件自跳（firecrawl 双面） | 完成（`8a9bc99`；本机三 key unset 实测） |
 | T8 | 门墙收口 + Agent Note + 架构树同步 + 本台账 | 完成（下表 + docs/notes/2026-09-02-s05a-settings-hot-path.md + 00-architecture.md §3） |
-| T9/T10 | 阶段 4/5 独立验证 + 收尾 6 件套 | 待执行 |
+| T9 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条对峙 + 门墙亲跑 + 三问 COMPLETE + /tmp 冒烟 13/13；🟡 F-1 .d.ts 数字 → T10 修正；audit-log 正本 docs/sessions/audit-logs/2026-09-02-s05a-stage45-verification.md） |
+| T10 | 收尾 6 件套 + 原子翻转 + `--no-ff` 合入 master | 完成（`e59685e` 收官批 + `a42aac7` merge；状态区刷新因本表漏刷致 Y-1，S05b T0 清偿——dont-do 第三条已沉淀防线） |
 
 ### 门墙实测数字（S05a T8 收口，node v22.23.2 / pnpm 11.7.0）
 

@@ -36,12 +36,13 @@
 | 03 | 2026-09-02 | 插件宿主骨架 + 链式 meta-provider | ✅ | docs/sessions/2026-09-02-session-03.md（包骨架 ADR-0007 + 链语义 8 项红→绿 + fetch 同构；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+3→0（T0 清偿 `c691caa`）🟢-1（L-3 清偿 `35969f0`） |
 | 04 | 2026-09-02 | deepseek/tavily provider + 凭据接线（S03 假面替换） | ✅ | docs/sessions/2026-09-02-session-04.md（双 provider + CredentialGate + 假面替换 + 热刷新端到端；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（T0 清偿 `4fc4187`）🟢-2（假面 `b351d42`、L-1 deepseek 半清偿 `af3d9b7`） |
 | 05a | 2026-09-02 | exa/perplexity/firecrawl 三 provider + settings 节 | ✅ | docs/sessions/2026-09-02-session-05a.md（五成员收编 L-1 全清 + settings 热改链序/超时/启停 + D7 壳透传修正；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟢-1（L-1 全清 `730ef40`/`d4842a1`/`9a4eb74`） |
+| 05b | 2026-09-02 | 安装端到端 + 卸载复原（M3 收官棒） | 🚧 | docs/plans/2026-09-02-005b-s05b-install-e2e-restore-plan.md（计划包；收官时换本记录指针） | 🟡+1（阶段 0 Y-1，T0 清偿） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 05a ✅ 2026-09-02 收官）
-- **所处里程碑**: M3 宿主包完备（🚧 S03/S04/S05a ✅；下一棒 S05b 安装端到端——M3 收官棒）
+- **当前 session**: Session 05b（🚧 2026-09-02 启动；阶段 0 审核 PASS，计划包审核推进中）
+- **所处里程碑**: M3 宿主包完备（🚧 第 4 棒 S05b 进行中——安装端到端 + 卸载复原；with-key 结果面 = 用户槽位）
 - **上一棒**: Session 05a（exa/perplexity/firecrawl + settings 热改 + L-1 全清；测试基线 157 passed | 6 skipped）— 记录：docs/sessions/2026-09-02-session-05a.md
-- **下一棒**: roadmap 第一个 ⏳ 行 = Session 05b（安装端到端 + 卸载复原；真实 key 实测守 user-paces-verification 惯例）
-- **活跃债务**: 🔴×0 🟡×0 🟢×1（L-2 二期；L-1 全清）+ 备注×2 —— 正本：docs/progress/progress-M3.md
-- **更新时间**: 2026-09-02（S05a 阶段 6 收尾）
+- **下一棒**: S05b 收官后 = Session 06（「网页搜索」设置页骨架；with-key 槽位不阻塞）
+- **活跃债务**: 🔴×0 🟡×0（阶段 0 Y-1 已 T0 清偿）🟢×1（L-2 二期）+ 备注×2 —— 正本：docs/progress/progress-M3.md
+- **更新时间**: 2026-09-02（S05b 启动刷新）

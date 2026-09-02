@@ -20,3 +20,11 @@
 - **错误**：`npm view <pkg> version`（= latest tag）判断可用版本——实测 `@deepseek-ai/dsh-settings` latest 指向 `0.0.1-rc.1` 旧线，而真实发布线 `0.1.2-alpha.2..4` 存在且 alpha.4 为最新；据此会误判「包未发布/无新版」。
 - **正确**：判断发布态一律 `npm view <pkg> versions` 看全列表（必要时 `time --json` 看发布时间）；dist-tag 只作参考。钉 prerelease 域用显式 range（如 `>=0.1.2-alpha.3 <0.1.3`）。
 - **来源**：Session 02 T1 双实锚核对时实测发现（`410d58f` 后）；ADR-0007 依赖钉版策略采纳
+
+## 收官序列（Session 05b，三次复发后系统性确认）
+
+### ❌ 不要在收官原子序列里漏刷新 progress 台账自身的状态区
+
+- **错误**：收官只刷新 STATUS/roadmap/CHANGELOG/progress 验收表与门墙数字，漏掉 progress 文件自身的状态区——里程碑行括注、「进行中」/「待启动」节、任务表 T9/T10 末行。后果 = 同文件内收官 R 表与残留「进行中/待执行」直接自相矛盾。
+- **正确**：收官序列（6 件套第 3 件）显式含 progress 状态区四处刷新：①里程碑行括注 ②「进行中」清空并下移 ③「待启动」前移 ④本棒任务表 T9/T10 行落完成态。逐四处打勾后才算收官完成。
+- **来源**：三次家族复发——S04 阶段 0 抓 progress-M1 同类（🟡，`c691caa` 清偿）、S05a 阶段 0 观察 S03 R 表标题、S05a 阶段 0 抓 progress-M3 状态区（🟡 Y-1，S05b T0 清偿）；STATUS 单源规则掩护了它（STATUS 始终正确，progress 无人查）
