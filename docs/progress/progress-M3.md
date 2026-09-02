@@ -115,12 +115,26 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 
 ### 门墙实测数字（S05a T8 收口，node v22.23.2 / pnpm 11.7.0）
 
-- `pnpm test` → **Test Files 18 passed (18)，Tests 157 passed \| 6 skipped (163)**，~528ms（skip = 5 个真实 API 用例自跳 + firecrawl scrape 用例同批）
+- `pnpm test` → **Test Files 18 passed (18)，Tests 157 passed \| 6 skipped (163)**，~528ms（skip = 真实 API 自跳：deepseek/tavily/exa/perplexity 各 1 + firecrawl search+scrape 双面 2）
 - `pnpm typecheck` → exit 0（0 error）
 - `pnpm lint` → **0 warnings and 0 errors**（30 files，96 rules）
-- `pnpm build` → lib/index.js 49.00 kB + lib/index.d.ts 20.42 kB（gzip 12.34/4.75 kB）
+- `pnpm build` → lib/index.js 49.00 kB（gzip 12.34）+ lib/index.d.ts **21.89 kB**（gzip 4.83）
+
+> 留痕（阶段 4/5 F-1，T10 前置必修）：台账初稿 .d.ts 写 20.42/4.75 kB——T8 同批 config.ts
+> JSDoc 冷热标注流入 .d.ts，数字相对 HEAD 陈旧（测改时序）。T10 以 HEAD 重跑 build 修正为
+> 21.89/4.83；test/typecheck/lint 三数字阶段 4 亲跑复验与初稿一致，js 体积不受影响。
 
 ## 阶段验收（R1-R5，阶段收官时填）
+
+### S05a 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | 三族错误码换形可重放 | PASS | errors.ts:27-63 全五族五键对象形零前缀残留；errors.test.ts:27-63 形状断言随行为更新（`7922597`） |
+| R2 | exa/perplexity 单测四态红→绿 + e2e 自跳 | PASS | exa.test.ts 17 条/perplexity.test.ts 15 条逐态对峙（成功映射/429/断网/abort/凭据缺失/available/id）；e2e real 两文件 skip 实测 1+1；红绿留痕 = `730ef40`/`d4842a1` + 任务表 |
+| R3 | firecrawl 双面红→绿 + e2e 自跳 | PASS | firecrawl.test.ts 19 条（search 四态 + data.web 映射 + success:false 防御；fetch 请求/markdown→text/statusCode 透传/回退链/402-429/abort）；单类双接口三处注册（`9a4eb74`）；e2e 双面 skip 实测 2。🟢 观察：fetch 面无独立 402/429 it（双面共用 #parse，search 面已钉） |
+| R4 | settings 热改实测 | PASS | settings.test.ts 6 条含真实 SettingsProvider seam（attach→update→detach fallback）；apply.test.ts 链序翻转（exhausted 摘要记录实际走查序）/timeout 热读/enabled 翻转→NO_MEMBER_CONFIGURED/缺服务回退（`e8e86e6`/`458c6c1`） |
+| R5 | 五 provider 注册冒烟 + 门墙 + 收尾 | PASS | 期望序逐位命中（apply.test.ts:91-92）；四命令亲跑与台账一致（F-1 .d.ts 数字修正见上）；收尾件套 = 本 R 表 + session-05a 记录 + STATUS/roadmap 翻转 + CHANGELOG + 接力指令 + audit-logs——同一序列完成；`--no-ff` merge commit 留痕 |
 
 ### S04 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
 
