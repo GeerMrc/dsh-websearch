@@ -77,7 +77,7 @@ commit 填出的 R 表自相矛盾；与上轮 🟡① 同模式复发，已标�
 | D4 | 成员错误码族定形（D4 形状定案，吸收审核 M-1）：`MEMBER_ERROR_CODES` 族值**在 provider 落地时从前缀 string 换为具体码对象**（本棒 deepseek/tavily 两族换形，每族 5 键 `credentialMissing/requestFailed/httpError/badResponse/aborted` → `DSHWS_<FAM>_<KEY 大写蛇形>`；firecrawl/exa/perplexity 三族本棒保持前缀 string，S05a 落 provider 时同口径换形）；`tests/errors.test.ts:28-30` 现有 `MEMBER_ERROR_CODES` 形状断言随本任务更新（行为变更随其测试，点名 file:line，同 T6 对 apply.test.ts 的处置口径） | errors.ts:22-28 留位义务 + 模块 JSDoc「provider lands 时扩充」既定路线；换形时点与 provider 落地绑定，避免为未落地族预造 15 个码值（越权 S05a 面）；对象形给 S05a 稳定接口 |
 | D5 | 两 provider 的 key 一律**每操作经 credentials 服务解析**（search 入口先 resolve），provider 本体不持有 key；`available()` = 纯本地配置检查（baseURL 可解析 + 数值字段正整数），不含 key 维度（key 维度由 gate 的 credentialsReady 承载） | credentials 服务契约「每操作解析=热生效」；直连钉死场景下 key 未配 → 成员抛 CREDENTIAL_MISSING（fail-loud 带指引信息），与链内降级语义一致 |
 | D6 | provider 专属默认值（deepseek baseURL/model/maxTokens、tavily baseURL）落 provider 实现内显式兜底（config.ts:29-31 JSDoc 既定）；tavily v1 不请求 answer（`include_answer` 缺省），结果 content 映射为 snippet；tavily `max_results` **透传不 clamp**（seam `maxResults` 语义原样；>20 由 Tavily 4xx 拒绝 → HTTP_ERROR，链内降级/直连 fail-loud——与上游 exa 不 clamp 同构），取证入 Agent Note | explicit > implicit；架构 §5 配置模型未含 answer 开关，v1 不扩面 |
-| D7 | roadmap 验收字面「超时」在 provider 单测层的对应物 = **abort 传播**（provider 无自有超时逻辑，honors signal；stub fetch 监听 abort 拒绝 → ABORTED 码）；链级每成员超时预算语义已由 S03 必测⑦（fake 成员 + perMemberTimeoutMs）覆盖，本棒不重复建设 | roadmap S04 验收四态字面的可测性映射；plan-002 T10 已实测链级超时，成员级重复实现即双超时源 |
+| D7 | roadmap 验收字面「超时」在 provider 单测层的对应物 = **abort 传播**（provider 无自有超时逻辑，honors signal；stub fetch 监听 abort 拒绝 → ABORTED 码）；链级每成员超时预算语义已由 S03 必测⑦（fake 成员 + perMemberTimeoutMs，plan-003 T10）覆盖，本棒不重复建设 | roadmap S04 验收四态字面的可测性映射；plan-003 T10 已实测链级超时，成员级重复实现即双超时源 |
 
 ## 任务分解（WBS）
 
@@ -156,14 +156,14 @@ skip 计数 + 文件存在与 JSDoc 披露），豁免红绿循环——分类�
 ## 风险
 
 - **published dsh-credentials 类型面**：alpha.4 的 `CredentialProvider`/`credentialRef` 类型导
-  出若与 vendored alpha.3 源有偏差 → T2 typecheck 即暴露；处置 = 停下走范围变更回路，不私打
+  出若与宿主源码树 alpha.3 有偏差 → T2 typecheck 即暴露；处置 = 停下走范围变更回路，不私打
   补丁（T1 已有 dsh-web alpha.4 类型增强成功先例，风险低）
 - **cordis 事件订阅面**：`ctx.on('credentials/reference-updated', …)` 的返回与 dispose 语义若
   与预期不符 → T3/T6 单测（fake ctx）先行钉行为，typecheck 兜类型；异常按实锚修正，决策入
   Agent Note
 - **fake credentials 事件时序**：事件扇出同步派发（fanOut 实现），fake ctx 需按同步语义触发；
   若 prime 与事件竞争 → 测试内显式 await prime 后再触发事件，不依赖微任务顺序
-- **mock HTTP × abort 交互**：S03 已知 fake timers × AbortController 脆（plan-002 风险节先例）
+- **mock HTTP × abort 交互**：S03 已知 fake timers × AbortController 脆（plan-003 风险节先例）
   → 本棒成员单测用「signal 手动 abort + fetch stub 监听 abort 拒绝」的真实事件路径，不用
   fake timers；超时预算语义已由 S03 必测⑦覆盖，本棒不重复
 - **DeepSeek 真实 e2e 无 key**：自跳路径已由上游先例验证；若本机环境出现半配置 key（env 存在
