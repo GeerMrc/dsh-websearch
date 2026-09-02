@@ -57,6 +57,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSaveKey: vi.fn(async () => ({ ok: true }) as ActionResult),
     onClearKey: vi.fn(async () => ({ ok: true }) as ActionResult),
     onToggleEnabled: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onMoveSearch: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -138,14 +139,94 @@ describe('WebSearchSettingsSection', () => {
     expect((exaClear as HTMLButtonElement).disabled).toBe(true)
   })
 
-  it('renders both chains read-only plus the timeout budget', () => {
+  it('renders both chains in snapshot order plus the timeout budget', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
     const lists = chains.querySelectorAll('ol')
     expect(lists.length).toBe(2)
     for (const list of lists) {
-      expect(Array.from(list.querySelectorAll('li')).map((li) => li.textContent)).toEqual(BUILT_IN)
+      expect(Array.from(list.querySelectorAll('li > span')).map((span) => span.textContent)).toEqual(BUILT_IN)
     }
     expect(chains.textContent).toContain('30000')
+  })
+
+  it('the search chain is reorderable and the fetch chain stays read-only', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
+    const fetchList = container.querySelector('[data-testid="dshws-fetch-chain"]')!
+    const upButtons = searchList.querySelectorAll('button[aria-label$="Move up"]')
+    const downButtons = searchList.querySelectorAll('button[aria-label$="Move down"]')
+    expect(upButtons.length).toBe(5)
+    expect(downButtons.length).toBe(5)
+    expect(screen.getByRole('button', { name: 'dshws-tavily Move up' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'dshws-exa Move down' })).toBeTruthy()
+    expect(fetchList.querySelectorAll('button').length).toBe(0)
+  })
+
+  it('boundary move buttons disable at the ends of the search chain', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
+    const firstUp = searchList.querySelector('button[aria-label="dshws-tavily Move up"]') as HTMLButtonElement
+    const firstDown = searchList.querySelector('button[aria-label="dshws-tavily Move down"]') as HTMLButtonElement
+    const lastDown = searchList.querySelector(
+      'button[aria-label="dshws-deepseek Move down"]',
+    ) as HTMLButtonElement
+    const lastUp = searchList.querySelector('button[aria-label="dshws-deepseek Move up"]') as HTMLButtonElement
+    expect(firstUp.disabled).toBe(true)
+    expect(firstDown.disabled).toBe(false)
+    expect(lastUp.disabled).toBe(false)
+    expect(lastDown.disabled).toBe(true)
+  })
+
+  it('move clicks forward the entry id and delta', async () => {
+    const onMoveSearch = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveSearch })} t={t} />)
+    const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
+    fireEvent.click(searchList.querySelector('button[aria-label="dshws-exa Move up"]')!)
+    await waitFor(() => expect(onMoveSearch).toHaveBeenCalledWith('dshws-exa', -1))
+    fireEvent.click(searchList.querySelector('button[aria-label="dshws-tavily Move down"]')!)
+    await waitFor(() => expect(onMoveSearch).toHaveBeenCalledWith('dshws-tavily', 1))
+  })
+
+  it('chain badges reflect the pinned flags on both chains', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const badges = container.querySelectorAll('[data-dshws-chain-state]')
+    expect(badges.length).toBe(2)
+    for (const badge of badges) {
+      expect(badge.getAttribute('data-dshws-chain-state')).toBe('default')
+      expect(badge.textContent).toBe(en.chainDefault)
+    }
+    cleanup()
+    const pinnedSnapshot: SectionSnapshot = {
+      ...makeSnapshot(),
+      searchChainPinned: true,
+      fetchChainPinned: true,
+    }
+    const pinned = render(<WebSearchSettingsSection {...makeProps({ snapshot: pinnedSnapshot })} t={t} />)
+    const pinnedBadges = pinned.container.querySelectorAll('[data-dshws-chain-state]')
+    expect(pinnedBadges.length).toBe(2)
+    for (const badge of pinnedBadges) {
+      expect(badge.getAttribute('data-dshws-chain-state')).toBe('pinned')
+      expect(badge.textContent).toBe(en.chainPinned)
+    }
+  })
+
+  it('a failed move shows failed feedback and a later success clears it', async () => {
+    const onMoveSearch = vi.fn(async () => ({ ok: false }) as ActionResult)
+    const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveSearch })} t={t} />)
+    const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
+    fireEvent.click(searchList.querySelector('button[aria-label="dshws-exa Move up"]')!)
+    await waitFor(() => expect(screen.getByTestId('dshws-chain-feedback').textContent).toBe(en.failed))
+
+    const succeeding = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const rerendered = render(
+      <WebSearchSettingsSection {...makeProps({ onMoveSearch: succeeding })} t={t} />,
+    )
+    const list = rerendered.container.querySelector('[data-testid="dshws-search-chain"]')!
+    fireEvent.click(list.querySelector('button[aria-label="dshws-exa Move up"]')!)
+    await waitFor(() => expect(succeeding).toHaveBeenCalled())
+    // Scoped to the fresh instance: the first container is still mounted until
+    // afterEach cleanup, so a document-wide query would hit its leftover span.
+    expect(rerendered.container.querySelector('[data-testid="dshws-chain-feedback"]')).toBeNull()
   })
 })
