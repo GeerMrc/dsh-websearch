@@ -16,11 +16,12 @@
 
 ## 进行中
 
-- 无（S04 收官；下一棒 S05a 待启动）
+- Session 05a（exa/perplexity/firecrawl + settings 节）：T0-T7b 完成；T8（门墙 + Note + 台账）
+  收口中；T9/T10（阶段 4/5 + 收尾）待执行。开发在 `feat/s05a-providers-settings`
 
 ## 待启动
 
-- Session 05a（exa/perplexity/firecrawl + settings 节）——前置：S04 已收官
+- Session 05b（安装端到端 + 卸载复原）——前置：S05a 收官
 
 ## 已完成
 
@@ -89,7 +90,51 @@
 > T8 内修复（id 常量改用于显式 id 契约断言，+2 测试）后复跑全绿；台账初稿误写 0w0e，以上为
 > 修正后终值。
 
+### S05a 三 provider + settings 批（2026-09-02，分支 feat/s05a-providers-settings）
+
+阶段 0 独立审核 S04 **PASS**（🔴×0，🟡×0 新增；观察级 = S03 R 表标题结构 + 脚手架提取候选，
+前者 T0 修正、后者 T1 落实）→ plan 005a 落盘 → 阶段 2 轮 1 **NEEDS REVISION**（M-1 壳构造器
+spread 冻结 getter / M-2 三 provider e2e 遗漏 / S-1..S-6 建议）→ 全数吸收 → 同 Agent 复审
+**APPROVED**（批准性残项 2 项：架构树替换式修正、决策编号卫生——分别 T8/T0 落实）→ 阶段 2.5
+AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露，session 记录双落）。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | STATUS 启动刷新 + plan 005a 落盘 + S03/S04 R 表标题修正 | 完成（`1d8d6e7`） |
+| T-prep | dsh-settings peer/devDep（高危预告①；workspace 追加行随批提交——S04 F-1 教训） | 完成（`32c4cea`） |
+| T1 | shared.ts 脚手架提取（重构类禁证红） | 完成（`f00f133`；tests/ 零变更；全量 93 passed \| 2 skipped 零漂移） |
+| T2 | 错误码三族换形（全五族对象形收口） | 完成（`7922597`；红 1 failed/5 passed → 绿） |
+| T3 | dshws-exa | 完成（`730ef40`；红模块缺失 → 子集 17 → 全量 110 passed \| 2 skipped） |
+| T4 | dshws-perplexity | 完成（`d4842a1`；红模块缺失 → 子集 15 → 全量 125 passed \| 2 skipped） |
+| T5 | dshws-firecrawl 单类双接口 | 完成（`9a4eb74`；红模块缺失 → 子集 19 → 全量 144 passed \| 2 skipped） |
+| T6 | settings live-state（LiveResolvedConfig + attachSettingsSection） | 完成（`e8e86e6`；红模块缺失 → 子集 5 passed） |
+| T7 | 壳透传修正（D7）+ 五成员定形 + 热改链序/超时/启停 + 真实 seam | 完成（`458c6c1`；红 9 failed/2 passed → apply 11 passed） |
+| T7b | e2e real 三文件自跳（firecrawl 双面） | 完成（`8a9bc99`；本机三 key unset 实测） |
+| T8 | 门墙收口 + Agent Note + 架构树同步 + 本台账 | 完成（下表 + docs/notes/2026-09-02-s05a-settings-hot-path.md + 00-architecture.md §3） |
+| T9/T10 | 阶段 4/5 独立验证 + 收尾 6 件套 | 待执行 |
+
+### 门墙实测数字（S05a T8 收口，node v22.23.2 / pnpm 11.7.0）
+
+- `pnpm test` → **Test Files 18 passed (18)，Tests 157 passed \| 6 skipped (163)**，~528ms（skip = 真实 API 自跳：deepseek/tavily/exa/perplexity 各 1 + firecrawl search+scrape 双面 2）
+- `pnpm typecheck` → exit 0（0 error）
+- `pnpm lint` → **0 warnings and 0 errors**（30 files，96 rules）
+- `pnpm build` → lib/index.js 49.00 kB（gzip 12.34）+ lib/index.d.ts **21.89 kB**（gzip 4.83）
+
+> 留痕（阶段 4/5 F-1，T10 前置必修）：台账初稿 .d.ts 写 20.42/4.75 kB——T8 同批 config.ts
+> JSDoc 冷热标注流入 .d.ts，数字相对 HEAD 陈旧（测改时序）。T10 以 HEAD 重跑 build 修正为
+> 21.89/4.83；test/typecheck/lint 三数字阶段 4 亲跑复验与初稿一致，js 体积不受影响。
+
 ## 阶段验收（R1-R5，阶段收官时填）
+
+### S05a 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | 三族错误码换形可重放 | PASS | errors.ts:27-63 全五族五键对象形零前缀残留；errors.test.ts:27-63 形状断言随行为更新（`7922597`） |
+| R2 | exa/perplexity 单测四态红→绿 + e2e 自跳 | PASS | exa.test.ts 17 条/perplexity.test.ts 15 条逐态对峙（成功映射/429/断网/abort/凭据缺失/available/id）；e2e real 两文件 skip 实测 1+1；红绿留痕 = `730ef40`/`d4842a1` + 任务表 |
+| R3 | firecrawl 双面红→绿 + e2e 自跳 | PASS | firecrawl.test.ts 19 条（search 四态 + data.web 映射 + success:false 防御；fetch 请求/markdown→text/statusCode 透传/回退链/402-429/abort）；单类双接口三处注册（`9a4eb74`）；e2e 双面 skip 实测 2。🟢 观察：fetch 面无独立 402/429 it（双面共用 #parse，search 面已钉） |
+| R4 | settings 热改实测 | PASS | settings.test.ts 6 条含真实 SettingsProvider seam（attach→update→detach fallback）；apply.test.ts 链序翻转（exhausted 摘要记录实际走查序）/timeout 热读/enabled 翻转→NO_MEMBER_CONFIGURED/缺服务回退（`e8e86e6`/`458c6c1`） |
+| R5 | 五 provider 注册冒烟 + 门墙 + 收尾 | PASS | 期望序逐位命中（apply.test.ts:91-92）；四命令亲跑与台账一致（F-1 .d.ts 数字修正见上）；收尾件套 = 本 R 表 + session-05a 记录 + STATUS/roadmap 翻转 + CHANGELOG + 接力指令 + audit-logs——同一序列完成；`--no-ff` merge commit 留痕 |
 
 ### S04 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
 
@@ -126,10 +171,11 @@
 
 | 债务 | 等级 | 归属 |
 |---|---|---|
-| L-1 deepseek/exa/perplexity/firecrawl 插件内重实现 | 🟢 | **deepseek 已清偿**（T4 `af3d9b7`）；余 exa/perplexity/firecrawl 归 S05a（tavily 属 roadmap S04 既定范围，T5 `9d0d61e` 交付） |
+| L-1 deepseek/exa/perplexity/firecrawl 插件内重实现 | 🟢 | **已全部清偿**（deepseek S04 `af3d9b7`；exa/perplexity/firecrawl S05a `730ef40`/`d4842a1`/`9a4eb74`；tavily 属 S04 既定范围 `9d0d61e`） |
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 二期候选，不排期 |
 | L-3 spike 脚手架不入库，正式骨架重建 | 🟢 | **已清偿**（T1 `35969f0` 正式骨架落库） |
-| S03 假面（toResolver 恒 true） | 🟢 | **已清偿**（S04 T1 `b351d42` gates 热读替换；S05a 注册须显式传 gate，见 Agent Note §1） |
+| S03 假面（toResolver 恒 true） | 🟢 | **已清偿**（S04 T1 `b351d42` gates 热读替换；S05a 起五成员全部显式传 gate） |
+| S04 观察级：错误脚手架近复制 | 观察 | **已清偿**（S05a T1 shared.ts `f00f133`） |
 
 映射正本：`docs/plans/2026-09-02-003-s03-host-skeleton-chain-plan.md` 债务映射节。
 
@@ -143,7 +189,11 @@
 | dsh-web published types 含 ctx.web 增强（`declare module '@deepseek-ai/cordis'`）+ 内部 import dsh-llm | 审核 Agent 下载 alpha.4 tarball 实证（lib/types/index.d.ts:13、types.d.ts:7）+ T11 typecheck/探测互证 |
 | schemastery 实例可调用归一化（无 .validate；空对象→结构骨架） | T4 红绿循环实测（node_modules lib/types/index.d.ts:124-125） |
 | cordis 日志面 ctx.logger（printf 风格） | vendor/cordis/src/logger.ts + webhook/settings 用例（webhook/src/index.ts:154）+ T11 typecheck 实证 |
-| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；**S04 批次后：93 passed \| 2 skipped（95；11 文件）**（skip = e2e real 无 key 自跳） |
+| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；S04：93 passed \| 2 skipped（95）；**S05a 批次后：157 passed \| 6 skipped（163；18 文件）**（skip = 真实 API 无 key 自跳） |
+| settings seam：installSection（index.ts:469-506）/SettingsSectionHooks（:868-886）/真实 seam 测试先例（tests/settings.spec.ts:700-760）；ns 语法 lowercase kebab | S05a 阶段 1 亲读 + 阶段 2 审核独立复核一致 |
+| 上游 provider 参考锚（S05a 增）：web-search-exa（:22/:56-65/:98-114）/web-search-perplexity（:22/:25/:28/:73-83/:113-118） | S05a 阶段 1 亲读 + 阶段 2 审核独立命中 |
+| firecrawl v2 线格式（POST /v2/search `data.web[]` 分组 / POST /v2/scrape `formats:['markdown']` + metadata.statusCode/url / 402/429 `{error}`） | 官方文档 2026-09-02 取证（plan 005a 背景节） |
+| npm dsh-settings 全列表 0.0.1-rc.1..0.1.1-rc.2 + 0.1.2 线 alpha.2..4；宿主源码树 packages/settings/settings = 0.1.2-alpha.3 | S05a 阶段 1 实测 + 轮 1 审核 `npm view` 复核一致 |
 | credentials seam：credentialRef（index.ts:29）/resolve（:183）/describe（:191）/事件声明（types.ts:90）/环境层永不发事件（types.ts:80-84） | S04 阶段 1 亲读 + 阶段 2 审核 Agent 独立复核一致（宿主 dev@3281e04b59） |
 | 上游 provider 参考锚：web-search-deepseek/src/provider.ts（常量 :35/:38/:41/:44/:47、双头 :228-236、映射 :121-174）；web-search-exa/src/provider.ts（:22/:56-65/:89-94/:98-114） | S04 阶段 1 亲读 + 阶段 2 审核独立命中 |
 | Tavily 线格式（POST /search、Bearer、query/max_results、results[] 字段、401/429/432/433/500） | 官方 API reference 2026-09-02 取证（plan 004 背景节） |

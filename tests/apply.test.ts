@@ -4,6 +4,11 @@ import type { CredentialInfo, CredentialRef } from '@deepseek-ai/dsh-credentials
 import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import { apply, inject, name } from '../src/index.ts'
 
+interface SettingsHooks {
+  setSource: (source: () => unknown) => void
+  onChange: () => void
+}
+
 interface FakeCtx {
   logger: { info: (message: string) => void }
   web: {
@@ -14,15 +19,17 @@ interface FakeCtx {
     describe: (ref: CredentialRef) => Promise<CredentialInfo>
     resolve: (ref: CredentialRef) => Promise<{ value: string; source: string } | undefined>
   }
+  inject: (names: readonly string[], cb: (sctx: { settings: { installSection: (...args: never[]) => void } }) => void) => void
   on: (event: string, handler: (ref: CredentialRef) => void) => () => void
 }
 
-function fakeCtx() {
+function fakeCtx(options?: { withSettings?: boolean }) {
   const search: string[] = []
   const fetch: string[] = []
   const providers = new Map<string, WebSearchProvider | WebFetchProvider>()
   const configured = new Set<string>()
   const eventHandlers = new Set<(ref: CredentialRef) => void>()
+  let settingsHooks: SettingsHooks | undefined
   const ctx: FakeCtx = {
     logger: { info: () => {} },
     web: {
@@ -45,15 +52,32 @@ function fakeCtx() {
       }),
       resolve: async (ref) => configured.has(String(ref)) ? { value: 'fake-key', source: 'env' } : undefined,
     },
+    inject: (names, cb) => {
+      if (options?.withSettings === false) return
+      if (names.includes('settings')) {
+        cb({
+          settings: {
+            installSection: (...args: never[]) => {
+              settingsHooks = args[4] as SettingsHooks
+            },
+          },
+        })
+      }
+    },
     on: (event, handler) => {
       if (event === 'credentials/reference-updated') eventHandlers.add(handler)
       return () => eventHandlers.delete(handler)
     },
   }
+  /** Simulate a committed settings section: the service re-reads the source, then notifies. */
+  const commitSettings = (section: unknown) => {
+    settingsHooks!.setSource(() => section)
+    settingsHooks!.onChange()
+  }
   const emitUpdated = (ref: string) => {
     for (const handler of eventHandlers) handler(ref as CredentialRef)
   }
-  return { ctx, search, fetch, providers, configured, emitUpdated }
+  return { ctx, search, fetch, providers, configured, emitUpdated, commitSettings }
 }
 
 async function flushGate(): Promise<void> {
@@ -61,11 +85,11 @@ async function flushGate(): Promise<void> {
 }
 
 describe('apply assembly', () => {
-  it('registers the chains and the S04 members with ctx.web (double registration topology)', () => {
+  it('registers the chains and all five members with ctx.web (double registration topology)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, {})
-    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-deepseek'])
-    expect(fetch).toEqual(['dshws-chain-fetch'])
+    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek'])
+    expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
   })
 
   it('exposes the chain as unavailable while no credentials are configured', () => {
@@ -120,5 +144,99 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     const { ctx } = fakeCtx()
     expect(() => apply(ctx as unknown as Context, { tavily: { apiKeyEnv: 'not a valid ref!' } }))
       .toThrow(TypeError)
+  })
+})
+
+describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
+  it('hot-applies a chain reorder: the NEXT search walks members in the new order', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+
+    // Every member fails with HTTP 500, so the exhausted summary records the
+    // walk order: built-in order puts tavily before deepseek.
+    vi.stubGlobal('fetch', vi.fn(async (_url: string | URL | Request) =>
+      new Response('server error', { status: 500 })))
+    const first = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect(first).toBeDefined()
+    const tavilyLine = '- dshws-tavily:'
+    const deepseekLine = '- dshws-deepseek:'
+    expect(first!.message.indexOf(tavilyLine)).toBeGreaterThan(-1)
+    expect(first!.message.indexOf(tavilyLine)).toBeLessThan(first!.message.indexOf(deepseekLine))
+
+    commitSettings({ searchChain: ['dshws-deepseek', 'dshws-tavily'] })
+    const second = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect(second).toBeDefined()
+    expect(second!.message.indexOf(deepseekLine)).toBeGreaterThan(-1)
+    expect(second!.message.indexOf(deepseekLine)).toBeLessThan(second!.message.indexOf(tavilyLine))
+  })
+
+  it('hot-applies the timeout budget: a raised budget lets a slow member win the next search', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, { perMemberTimeoutMs: 30 })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+
+    // Tavily (first in the built-in order) hangs past the 30ms budget; the
+    // chain times it out and degrades to deepseek.
+    let tavilyHangs = true
+    vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+      const target = String(url)
+      if (target.includes('api.tavily.com') && tavilyHangs) {
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+        })
+      }
+      if (target.includes('/messages')) {
+        return new Response(JSON.stringify({
+          content: [{ type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: 'https://ds.test' }] }],
+        }), { headers: { 'content-type': 'application/json' } })
+      }
+      return new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } })
+    }))
+
+    const degraded = await chain.search({ query: 'q' })
+    expect(degraded.sources).toEqual([{ url: 'https://ds.test' }])
+
+    // Raising the budget through settings lets the same slow tavily answer in time.
+    tavilyHangs = false
+    const slowDelay = new Promise((resolve) => setTimeout(resolve, 60))
+    commitSettings({ perMemberTimeoutMs: 5000 })
+    vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request) => {
+      if (String(url).includes('api.tavily.com')) {
+        await slowDelay
+        return new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } })
+      }
+      throw new TypeError('unexpected member call')
+    }))
+    const warmed = await chain.search({ query: 'q' })
+    expect(warmed.sources).toEqual([{ url: 'https://tv.test' }])
+  })
+
+  it('hot-applies a member disable: the disabled member stops contributing readiness', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
+
+    commitSettings({ tavily: { enabled: false } })
+    expect(chain.available()).toBe(false)
+    const caught = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: 'DSHWS_NO_MEMBER_CONFIGURED' })
+  })
+
+  it('works without a settings service: the entry config stays authoritative', async () => {
+    const { ctx, providers, configured } = fakeCtx({ withSettings: false })
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, { searchChain: ['dshws-tavily', 'dshws-deepseek'] })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain.available()).toBe(true)
   })
 })

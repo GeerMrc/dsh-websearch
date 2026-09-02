@@ -34,13 +34,11 @@ export type ChainLogger = (message: string) => void
 
 /** Constructor options for a chain meta provider. */
 export interface ChainOptions<P> {
-  /** This chain's registry id (`dshws-chain` / `dshws-chain-fetch`). */
-  readonly id: string
   /** The registry view members are resolved against. */
   readonly members: ChainMemberResolver<P>
-  /** Configured member order; the chain tries members in exactly this order. */
+  /** Configured member order; the chain tries members in exactly this order. Read per run (hot). */
   readonly order: readonly string[]
-  /** Timeout budget per member per call, in milliseconds. */
+  /** Timeout budget per member per call, in milliseconds. Read per member per run (hot). */
   readonly perMemberTimeoutMs: number
   /** Observability sink; omit for a silent chain (tests assert through results). */
   readonly log?: ChainLogger
@@ -217,8 +215,12 @@ export class ChainSearchProvider implements WebSearchProvider {
 
   readonly #core: ChainCore<WebSearchProvider, WebSearchRequest, WebSearchResult>
 
-  constructor(options: Omit<ChainOptions<WebSearchProvider>, 'id'>) {
-    this.#core = new ChainCore({ ...options, id: this.id }, withServedBy)
+  /**
+   * The caller's options object is kept by reference (never spread): getters
+   * on it — the settings hot path — must be re-read on every run.
+   */
+  constructor(options: ChainOptions<WebSearchProvider>) {
+    this.#core = new ChainCore(options, withServedBy)
   }
 
   available(): boolean {
@@ -240,8 +242,9 @@ export class ChainFetchProvider implements WebFetchProvider {
 
   readonly #core: ChainCore<WebFetchProvider, WebFetchRequest, WebFetchResult>
 
-  constructor(options: Omit<ChainOptions<WebFetchProvider>, 'id'>) {
-    this.#core = new ChainCore({ ...options, id: this.id }, (_memberId, result) => result)
+  /** Kept by reference for the same hot-read reason as the search shell. */
+  constructor(options: ChainOptions<WebFetchProvider>) {
+    this.#core = new ChainCore(options, (_memberId, result) => result)
   }
 
   available(): boolean {

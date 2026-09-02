@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|
 | **03** | 插件宿主骨架 + 链式 meta-provider | 包骨架（package.json name/version/files/exports 按 ADR-0007）/pnpm/tsdown；Config schema（含 `perMemberTimeoutMs`）；错误码清单 `src/errors.ts`；search/fetch 链编排 TDD（架构 §4 全语义，凭据解析用 fake） | 链语义必测 8 项（顺序/未配置跳过/不可用跳过/运行失败降级/全败 `DSHWS_CHAIN_EXHAUSTED`+摘要/servedBy content 首行署名/超时降级/钉死直连不降级）逐项红→绿留痕（凭据热刷新移 S04）；`pnpm test`、`pnpm build`、`pnpm typecheck`、`pnpm lint` 全绿（附命令原文与数字） | 1-2 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-03.md） |
 | **04** | deepseek/tavily provider + 凭据接线 | 两 provider 实现；credentials 每 provider 解析 + available() 缓存 + `credentials/reference-updated` 刷新 | 两 provider 单测（mock HTTP：成功/429/断网/超时）红→绿；凭据热刷新用例（写 ref→事件→available 翻转）红→绿；真实 API e2e 无 key 自跳实测 | 1 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-04.md） |
-| **05a** | exa/perplexity/firecrawl + settings 节 | 三 provider 实现（同 S04 测试口径）；installSection（链序/超时/启停热改） | 五 provider 注册冒烟全绿；settings 热改链序实测下次搜索生效；lint/typecheck 全绿 | 1 天 | ⏳ |
+| **05a** | exa/perplexity/firecrawl + settings 节 | 三 provider 实现（同 S04 测试口径）；installSection（链序/超时/启停热改） | 五 provider 注册冒烟全绿；settings 热改链序实测下次搜索生效；lint/typecheck 全绿 | 1 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-05a.md） |
 | **05b** | 安装端到端 + 卸载复原 | bundle patch；scratch profile `dsh plugin add` + 两行 patch；端到端验证 | `web_search` 经 dshws-chain 出真实结果（配任一可用 key，content 首行 `[served-by: …]` 实测）；卸载插件+删 patch 后上游行为复原（对照验证） | 1 天 | ⏳ |
 
 **里程碑 M3 宿主包完备**：五 provider + 链 + 凭据/设置全绿，安装端到端可复现 —— 完成时填 ✅ 日期（Session 05b 证据）

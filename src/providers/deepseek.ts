@@ -21,6 +21,16 @@
 import type { DeepSeekMemberConfig } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
+import {
+  isAbortError,
+  isPositiveInteger,
+  memberAborted,
+  memberBadResponse,
+  memberFetchFailure,
+  resolveMemberApiKey,
+  throwIfMemberAborted,
+  unfoldHttpErrorDetail,
+} from './shared.ts'
 
 /** Stable id this member registers under (chain + direct pin, `dshws-` prefixed). */
 export const DEEPSEEK_MEMBER_ID = 'dshws-deepseek'
@@ -80,12 +90,6 @@ export type DeepSeekContentBlock =
 
 export interface DeepSeekAnthropicResponse {
   readonly content?: readonly DeepSeekContentBlock[]
-}
-
-/** Wire error body shapes seen from the Messages endpoint (all optional — gateway 5xx/429s may be non-JSON). */
-export interface DeepSeekAnthropicErrorBody {
-  readonly error?: string | { readonly message?: string } | null
-  readonly message?: string
 }
 
 /** Fully-resolved runtime options for the member; defaults applied by {@link resolveDeepSeekMemberOptions}. */
@@ -193,9 +197,9 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
   }
 
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
-    throwIfAborted(signal)
+    throwIfMemberAborted(codes, 'DeepSeek', signal)
     const apiKey = await this.#apiKey(signal)
-    throwIfAborted(signal)
+    throwIfMemberAborted(codes, 'DeepSeek', signal)
     const endpoint = `${this.options.baseURL}/messages`
     const body = {
       model: this.options.model,
@@ -225,22 +229,21 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
         ...(signal !== undefined ? { signal } : {}),
       })
     } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw aborted(signal, error)
-      throw new DshwsError(codes.requestFailed, `DeepSeek search request failed: ${String(error)}`, { cause: error })
+      throw memberFetchFailure(codes, 'DeepSeek', error, signal)
     }
 
     if (!response.ok) {
       const status = response.status
       let message = `DeepSeek API error (HTTP ${status})`
       try {
-        const parsed = await response.json() as DeepSeekAnthropicErrorBody
-        const detail = typeof parsed.error === 'string' ? parsed.error : parsed.error?.message ?? parsed.message
+        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
+        const detail = unfoldHttpErrorDetail(parsed)
         if (detail !== undefined && detail.length > 0) message += `: ${detail}`
       } catch (error: unknown) {
         // An abort firing mid-body must surface as aborted, not be swallowed
         // into a generic HTTP-error message; otherwise the status is already
         // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw aborted(signal, error)
+        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'DeepSeek', signal, error)
       }
       throw new DshwsError(codes.httpError, message)
     }
@@ -249,46 +252,20 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
       const payload = await response.json() as DeepSeekAnthropicResponse
       return mapDeepSeekResponse(payload)
     } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw aborted(signal, error)
+      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'DeepSeek', signal, error)
       if (error instanceof DshwsError) throw error
-      throw new DshwsError(codes.badResponse, `DeepSeek returned an unprocessable response body: ${String(error)}`, { cause: error })
+      throw memberBadResponse(codes, 'DeepSeek', error)
     }
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */
-  async #apiKey(signal?: AbortSignal): Promise<string> {
-    throwIfAborted(signal)
-    let resolved: string | undefined
-    try {
-      resolved = await this.options.resolveApiKey()
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw aborted(signal, error)
-      throw new DshwsError(codes.requestFailed, `DeepSeek credential resolution failed: ${String(error)}`, { cause: error })
-    }
-    if (resolved !== undefined && resolved.length > 0) return resolved
-    throw new DshwsError(
-      codes.credentialMissing,
-      `DeepSeek search has no API key for "${this.options.apiKeyRef}"; store it through the dsh credentials`
-      + ` page or export it in the launching environment`,
-    )
+  #apiKey(signal?: AbortSignal): Promise<string> {
+    return resolveMemberApiKey({
+      codes,
+      label: 'DeepSeek',
+      apiKeyRef: this.options.apiKeyRef,
+      resolveApiKey: this.options.resolveApiKey,
+      signal,
+    })
   }
-}
-
-/** Throw the member's stable cancellation error when the caller already aborted. */
-function throwIfAborted(signal?: AbortSignal): void {
-  if (signal?.aborted === true) throw aborted(signal)
-}
-
-function aborted(signal?: AbortSignal, fallback?: unknown): DshwsError {
-  return new DshwsError(codes.aborted, 'DeepSeek search aborted', {
-    cause: signal?.aborted === true ? signal.reason : fallback,
-  })
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError'
-}
-
-function isPositiveInteger(value: number): boolean {
-  return Number.isInteger(value) && value > 0
 }

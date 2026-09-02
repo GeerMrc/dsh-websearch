@@ -35,13 +35,13 @@
 | 02 | 2026-09-02 | Spike：外置 client half + 安装链路 + 交付形态定谳 | ✅ | docs/sessions/2026-09-02-session-02.md（五假设全定谳 + ADR-0006/0007 + 阶段 2 两轮审核 APPROVED） | 🟡-1（T0 清偿 `410d58f`）🟢+1（L-3） |
 | 03 | 2026-09-02 | 插件宿主骨架 + 链式 meta-provider | ✅ | docs/sessions/2026-09-02-session-03.md（包骨架 ADR-0007 + 链语义 8 项红→绿 + fetch 同构；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+3→0（T0 清偿 `c691caa`）🟢-1（L-3 清偿 `35969f0`） |
 | 04 | 2026-09-02 | deepseek/tavily provider + 凭据接线（S03 假面替换） | ✅ | docs/sessions/2026-09-02-session-04.md（双 provider + CredentialGate + 假面替换 + 热刷新端到端；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（T0 清偿 `4fc4187`）🟢-2（假面 `b351d42`、L-1 deepseek 半清偿 `af3d9b7`） |
-| 05a | 2026-09-02 | exa/perplexity/firecrawl 三 provider + settings 节 | 🚧 | docs/plans/2026-09-02-005a-s05a-providers-settings-plan.md（计划包；收官时换本记录指针） | — |
+| 05a | 2026-09-02 | exa/perplexity/firecrawl 三 provider + settings 节 | ✅ | docs/sessions/2026-09-02-session-05a.md（五成员收编 L-1 全清 + settings 热改链序/超时/启停 + D7 壳透传修正；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟢-1（L-1 全清 `730ef40`/`d4842a1`/`9a4eb74`） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 05a（🚧 2026-09-02 启动；阶段 0 审核 PASS，计划包审核推进中）
-- **所处里程碑**: M3 宿主包完备（🚧 第 3 棒 S05a 进行中——exa/perplexity/firecrawl + settings 节）
-- **上一棒**: Session 04（deepseek/tavily 成员 + CredentialGate + 假面替换 + 热刷新端到端；测试基线 93 passed | 2 skipped）— 记录：docs/sessions/2026-09-02-session-04.md
-- **下一棒**: S05a 收官后 = Session 05b（安装端到端 + 卸载复原；roadmap ⏳ 行）
-- **活跃债务**: 🔴×0 🟡×0 🟢×2（L-1 余 exa/perplexity/firecrawl 本棒清偿、L-2 二期）+ 备注×2 —— 正本：docs/progress/progress-M3.md
-- **更新时间**: 2026-09-02（S05a 启动刷新）
+- **当前 session**: 无进行中（Session 05a ✅ 2026-09-02 收官）
+- **所处里程碑**: M3 宿主包完备（🚧 S03/S04/S05a ✅；下一棒 S05b 安装端到端——M3 收官棒）
+- **上一棒**: Session 05a（exa/perplexity/firecrawl + settings 热改 + L-1 全清；测试基线 157 passed | 6 skipped）— 记录：docs/sessions/2026-09-02-session-05a.md
+- **下一棒**: roadmap 第一个 ⏳ 行 = Session 05b（安装端到端 + 卸载复原；真实 key 实测守 user-paces-verification 惯例）
+- **活跃债务**: 🔴×0 🟡×0 🟢×1（L-2 二期；L-1 全清）+ 备注×2 —— 正本：docs/progress/progress-M3.md
+- **更新时间**: 2026-09-02（S05a 阶段 6 收尾）

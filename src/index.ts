@@ -7,8 +7,8 @@
  * `@deepseek-ai/dsh-web` is a type-only dependency (seam discipline,
  * AGENTS.md): the import below pulls in its ambient augmentation of the
  * cordis `Context` so `ctx.web` typechecks against the published types.
- * The credentials seam is injected as a service (`inject` below); the
- * `credentialRef` constructor comes from `@deepseek-ai/dsh-credentials`
+ * The credentials and settings seams are injected as services (`inject`
+ * below); `credentialRef` comes from `@deepseek-ai/dsh-credentials`
  * (peer, anysearch precedent) for its reference-grammar validation.
  *
  * @module dsh-websearch
@@ -19,10 +19,15 @@ import type { CredentialProvider, CredentialRef } from '@deepseek-ai/dsh-credent
 import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain/core.ts'
+import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
+import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
+import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
+import { PerplexitySearchProvider, resolvePerplexityMemberOptions } from './providers/perplexity.ts'
 import { TavilySearchProvider, resolveTavilyMemberOptions } from './providers/tavily.ts'
+import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
 
 export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
 export type {
@@ -35,6 +40,7 @@ export type {
 } from './config.ts'
 export { CHAIN_ERROR_CODES, DshwsError, MEMBER_ERROR_CODES } from './errors.ts'
 export { CredentialGate } from './credentials.ts'
+export { LiveResolvedConfig, SETTINGS_NAMESPACE, attachSettingsSection } from './settings.ts'
 export {
   DEEPSEEK_MEMBER_ID,
   DeepSeekSearchProvider,
@@ -45,88 +51,156 @@ export {
   TavilySearchProvider,
   resolveTavilyMemberOptions,
 } from './providers/tavily.ts'
+export {
+  EXA_MEMBER_ID,
+  ExaSearchProvider,
+  resolveExaMemberOptions,
+} from './providers/exa.ts'
+export {
+  PERPLEXITY_MEMBER_ID,
+  PerplexitySearchProvider,
+  resolvePerplexityMemberOptions,
+} from './providers/perplexity.ts'
+export {
+  FIRECRAWL_MEMBER_ID,
+  FirecrawlProvider,
+  resolveFirecrawlMemberOptions,
+} from './providers/firecrawl.ts'
 
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'dsh-websearch'
 
-/** The seams this plugin binds to: provider registration plus per-operation credential resolution. */
+/** The seams this plugin binds to: provider registration, per-operation credential resolution, hot settings. */
 export const inject = ['web', 'credentials']
 
 /** Validation schema + type for the `dsh-websearch` config section. */
 export { Config }
 
+/** The bundled members, keyed by their config section. */
+type MemberKey = 'tavily' | 'exa' | 'perplexity' | 'firecrawl' | 'deepseek'
+
 /**
- * Plugin entry point: build the priority chains and the S04 members, wire the
- * credential gate, and register everything with `ctx.web`. Disposal is bound
- * to the calling fiber by the seam's registration effects (including the
- * gate's event subscription). Exa/Perplexity/Firecrawl members land in S05a;
- * until then the chains simply skip their ids.
+ * Plugin entry point: build the priority chains and the five bundled members,
+ * wire the credential gate and the hot settings state, and register
+ * everything with `ctx.web`. Disposal is bound to the calling fiber by the
+ * seam's registration effects (including the gate's event subscription and
+ * the settings section).
  */
 export function apply(ctx: Context, config: Config): void {
+  const live = new LiveResolvedConfig(config)
   const resolved = resolveConfig(config)
   const credentials = ctx.credentials
   const log = (message: string) => ctx.logger.info(message)
 
   // Validate the configured references before anything registers: a name
   // outside the credential grammar is a misconfiguration and must fail the
-  // load, not surface later as a rejected priming promise.
-  const tavilyRef = credentialRef(resolved.tavily.apiKeyEnv)
-  const deepseekRef = credentialRef(resolved.deepseek.apiKeyEnv)
+  // load, not surface later as a rejected priming promise. apiKeyEnv is
+  // launch-static (plan D2), so the refs never change at runtime.
+  const refs = {
+    tavily: credentialRef(resolved.tavily.apiKeyEnv),
+    exa: credentialRef(resolved.exa.apiKeyEnv),
+    perplexity: credentialRef(resolved.perplexity.apiKeyEnv),
+    firecrawl: credentialRef(resolved.firecrawl.apiKeyEnv),
+    deepseek: credentialRef(resolved.deepseek.apiKeyEnv),
+  } as const
 
   const gate = new CredentialGate({
     credentials,
     subscribe: (handler) => ctx.on('credentials/reference-updated', handler),
     log,
   })
+  const gates = (memberKey: MemberKey, ref: CredentialRef): MemberGates => ({
+    enabled: () => live.current()[memberKey].enabled,
+    credentialsReady: () => gate.isReady(String(ref)),
+  })
 
   const searchMembers = new MemberRegistry()
   const fetchMembers = new MemberRegistry<WebFetchProvider>()
+
+  // Chain options are getter-backed on purpose: the chain shells keep the
+  // options object by reference, so every run reads the live chain order and
+  // timeout — a settings change reaches the next search without re-registering.
   ctx.web.registerSearchProvider(new ChainSearchProvider({
     members: searchMembers.toResolver(),
-    order: resolved.searchChain,
-    perMemberTimeoutMs: resolved.perMemberTimeoutMs,
+    get order() {
+      return live.current().searchChain
+    },
+    get perMemberTimeoutMs() {
+      return live.current().perMemberTimeoutMs
+    },
     log,
   }))
   ctx.web.registerFetchProvider(new ChainFetchProvider({
     members: fetchMembers.toResolver(),
-    order: resolved.fetchChain,
-    perMemberTimeoutMs: resolved.perMemberTimeoutMs,
+    get order() {
+      return live.current().fetchChain
+    },
+    get perMemberTimeoutMs() {
+      return live.current().perMemberTimeoutMs
+    },
     log,
   }))
 
-  // Double registration (ADR-0002 Decision 5): each member also lives in
-  // ctx.web under its own id so a pinned selection scalar reaches it directly,
-  // bypassing the chain. Gates read at call time, so a settings change (S05a)
-  // or a credential event reaches the next call without a restart.
-  const members: readonly { provider: WebSearchProvider; ref: CredentialRef; enabled: boolean }[] = [
+  // Bundled members in BUILT_IN_MEMBER_ORDER relative order. Member options
+  // are launch-static (D2): only the chain order/timeout and the enabled
+  // gates hot-apply. Every member registers twice — under its own id in
+  // ctx.web for direct pinning, and in the plugin registry with its gates for
+  // the chain (ADR-0002 Decision 5).
+  const firecrawl = new FirecrawlProvider(
+    resolveFirecrawlMemberOptions(resolved.firecrawl, () => resolveCredentialValue(credentials, refs.firecrawl)),
+  )
+  const members: readonly {
+    provider: WebSearchProvider
+    memberKey: MemberKey
+    ref: CredentialRef
+  }[] = [
     {
       provider: new TavilySearchProvider(
-        resolveTavilyMemberOptions(resolved.tavily, () => resolveCredentialValue(credentials, tavilyRef)),
+        resolveTavilyMemberOptions(resolved.tavily, () => resolveCredentialValue(credentials, refs.tavily)),
       ),
-      ref: tavilyRef,
-      enabled: resolved.tavily.enabled,
+      memberKey: 'tavily',
+      ref: refs.tavily,
     },
     {
-      provider: new DeepSeekSearchProvider(
-        resolveDeepSeekMemberOptions(resolved.deepseek, () => resolveCredentialValue(credentials, deepseekRef)),
+      provider: new ExaSearchProvider(
+        resolveExaMemberOptions(resolved.exa, () => resolveCredentialValue(credentials, refs.exa)),
       ),
-      ref: deepseekRef,
-      enabled: resolved.deepseek.enabled,
+      memberKey: 'exa',
+      ref: refs.exa,
+    },
+    {
+      provider: new PerplexitySearchProvider(
+        resolvePerplexityMemberOptions(resolved.perplexity, () => resolveCredentialValue(credentials, refs.perplexity)),
+      ),
+      memberKey: 'perplexity',
+      ref: refs.perplexity,
+    },
+    { provider: firecrawl, memberKey: 'firecrawl', ref: refs.firecrawl },
+    {
+      provider: new DeepSeekSearchProvider(
+        resolveDeepSeekMemberOptions(resolved.deepseek, () => resolveCredentialValue(credentials, refs.deepseek)),
+      ),
+      memberKey: 'deepseek',
+      ref: refs.deepseek,
     },
   ]
-  for (const { provider, ref, enabled } of members) {
+  for (const { provider, memberKey, ref } of members) {
     ctx.web.registerSearchProvider(provider)
-    searchMembers.register(provider, {
-      enabled: () => enabled,
-      credentialsReady: () => gate.isReady(String(ref)),
-    })
+    searchMembers.register(provider, gates(memberKey, ref))
   }
+  // The scrape face shares the firecrawl instance, credential, and gate.
+  ctx.web.registerFetchProvider(firecrawl)
+  fetchMembers.register(firecrawl, gates('firecrawl', refs.firecrawl))
+
+  // Hot settings section when the host has a settings service; no-op
+  // (entry config authoritative) otherwise.
+  attachSettingsSection(ctx, Config, config, live)
 
   // Fill the describe cache in the background; until it lands every member
   // reads not-ready. The refs are validated above and describe failures are
   // contained inside the gate, so this catch only keeps an unexpected bug
   // from becoming an unhandled rejection that could take the host down.
-  gate.prime([String(tavilyRef), String(deepseekRef)]).catch((error: unknown) => {
+  gate.prime(Object.values(refs).map((ref) => String(ref))).catch((error: unknown) => {
     log(`[dshws-websearch] credential gate priming failed unexpectedly: ${String(error)}`)
   })
 }

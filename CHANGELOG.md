@@ -12,6 +12,46 @@
 
 ---
 
+
+---
+
+## 2026-09-02 — exa/perplexity/firecrawl + settings 热改（Session 05a，M3 第 3 棒）
+
+**新增**
+- `dshws-exa` 成员（`730ef40`）：`POST /search` + highlights→snippet，无可用 snippet 条目丢弃（上游同构重实现，ADR-0003；numResults 三态映射——request.maxResults 优先/配置回退/皆缺省省略）
+- `dshws-perplexity` 成员（`d4842a1`）：OpenAI 兼容 `POST /chat/completions`（sonar），生成答案承载 `content`（五成员中唯一），sources 优先 `search_results[]`、citations 仅缺席兜底
+- `dshws-firecrawl` 成员（`9a4eb74`）：**单类双接口**（search + scrape 同 key 同 gate）；v2 线格式（`/v2/search` `data.web[]` 分组、`/v2/scrape` markdown→text kind、statusCode 透传页面自身状态）；`success:false` 双面防御；官方文档 2026-09-02 取证
+- settings 热改通路（`e8e86e6`/`458c6c1`）：`LiveResolvedConfig`（setSource/refresh 重跑 resolveConfig）+ `attachSettingsSection` 条件注入（缺 settings 服务回退 cordis.yml 静态配置）；**链序/超时/启停三面热生效**——热改链序下次搜索生效（exhausted 摘要记录实际走查序翻转实测）、timeout 热读、enabled gate 翻转；真实 SettingsProvider seam 测试（attach→update→detach fallback 全链）
+- D7 壳透传修正（`458c6c1`）：`ChainOptions` 移除零消费的 id 契约面 + 两壳不再 spread options——**对象展开是 getter 冻结点**（阶段 2 审核 M-1 抓获），热路径对象按引用传递
+- `providers/shared.ts`（`f00f133`）：成员共享机械脚手架（取消三件套/正整数/错误体展开/凭据解析包装），deepseek/tavily 切换；只函数不类层次
+- 错误码全五族对象形收口（`7922597`）；Config 冷热字段 JSDoc 逐字段标注（`a0d6f00`）；架构 §3 模块树同步
+- e2e real 三文件自跳（`8a9bc99`：exa/perplexity 各 1 + firecrawl 双面 2）；Agent Note `docs/notes/2026-09-02-s05a-settings-hot-path.md`；audit-logs 3 份
+
+**清偿（2 笔）**
+- L-1 🟢（deepseek/exa/perplexity/firecrawl 插件内重实现）：**全清**——deepseek S04，exa/perplexity/firecrawl 本棒 T3/T4/T5；tavily 属 S04 既定范围
+- S04 观察级（错误脚手架近复制）：T1 shared.ts 提取清偿，`f00f133`
+- 另：阶段 4 F-1（台账 .d.ts 数字测改时序漂移）T10 修正留痕；阶段 0 观察（S03 R 表标题）T0 修正
+
+**治理**
+- 阶段 0 前序审核（独立 general-purpose Agent，骨架库 v2，四维实测）：S04 **PASS**（🔴×0；🟡×0 新增；`--no-ff` 双 parent 实证）
+- 阶段 2 计划审核（独立 general-purpose Agent）：轮 1 **NEEDS REVISION**（M-1 getter 冻结 / M-2 e2e 宪法遗漏 / S-1..S-6）→ 全数吸收 → 同 Agent 复审 **APPROVED**（残项 2 项转执行落实；代核 ChainCore 对 options.id 零消费）
+- 阶段 2.5 人工终审：AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露于 session-05a 记录）
+- 阶段 4/5：独立 Agent 验证 **PASS / COMPLETE**（R1-R5 逐条 file:line 对峙 + 门墙四命令亲跑 + 安全/契约/前瞻三问 COMPLETE + /tmp 驱动 lib/index.js 冒烟 13/13；F-1 台账数字修正义务抓获并清偿）
+
+**诚实标注（遗留项）**
+- L-2 🟢（per-profile GUI 覆盖二期）不变——唯一在册 🟢 债务
+- firecrawl fetch 面无独立 402/429 it（双面共用 #parse，search 面已钉同一代码）——🟢 观察级
+- firecrawl v2 线格式取证时点 2026-09-02，漂移风险已容错（缺字段缺省 + success:false 防御），升级演练归 S09 手册
+- 设置冷字段（baseURL/model/maxTokens/maxResults/numResults/apiKeyEnv）launch-static——settings 改动下次启动生效，Config JSDoc 逐字段标注；GUI 归 S06/S07
+
+**跟踪（观察期）**
+- 测试基线链：47（S03）→ 93 passed | 2 skipped（S04）→ **157 passed | 6 skipped（163；18 文件）**（skip = 真实 API 无 key 自跳）；typecheck 0 error；lint 0w0e（30 files，96 rules）；build lib 70.89 kB（js 49.00 + d.ts 21.89）
+- dont-do 新增 0 条（累计 2 条）；里程碑：M3 🚧 第 3 棒完成（余 S05b 收官棒）；下一棒 Session 05b（安装端到端 + 卸载复原）
+
+---
+
+---
+
 ## 2026-09-02 — deepseek/tavily provider + 凭据接线（Session 04，M3 第 2 棒）
 
 **新增**
@@ -49,6 +89,8 @@
 
 ---
 
+---
+
 ## 2026-09-02 — 插件宿主骨架 + 链式 meta-provider（Session 03，M3 第 1 棒）
 
 **新增**
@@ -81,6 +123,8 @@
 
 ---
 
+---
+
 ## 2026-09-02 — 可行性 spike 五假设定谳（Session 02，M2 可行性定谳）
 
 **新增**
@@ -108,6 +152,8 @@
 **跟踪（观察期）**
 - 测试基线链：无（spike 类不建基线）→ 首个基线 S03 建立
 - dont-do 新增 1 条（latest dist-tag 失真，累计 2 条）；里程碑：M2 ✅（本条目）；下一棒 Session 03（插件宿主骨架 + 链式 meta-provider）
+
+---
 
 ---
 

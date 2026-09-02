@@ -22,71 +22,71 @@ export const DEFAULT_PER_MEMBER_TIMEOUT_MS = 30000
 
 /** DeepSeek member settings (`dshws-deepseek`). */
 export interface DeepSeekSettings {
-  /** Defaults to `true`. */
+  /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
   /** Credential-ref env name resolved through the credentials service. Defaults to `DEEPSEEK_API_KEY`. */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S04). */
+  /** API endpoint base; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   baseURL?: string
-  /** Chat model powering the web_search server tool; provider default applies when omitted (S04). */
+  /** Chat model powering the web_search server tool; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   model?: string
-  /** Response token cap; provider default applies when omitted (S04). */
+  /** Response token cap; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   maxTokens?: number
 }
 
 /** Tavily member settings (`dshws-tavily`). */
 export interface TavilySettings {
-  /** Defaults to `true`. */
+  /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `TAVILY_API_KEY`. */
+  /** Defaults to `TAVILY_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S04). */
+  /** API endpoint base; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   baseURL?: string
-  /** Default result count; provider default applies when omitted (S04). */
+  /** Default result count; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   maxResults?: number
 }
 
 /** Firecrawl member settings (`dshws-firecrawl`). */
 export interface FirecrawlSettings {
-  /** Defaults to `true`. */
+  /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `FIRECRAWL_API_KEY`. */
+  /** Defaults to `FIRECRAWL_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). */
+  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   baseURL?: string
 }
 
 /** Exa member settings (`dshws-exa`). */
 export interface ExaSettings {
-  /** Defaults to `true`. */
+  /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `EXA_API_KEY`. */
+  /** Defaults to `EXA_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). */
+  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   baseURL?: string
-  /** Default result count; provider default applies when omitted (S05a). */
+  /** Default result count; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   numResults?: number
 }
 
 /** Perplexity member settings (`dshws-perplexity`). */
 export interface PerplexitySettings {
-  /** Defaults to `true`. */
+  /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `PERPLEXITY_API_KEY`. */
+  /** Defaults to `PERPLEXITY_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). */
+  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   baseURL?: string
-  /** Sonar model; provider default applies when omitted (S05a). */
+  /** Sonar model; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   model?: string
 }
 
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
 export interface Config {
-  /** Search priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. Unknown ids are skipped at call time. */
+  /** Search priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. Unknown ids are skipped at call time. Hot: settings changes apply to the next search. */
   searchChain?: string[]
-  /** Fetch priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. */
+  /** Fetch priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. Hot: settings changes apply to the next search. */
   fetchChain?: string[]
-  /** Timeout budget per chain member per call, in milliseconds. Defaults to {@link DEFAULT_PER_MEMBER_TIMEOUT_MS}. */
+  /** Timeout budget per chain member per call, in milliseconds. Defaults to {@link DEFAULT_PER_MEMBER_TIMEOUT_MS}. Hot: settings changes apply to the next search. */
   perMemberTimeoutMs?: number
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings

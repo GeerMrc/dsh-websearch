@@ -19,10 +19,10 @@ export const CHAIN_ERROR_CODES = {
 } as const
 
 /**
- * Member-level code families. A family's value is its concrete code object
- * once that provider lands (deepseek/tavily in S04), and stays the reserved
- * namespace prefix until then (firecrawl/exa/perplexity, S05a swaps them to
- * objects the same way). Consumers must tolerate member-specific codes.
+ * Member-level code families. Every landed provider family carries its five
+ * concrete codes (S05a: all five families are objects; a family value is a
+ * reserved namespace prefix only between reserving the name and landing the
+ * provider — a state that no longer exists).
  */
 export const MEMBER_ERROR_CODES = {
   deepseek: {
@@ -39,9 +39,27 @@ export const MEMBER_ERROR_CODES = {
     badResponse: 'DSHWS_TAVILY_BAD_RESPONSE',
     aborted: 'DSHWS_TAVILY_ABORTED',
   },
-  firecrawl: 'DSHWS_FIRECRAWL',
-  exa: 'DSHWS_EXA',
-  perplexity: 'DSHWS_PERPLEXITY',
+  firecrawl: {
+    credentialMissing: 'DSHWS_FIRECRAWL_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_FIRECRAWL_REQUEST_FAILED',
+    httpError: 'DSHWS_FIRECRAWL_HTTP_ERROR',
+    badResponse: 'DSHWS_FIRECRAWL_BAD_RESPONSE',
+    aborted: 'DSHWS_FIRECRAWL_ABORTED',
+  },
+  exa: {
+    credentialMissing: 'DSHWS_EXA_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_EXA_REQUEST_FAILED',
+    httpError: 'DSHWS_EXA_HTTP_ERROR',
+    badResponse: 'DSHWS_EXA_BAD_RESPONSE',
+    aborted: 'DSHWS_EXA_ABORTED',
+  },
+  perplexity: {
+    credentialMissing: 'DSHWS_PERPLEXITY_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_PERPLEXITY_REQUEST_FAILED',
+    httpError: 'DSHWS_PERPLEXITY_HTTP_ERROR',
+    badResponse: 'DSHWS_PERPLEXITY_BAD_RESPONSE',
+    aborted: 'DSHWS_PERPLEXITY_ABORTED',
+  },
 } as const
 
 /** Domain error with a machine-routable string code and the standard `cause` slot. */
