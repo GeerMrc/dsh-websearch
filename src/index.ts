@@ -13,9 +13,6 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-web'
 
-/** Compile-time probe: published `@deepseek-ai/dsh-web` types augment the cordis `Context` with `web`. */
-type ContextHasWebRuntime = Context['web'] extends object ? true : never
-
 /** Cordis plugin name used by loader diagnostics. */
 export const name = 'dsh-websearch'
 
@@ -23,4 +20,9 @@ export const name = 'dsh-websearch'
 export const inject = ['web']
 
 /** Plugin entry point; chain/provider registration lands with the chain core. */
-export function apply(_ctx: Context): void {}
+export function apply(ctx: Context): void {
+  // Compile-time probe: fails to compile if the published `@deepseek-ai/dsh-web`
+  // types stopped augmenting the cordis `Context` with `web`. No runtime effect —
+  // `inject: ['web']` guarantees the service is installed when this runs.
+  ctx satisfies { web: unknown }
+}
