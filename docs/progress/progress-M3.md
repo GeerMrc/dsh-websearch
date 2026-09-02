@@ -11,16 +11,17 @@
 |---|---|---|
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
-| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 进行中） |
+| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 ✅；S04 进行中） |
 | M4-M6 | 设置页完备 / 交付就绪 / 上游验收通过 | ⏳ |
 
 ## 进行中
 
-- Session 03（插件宿主骨架 + 链式 meta-provider）：T0-T13 完成，T14（阶段 4 独立审核）/ T15（收尾）待执行
+- Session 04（deepseek/tavily provider + 凭据接线）：plan 004 已过审，T0（前序 🟡 清偿 +
+  本表状态区刷新 + STATUS 启动刷新）完成；T1 起开发在 `feat/s04-providers-credentials`
 
 ## 待启动
 
-- Session 04（deepseek/tavily provider + 凭据接线）——前置：S03 收官
+- Session 05a（exa/perplexity/firecrawl + settings 节）——前置：S04 收官
 
 ## 已完成
 
