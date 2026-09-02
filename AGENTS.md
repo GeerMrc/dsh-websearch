@@ -4,7 +4,7 @@ DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）�
 
 ## 治理硬约束（session-governance）
 
-- 本项目运行 session-governance 治理化流程：正本 `docs/governance-sessions.md`，进入方式见 `.session-start`；进度唯一权威 `docs/STATUS.md`，任务唯一源 `docs/roadmap-WBS.md` 的 ⏳ 行。
+- 本项目运行 session-governance 治理化流程：正本 `docs/governance-sessions.md`，进入方式见 `.session-start`；进度唯一权威 `docs/STATUS.md`，任务唯一源 `docs/session-roadmap.md` 的 ⏳ 行。
 - 前序审核 gate：开新任务前由独立 Agent 实测审核上一 session 交付，债务三分级——🔴 阻塞（先修才准推进）/ 🟡 非阻塞（先债后新）/ 🟢 延后（计划与交付物中显式声明）。
 - 收尾 6 件套：交付物落盘 / session 记录 / STATUS+progress 更新 / 踩坑沉淀（RCA+dont-do）/ CHANGELOG / 接力指令。缺一即流程失败。
 - 质量红线：执行 ≠ 审核（审核环节独立 spawn，主 Agent 永不自审）；五禁——禁虚假审核（审核须 file:line 证据）、禁自我以为（禁假设式实现）、禁跨流程（不跳阶段）、禁批量执行（TDD 逐一，机械变更豁免唯一例外且分类须独立 Agent 确认）、禁未经实测的信源；写操作严格串行。

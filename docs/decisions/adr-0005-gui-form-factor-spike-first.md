@@ -51,4 +51,4 @@ NO-GO 时的 fallback（预授权路线，届时仅需按 spike 结论细化后�
 ## References
 
 - `docs/00-architecture.md` §8（开放问题）
-- `docs/roadmap-WBS.md` Session 02 行
+- `docs/session-roadmap.md` Session 02 行
