@@ -12,6 +12,43 @@
 
 ---
 
+## 2026-09-02 — deepseek/tavily provider + 凭据接线（Session 04，M3 第 2 棒）
+
+**新增**
+- `dshws-deepseek` 成员（`af3d9b7`）：Anthropic 兼容 Messages + `web_search_20250305` 工具重实现（上游 id 撞名不可复用，ADR-0003；线格式对齐 upstream provider.ts——端点/model/apiVersion/maxTokens/maxUses/双 auth 头/结果块映射/去重，锚点见 Agent Note §5）
+- `dshws-tavily` 成员（`9d0d61e`）：`POST /search` + Bearer；`max_results` 透传不 clamp（>20 由 API 4xx → HTTP_ERROR，与上游 exa 同构）；results[]→sources 容错映射；官方 API reference 2026-09-02 取证
+- 凭据接线 `src/credentials.ts`（`2a5e3ad`）：CredentialGate——describe 缓存（未 describe = 未就绪，不说谎）+ `credentials/reference-updated` 事件命中重 describe + describe 抛错容错 + ref 语法校验 fail-loud；key 每操作经 credentials 服务解析，provider/gate 均零持有零缓存 key 值
+- 假面替换（`b351d42`）：MemberRegistry 增 gates（enabled/credentialsReady 热读，resolve 时点取值）——S03 常量 true 假面移除，S05a settings 热改只需换 gate 指向，注册结构与链核零改动
+- apply 接线（`b8a6755`）：inject 增 `credentials`；双成员双注册（ctx.web 直连拓扑 + registry 带 gate）；ref 预校验同步 fail-loud；**凭据热刷新端到端**（写 ref→事件→chain.available() 翻转双向）——宪法必测挂账 V-05 落实
+- 错误码族（`351bc6f`）：MEMBER_ERROR_CODES deepseek/tavily 两族换五键对象形（credentialMissing/requestFailed/httpError/badResponse/aborted），三族留前缀待 S05a 同口径换形
+- 真实 API e2e 自跳（`8815edd`）：tests/e2e.real/ 双文件（key 经 env-backed resolve thunk，与生产同 seam；无 key 自跳实测 2 skipped）
+- Agent Note `docs/notes/2026-09-02-s04-credentials-wiring.md`（gate 三态与事件边界/假面替换形态/S05a 注册传 gate 义务/错误码换形口径/重实现锚点/tavily 取证）；audit-logs 3 份（阶段 0/2/4-5 输出原文）
+
+**清偿（3 笔）**
+- 阶段 0 新增 🟡×1（progress-M3 状态区未随收官刷新）：T0 清偿，commit `4fc4187`
+- S03 假面 🟢（toResolver 恒 enabled/ready）：T1 gates 热读替换，commit `b351d42`
+- L-1 部分 🟢（deepseek 插件内重实现）：T4 交付（余 exa/perplexity/firecrawl 归 S05a），commit `af3d9b7`
+- 另：V-05 挂账注销（凭据热刷新，T6 `b8a6755`）；F-1 收尾义务（pnpm-workspace.yaml 残留）`b38cdf9`
+
+**治理**
+- 阶段 0 前序审核（独立 general-purpose Agent，骨架库 v2，四维实测）：S03 **PASS**（🔴×0；新增🟡×1 → T0 清偿；观察级×2 之一本棒吸收——合入改 `--no-ff`）
+- 阶段 2 计划审核（独立 general-purpose Agent）：轮 1 **NEEDS REVISION**（M-1 T2 形状未定案+既有断言必红无预案；S-1..S-4 建议；O-1..O-3 观察）→ 全数吸收 → 同 Agent 复审 **APPROVED**（批准性修正 3 处随批落盘；T7 验证类豁免分类确认）
+- 阶段 2.5 人工终审：AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露于 session-04 记录）
+- 阶段 4/5：独立 Agent 验证 **PASS / COMPLETE**（R1-R4 逐条 file:line 对峙 + 全量 95 条与四命令亲跑逐位一致 + 安全/契约/前瞻三问 PASS + /tmp 脚本驱动 lib/index.js 冒烟 12 断言 SMOKE PASSED；F-1 一项前置义务抓获并清偿）
+- 分支纪律落地：开发在 `feat/s04-providers-credentials`，`--no-ff` 合入 master（merge commit 留痕，吸收阶段 0 观察级）
+
+**诚实标注（遗留项）**
+- L-1 余 🟢（exa/perplexity/firecrawl 三族）归 S05a；L-2 🟢（二期）不变
+- 两 provider 错误脚手架 ~40 行近复制——S05a 第三族落地时提取候选（阶段 4/5 观察）
+- T3/T4/T5 红证据为模块缺失型（测试先行的合法红，弱于行为红，如实记录）
+- 设置热改（enabled gate 指向 settings）归 S05a installSection；安装端到端归 S05b；GUI 归 S06/S07；S08 loopback 直连收口
+
+**跟踪（观察期）**
+- 测试基线链：47 条（S03）→ **93 passed | 2 skipped（95；11 文件）**（skip = e2e real 无 key 自跳）；typecheck 0 error；lint 0 warning 0 error（18 files，96 rules）；build lib 42.74 kB（js 29.55 + d.ts 13.19）
+- dont-do 新增 0 条（累计 2 条）；里程碑：M3 🚧 第 2 棒完成（余 S05a/S05b）；下一棒 Session 05a（exa/perplexity/firecrawl + settings 节）
+
+---
+
 ## 2026-09-02 — 插件宿主骨架 + 链式 meta-provider（Session 03，M3 第 1 棒）
 
 **新增**

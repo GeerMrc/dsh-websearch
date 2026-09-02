@@ -34,13 +34,13 @@
 | 01 | 2026-09-02 | 治理套件安装 + 架构/WBS 定稿过审 | ✅ | docs/sessions/2026-09-02-session-01.md（规划四件套 + 治理套件安装 + 两轮审核 APPROVED） | 🟢+2 |
 | 02 | 2026-09-02 | Spike：外置 client half + 安装链路 + 交付形态定谳 | ✅ | docs/sessions/2026-09-02-session-02.md（五假设全定谳 + ADR-0006/0007 + 阶段 2 两轮审核 APPROVED） | 🟡-1（T0 清偿 `410d58f`）🟢+1（L-3） |
 | 03 | 2026-09-02 | 插件宿主骨架 + 链式 meta-provider | ✅ | docs/sessions/2026-09-02-session-03.md（包骨架 ADR-0007 + 链语义 8 项红→绿 + fetch 同构；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+3→0（T0 清偿 `c691caa`）🟢-1（L-3 清偿 `35969f0`） |
-| 04 | 2026-09-02 | deepseek/tavily provider + 凭据接线（S03 假面替换） | 🚧 | docs/plans/2026-09-02-004-s04-providers-credentials-plan.md（计划包；收官时换本记录指针） | 🟡+1（阶段 0 新增，T0 清偿） |
+| 04 | 2026-09-02 | deepseek/tavily provider + 凭据接线（S03 假面替换） | ✅ | docs/sessions/2026-09-02-session-04.md（双 provider + CredentialGate + 假面替换 + 热刷新端到端；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（T0 清偿 `4fc4187`）🟢-2（假面 `b351d42`、L-1 deepseek 半清偿 `af3d9b7`） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 04（🚧 2026-09-02 启动；阶段 0 审核 PASS，计划包审核推进中）
-- **所处里程碑**: M3 宿主包完备（🚧 第 2 棒 S04 进行中——deepseek/tavily provider + 凭据接线）
-- **上一棒**: Session 03（包骨架 + 链核 + 8 项链语义 TDD；47 测试基线建立）— 记录：docs/sessions/2026-09-02-session-03.md
-- **下一棒**: S04 收官后 = Session 05a（exa/perplexity/firecrawl + settings 节；roadmap ⏳ 行）
-- **活跃债务**: 🔴×0 🟡×0 🟢×3（L-1 余 S05a 三族、L-2 二期、S03 假面本棒 T1 清偿）+ 备注×2 —— 正本：docs/progress/progress-M3.md（阶段 0 新增 🟡×1 已于 T0 清偿）
-- **更新时间**: 2026-09-02（S04 启动刷新）
+- **当前 session**: 无进行中（Session 04 ✅ 2026-09-02 收官）
+- **所处里程碑**: M3 宿主包完备（🚧 S03/S04 ✅；下一棒 S05a 三 provider + settings 节）
+- **上一棒**: Session 04（deepseek/tavily 成员 + CredentialGate + 假面替换 + 热刷新端到端；测试基线 93 passed | 2 skipped）— 记录：docs/sessions/2026-09-02-session-04.md
+- **下一棒**: roadmap 第一个 ⏳ 行 = Session 05a（exa/perplexity/firecrawl + settings 节；注册须显式传 gates，Agent Note s04 §1）
+- **活跃债务**: 🔴×0 🟡×0 🟢×2（L-1 余 exa/perplexity/firecrawl 归 S05a、L-2 二期）+ 备注×2 —— 正本：docs/progress/progress-M3.md
+- **更新时间**: 2026-09-02（S04 阶段 6 收尾）

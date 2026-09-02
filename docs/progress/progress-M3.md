@@ -11,17 +11,16 @@
 |---|---|---|
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
-| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 ✅；S04 进行中） |
+| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 ✅；S04 ✅；余 S05a/S05b） |
 | M4-M6 | 设置页完备 / 交付就绪 / 上游验收通过 | ⏳ |
 
 ## 进行中
 
-- Session 04（deepseek/tavily provider + 凭据接线）：plan 004 已过审，T0（前序 🟡 清偿 +
-  本表状态区刷新 + STATUS 启动刷新）完成；T1 起开发在 `feat/s04-providers-credentials`
+- 无（S04 收官；下一棒 S05a 待启动）
 
 ## 待启动
 
-- Session 05a（exa/perplexity/firecrawl + settings 节）——前置：S04 收官
+- Session 05a（exa/perplexity/firecrawl + settings 节）——前置：S04 已收官
 
 ## 已完成
 
@@ -76,7 +75,8 @@
 | T6 | apply 接线 + 热刷新端到端（V-05 落实） | 完成（`b8a6755`；红 5 failed/2 passed → 全量 89 passed） |
 | T7 | e2e real 两文件自跳 | 完成（`8815edd`；本机零 key → 91 passed \| 2 skipped 实测） |
 | T8 | 门墙收口 + Agent Note + 本台账增补 | 完成（下表 + docs/notes/2026-09-02-s04-credentials-wiring.md） |
-| T9/T10 | 阶段 4/5 独立验证 + 收尾 6 件套 | 待执行 |
+| T9 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R4 全 PASS + 四命令门墙与台账逐位一致；F-1 一项 T10 前置义务已清偿 `b38cdf9`；audit-log 正本 docs/sessions/audit-logs/2026-09-02-s04-stage45-verification.md） |
+| T10 | 收尾 6 件套 + 原子翻转 + `--no-ff` 合入 master | 完成（本节收官刷新 + session-04 记录 + STATUS/roadmap/CHANGELOG 同序列翻转 + 接力指令） |
 
 ### 门墙实测数字（S04 T8 收口，node v22.23.2 / pnpm 11.7.0）
 
@@ -90,6 +90,16 @@
 > 修正后终值。
 
 ## 阶段验收（R1-R5，阶段收官时填）
+
+### S04 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | S03 假面替换可重放 | PASS | core.ts:86-100 无常量 true + gates 热读（resolve 时点 `?? true` 缺省）；registry.test.ts:34-63 四态断言（状态/热读翻转/缺省/dispose 连带）；既有 47 条全量回归零破坏（`b351d42`） |
+| R2 | 两 provider mock HTTP 四态红→绿 | PASS | deepseek.test.ts（14 tests）/tavily.test.ts（16 tests）逐态对峙：成功映射/429→HTTP_ERROR/断网→REQUEST_FAILED/abort→ABORTED（真实事件路径，D7）+ 请求映射 + 凭据缺失/解析拒绝 + errors.ts:27-45 两族五键对象形 + errors.test.ts 断言随行为更新（M-1）；红绿留痕 = 任务表红/绿数字列 + 各 commit message |
+| R3 | 凭据热刷新（V-05 落实） | PASS | credentials.ts:39-81 gate 四语义（未 describe=false/事件命中重 describe/抛错=false+日志/ref 校验 fail-loud）+ credentials.test.ts 6 条 + apply.test.ts:85-100 端到端双向翻转 + inject=['web','credentials']（`b8a6755`） |
+| R4 | 真实 API e2e 无 key 自跳实测 | PASS | e2e.real 两文件 env 存在性自跳；本机双 key unset 实测 2 skipped；keyless 锚点断言照常跑（`8815edd`） |
+| R5 | 门墙实测数字 + 收尾 6 件套 + 原子翻转 + 分支闭环 | PASS | 四命令独立亲跑与台账逐位一致（93 passed \| 2 skipped (95; 11 files) / typecheck exit 0 / lint 0w0e 18 files / build 29.55+13.19 kB）；收尾件套 = 本 R 表 + session-04 记录 + STATUS/roadmap 翻转 + CHANGELOG + 接力指令 + audit-logs 3 份——同一序列完成；`--no-ff` merge commit 留痕（吸收阶段 0 观察级） |
 
 | 条目 | 内容 | 结论 | 证据 |
 |---|---|---|---|
