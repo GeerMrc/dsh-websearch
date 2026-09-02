@@ -89,6 +89,7 @@ describe('client entry', () => {
     const props = registered[0]!.props
     expect(props.name).toBe('settings.section')
     expect(props.id).toBe('dsh-websearch')
+    expect(props.order).toBe(16)
     expect(props.locale).toBe('dsh-websearch')
     const label = props.label as () => string
     expect(label()).toBe(en.nav)

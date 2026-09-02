@@ -6,8 +6,12 @@ import type { SectionProps } from '../../src/client/section.tsx'
 import type { ActionResult, MemberSnapshot, SectionSnapshot } from '../../src/client/controller.ts'
 import { en } from '../../src/client/locales.ts'
 import type { DshWsLocaleKey } from '../../src/client/locales.ts'
+import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 
-const t = (key: DshWsLocaleKey) => en[key]
+// The section only looks up own-namespace keys; the common-namespace keys
+// TranslateNS also accepts resolve through the runtime's fallback chain,
+// which this stub pins to the own dictionary.
+const t: TranslateNS<'dsh-websearch'> = (key) => en[key as DshWsLocaleKey] ?? key
 
 const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek']
 
