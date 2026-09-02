@@ -17,13 +17,41 @@
 
 ## 进行中
 
-- 无（S06 收官；下一棒 S07 待启动）
+- Session 07（优先级排序 + 覆盖标记 + i18n）——T0-T5 完成（T5 门墙见下），T6 浏览器实测进行中，T7/T8 待执行
 
 ## 待启动
 
-- Session 07（优先级排序 + 覆盖标记 + i18n）——前置：S06 已收官（骨架底座就绪：链只读块 = 排序 UI 位置；settingsScope/store 机制 S07 再评估）
+- 无（S07 收官后下一棒 = S08 e2e 场景收口，由 S07 收官序列刷新）
 
 ## 已完成
+
+### S07 排序+i18n 批（2026-09-02，分支 feat/s07-priority-i18n）
+
+阶段 0 独立审核 S06 **PASS**（🔴×0；🟡新登记×2 = 誊写纪律/STATUS 总览漏刷，T0 清偿
+`0180c95`；🟢 L-2 维持 + 观察×4 坐实）→ plan 007 落盘 → 阶段 2 轮 1 **NEEDS REVISION**
+（必改×1 M-1 makeSnapshot 机械配套；建议×5）→ 全数吸收 → 同 Agent 复审 **APPROVED**
+（7/7 闭合零残留）→ 阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进
+（披露，session 记录双落——S03/S04/S05a/S06 同款兜底）。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 007 + 阶段 0/2 audit-log + STATUS 启动刷新 + 🟡×2 清偿 + dont-do 第三条扩化（状态区清单收编 STATUS 总览行） | 完成（`0180c95`，master 直提） |
+| T1 | locales 扩四键（moveUp/moveDown/chainDefault/chainPinned zh/en）+ spec 断言 | 完成（`d7d57cd`；红 1 failed → 4 passed；typecheck 双面翻转绿） |
+| T2 | controller `moveSearchChainEntry` + pinned 派生字段；makeSnapshot 机械配套（M-1） | 完成（`58e994d`；红 6 failed\|10 passed → client 34 passed；typecheck exit 0） |
+| T3 | section 搜索链 ↑/↓ 按钮（per-item aria、边界 disabled）+ ChainStateBadge + failed 反馈；抓取链保持只读 | 完成（`c141416`；红 6 failed\|7 passed → client 39 passed；lint 0w0e；1 失败系测试作用域缺陷修正后绿） |
+| T4 | i18n 门禁两脚本（check-locales/check-cjk，零依赖 .mjs）+ `check:i18n` + 拒绝路径双验证 | 完成（`194c9a2`；正例 exit 0 = 19 keys parity + 15 files 零 CJK；拒绝：zh 独有键 exit 1 / CJK 字面量 exit 1 且行号保真） |
+| T5 | 门墙七命令（提交态）+ 本台账 + Agent Note（docs/notes/2026-09-02-s07-priority-i18n.md）+ settingsScope 观察闭合注记（plan 007 D3：维持自持控制器） | 完成（数字见下节门墙表） |
+| T6 | 浏览器 DOM 断言（scratch 3413，agent 实测棒） | 进行中 |
+| T7 | 阶段 4/5 独立验证 | 待执行 |
+| T8 | 收尾（session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge） | 待执行 |
+
+### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
+
+| 棒 | 命令 | 数字 |
+|---|---|---|
+| S05a/S05b | （历史）test/typecheck/lint/build/pack | 157\|6(163) 等——正本 progress-M3 |
+| S06 | test 22 files **184\|6(190)** / typecheck exit 0 / lint 0w0e 38 files / build 49.00+21.89+**16.52** kB / pack 五件 | T7/T9 两次亲跑一致（progress-M3 面口径见其台账） |
+| S07 | test 22 files **196\|6(202)**（+12：locales+1/controller+6/section+5）/ typecheck exit 0 双面 / lint **0 warnings 0 errors** 38 files / build **node 面 49.00+21.89 零漂移 + client.js 20.54 kB（gzip 5.82）新值** / pack 五件 / **check:i18n exit 0（19 keys parity + 15 files 零 CJK）** | S07 T5 提交态亲跑（工作树 clean） |
 
 ### S06 设置页骨架批（2026-09-02，分支 feat/s06-settings-gui）
 
@@ -74,8 +102,10 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 
 | 债务 | 等级 | 归属 |
 |---|---|---|
-| L-2 per-profile GUI 覆盖二期候选 | 🟢 | 二期候选，不排期（plan 006 债务映射节正本） |
-| settingsScope/store 快照机制未用（骨架直连 remote 面） | 🟢 观察 | S07 排序交互时再评估（plan D1 显式范围决策） |
+| L-2 per-profile GUI 覆盖二期候选 | 🟢 | 二期候选，不排期（plan 007 债务映射节正本） |
+| settingsScope/store 快照机制未用（骨架直连 remote 面） | 🟢 观察→**闭合**（S07） | plan 007 D3 定谳：排序与既有写动作同形，store 迁移零用户可见增益——维持自持控制器（S06 plan D1 观察就此关闭） |
+| fetch 链排序 UI（roadmap S07 仅 search 链） | 🟢 | 新登记 S07：候选不排期，用户反馈驱动（plan 007 D2） |
+| 「恢复默认序」按钮（需 patch 删除语义先行定谳） | 🟢 | 新登记 S07：候选不排期（plan 007 D4） |
 | tsdown 弃用警告 ×2（inlineDynamicImports/external） | 🟢 观察 | S09 升级演练时顺手迁移（语义同宿主 preset） |
 | firecrawl fetch 面 402/429 it 缺独立覆盖 | 🟢 观察 | 不处置（M3 台账正本）；S08 e2e 若覆盖则自然收口 |
 
@@ -96,3 +126,6 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 | 测试基线 | S03：47（6 文件）；S04：93\|2(95)；S05a/S05b：157\|6(163)（18 文件）；**S06 T7/T9：184\|6(190)（22 文件）** |
 | 写通路（客户端）：key→credentials.set(ref,value)→describe 刷新；启停→settings.update(ns,{member:{enabled}},revision)；事件→重 describe | controller.spec 10 行为 + entry.spec 6 行为（jsdom 实测断言）——浏览器面 T8 六断言复验（Configured 翻转 + settings.yaml 落盘 + refs 清空） |
 | IAB 浏览器实测环境（T8 实录）：playwright locator click() 挂起（fill/getAttribute/evaluate 正常）；坐标 cua.click 可用但 DOM 插入后漂移；**evaluate 合成 MouseEvent dispatch = 可靠点击路径**（React root 监听捕获冒泡） | session-06 记录踩坑节 + T8 证据 commit `de53d72` |
+| 排序写通路：`moveSearchChainEntry` 全量数组 patch（indexOf→swap→update）；数组替换宿主先例 tests/settings.test.ts:135-136 + 热链序 :124-140；物化语义 = 默认序上移动即写显式数组 | S07 T2 六行为（controller.spec）+ plan 007 D6 |
+| 覆盖标记语义：describe 只带 user-set 字段（controller.ts:54 注释）→ 值显式在场 = pinned；组合标量属 cordis 组合层 client 不可达（index.ts:26 inject 五面） | S07 T2 派生测试 + plan 007 D1（阶段 2 两轮审核裁定成立） |
+| i18n 门禁：`pnpm check:i18n` = scripts/check-locales.mjs（三集合 parity，fail-loud）+ scripts/check-cjk.mjs（状态机剥注释保换行→行号保真）；拒绝路径双证 exit 1 | S07 T4 实录（`194c9a2` message + /tmp/dshws-t4-r*.log 转录） |
