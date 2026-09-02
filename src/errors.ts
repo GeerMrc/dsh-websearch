@@ -18,10 +18,27 @@ export const CHAIN_ERROR_CODES = {
   memberTimeout: 'DSHWS_MEMBER_TIMEOUT',
 } as const
 
-/** Member-level code namespaces, one per bundled provider family. */
+/**
+ * Member-level code families. A family's value is its concrete code object
+ * once that provider lands (deepseek/tavily in S04), and stays the reserved
+ * namespace prefix until then (firecrawl/exa/perplexity, S05a swaps them to
+ * objects the same way). Consumers must tolerate member-specific codes.
+ */
 export const MEMBER_ERROR_CODES = {
-  deepseek: 'DSHWS_DEEPSEEK',
-  tavily: 'DSHWS_TAVILY',
+  deepseek: {
+    credentialMissing: 'DSHWS_DEEPSEEK_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_DEEPSEEK_REQUEST_FAILED',
+    httpError: 'DSHWS_DEEPSEEK_HTTP_ERROR',
+    badResponse: 'DSHWS_DEEPSEEK_BAD_RESPONSE',
+    aborted: 'DSHWS_DEEPSEEK_ABORTED',
+  },
+  tavily: {
+    credentialMissing: 'DSHWS_TAVILY_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_TAVILY_REQUEST_FAILED',
+    httpError: 'DSHWS_TAVILY_HTTP_ERROR',
+    badResponse: 'DSHWS_TAVILY_BAD_RESPONSE',
+    aborted: 'DSHWS_TAVILY_ABORTED',
+  },
   firecrawl: 'DSHWS_FIRECRAWL',
   exa: 'DSHWS_EXA',
   perplexity: 'DSHWS_PERPLEXITY',
