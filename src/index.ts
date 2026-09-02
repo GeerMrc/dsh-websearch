@@ -15,13 +15,11 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import type { CredentialRef } from '@deepseek-ai/dsh-credentials'
 import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
-import type { KeySelection } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
@@ -99,8 +97,12 @@ export function apply(ctx: Context, config: Config): void {
   // configured extras. Entry-config names outside the credential grammar
   // fail the load here; settings-sourced names are grammar-checked at resolve
   // time and re-primed on every settings commit (see attachSettingsSection).
-  const poolRefs = (member: { apiKeyEnv: string; extraApiKeyEnvs: readonly string[] }): readonly CredentialRef[] =>
-    [credentialRef(member.apiKeyEnv), ...member.extraApiKeyEnvs.map((name) => credentialRef(name))]
+  // Entry-config pool names outside the credential grammar fail the load
+  // here (settings-sourced names are grammar-checked at resolve time and
+  // re-primed on every settings commit — see attachSettingsSection).
+  for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek]) {
+    for (const name of [member.apiKeyEnv, ...member.extraApiKeyEnvs]) credentialRef(name)
+  }
 
   const gate = new CredentialGate({
     credentials,
@@ -108,15 +110,20 @@ export function apply(ctx: Context, config: Config): void {
     log,
   })
 
+  // The pool ports read the LIVE config per call (settings hot, same
+  // discipline as the chain order getters) — a committed pool change reaches
+  // the next search and the next gate read without re-registration.
   const keyPool = (
+    memberKey: MemberKey,
     label: string,
     codes: (typeof MEMBER_ERROR_CODES)[keyof typeof MEMBER_ERROR_CODES],
-    pool: readonly CredentialRef[],
-    selection: () => KeySelection,
   ): KeyPool =>
     new KeyPool({
-      refs: () => pool.map((ref) => String(ref)),
-      selection,
+      refs: () => {
+        const member = live.current()[memberKey]
+        return [member.apiKeyEnv, ...member.extraApiKeyEnvs]
+      },
+      selection: () => live.current()[memberKey].keySelection,
       isReady: (ref) => gate.isReady(ref),
       resolve: async (ref) => (await credentials.resolve(credentialRef(ref)))?.value,
       label,
@@ -124,11 +131,11 @@ export function apply(ctx: Context, config: Config): void {
     })
 
   const pools = {
-    tavily: keyPool('Tavily', MEMBER_ERROR_CODES.tavily, poolRefs(resolved.tavily), () => live.current().tavily.keySelection),
-    exa: keyPool('Exa', MEMBER_ERROR_CODES.exa, poolRefs(resolved.exa), () => live.current().exa.keySelection),
-    perplexity: keyPool('Perplexity', MEMBER_ERROR_CODES.perplexity, poolRefs(resolved.perplexity), () => live.current().perplexity.keySelection),
-    firecrawl: keyPool('Firecrawl', MEMBER_ERROR_CODES.firecrawl, poolRefs(resolved.firecrawl), () => live.current().firecrawl.keySelection),
-    deepseek: keyPool('DeepSeek', MEMBER_ERROR_CODES.deepseek, poolRefs(resolved.deepseek), () => live.current().deepseek.keySelection),
+    tavily: keyPool('tavily', 'Tavily', MEMBER_ERROR_CODES.tavily),
+    exa: keyPool('exa', 'Exa', MEMBER_ERROR_CODES.exa),
+    perplexity: keyPool('perplexity', 'Perplexity', MEMBER_ERROR_CODES.perplexity),
+    firecrawl: keyPool('firecrawl', 'Firecrawl', MEMBER_ERROR_CODES.firecrawl),
+    deepseek: keyPool('deepseek', 'DeepSeek', MEMBER_ERROR_CODES.deepseek),
   } as const
 
   const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({

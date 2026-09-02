@@ -98,6 +98,61 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
   })
 })
 
+describe('apply key-pool hot path (ADR-0008 settings 提交侧)', () => {
+  it('a committed keySelection swap reaches the next search without re-registration', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx({
+      values: { TAVILY_API_KEY: 'k1', TAVILY_SPARE: 'k2' },
+    })
+    configured.add('TAVILY_API_KEY')
+    configured.add('TAVILY_SPARE')
+    apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const authOf = async (): Promise<string> => {
+      const [, init] = fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit]
+      return new Headers(init.headers).get('authorization')!
+    }
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await chain.search({ query: 'a' })
+    await chain.search({ query: 'b' })
+    expect(await authOf()).toBe('Bearer k1')
+
+    commitSettings({ tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'], keySelection: 'round-robin' } })
+    // The cursor starts at 0 over the ready sequence in pool order: primary
+    // first, then the spare — the second post-swap search pins the policy.
+    await chain.search({ query: 'c' })
+    expect(await authOf()).toBe('Bearer k1')
+    await chain.search({ query: 'd' })
+    expect(await authOf()).toBe('Bearer k2')
+  })
+
+  it('a pool ref added by a settings commit is primed without an event (pre-stored key)', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx({ values: { TAVILY_SPARE: 'spare' } })
+    configured.add('TAVILY_SPARE')
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain.available()).toBe(false)
+
+    commitSettings({ tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
+  })
+
+  it('a pool ref removed by a settings commit stops contributing readiness', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_SPARE')
+    apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain.available()).toBe(true)
+
+    commitSettings({ tavily: { extraApiKeyEnvs: [] } })
+    await vi.waitFor(() => expect(chain.available()).toBe(false))
+  })
+})
+
 describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
   it('hot-applies a chain reorder: the NEXT search walks members in the new order', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
