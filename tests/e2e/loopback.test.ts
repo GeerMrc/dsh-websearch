@@ -30,9 +30,16 @@ interface Assembly {
   handle: FakeCtxHandle
 }
 
+interface AssembleOverrides {
+  perMemberTimeoutMs?: number
+  searchChain?: string[]
+  tavilyBaseURL?: string
+  exaEnabled?: boolean
+}
+
 async function assemble(
   behavior: Record<string, import('./helpers/loopback-server.ts').LoopbackBehavior>,
-  overrides?: { perMemberTimeoutMs?: number; searchChain?: string[]; tavilyBaseURL?: string },
+  overrides?: AssembleOverrides,
 ): Promise<Assembly> {
   const server = await startLoopback(behavior)
   const handle = fakeCtx({ withSettings: false })
@@ -41,7 +48,7 @@ async function assemble(
     searchChain: overrides?.searchChain ?? [...MEMBERS],
     perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
     tavily: { baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily` },
-    exa: { baseURL: `http://127.0.0.1:${server.port}/exa` },
+    exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
     perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
   })
   const chain = handle.providers.get('dshws-chain') as WebSearchProvider
@@ -121,6 +128,92 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(degrade!).toContain('DSHWS_MEMBER_TIMEOUT: no result within 150ms')
       expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-exa')
       expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /exa/search'])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('walks the configured order across failures to the winner (顺序保持)', async () => {
+    const { server, chain, handle } = await assemble(
+      {
+        '/tavily/search': { kind: 'status', status: 429 },
+        '/exa/search': { kind: 'destroy' },
+        '/perplexity/chat/completions': {
+          kind: 'success',
+          body: { choices: [{ message: { content: 'loopback answer' } }], citations: ['https://pplx.test/a'] },
+        },
+      },
+    )
+    try {
+      const result = await chain.search({ query: 'loopback order' })
+      // The arrival log is the sequence source: exactly the config order, one
+      // request per member until the winner answers.
+      expect(server.arrivals).toEqual([
+        'POST /tavily/search',
+        'POST /exa/search',
+        'POST /perplexity/chat/completions',
+      ])
+      // Perplexity carries content, so the signature is a first line over body text.
+      expect(result.content).toBe('[served-by: dshws-perplexity]\nloopback answer')
+      expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-perplexity')
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('skips a disabled member without producing an arrival record (skip 成员不计序)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/tavily/search': { kind: 'status', status: 429 },
+        '/exa/search': { kind: 'destroy' },
+        '/perplexity/chat/completions': {
+          kind: 'success',
+          body: { choices: [{ message: { content: 'answer' } }], citations: ['https://pplx.test/a'] },
+        },
+      },
+      { exaEnabled: false },
+    )
+    try {
+      const result = await chain.search({ query: 'loopback skip' })
+      // exa sits in the chain but its selection gate skips it: no arrival, no
+      // entry in the walk — selection skips are not sequence entries.
+      expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /perplexity/chat/completions'])
+      expect(result.content).toBe('[served-by: dshws-perplexity]\nanswer')
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('reports terminal exhaustion with the per-member summary and the deepest cause (全败报错)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/tavily/search': { kind: 'status', status: 429 },
+        '/exa/search': { kind: 'destroy' },
+        '/perplexity/chat/completions': { kind: 'status', status: 500, body: { detail: 'backend down' } },
+      },
+    )
+    try {
+      const exhausted = await chain.search({ query: 'loopback all-fail' }).then(() => null, (error: unknown) => error as Error)
+      expect(exhausted).not.toBeNull()
+      const failure = exhausted as unknown as { code: string; message: string; cause?: { code?: string } }
+      expect(failure.code).toBe('DSHWS_CHAIN_EXHAUSTED')
+      // One summary line per member, in walk order.
+      const message = failure.message
+      const tavilyAt = message.indexOf('- dshws-tavily:')
+      const exaAt = message.indexOf('- dshws-exa:')
+      const perplexityAt = message.indexOf('- dshws-perplexity:')
+      expect(tavilyAt).toBeGreaterThan(-1)
+      expect(exaAt).toBeGreaterThan(tavilyAt)
+      expect(perplexityAt).toBeGreaterThan(exaAt)
+      expect(message).toContain('HTTP 429')
+      expect(message).toContain('all 3 configured chain members failed')
+      // The last member's thrown error rides as cause (ADR-0002 Decision 3).
+      expect(failure.cause?.code).toBe('DSHWS_PERPLEXITY_HTTP_ERROR')
+      expect(server.arrivals).toEqual([
+        'POST /tavily/search',
+        'POST /exa/search',
+        'POST /perplexity/chat/completions',
+      ])
     } finally {
       await server.close()
     }
