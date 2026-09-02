@@ -12,16 +12,16 @@
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
 | M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S05b；余用户 with-key 槽位回填——指引 docs/notes/2026-09-02-s05b-install-runbook.md §4） |
-| M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | 🚧（S06 骨架棒进行中） |
+| M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | 🚧（S06 骨架棒 ✅；余 S07 排序+i18n 棒） |
 | M5-M6 | 交付就绪 / 上游验收通过 | ⏳ |
 
 ## 进行中
 
-- Session 06（「网页搜索」设置页骨架）——T0-T7 完成，T8 浏览器面待跑
+- 无（S06 收官；下一棒 S07 待启动）
 
 ## 待启动
 
-- Session 07（优先级排序 + 覆盖标记 + i18n）——前置：S06 收官
+- Session 07（优先级排序 + 覆盖标记 + i18n）——前置：S06 已收官（骨架底座就绪：链只读块 = 排序 UI 位置；settingsScope/store 机制 S07 再评估）
 
 ## 已完成
 
@@ -42,7 +42,9 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 | T4 | 设置控制器（端口面 + describe/update/set/unset + 事件刷新） | 完成（`fb45198`；红=模块缺失 → 10 行为绿；170\|6(176)；宿主类型经 dsh-settings/types 子路径） |
 | T5 | 设置节组件（5 provider 卡 + StateDot + 启停 + 双链只读） | 完成（`1a02cca`；jsdom 8 行为红→绿；vitest inline ui-primitives（CSS module）；178\|6(184)；lint 0w0e 36 files） |
 | T6 | client entry（inject 五面 + slot 契约 + 控制器绑定）+ build:client 激活 | 完成（`9a97def`；entry 6 行为红→绿；lib/client.js 16.52 kB、external 三枚 require 零 react 内联、pack 五件；**偏差披露：第 13 devDep ui-renderer@alpha.4**（ctx.slots 类型面，范本同款）） |
-| T7 | 门墙四命令 + Agent Note + 本台账 | 完成（下表 + docs/notes/2026-09-02-s06-settings-gui.md） |
+| T7 | 门墙四命令 + Agent Note + 本台账 | 完成（`c310ec8`；下表 + docs/notes/2026-09-02-s06-settings-gui.md） |
+| T8 | 浏览器 DOM 断言（scratch 3412，agent 实测棒） | 完成（`de53d72` 证据 commit；六断言全过：①combo 200/5,126,016B 含 id 注册②导航 en+zh 热切换③5 卡④key 写入→Configured+服务端 refs⑤启停→settings.yaml 落盘⑥unset 复原+refs:{}+开关复位；kill 零残留；环境留痕：IAB locator click 挂起→evaluate 合成点击路径） |
+| T9 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS + 门墙亲跑零漂移 + 冒烟 27 passed + 隔离法证 + 三问 COMPLETE；🟡 提交态不自洽抓获——section.spec 修复滞留工作区自 T6，`899e2fd` 补提交清偿 + 提交态门墙亲跑全绿；🟢×4 观察 = order 断言（同 commit 清偿）/react 锚 ^18.3.1 注记（见已验锚点）/简报措辞偏差（非执行侧）/sourcemap 警告；audit-log 正本 docs/sessions/audit-logs/2026-09-02-s06-stage45-verification.md） |
 
 ### 门墙实测数字（S06 T7 收口，node v22.23.2 / pnpm 11.7.0）
 
@@ -58,15 +60,15 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 
 ## 阶段验收（R1-R5，阶段收官时填）
 
-### S06 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45 🚧 生成中）
+### S06 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
 
 | 条目 | 内容 | 结论 | 证据 |
 |---|---|---|---|
-| R1 | client half 构建契约可重放 | 🚧 | 🚧 |
-| R2 | 设置节注入可重放（jsdom 契约 + 浏览器 DOM） | 🚧 | 🚧 |
-| R3 | provider 卡交互可重放（jsdom 动作断言 + 浏览器 key 写入→credentials describe 可见） | 🚧 | 🚧 |
-| R4 | 链只读展示（双链 + 超时，jsdom + 浏览器双面） | 🚧 | 🚧 |
-| R5 | 五子证据（隔离/门墙/收尾/翻转/parity+audit-log） | 🚧 | 🚧 |
+| R1 | client half 构建契约可重放 | PASS | lib/client.js 16,516B + banner ModuleLoader 形含 id（head -c 亲见）；外部 require 恰三枚（react/react-jsx-runtime/ui-primitives）零实现内联（useState 2 处均外部调用形态 lib/client.js:331-332）；exports["./client"] 与 dsh.client 三键三方一致（宿主 clientExportOf/parseDshClient :200-237 + wire manifest.ts:196-206）；pack 五件（`9a97def`） |
+| R2 | 设置节注入可重放（jsdom 契约 + 浏览器 DOM） | PASS | entry.spec 6 行为（register 契约含 order——`899e2fd` 补断言）；combo.js 5,126,016B 含 `id: "dsh-websearch"` 实物亲验 + page.html 含 dsh-websearch；T8 断言①②（导航 en/zh 热切换） |
+| R3 | provider 卡交互可重放（jsdom 动作断言 + 浏览器 key 写入→credentials describe 可见） | PASS | controller 10 + section 8 行为；T8 断言④⑤ + 服务端终态亲见（settings.yaml enabled 复原态 + .credentials.yaml refs:{}——fake 写入/清除双向实测走通） |
+| R4 | 链只读展示（双链 + 超时，jsdom + 浏览器双面） | PASS | section.spec 第 8 行为（双 ol 逐项 BUILT_IN 序 + 30000）+ T8 断言③；dump-wired.yml 实为基线+insert 行（链标量为代码注册 id 不入 dump——stage45 澄清在案；接线上限态由 wired dump + T8 组合证明） |
+| R5 | 五子证据（隔离/门墙/收尾/翻转/parity+audit-log） | PASS | ①隔离（git message 扫描零写操作 + s05b home mtime 早于本棒 + ~/.dsh mtime 零接触 + 3412 kill 复原）②门墙四命令亲跑零漂移（22 files/184\|6(190)/exit 0/0w0e 38f/49.00+21.89+16.52 kB/pack 五件）+ 提交态复验（`899e2fd` 后亲跑）③收尾件套（T10 同序列）④原子翻转（本序列）+ `--no-ff` ⑤typed parity + audit-log 三份正本落盘 |
 
 ## 技术债（台账）
 
@@ -90,5 +92,7 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 | ui-primitives 契约：StateDot{state,size?,className?} aria-hidden / Button variant+attrs 透传 / Input wrapper+attrs 透传（lib/types/*.d.ts） | T5 实测（jsdom data-state/role 断言命中） |
 | LocaleNamespaceMap 增强目标 + LocaleKeysOf 含 common 回退键（dsh-client-ui-slots lib/types/index.d.ts:27/:48/:67） | T3/T5 typecheck 实证 |
 | npm 发布面（2026-09-02 亲测）：六个 client 包（locale/ui-slots/ui-settings/ui-primitives/api-remotes/ui-renderer）alpha.2..5 线全在，devDep 锚 alpha.4 | T-prep/T6 `pnpm add` 落盘 + 阶段 1/2 `npm view` 双验 |
-| 测试基线 | S03：47（6 文件）；S04：93\|2(95)；S05a/S05b：157\|6(163)（18 文件）；**S06 T7：184\|6(190)（22 文件）** |
-| 写通路（客户端）：key→credentials.set(ref,value)→describe 刷新；启停→settings.update(ns,{member:{enabled}},revision)；事件→重 describe | controller.spec 10 行为 + entry.spec 6 行为（jsdom 实测断言）——浏览器面 T8 复验 |
+| react devDep 实装锚：react ^18.3.1（18.3.1）/ react-dom ^18.2.0——D6 原声明 ^18.2.0 对 react 而言解析到 18.3 线（stage45 🟢 注记；18 大版本内门墙全绿） | package.json + stage45 门墙亲跑 |
+| 测试基线 | S03：47（6 文件）；S04：93\|2(95)；S05a/S05b：157\|6(163)（18 文件）；**S06 T7/T9：184\|6(190)（22 文件）** |
+| 写通路（客户端）：key→credentials.set(ref,value)→describe 刷新；启停→settings.update(ns,{member:{enabled}},revision)；事件→重 describe | controller.spec 10 行为 + entry.spec 6 行为（jsdom 实测断言）——浏览器面 T8 六断言复验（Configured 翻转 + settings.yaml 落盘 + refs 清空） |
+| IAB 浏览器实测环境（T8 实录）：playwright locator click() 挂起（fill/getAttribute/evaluate 正常）；坐标 cua.click 可用但 DOM 插入后漂移；**evaluate 合成 MouseEvent dispatch = 可靠点击路径**（React root 监听捕获冒泡） | session-06 记录踩坑节 + T8 证据 commit `de53d72` |
