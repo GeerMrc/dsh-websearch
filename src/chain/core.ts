@@ -46,34 +46,55 @@ export interface ChainOptions<P> {
   readonly log?: ChainLogger
 }
 
+/** Hot-read state gates a chain member is consulted through at resolve time. */
+export interface MemberGates {
+  /** False when the user disabled this member (config now, settings hot-toggle in S05a). */
+  readonly enabled?: () => boolean
+  /** True when the member's credential ref currently resolves (credential gate, `src/credentials.ts`). */
+  readonly credentialsReady?: () => boolean
+}
+
 /**
  * Plugin-owned registry of bundled members. The host's provider registry is
  * private and not enumerable (ADR-0003), so the plugin keeps its own: every
  * bundled member registers here AND with `ctx.web` under the same `dshws-`
  * id, which is what lets users pin one member directly via the selection
  * scalar — direct connections bypass the chain entirely (ADR-0002 Decision 5).
+ *
+ * Bundled members register with real gates (config-enabled + credential
+ * state), which is what replaced the S03 constant-true facade: a member
+ * without its credentials configured now resolves as not ready and the chain
+ * skips it. Gate-less registration stays enabled/ready by design for members
+ * with no credential concept (loopback stubs, test fakes) — bundled members
+ * must always pass gates, or the skipped-when-unconfigured semantics die.
  */
 export class MemberRegistry<P extends { readonly id: string } = WebSearchProvider> {
   readonly #providers = new Map<string, P>()
+  readonly #gates = new Map<string, MemberGates | undefined>()
 
-  /** Register one member; returns the disposer. */
-  register(provider: P): () => void {
+  /** Register one member with its state gates; returns the disposer. */
+  register(provider: P, gates?: MemberGates): () => void {
     this.#providers.set(provider.id, provider)
+    this.#gates.set(provider.id, gates)
     return () => {
       this.#providers.delete(provider.id)
+      this.#gates.delete(provider.id)
     }
   }
 
-  /**
-   * Chain-facing view of the registry. Until S04 wires the real gates, all
-   * registered members report as enabled with credentials ready; S03 has no
-   * bundled members, so chains built from this resolver are inert.
-   */
+  /** Chain-facing view; gates are read at each resolve, so flips apply to the next call. */
   toResolver(): ChainMemberResolver<P> {
     return {
       resolve: (id) => {
         const provider = this.#providers.get(id)
-        return provider === undefined ? undefined : { id, provider, enabled: true, credentialsReady: true }
+        if (provider === undefined) return undefined
+        const gates = this.#gates.get(id)
+        return {
+          id,
+          provider,
+          enabled: gates?.enabled?.() ?? true,
+          credentialsReady: gates?.credentialsReady?.() ?? true,
+        }
       },
     }
   }

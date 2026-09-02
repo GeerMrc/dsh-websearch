@@ -31,6 +31,46 @@ describe('member registry (必测⑧ 直连面)', () => {
     expect(registry.toResolver().resolve('dshws-unknown')).toBeUndefined()
   })
 
+  it('reports gate state at resolve time, replacing the S03 constant-true facade', () => {
+    const registry = new MemberRegistry()
+    registry.register(trackingProvider('dshws-gated', []), {
+      enabled: () => false,
+      credentialsReady: () => true,
+    })
+    const member = registry.toResolver().resolve('dshws-gated')
+    expect(member?.enabled).toBe(false)
+    expect(member?.credentialsReady).toBe(true)
+  })
+
+  it('reads gates hot: a gate flip is visible on the next resolve without re-registering', () => {
+    const registry = new MemberRegistry()
+    let ready = false
+    registry.register(trackingProvider('dshws-hot', []), {
+      credentialsReady: () => ready,
+    })
+    const resolver = registry.toResolver()
+    expect(resolver.resolve('dshws-hot')?.credentialsReady).toBe(false)
+    ready = true
+    expect(resolver.resolve('dshws-hot')?.credentialsReady).toBe(true)
+  })
+
+  it('defaults to enabled and credentials-ready for gate-less members (credential-free stubs)', () => {
+    const registry = new MemberRegistry()
+    registry.register(trackingProvider('dshws-plain', []))
+    const member = registry.toResolver().resolve('dshws-plain')
+    expect(member?.enabled).toBe(true)
+    expect(member?.credentialsReady).toBe(true)
+  })
+
+  it('drops the gates together with the member on dispose', () => {
+    const registry = new MemberRegistry()
+    const dispose = registry.register(trackingProvider('dshws-doomed', []), {
+      enabled: () => false,
+    })
+    dispose()
+    expect(registry.toResolver().resolve('dshws-doomed')).toBeUndefined()
+  })
+
   it('a directly resolved member propagates its raw error, unwrapped by the chain', async () => {
     const registry = new MemberRegistry()
     const rawError = new Error('raw member failure')

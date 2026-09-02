@@ -24,14 +24,24 @@ describe('error code catalog', () => {
     expect(CHAIN_ERROR_CODES.memberTimeout).toBe('DSHWS_MEMBER_TIMEOUT')
   })
 
-  it('defines one namespace per bundled provider family, all DSHWS_-prefixed', () => {
-    expect(Object.values(MEMBER_ERROR_CODES)).toEqual([
-      'DSHWS_DEEPSEEK',
-      'DSHWS_TAVILY',
-      'DSHWS_FIRECRAWL',
-      'DSHWS_EXA',
-      'DSHWS_PERPLEXITY',
-    ])
+  it('lands concrete code objects for landed providers and keeps prefixes for reserved families', () => {
+    expect(MEMBER_ERROR_CODES.deepseek).toEqual({
+      credentialMissing: 'DSHWS_DEEPSEEK_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_DEEPSEEK_REQUEST_FAILED',
+      httpError: 'DSHWS_DEEPSEEK_HTTP_ERROR',
+      badResponse: 'DSHWS_DEEPSEEK_BAD_RESPONSE',
+      aborted: 'DSHWS_DEEPSEEK_ABORTED',
+    })
+    expect(MEMBER_ERROR_CODES.tavily).toEqual({
+      credentialMissing: 'DSHWS_TAVILY_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_TAVILY_REQUEST_FAILED',
+      httpError: 'DSHWS_TAVILY_HTTP_ERROR',
+      badResponse: 'DSHWS_TAVILY_BAD_RESPONSE',
+      aborted: 'DSHWS_TAVILY_ABORTED',
+    })
+    expect(MEMBER_ERROR_CODES.firecrawl).toBe('DSHWS_FIRECRAWL')
+    expect(MEMBER_ERROR_CODES.exa).toBe('DSHWS_EXA')
+    expect(MEMBER_ERROR_CODES.perplexity).toBe('DSHWS_PERPLEXITY')
   })
 })
 

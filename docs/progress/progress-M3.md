@@ -11,17 +11,16 @@
 |---|---|---|
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
-| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 ✅；S04 进行中） |
+| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03 ✅；S04 ✅；余 S05a/S05b） |
 | M4-M6 | 设置页完备 / 交付就绪 / 上游验收通过 | ⏳ |
 
 ## 进行中
 
-- Session 04（deepseek/tavily provider + 凭据接线）：plan 004 已过审，T0（前序 🟡 清偿 +
-  本表状态区刷新 + STATUS 启动刷新）完成；T1 起开发在 `feat/s04-providers-credentials`
+- 无（S04 收官；下一棒 S05a 待启动）
 
 ## 待启动
 
-- Session 05a（exa/perplexity/firecrawl + settings 节）——前置：S04 收官
+- Session 05a（exa/perplexity/firecrawl + settings 节）——前置：S04 已收官
 
 ## 已完成
 
@@ -57,7 +56,50 @@
 - `pnpm build` → lib/index.js 12.76 kB + lib/index.d.ts 7.58 kB
 - `pnpm pack --dry-run` → cordis.patch.yml + lib/index.d.ts + lib/index.js + package.json（docs/ 不入库）
 
+### S04 provider + 凭据批（2026-09-02，分支 feat/s04-providers-credentials）
+
+阶段 0 独立审核 S03 **PASS**（🔴×0，新增 🟡×1 = 本文件状态区未随收官刷新，T0 清偿）→ plan
+004 落盘 → 阶段 2 轮 1 **NEEDS REVISION**（M-1 必改 + S-1..S-4 建议 + O-1..O-3 观察）→ 全数
+吸收 → 同 Agent 复审 **APPROVED**（批准性修正 3 处随批落盘；T7 验证类豁免分类确认成立）→
+阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露，session 记录双落）。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 前序🟡清偿（本文件状态区三处）+ STATUS 启动刷新 + plan 004 落盘 | 完成（`4fc4187`） |
+| 分支+依赖 | feat 分支建立 + dsh-credentials peer/devDep（D1/高危预告①） | 完成（`d2e10b7`；install 1.6s） |
+| T1 | MemberRegistry gates 假面替换（热读） | 完成（`b351d42`；红 2 failed/5 passed → 绿 51 passed，既有零破坏） |
+| T2 | MEMBER_ERROR_CODES 两族换形 + 断言随行为更新（M-1） | 完成（`351bc6f`；红 1 failed/5 passed → 绿 51 passed） |
+| T3 | CredentialGate（prime/isReady/事件刷新/容错/fail-loud） | 完成（`2a5e3ad`；红模块缺失 → 绿 57 passed） |
+| T4 | dshws-deepseek 重实现 + mock HTTP 全态 | 完成（`af3d9b7`；红模块缺失 → 子集 13 → 全量 70 passed） |
+| T5 | dshws-tavily + max_results 透传定案（D6） | 完成（`9d0d61e`；红模块缺失 → 子集 15 → 全量 85 passed） |
+| T6 | apply 接线 + 热刷新端到端（V-05 落实） | 完成（`b8a6755`；红 5 failed/2 passed → 全量 89 passed） |
+| T7 | e2e real 两文件自跳 | 完成（`8815edd`；本机零 key → 91 passed \| 2 skipped 实测） |
+| T8 | 门墙收口 + Agent Note + 本台账增补 | 完成（下表 + docs/notes/2026-09-02-s04-credentials-wiring.md） |
+| T9 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R4 全 PASS + 四命令门墙与台账逐位一致；F-1 一项 T10 前置义务已清偿 `b38cdf9`；audit-log 正本 docs/sessions/audit-logs/2026-09-02-s04-stage45-verification.md） |
+| T10 | 收尾 6 件套 + 原子翻转 + `--no-ff` 合入 master | 完成（本节收官刷新 + session-04 记录 + STATUS/roadmap/CHANGELOG 同序列翻转 + 接力指令） |
+
+### 门墙实测数字（S04 T8 收口，node v22.23.2 / pnpm 11.7.0）
+
+- `pnpm test` → **Test Files 11 passed (11)，Tests 93 passed \| 2 skipped (95)**，~341ms（skip = e2e real 无 key 自跳）
+- `pnpm typecheck` → exit 0（0 error）
+- `pnpm lint` → **0 warnings and 0 errors**（18 files，96 rules）
+- `pnpm build` → lib/index.js 29.55 kB + lib/index.d.ts 13.19 kB（gzip 8.68/3.78 kB）
+
+> 留痕：首跑门墙 lint 报 2 warnings（单测导入了 `*_MEMBER_ID` 未使用）——验证输出截断漏看，
+> T8 内修复（id 常量改用于显式 id 契约断言，+2 测试）后复跑全绿；台账初稿误写 0w0e，以上为
+> 修正后终值。
+
 ## 阶段验收（R1-R5，阶段收官时填）
+
+### S04 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | S03 假面替换可重放 | PASS | core.ts:86-100 无常量 true + gates 热读（resolve 时点 `?? true` 缺省）；registry.test.ts:34-63 四态断言（状态/热读翻转/缺省/dispose 连带）；既有 47 条全量回归零破坏（`b351d42`） |
+| R2 | 两 provider mock HTTP 四态红→绿 | PASS | deepseek.test.ts（14 tests）/tavily.test.ts（16 tests）逐态对峙：成功映射/429→HTTP_ERROR/断网→REQUEST_FAILED/abort→ABORTED（真实事件路径，D7）+ 请求映射 + 凭据缺失/解析拒绝 + errors.ts:27-45 两族五键对象形 + errors.test.ts 断言随行为更新（M-1）；红绿留痕 = 任务表红/绿数字列 + 各 commit message |
+| R3 | 凭据热刷新（V-05 落实） | PASS | credentials.ts:39-81 gate 四语义（未 describe=false/事件命中重 describe/抛错=false+日志/ref 校验 fail-loud）+ credentials.test.ts 6 条 + apply.test.ts:85-100 端到端双向翻转 + inject=['web','credentials']（`b8a6755`） |
+| R4 | 真实 API e2e 无 key 自跳实测 | PASS | e2e.real 两文件 env 存在性自跳；本机双 key unset 实测 2 skipped；keyless 锚点断言照常跑（`8815edd`） |
+| R5 | 门墙实测数字 + 收尾 6 件套 + 原子翻转 + 分支闭环 | PASS | 四命令独立亲跑与台账逐位一致（93 passed \| 2 skipped (95; 11 files) / typecheck exit 0 / lint 0w0e 18 files / build 29.55+13.19 kB）；收尾件套 = 本 R 表 + session-04 记录 + STATUS/roadmap 翻转 + CHANGELOG + 接力指令 + audit-logs 3 份——同一序列完成；`--no-ff` merge commit 留痕（吸收阶段 0 观察级） |
 
 | 条目 | 内容 | 结论 | 证据 |
 |---|---|---|---|
@@ -75,16 +117,17 @@
 | V-02 | T8 为纯测试 commit（行为体随 T7 落地），commit/台账/Agent Note 三处已披露 | 不处置；披露诚实，阶段 4 精确复现其「2 红」 |
 | V-03 | T1「.gitignore 核补」为 no-op（bootstrap 已建且覆盖足够）无留痕说明 | 不处置；验收点冗余非缺陷 |
 | V-04 | exports 额外 `"./package.json"` 键超出 plan 三键枚举（npm 惯例，plan 所列为必备非穷举） | 不处置 |
-| V-05 | 宪法必测清单「凭据热刷新」未在本棒——roadmap/plan 均显式移 S04 | 显式范围决策，非遗漏；S04 落实 |
+| V-05 | 宪法必测清单「凭据热刷新」未在本棒——roadmap/plan 均显式移 S04 | **已清偿**（S04 T6 `b8a6755` 热刷新端到端：写 ref→事件→available 翻转双向实测） |
 | V-06 | 调用方 abort 与成员超时同窗竞争时先记一次超时再降级一迭代才传播（语义收敛正确） | 时序组合面已显式归 S08 e2e（plan 风险节） |
 
 ## 技术债（台账）
 
 | 债务 | 等级 | 归属 |
 |---|---|---|
-| L-1 deepseek/exa/perplexity/firecrawl 插件内重实现 | 🟢 | S04/S05a（S03 已落五族码清单骨架，errors.ts） |
+| L-1 deepseek/exa/perplexity/firecrawl 插件内重实现 | 🟢 | **deepseek 已清偿**（T4 `af3d9b7`）；余 exa/perplexity/firecrawl 归 S05a（tavily 属 roadmap S04 既定范围，T5 `9d0d61e` 交付） |
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 二期候选，不排期 |
 | L-3 spike 脚手架不入库，正式骨架重建 | 🟢 | **已清偿**（T1 `35969f0` 正式骨架落库） |
+| S03 假面（toResolver 恒 true） | 🟢 | **已清偿**（S04 T1 `b351d42` gates 热读替换；S05a 注册须显式传 gate，见 Agent Note §1） |
 
 映射正本：`docs/plans/2026-09-02-003-s03-host-skeleton-chain-plan.md` 债务映射节。
 
@@ -98,4 +141,9 @@
 | dsh-web published types 含 ctx.web 增强（`declare module '@deepseek-ai/cordis'`）+ 内部 import dsh-llm | 审核 Agent 下载 alpha.4 tarball 实证（lib/types/index.d.ts:13、types.d.ts:7）+ T11 typecheck/探测互证 |
 | schemastery 实例可调用归一化（无 .validate；空对象→结构骨架） | T4 红绿循环实测（node_modules lib/types/index.d.ts:124-125） |
 | cordis 日志面 ctx.logger（printf 风格） | vendor/cordis/src/logger.ts + webhook/settings 用例（webhook/src/index.ts:154）+ T11 typecheck 实证 |
-| 测试基线 | **47 条（6 文件）全绿**——本仓首个基线（S03 建立） |
+| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；**S04 批次后：93 passed \| 2 skipped（95；11 文件）**（skip = e2e real 无 key 自跳） |
+| credentials seam：credentialRef（index.ts:29）/resolve（:183）/describe（:191）/事件声明（types.ts:90）/环境层永不发事件（types.ts:80-84） | S04 阶段 1 亲读 + 阶段 2 审核 Agent 独立复核一致（宿主 dev@3281e04b59） |
+| 上游 provider 参考锚：web-search-deepseek/src/provider.ts（常量 :35/:38/:41/:44/:47、双头 :228-236、映射 :121-174）；web-search-exa/src/provider.ts（:22/:56-65/:89-94/:98-114） | S04 阶段 1 亲读 + 阶段 2 审核独立命中 |
+| Tavily 线格式（POST /search、Bearer、query/max_results、results[] 字段、401/429/432/433/500） | 官方 API reference 2026-09-02 取证（plan 004 背景节） |
+| anysearch 0.1.4 peerDependencies 含 dsh-credentials | `npm view @anysearch/anysearch-dsh@0.1.4 peerDependencies` 实测（阶段 1 + 阶段 2 审核复核双验） |
+| npm dsh-credentials 全列表 0.0.1-rc.1..0.1.1-rc.2 + 0.1.2 线 alpha.2..4；宿主源码树 packages/credentials/credentials = 0.1.2-alpha.3 | S04 阶段 1 实测 + 轮 2 复审核对一致 |
