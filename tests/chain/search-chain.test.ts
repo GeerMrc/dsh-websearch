@@ -297,3 +297,58 @@ describe('chain exhausted (必测⑤)', () => {
     expect(calls).toEqual(['dshws-down'])
   })
 })
+
+describe('servedBy attribution (必测⑥)', () => {
+  it('prepends the served-by line to member-generated content', async () => {
+    const logs: string[] = []
+    const withContent: WebSearchProvider = {
+      id: 'dshws-answerer',
+      available: () => true,
+      search: async () => fakeResult('generated answer body'),
+    }
+    const chain = new ChainSearchProvider({
+      members: resolver({ 'dshws-answerer': { provider: withContent } }),
+      order: ['dshws-answerer'],
+      perMemberTimeoutMs: 1000,
+      log: (message) => logs.push(message),
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(result.content).toBe('[served-by: dshws-answerer]\ngenerated answer body')
+    expect(logs).toHaveLength(1)
+    expect(logs[0]).toContain('dshws-answerer')
+  })
+
+  it('sets content to the served-by line alone when the member returns none', async () => {
+    const silent: WebSearchProvider = {
+      id: 'dshws-silent',
+      available: () => true,
+      search: async () => fakeResult(),
+    }
+    const chain = new ChainSearchProvider({
+      members: resolver({ 'dshws-silent': { provider: silent } }),
+      order: ['dshws-silent'],
+      perMemberTimeoutMs: 1000,
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(result.content).toBe('[served-by: dshws-silent]')
+  })
+
+  it('keeps sources and truncation flags from the member result untouched', async () => {
+    const sourced: WebSearchProvider = {
+      id: 'dshws-sourced',
+      available: () => true,
+      search: async () => ({
+        sources: [{ url: 'https://example.test/a', title: 'A' }],
+        truncated: true,
+      }),
+    }
+    const chain = new ChainSearchProvider({
+      members: resolver({ 'dshws-sourced': { provider: sourced } }),
+      order: ['dshws-sourced'],
+      perMemberTimeoutMs: 1000,
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(result.sources).toEqual([{ url: 'https://example.test/a', title: 'A' }])
+    expect(result.truncated).toBe(true)
+  })
+})

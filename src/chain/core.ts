@@ -70,7 +70,9 @@ export class ChainSearchProvider implements WebSearchProvider {
       const member = this.options.members.resolve(id)
       if (!isUsable(member)) continue
       try {
-        return await member.provider.search(request, signal)
+        const result = await member.provider.search(request, signal)
+        this.options.log?.(`[dshws-chain] served-by: ${id}`)
+        return withServedBy(id, result)
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
         failures.push({ memberId: id, reason, error })
@@ -88,4 +90,18 @@ function noMemberConfigured(order: readonly string[]): DshwsError {
     CHAIN_ERROR_CODES.noMemberConfigured,
     `${CHAIN_ERROR_CODES.noMemberConfigured}: no usable member on the chain (configured: ${order.join(', ')})`,
   )
+}
+
+/**
+ * Attribution carrier (ADR-0002 Decision 4): the seam's `WebSearchResult` is
+ * closed, so the serving member is named in a `[served-by: <id>]` first line
+ * of `content` — the slot provider-generated text already lives in. Members
+ * without content get the line alone, so attribution never disappears.
+ */
+function withServedBy(memberId: string, result: WebSearchResult): WebSearchResult {
+  const line = `[served-by: ${memberId}]`
+  return {
+    ...result,
+    content: result.content === undefined ? line : `${line}\n${result.content}`,
+  }
 }
