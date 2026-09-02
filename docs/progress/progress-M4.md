@@ -68,7 +68,7 @@ Agent 复审 **APPROVED**（残项 1：T-prep 包名笔误，随批修正）→ 
 | R2 | 设置节注入可重放（jsdom 契约 + 浏览器 DOM） | PASS | entry.spec 6 行为（register 契约含 order——`899e2fd` 补断言）；combo.js 5,126,016B 含 `id: "dsh-websearch"` 实物亲验 + page.html 含 dsh-websearch；T8 断言①②（导航 en/zh 热切换） |
 | R3 | provider 卡交互可重放（jsdom 动作断言 + 浏览器 key 写入→credentials describe 可见） | PASS | controller 10 + section 8 行为；T8 断言④⑤ + 服务端终态亲见（settings.yaml enabled 复原态 + .credentials.yaml refs:{}——fake 写入/清除双向实测走通） |
 | R4 | 链只读展示（双链 + 超时，jsdom + 浏览器双面） | PASS | section.spec 第 8 行为（双 ol 逐项 BUILT_IN 序 + 30000）+ T8 断言③；dump-wired.yml 实为基线+insert 行（链标量为代码注册 id 不入 dump——stage45 澄清在案；接线上限态由 wired dump + T8 组合证明） |
-| R5 | 五子证据（隔离/门墙/收尾/翻转/parity+audit-log） | PASS | ①隔离（git message 扫描零写操作 + s05b home mtime 早于本棒 + ~/.dsh mtime 零接触 + 3412 kill 复原）②门墙四命令亲跑零漂移（22 files/184\|6(190)/exit 0/0w0e 38f/49.00+21.89+16.52 kB/pack 五件）+ 提交态复验（`899e2fd` 后亲跑）③收尾件套（T10 同序列）④原子翻转（本序列）+ `--no-ff` ⑤typed parity + audit-log 三份正本落盘 |
+| R5 | 五子证据（隔离/门墙/收尾/翻转/parity+audit-log） | PASS | ①隔离（git message 扫描零写操作 + s05b home mtime 早于本棒 + ~/.dsh mtime 零接触 + 3412 kill 复原）②门墙四命令亲跑零漂移（数字正本 = 本文件「门墙实测数字」节）+ 提交态复验（`899e2fd` 后亲跑）③收尾件套（T10 同序列）④原子翻转（本序列）+ `--no-ff` ⑤typed parity + audit-log 三份正本落盘 |
 
 ## 技术债（台账）
 

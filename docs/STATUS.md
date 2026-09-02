@@ -23,7 +23,7 @@
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
 | M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S03-S05b；余用户 with-key 槽位回填——不阻塞 S06） |
-| M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ⏳ |
+| M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | 🚧（S06 骨架棒 ✅；余 S07 排序+i18n——进行中） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | ⏳ |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
 
@@ -38,12 +38,13 @@
 | 05a | 2026-09-02 | exa/perplexity/firecrawl 三 provider + settings 节 | ✅ | docs/sessions/2026-09-02-session-05a.md（五成员收编 L-1 全清 + settings 热改链序/超时/启停 + D7 壳透传修正；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟢-1（L-1 全清 `730ef40`/`d4842a1`/`9a4eb74`） |
 | 05b | 2026-09-02 | 安装端到端 + 卸载复原（M3 收官棒） | ✅ | docs/sessions/2026-09-02-session-05b.md（安装/接线/复原三态 dump 对照 + boot 加载 + 隔离审计；**发现并修复 manifest 平铺键缺陷**；阶段 2 两轮审核 APPROVED + 用户真实批准；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（Y-1 T0 清偿）+ dont-do 第三条沉淀 |
 | 06 | 2026-09-02 | 「网页搜索」设置页骨架 | ✅ | docs/sessions/2026-09-02-session-06.md（client half 端到端：构建契约 + 5 provider 卡 + 双链只读 + 浏览器六断言；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE 含 🟡 提交态清偿；基线 184\|6(190)） | 🟡+1→0（stage45 抓获提交态不自洽，`899e2fd` 清偿）🟢 观察×4 注记 |
+| 07 | 2026-09-02 | 优先级排序 + 覆盖标记 + i18n | 🚧 | （进行中——计划 docs/plans/2026-09-02-007-s07-priority-override-i18n-plan.md；阶段 2 两轮审核 APPROVED 7/7） | 阶段 0 新登记 🟡×2（誊写纪律/STATUS 总览漏刷）→ T0 清偿中 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 06 ✅ 2026-09-02 收官）
-- **所处里程碑**: M4 设置页完备（🚧 S06 骨架棒 ✅；余 S07 排序+i18n）。M3 宿主包完备（🚧 机械面 ✅ S03-S05b；余用户 with-key 槽位回填——不阻塞 S07）
+- **当前 session**: Session 07（🚧 进行中，2026-09-02 启动；阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进——披露，S03/S04/S05a/S06 同款兜底口径）
+- **所处里程碑**: M4 设置页完备（🚧 S07 排序+i18n 棒执行中；S06 骨架棒 ✅）。M3 宿主包完备（🚧 机械面 ✅ S03-S05b；余用户 with-key 槽位回填——不阻塞）
 - **上一棒**: Session 06（设置页骨架：client half 端到端 + 浏览器六断言 + 27 新测试）— 记录：docs/sessions/2026-09-02-session-06.md
-- **下一棒**: roadmap 第一个 ⏳ 行 = Session 07（优先级排序 + 覆盖标记 + i18n；链只读块即排序 UI 落点，settingsScope/store 机制 S07 再评估）
-- **活跃债务**: 🔴×0 🟡×0 🟢×1（L-2 二期）+ 观察（react 锚/tsdown 弃用/sourcemap/settingsScope）——正本：docs/progress/progress-M4.md
-- **更新时间**: 2026-09-02（S06 阶段 6 收尾）
+- **下一棒**: 本棒 S07 执行中（plan 007 T0-T8）；收官后 = roadmap 下一 ⏳ 行 S08 e2e 场景收口（本棒收官时刷新）
+- **活跃债务**: 🔴×0 🟡×2（S07 阶段 0 新登记：门墙数字三载体誊写 / STATUS 总览 M4 行漏刷——T0 清偿中）🟢×1（L-2 二期）+ 新登记 🟢×2（fetch 链排序/恢复默认按钮，不排期）+ 观察（react 锚/tsdown 弃用/sourcemap；settingsScope 由 plan 007 D3 闭合）——正本：docs/progress/progress-M4.md + plan 007 债务映射节
+- **更新时间**: 2026-09-02（S07 启动刷新）
