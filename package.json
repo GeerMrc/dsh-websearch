@@ -31,7 +31,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.client.json",
     "typecheck:client": "tsc --noEmit -p tsconfig.client.json",
-    "lint": "oxlint src tests"
+    "lint": "oxlint src tests",
+    "check:i18n": "node scripts/check-locales.mjs && node scripts/check-cjk.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.1-rc.1 <5",
