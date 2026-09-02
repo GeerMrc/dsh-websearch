@@ -48,10 +48,10 @@
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **08** | e2e 场景收口 | loopback stub：断网降级/429 降级/超时降级/全败报错/顺序保持/servedBy 透出/钉死直连不降级；真实 API e2e 自跳 | 各场景 e2e 绿（时序断言：失败成员→下一成员的调用序；`DSHWS_CHAIN_EXHAUSTED` 与逐成员摘要断言；content 首行署名断言） | 1 天 | ⏳ |
+| **08** | e2e 场景收口 | loopback stub：断网降级/429 降级/超时降级/全败报错/顺序保持/servedBy 透出/钉死直连不降级；真实 API e2e 自跳 | 各场景 e2e 绿（时序断言：失败成员→下一成员的调用序；`DSHWS_CHAIN_EXHAUSTED` 与逐成员摘要断言；content 首行署名断言） | 1 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-08.md；loopback 七场景 + 链级真实 smoke 自跳；src 零变更兑现） |
 | **09** | README + 迁移 + 升级手册 | README（zh/en：安装/配置/GUI/链语义）；anysearch 迁移（**先删其 patch 两行标量覆盖，再写本插件两行，附顺序与验证命令**）；docs/upgrade.md 升级演练手册 | 由独立审核 Agent 照手册从零在 scratch profile 走通安装→搜索并留痕；演练手册步骤可独立执行 | 1 天 | ⏳ |
 
-**里程碑 M5 交付就绪**：e2e 收口全绿，文档自洽可复现 —— 完成时填 ✅ 日期（Session 09 证据）
+**里程碑 M5 交付就绪**：e2e 收口全绿，文档自洽可复现 —— 🚧 e2e 收口腿 ✅ 2026-09-02（Session 08 证据：loopback 七场景 + 真实 API 自跳）；文档腿 S09——两腿齐后填 ✅（Session 09 证据）
 
 ## 上游验收（M6 上游验收通过）
 
