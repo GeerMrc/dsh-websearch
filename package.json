@@ -26,6 +26,7 @@
     "build": "tsdown",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "typecheck:client": "tsc --noEmit -p tsconfig.client.json",
     "lint": "oxlint src tests"
   },
   "peerDependencies": {
