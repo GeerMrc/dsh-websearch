@@ -4,14 +4,21 @@
 > 单源引用；🟢 债务归属映射的正本在本文件债务映射节。本棒为常规 TDD 棒：契约/逻辑类任务
 > 先红后绿；e2e 自跳文件属验证类（须有验证手段且回归不红），豁免分类由阶段 2 审核 Agent 确认。
 
+阶段 2 独立审核轮 1（2026-09-02，骨架库 v2）：**NEEDS REVISION**（M-1 🟡 T2 形状未定案 +
+errors.test.ts 既有断言必红无预案；S-1..S-4 🟢 建议；O-1..O-3 观察），本 plan 为修订版：
+M-1 全数吸收（D4 形状定案 + T2 点名既有断言随行为更新）；S-1（立 D7）、S-2（T5 透传定案）、
+S-3（背景措辞两处修正）、S-4（T8 环境验证前置）随批吸收；O-1 按 STATUS 悬空引用规则属允许
+前瞻（T10 落实）、O-2/O-3 并入 T8 Agent Note 内容清单。复审续用同一审核 Agent。
+
 ## 目标
 
 S04 交付 M3 第二棒（roadmap ⏳ 行）：`dshws-deepseek` 与 `dshws-tavily` 两个链成员 provider
 （插件内重实现，ADR-0003/L-1）+ 凭据接线——credentials describe 缓存 + `credentials/reference-updated`
 事件刷新 + **S03 假面替换**（Agent Note §2 硬义务：`MemberRegistry.toResolver()` 恒
 `enabled/credentialsReady=true` 的假面移除，成员 gate 反映真实配置与凭据状态）。两 provider
-单测 mock HTTP 四态（成功/429/断网/超时）红→绿；凭据热刷新用例（写 ref→事件→available 翻转）
-红→绿；真实 API e2e 无 key 自跳实测。S03 宪法必测清单挂账项「凭据热刷新」本棒落实（V-05）。
+单测 mock HTTP 四态（成功/429/断网/超时（abort 传播，D7））红→绿；凭据热刷新用例（写
+ref→事件→available 翻转）红→绿；真实 API e2e 无 key 自跳实测。S03 宪法必测清单挂账项
+「凭据热刷新」本棒落实（V-05）。
 
 ## 背景
 
@@ -52,7 +59,8 @@ commit 填出的 R 表自相矛盾；与上轮 🟡① 同模式复发，已标�
   describe.skip`（exa.e2e.ts:9-11）。
 - **依赖先例**：`@anysearch/anysearch-dsh@0.1.4` 实测 peerDependencies **含
   `@deepseek-ai/dsh-credentials`**——本插件引入该 peer 有直接先例；npm 全列表
-  0.1.2-alpha.2..4（dont-do 第 2 条纪律），宿主 vendored 0.1.2-alpha.3。
+  `0.0.1-rc.1..0.1.1-rc.2 + 0.1.2 线 alpha.2..4`（dont-do 第 2 条纪律），宿主**源码树**
+  `packages/credentials/credentials`（非 vendor/，vendor 仅 cordis 系）版本 0.1.2-alpha.3。
 - **Tavily 线格式**（官方 API reference，2026-09-02 取证：
   https://docs.tavily.com/documentation/api-reference/endpoint/search）：`POST
   https://api.tavily.com/search` + Bearer；请求 `{ query（必填）, max_results?（默认 5，≤20）, … }`；
@@ -66,9 +74,10 @@ commit 填出的 R 表自相矛盾；与上轮 🟡① 同模式复发，已标�
 | D1 | 新增 peer `@deepseek-ai/dsh-credentials >=0.1.2-alpha.3 <0.1.3` + devDep 实钉 0.1.2-alpha.4；运行时引入 `credentialRef()`（非本地 cast 自造 brand） | anysearch peer 先例；`credentialRef` 自带语法校验 = misconfiguration fail-loud（AGENTS.md），自造 cast 丢校验且违反「宁可维护的依赖不手搓」；opaque id branded 纪律 |
 | D2 | 凭据缓存三态：**未 describe 前 = 未就绪（false）**；`prime()`（apply 时触发，describe 全部受管 ref → 缓存）+ 事件命中受管 ref → 重 describe 刷新；`describe` 抛错 = 未就绪 + 宿主日志 | 假面的教训：无事实不得报 ready；启动窗口（prime 落地前）链跳过该成员，一次搜索的代价换 available() 不说谎；事件不触达进程环境层变化（服务契约明示），环境变量变化经重启生效 = 上游同语义 |
 | D3 | 假面替换形态：`MemberRegistry.register(provider, gates?)` 增可选 gate `{ enabled?; credentialsReady? }`（`() => boolean` 热读）；`toResolver()` resolve 时点调 gate；**缺省（未传 gates）= true** | 缺省 true 只服务无凭据概念的注册者（loopback stub/测试假成员）；捆绑成员一律显式传 gate——假面死于「成员携带真实状态」，非死于改缺省值；S03 既有测试零破坏（registry 测试不断言常量 true） |
-| D4 | 成员错误码族定形（本棒落 deepseek/tavily 两族，S05a 三族复用同形）：每族 5 码 `DSHWS_<FAM>_{CREDENTIAL_MISSING,REQUEST_FAILED,HTTP_ERROR,BAD_RESPONSE,ABORTED}` | errors.ts:22-28 留位义务；五码覆盖摸底实锚的上游错误形态学（transport/HTTP/body/abort）+ 本插件凭据缺失面；abort 独立码对齐上游 WEB_ABORTED 语义但走本插件 DSHWS_ 命名空间 |
+| D4 | 成员错误码族定形（D4 形状定案，吸收审核 M-1）：`MEMBER_ERROR_CODES` 族值**在 provider 落地时从前缀 string 换为具体码对象**（本棒 deepseek/tavily 两族换形，每族 5 键 `credentialMissing/requestFailed/httpError/badResponse/aborted` → `DSHWS_<FAM>_<KEY 大写蛇形>`；firecrawl/exa/perplexity 三族本棒保持前缀 string，S05a 落 provider 时同口径换形）；`tests/errors.test.ts:28-30` 现有 `MEMBER_ERROR_CODES` 形状断言随本任务更新（行为变更随其测试，点名 file:line，同 T6 对 apply.test.ts 的处置口径） | errors.ts:22-28 留位义务 + 模块 JSDoc「provider lands 时扩充」既定路线；换形时点与 provider 落地绑定，避免为未落地族预造 15 个码值（越权 S05a 面）；对象形给 S05a 稳定接口 |
 | D5 | 两 provider 的 key 一律**每操作经 credentials 服务解析**（search 入口先 resolve），provider 本体不持有 key；`available()` = 纯本地配置检查（baseURL 可解析 + 数值字段正整数），不含 key 维度（key 维度由 gate 的 credentialsReady 承载） | credentials 服务契约「每操作解析=热生效」；直连钉死场景下 key 未配 → 成员抛 CREDENTIAL_MISSING（fail-loud 带指引信息），与链内降级语义一致 |
-| D6 | provider 专属默认值（deepseek baseURL/model/maxTokens、tavily baseURL）落 provider 实现内显式兜底（config.ts:29-31 JSDoc 既定）；tavily v1 不请求 answer（`include_answer` 缺省），结果 content 映射为 snippet | explicit > implicit；架构 §5 配置模型未含 answer 开关，v1 不扩面 |
+| D6 | provider 专属默认值（deepseek baseURL/model/maxTokens、tavily baseURL）落 provider 实现内显式兜底（config.ts:29-31 JSDoc 既定）；tavily v1 不请求 answer（`include_answer` 缺省），结果 content 映射为 snippet；tavily `max_results` **透传不 clamp**（seam `maxResults` 语义原样；>20 由 Tavily 4xx 拒绝 → HTTP_ERROR，链内降级/直连 fail-loud——与上游 exa 不 clamp 同构），取证入 Agent Note | explicit > implicit；架构 §5 配置模型未含 answer 开关，v1 不扩面 |
+| D7 | roadmap 验收字面「超时」在 provider 单测层的对应物 = **abort 传播**（provider 无自有超时逻辑，honors signal；stub fetch 监听 abort 拒绝 → ABORTED 码）；链级每成员超时预算语义已由 S03 必测⑦（fake 成员 + perMemberTimeoutMs）覆盖，本棒不重复建设 | roadmap S04 验收四态字面的可测性映射；plan-002 T10 已实测链级超时，成员级重复实现即双超时源 |
 
 ## 任务分解（WBS）
 
@@ -76,13 +85,13 @@ commit 填出的 R 表自相矛盾；与上轮 🟡① 同模式复发，已标�
 |---|---|---|---|---|
 | T0 | 🟡×1 清偿 + STATUS 启动刷新 + 本 plan 落盘：① progress-M3.md 状态区三处刷新（:14 里程碑行括注、:19 进行中节、:23 待启动节——与 R 表/V 表对齐）；② STATUS.md 台账加 S04 🚧 行 + 当前位置块刷新；③ 本 plan 文件。纯文档 commit 直提 master（S01-S03 先例） | 三处落盘 file:line 可查；同批 commit 留痕 | docs | 无 |
 | T1 | 假面替换（D3）：`MemberRegistry.register(provider, gates?)` + `toResolver()` 热读 gate（resolve 时点调用，非注册时快照）+ JSDoc 更新（移除「Until S04」注） | 先红：注册带 `enabled:()=>false` / `credentialsReady:()=>false` gates 的成员，resolve 返回对应 false（现行代码恒 true 即红）→ 后绿（既有 47 条零破坏回归）→ commit | TDD | T0 |
-| T2 | 错误码族（D4）：`MEMBER_ERROR_CODES` 扩充 deepseek/tavily 两族具体码（每族 5 码）+ 导出面更新 | 先红：码常量缺失/值断言 → 后绿 → commit | TDD | T1 |
+| T2 | 错误码族（D4）：`MEMBER_ERROR_CODES` deepseek/tavily 两族前缀 string 换具体码对象（每族 5 键），三族保持前缀；导出面更新；**`tests/errors.test.ts:28-30` 现有形状断言随行为更新**（M-1） | 先红：新形状/码值断言对现行代码必红 → 后绿（含更新后的 errors 断言）→ commit | TDD | T1 |
 | T3 | 凭据 gate src/credentials.ts（D2）：`CredentialGate`（ports 注入：credentials 服务 + subscribe + log；`prime(): Promise<void>` describe 受管 ref → 缓存；`isReady(refName): boolean`；事件命中受管 ref → 重 describe；describe 抛错 = false + 日志，零未捕获 rejection） | 先红：prime 后 isReady 反映 configured；事件翻转（configure→true / unconfigure→false）；无关 ref 事件不动缓存；describe 抛错容错 → 后绿 → commit | TDD | T2 |
-| T4 | deepseek provider `src/providers/deepseek.ts`（D5/D6）：线格式常量 + 请求/响应映射纯函数（导出供单测）+ provider 类（`dshws-deepseek`；每操作 resolve key，缺 → CREDENTIAL_MISSING 带指引；fetch 失败/非 2xx/bad body/abort 四态错误族；`available()` 本地检查）；单测 mock HTTP：请求映射（端点/头/体）+ 成功映射（blocks→sources、citations→snippet、去重）+ 429（HTTP_ERROR、非 JSON 错误体容错）+ 断网（REQUEST_FAILED）+ abort（ABORTED）+ 凭据缺失 + 响应无结果块（BAD_RESPONSE） | 先红 → 后绿 → commit | TDD | T2 |
-| T5 | tavily provider `src/providers/tavily.ts`（D5/D6）：同 T4 口径（`dshws-tavily`；`POST {baseURL}/search` + Bearer；`max_results = request.maxResults ?? 配置 maxResults，皆缺省则省略`；results[]→sources 映射 published_date 容错透传）；单测 mock HTTP：请求映射 + 成功映射 + 429 + 断网 + abort + 凭据缺失 + 非 JSON 错误体 | 先红 → 后绿 → commit | TDD | T4 |
+| T4 | deepseek provider `src/providers/deepseek.ts`（D5/D6）：线格式常量 + 请求/响应映射纯函数（导出供单测）+ provider 类（`dshws-deepseek`；每操作 resolve key，缺 → CREDENTIAL_MISSING 带指引；fetch 失败/非 2xx/bad body/abort 四态错误族；`available()` 本地检查）；单测 mock HTTP：请求映射（端点/头/体）+ 成功映射（blocks→sources、citations→snippet、去重）+ 429（HTTP_ERROR、非 JSON 错误体容错）+ 断网（REQUEST_FAILED）+ abort（ABORTED，D7）+ 凭据缺失 + 响应无结果块（BAD_RESPONSE） | 先红 → 后绿 → commit | TDD | T2 |
+| T5 | tavily provider `src/providers/tavily.ts`（D5/D6）：同 T4 口径（`dshws-tavily`；`POST {baseURL}/search` + Bearer；`max_results = request.maxResults ?? 配置 maxResults，皆缺省则省略`；**透传不 clamp（D6）**；results[]→sources 映射 published_date 容错透传）；单测 mock HTTP：请求映射 + 成功映射 + 429 + 断网 + abort（D7）+ 凭据缺失 + 非 JSON 错误体 | 先红 → 后绿 → commit | TDD | T4 |
 | T6 | apply 接线：`inject = ['web', 'credentials']`；CredentialGate 接 `ctx.credentials` + `ctx.on('credentials/reference-updated', …)`（注册返回 disposer 交 effect 域）；deepseek/tavily 以 resolveConfig 成员配置实例化 + **双注册**（`ctx.web` + MemberRegistry 传 gates `{ enabled: 配置静态值, credentialsReady: gate.isReady }`）；**热刷新端到端用例**：fake ctx（credentials + on 捕发 + web）下写 ref→事件→`chain.available()` 翻转 true、再撤销→false；apply.test.ts inject 断言随行为更新 | 先红：双注册缺失/gates 未接线/available 不翻转 → 后绿（全量回归）→ commit | TDD | T3/T5 |
 | T7 | 真实 API e2e 自跳：`tests/e2e.real/deepseek.real.test.ts` + `tavily.real.test.ts`（`process.env.DEEPSEEK_API_KEY`/`TAVILY_API_KEY` 自跳；key 经 env-backed resolve thunk 注入——与单测同一 seam，披露于文件 JSDoc） | `pnpm test` 输出含 skipped 证据（本机无 key 实测自跳）；命令原文入记录 | 验证类 | T6 |
-| T8 | 门墙收口 + Agent Note + progress-M3 增补：四命令全绿（命令原文与数字）；Agent Note 落 docs/notes/（凭据 gate 三态语义、假面替换形态、错误码族定形、重实现映射来源锚点、tavily 线格式取证）；progress-M3 增 S04 批次任务表 + 已验锚点台账新增（credentials seam 行号 / tavily docs URL / anysearch peer 先例 / 上游 provider 行号） | 四命令绿 + Note 落盘 + 台账增补 | — | T7 |
+| T8 | 门墙收口 + Agent Note + progress-M3 增补：**环境验证前置（吸收 S-4）——`node --version && pnpm --version` 输出随四命令入记录（≥22.19）**；四命令全绿（命令原文与数字）；Agent Note 落 docs/notes/（凭据 gate 三态语义与「外部存储编辑可发事件、进程环境层永不发事件」边界（O-2）、假面替换形态与「S05a 三族注册必须显式传 gate 否则假面局部复活」提醒（O-3/D3）、错误码族换形口径（D4）、重实现映射来源锚点、tavily 线格式与 max_results 透传取证（S-2））；progress-M3 增 S04 批次任务表 + 已验锚点台账新增（credentials seam 行号 / tavily docs URL / anysearch peer 先例 / 上游 provider 行号） | 环境输出 + 四命令绿 + Note 落盘 + 台账增补 | — | T7 |
 | T9 | 阶段 4/5 独立审核 + 交叉验证：R1-R5 逐条对峙（file:line + 实跑重放，**全量测试唯一责任点**）+ 安全/契约/前瞻三问 + 抽一条命令冒烟重放 | PASS / COMPLETE 结论落 progress-M3 | 独立 Agent | T8 |
 | T10 | 收尾 6 件套 + 原子翻转（STATUS 台账 ✅ + 当前位置块 + roadmap S04 行 ✅ + progress-M3 阶段验收表，同一序列）+ 踩坑沉淀（无重大坑则显式声明零新增）+ 接力指令（记录末节 + 回复末尾）+ `feat/s04-providers-credentials` **`--no-ff`** 合入 master（吸收阶段 0 观察级：merge commit 留痕） | R5 全过 | — | T9 |
 
@@ -96,8 +105,9 @@ skip 计数 + 文件存在与 JSDoc 披露），豁免红绿循环——分类�
 
 - **R1** S03 假面替换可重放：`toResolver()` 无条件 true 移除（file:line）+ gates 热读行为测试
   红绿留痕 + 缺省语义测试 + 既有 47 条回归零破坏
-- **R2** 两 provider 单测 mock HTTP 四态红→绿：deepseek/tavily 各自 成功/429/断网/超时（abort）
-  + 请求映射 + 响应映射 + 凭据缺失 + 错误码族（每族 5 码）——每任务红证据/绿证据/commit 三元组
+- **R2** 两 provider 单测 mock HTTP 四态红→绿：deepseek/tavily 各自 成功/429/断网/超时
+  （abort 传播，D7）+ 请求映射 + 响应映射 + 凭据缺失 + 错误码族换形（D4，含 errors.test.ts
+  断言随行为更新）——每任务红证据/绿证据/commit 三元组
 - **R3** 凭据热刷新（宪法必测挂账 V-05 落实）：CredentialGate 语义测试（prime/isReady/事件
   翻转/容错）+ apply 接线端到端「写 ref→事件→`chain.available()` 翻转」红→绿 + `inject`
   增 `credentials`
@@ -111,7 +121,7 @@ skip 计数 + 文件存在与 JSDoc 披露），豁免红绿循环——分类�
 |---|---|---|---|
 | T0 三处落盘核验 | T0 | 3 | 主 Agent 亲改；阶段 4 独立 Agent file:line 重放 |
 | gates 红绿 + 既有回归 | T1 | 3 | vitest 红/绿输出原文入记录 |
-| 错误码族 | T2 | 3 | 同上 |
+| 错误码族换形 + 既有断言更新 | T2 | 3 | vitest 红/绿输出原文入记录 |
 | CredentialGate 语义红绿 | T3 | 3 | 同上 |
 | 两 provider mock HTTP 红绿 | T4/T5 | 3 | 同上（每态断言独立 it） |
 | apply 接线 + 热刷新端到端 | T6 | 3 | 同上 |
