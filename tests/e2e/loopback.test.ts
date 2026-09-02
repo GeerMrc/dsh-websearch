@@ -6,7 +6,7 @@ import { apply } from '../../src/index.ts'
 import { fakeCtx, flushGate } from '../helpers/fake-ctx.ts'
 import type { FakeCtxHandle } from '../helpers/fake-ctx.ts'
 import { closedPort, startLoopback } from './helpers/loopback-server.ts'
-import type { LoopbackServer } from './helpers/loopback-server.ts'
+import type { LoopbackBehavior, LoopbackServer } from './helpers/loopback-server.ts'
 
 /**
  * Loopback e2e (plan 008): the full assembly — entry config through the real
@@ -35,20 +35,33 @@ interface AssembleOverrides {
   searchChain?: string[]
   tavilyBaseURL?: string
   exaEnabled?: boolean
+  /** Extra tavily pool refs: configured up front and patched into the member config. */
+  tavilyExtras?: string[]
+  tavilyKeySelection?: 'order' | 'round-robin' | 'random'
+  /** Explicit configured-ref set (defaults: the three primaries plus tavilyExtras). */
+  configuredRefs?: string[]
+  /** Per-ref credential values (defaults keep 'fake-key' for every ref). */
+  values?: Record<string, string>
 }
 
 async function assemble(
-  behavior: Record<string, import('./helpers/loopback-server.ts').LoopbackBehavior>,
+  behavior: Record<string, LoopbackBehavior>,
   overrides?: AssembleOverrides,
 ): Promise<Assembly> {
   const server = await startLoopback(behavior)
   try {
-    const handle = fakeCtx({ withSettings: false })
-    for (const ref of REFS) handle.configured.add(ref)
+    const handle = fakeCtx({ withSettings: false, values: overrides?.values })
+    for (const ref of overrides?.configuredRefs ?? [...REFS, ...(overrides?.tavilyExtras ?? [])]) {
+      handle.configured.add(ref)
+    }
     apply(handle.ctx as unknown as Context, {
       searchChain: overrides?.searchChain ?? [...MEMBERS],
       perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
-      tavily: { baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily` },
+      tavily: {
+        baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily`,
+        ...(overrides?.tavilyExtras !== undefined ? { extraApiKeyEnvs: overrides.tavilyExtras } : {}),
+        ...(overrides?.tavilyKeySelection !== undefined ? { keySelection: overrides.tavilyKeySelection } : {}),
+      },
       exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
       perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
     })
@@ -221,6 +234,68 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         'POST /exa/search',
         'POST /perplexity/chat/completions',
       ])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('a round-robin pool rotates through every key on the wire (多 key 轮换)', async () => {
+    const { server, chain } = await assemble(
+      { '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://tv.test/rr' }] } } },
+      {
+        searchChain: ['dshws-tavily'],
+        tavilyExtras: ['TAVILY_SPARE_2', 'TAVILY_SPARE_3'],
+        tavilyKeySelection: 'round-robin',
+        values: { TAVILY_API_KEY: 'k1', TAVILY_SPARE_2: 'k2', TAVILY_SPARE_3: 'k3' },
+      },
+    )
+    try {
+      for (let index = 0; index < 3; index += 1) await chain.search({ query: `rr-${index}` })
+      // Wire-level rotation proof: each search carried a different key, in pool order.
+      expect(server.auths).toEqual(['Bearer k1', 'Bearer k2', 'Bearer k3'])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('an order pool skips an unconfigured ref and serves with the first ready key (order 首就绪)', async () => {
+    const { server, chain } = await assemble(
+      { '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://tv.test/order' }] } } },
+      {
+        searchChain: ['dshws-tavily'],
+        tavilyExtras: ['TAVILY_SPARE_2'],
+        // Primary NOT configured (omitted from values/configured): order skips it.
+        configuredRefs: ['TAVILY_SPARE_2'],
+        values: { TAVILY_SPARE_2: 'spare-key' },
+      },
+    )
+    try {
+      await chain.search({ query: 'a' })
+      await chain.search({ query: 'b' })
+      expect(server.auths).toEqual(['Bearer spare-key', 'Bearer spare-key'])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('a random pool always draws from the ready set (random 冒烟)', async () => {
+    const keys = new Set(['k1', 'k2', 'k3'])
+    const { server, chain } = await assemble(
+      { '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://tv.test/rand' }] } } },
+      {
+        searchChain: ['dshws-tavily'],
+        tavilyExtras: ['TAVILY_SPARE_2', 'TAVILY_SPARE_3'],
+        tavilyKeySelection: 'random',
+        values: { TAVILY_API_KEY: 'k1', TAVILY_SPARE_2: 'k2', TAVILY_SPARE_3: 'k3' },
+      },
+    )
+    try {
+      for (let index = 0; index < 6; index += 1) {
+        await chain.search({ query: `rand-${index}` })
+        // Membership only — the distribution is not an asserted contract.
+        expect(keys.has(server.auths.at(-1)!.replace('Bearer ', ''))).toBe(true)
+      }
+      expect(server.auths).toHaveLength(6)
     } finally {
       await server.close()
     }

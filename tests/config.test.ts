@@ -33,11 +33,31 @@ describe('resolveConfig', () => {
 
   it('defaults every provider section to enabled with its credential-ref env name', () => {
     const resolved = resolveConfig({})
-    expect(resolved.deepseek).toEqual({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' })
-    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY' })
-    expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' })
-    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY' })
-    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' })
+    expect(resolved.deepseek).toEqual({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
+    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
+    expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
+    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
+    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
+  })
+
+  it('pools default to empty extras with order selection (ADR-0008)', () => {
+    const resolved = resolveConfig({})
+    for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek]) {
+      expect(member.extraApiKeyEnvs).toEqual([])
+      expect(member.keySelection).toBe('order')
+    }
+  })
+
+  it('passes through configured extra refs and key selection per member', () => {
+    const resolved = resolveConfig({
+      tavily: { extraApiKeyEnvs: ['TAVILY_API_KEY_2', 'TAVILY_POOL_BACKUP'], keySelection: 'round-robin' },
+      deepseek: { extraApiKeyEnvs: ['DEEPSEEK_SPARE'], keySelection: 'random' },
+    })
+    expect(resolved.tavily.extraApiKeyEnvs).toEqual(['TAVILY_API_KEY_2', 'TAVILY_POOL_BACKUP'])
+    expect(resolved.tavily.keySelection).toBe('round-robin')
+    expect(resolved.deepseek.extraApiKeyEnvs).toEqual(['DEEPSEEK_SPARE'])
+    expect(resolved.deepseek.keySelection).toBe('random')
+    expect(resolved.exa.keySelection).toBe('order')
   })
 
   it('honors explicit provider section overrides and passes provider options through', () => {
@@ -51,6 +71,8 @@ describe('resolveConfig', () => {
       apiKeyEnv: 'MY_EXA_KEY',
       baseURL: 'https://exa.example',
       numResults: 7,
+      extraApiKeyEnvs: [],
+      keySelection: 'order',
     })
   })
 })
@@ -60,11 +82,11 @@ describe('Config schema', () => {
     expect(Config({})).toEqual({
       searchChain: [],
       fetchChain: [],
-      deepseek: {},
-      tavily: {},
-      firecrawl: {},
-      exa: {},
-      perplexity: {},
+      deepseek: { extraApiKeyEnvs: [] },
+      tavily: { extraApiKeyEnvs: [] },
+      firecrawl: { extraApiKeyEnvs: [] },
+      exa: { extraApiKeyEnvs: [] },
+      perplexity: { extraApiKeyEnvs: [] },
     })
   })
 
@@ -72,6 +94,22 @@ describe('Config schema', () => {
     expect(() => Config({ perMemberTimeoutMs: 0 })).toThrow()
     expect(() => Config({ perMemberTimeoutMs: 1.5 })).toThrow()
     expect(() => Config({ perMemberTimeoutMs: -5 })).toThrow()
+  })
+
+  it('rejects an invalid key selection at the schema', () => {
+    // Runtime-only rejection surface: the static type already refuses these
+    // shapes, so the casts target the YAML-facing validator.
+    const bogus = { tavily: { keySelection: 'bogus' } } as unknown as Config
+    const numeric = { exa: { keySelection: 42 } } as unknown as Config
+    expect(() => Config(bogus)).toThrow()
+    expect(() => Config(numeric)).toThrow()
+  })
+
+  it('rejects a non-string extra pool ref at runtime', () => {
+    // Same guard posture as the chain test: the runtime validator defends the
+    // YAML-loaded config surface, the static type covers in-tree callers.
+    const hostile = { tavily: { extraApiKeyEnvs: ['TAVILY_API_KEY_2', 42] } } as unknown as Config
+    expect(() => Config(hostile)).toThrow()
   })
 
   it('rejects a chain entry that is not a string at runtime', () => {

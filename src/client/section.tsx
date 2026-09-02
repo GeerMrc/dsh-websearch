@@ -22,10 +22,12 @@ import type { DshWsLocaleKey } from './locales.ts'
 /** Presentational contract; the entry binds these to the controller. */
 export interface SectionProps {
   snapshot: SectionSnapshot
-  onSaveKey: (memberKey: string, value: string) => Promise<ActionResult>
-  onClearKey: (memberKey: string) => Promise<ActionResult>
+  onSaveKey: (memberKey: string, ref: string, value: string) => Promise<ActionResult>
+  onClearKey: (memberKey: string, ref: string) => Promise<ActionResult>
   onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
   onMoveSearch: (id: string, delta: -1 | 1) => Promise<ActionResult>
+  onAddExtraKey: (memberKey: string, refName: string) => Promise<ActionResult>
+  onRemoveExtraKey: (memberKey: string, refName: string) => Promise<ActionResult>
 }
 
 /**
@@ -44,10 +46,12 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
       <WebSearchSettingsSection
         t={props.t}
         snapshot={snapshot}
-        onSaveKey={(key, value) => controller.setKey(key, value)}
-        onClearKey={(key) => controller.clearKey(key)}
+        onSaveKey={(key, ref, value) => controller.setKey(key, ref, value)}
+        onClearKey={(key, ref) => controller.clearKey(key, ref)}
         onToggleEnabled={(key, enabled) => controller.setEnabled(key, enabled)}
         onMoveSearch={(id, delta) => controller.moveSearchChainEntry(id, delta)}
+        onAddExtraKey={(key, refName) => controller.addExtraKey(key, refName)}
+        onRemoveExtraKey={(key, refName) => controller.removeExtraKey(key, refName)}
       />
     )
   }
@@ -77,7 +81,7 @@ const switchStyle = (enabled: boolean) =>
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onAddExtraKey, onRemoveExtraKey } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -100,6 +104,8 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             onSaveKey={onSaveKey}
             onClearKey={onClearKey}
             onToggleEnabled={onToggleEnabled}
+            onAddExtraKey={onAddExtraKey}
+            onRemoveExtraKey={onRemoveExtraKey}
           />
         ))}
       </div>
@@ -190,13 +196,16 @@ function MemberCard(props: {
   onSaveKey: SectionProps['onSaveKey']
   onClearKey: SectionProps['onClearKey']
   onToggleEnabled: SectionProps['onToggleEnabled']
+  onAddExtraKey: SectionProps['onAddExtraKey']
+  onRemoveExtraKey: SectionProps['onRemoveExtraKey']
 }) {
-  const { member, t, onSaveKey, onClearKey, onToggleEnabled } = props
+  const { member, t, onSaveKey, onClearKey, onToggleEnabled, onAddExtraKey, onRemoveExtraKey } = props
   const [draft, setDraft] = useState('')
   const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
+  const [newRefName, setNewRefName] = useState('')
 
   const save = async (): Promise<void> => {
-    const result = await onSaveKey(member.key, draft)
+    const result = await onSaveKey(member.key, member.refName, draft)
     if (result.ok) {
       setDraft('')
       setFeedback('saved')
@@ -206,8 +215,13 @@ function MemberCard(props: {
   }
 
   const clear = async (): Promise<void> => {
-    const result = await onClearKey(member.key)
+    const result = await onClearKey(member.key, member.refName)
     setFeedback(result.ok ? 'cleared' : 'failed')
+  }
+
+  const addExtra = async (): Promise<void> => {
+    const result = await onAddExtraKey(member.key, newRefName.trim())
+    if (result.ok) setNewRefName('')
   }
 
   return (
@@ -255,9 +269,118 @@ function MemberCard(props: {
           {t('clear')}
         </Button>
       </div>
+      {member.extraRefs.length > 0 ? (
+        <div data-testid={`dshws-extra-keys-${member.key}`} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span style={{ fontSize: 12 }}>{t('extraKeys')}</span>
+          {member.extraRefs.map((extra) => (
+            <ExtraKeyRow
+              key={extra.ref}
+              member={member}
+              extra={extra}
+              t={t}
+              onSaveKey={onSaveKey}
+              onClearKey={onClearKey}
+              onRemoveExtraKey={onRemoveExtraKey}
+            />
+          ))}
+        </div>
+      ) : null}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <Input
+          type="text"
+          aria-label={`${member.label} ${t('refName')}`}
+          placeholder={t('refName')}
+          value={newRefName}
+          onChange={(event) => setNewRefName(event.target.value)}
+          style={{ flex: 1 }}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={newRefName.trim() === ''}
+          aria-label={`${member.label} ${t('addKey')}`}
+          onClick={() => void addExtra()}
+        >
+          {t('addKey')}
+        </Button>
+      </div>
       {feedback ? (
         <span data-testid={`dshws-feedback-${member.key}`}>{t(feedback)}</span>
       ) : null}
+    </div>
+  )
+}
+
+/** One extra pool ref row: per-ref input plus save/clear/remove (per-ref aria labels). */
+function ExtraKeyRow(props: {
+  member: MemberSnapshot
+  extra: MemberSnapshot['extraRefs'][number]
+  t: (key: DshWsLocaleKey) => string
+  onSaveKey: SectionProps['onSaveKey']
+  onClearKey: SectionProps['onClearKey']
+  onRemoveExtraKey: SectionProps['onRemoveExtraKey']
+}) {
+  const { member, extra, t, onSaveKey, onClearKey, onRemoveExtraKey } = props
+  const [draft, setDraft] = useState('')
+  const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
+
+  const save = async (): Promise<void> => {
+    const result = await onSaveKey(member.key, extra.ref, draft)
+    if (result.ok) {
+      setDraft('')
+      setFeedback('saved')
+    } else {
+      setFeedback('failed')
+    }
+  }
+
+  const clear = async (): Promise<void> => {
+    const result = await onClearKey(member.key, extra.ref)
+    setFeedback(result.ok ? 'cleared' : 'failed')
+  }
+
+  const remove = async (): Promise<void> => {
+    await onRemoveExtraKey(member.key, extra.ref)
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <StateDot state={extra.configured ? 'done' : 'warning'} />
+      <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{extra.ref}</span>
+      <Input
+        type="password"
+        aria-label={`${extra.ref} ${t('apiKey')}`}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        style={{ flex: 1 }}
+      />
+      <Button
+        variant="primary"
+        size="sm"
+        disabled={draft === ''}
+        aria-label={`${extra.ref} ${t('save')}`}
+        onClick={() => void save()}
+      >
+        {t('save')}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!extra.configured}
+        aria-label={`${extra.ref} ${t('clear')}`}
+        onClick={() => void clear()}
+      >
+        {t('clear')}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        aria-label={`${extra.ref} ${t('removeKey')}`}
+        onClick={() => void remove()}
+      >
+        {t('removeKey')}
+      </Button>
+      {feedback ? <span>{t(feedback)}</span> : null}
     </div>
   )
 }

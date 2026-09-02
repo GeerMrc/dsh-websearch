@@ -7,9 +7,11 @@
  * at call time, so a settings change reaches the next search without a
  * restart (architecture §5; the upstream web-search-deepseek wiring pattern).
  *
- * Only the hot subset (chain order, per-member timeout, per-member enabled)
- * is observable at runtime; member option fields stay launch-static (plan D2)
- * and are documented as such in the Config JSDoc.
+ * The hot subset observable at runtime is the chain order, the per-member
+ * timeout, the per-member enabled flag, and the key pools (pool refs and
+ * selection policy, ADR-0008); provider option fields (base URLs, models,
+ * result counts) stay launch-static (plan D2) and are documented as such in
+ * the Config JSDoc.
  *
  * @module dsh-websearch/settings
  */
@@ -60,6 +62,18 @@ export class LiveResolvedConfig {
 }
 
 /**
+ * Post-commit hook: runs after `live.refresh()` inside the settings onChange,
+ * with the refreshed config in effect. The credential gate re-primes its
+ * watched set here — prime is additive-idempotent, so a pool ref added by the
+ * commit starts being observed (key-first-then-pool ordering included; the
+ * reference-updated event cannot cover a ref that was unwatched at store
+ * time).
+ */
+export interface SettingsCommitHooks {
+  readonly onCommitted?: () => void
+}
+
+/**
  * Attach the plugin's settings section when the settings service is present;
  * a no-op (the entry config stays authoritative) otherwise — the plugin must
  * not fail to load where the host has no settings service. Mirrors the
@@ -67,16 +81,18 @@ export class LiveResolvedConfig {
  * authoritative source and recompute on every committed change; disposal is
  * bound to the calling fiber by the service's own effects.
  */
-export function attachSettingsSection(ctx: Context, schema: z<Config>, entry: Config, live: LiveResolvedConfig): void {
+export function attachSettingsSection(ctx: Context, schema: z<Config>, entry: Config, live: LiveResolvedConfig, commitHooks?: SettingsCommitHooks): void {
   ctx.inject(['settings'], (settingsCtx) => {
     settingsCtx.settings.installSection(ctx, SETTINGS_NAMESPACE, schema, entry, {
       setSource: (source) => {
         live.setSource(source as () => Config)
       },
       // The registration's resolved value is re-read through the source thunk;
-      // a committed change only needs the recompute, no re-registration.
+      // a committed change only needs the recompute, no re-registration. The
+      // commit-side hook runs after the refresh so it sees the new config.
       onChange: () => {
         live.refresh()
+        commitHooks?.onCommitted?.()
       },
     })
   })

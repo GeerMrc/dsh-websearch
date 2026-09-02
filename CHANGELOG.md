@@ -46,6 +46,42 @@
 
 ---
 
+## 2026-09-03 — 多 APIKEY 池 + 选择策略（Session 09，M7 第 1 棒）
+
+**新增**
+- 每成员多 APIKEY 池（ADR-0008，多凭据 ref 形态——key 零明文）：config 每成员 `extraApiKeyEnvs?: string[]`（附加凭据 ref）+ `keySelection?: 'order'|'round-robin'|'random'`（缺省 order = 现状零变化）；settings/cordis.yml 双面生效，热切下一搜即用
+- `src/keys.ts` KeyPool：就绪过滤（gate describe 缓存）→ 策略选择（游标/注入 rng）→ 经 resolveMemberApiKey 走既有三态；空池自抛 `CREDENTIAL_MISSING` 列主 ref + 全池（ADR-0008 Decision 3）；**provider 文件零改动**（thunk 落点替换）
+- gate 全池语义：任一 ref configured 即就绪；prime 扩全池；settings 提交侧 re-prime（`attachSettingsSection` onCommitted 钩子，refresh→prime 次序）——覆盖「key 先存、ref 后入池」次序
+- GUI 附加 keys 列表：每成员卡新增附加 keys 区（per-ref aria 标签行：状态点/密码输入/保存/清除/移除 + 追加行）；整表 patch 回写；typed locales 19→23 键
+- e2e wire 级轮换实证：loopback 到达记录扩载 Authorization——round-robin 三 key 三连发逐把轮换 / order 跳过未配置 primary / random ∈ 就绪集；牙齿证明（策略探针 order 化 → 恒序红 → 还原）
+- 浏览器多 key GUI 三断言（scratch 3414）：添加附加 ref → settings.yaml 落盘 ref 名数组；写 fake 值 → Saved + 凭据 refs 落盘；Clear+Remove → refs:{} + extras:[] 复原
+- 测试基线 211→**245**（237 passed | 8 skipped；25 files，+34）；build 增量披露 52.61/25.19/27.17 kB（src 本棒必变——D7 口径）
+- Agent Note `docs/notes/2026-09-03-s09-multi-apikey.md`（活端口纪律/re-prime 触发点——S12 正素材）；audit-logs 3 份
+
+**清偿（2 笔）**
+- 阶段 0 抓获 🟡×1（9ade4ef 治理批顺延清扫漏刷——roadmap M5 尾注等 S09→S12 陈旧引用）：T0 穷举清偿（roadmap/progress-M5/progress-M4/00-architecture 四文件六处 + 冻结面声明 + grep 复验）
+- 阶段 4/5 抓获 🟡×1（台账测试增量算术 +30 应为 +34）：T11 更正清偿
+
+**治理**
+- 阶段 0 独立审核 S08 **PASS**（🔴0 🟡审核面内新增 0；client/chain/apply 子集亲跑；原文 s09-stage0-review-of-s08.md）
+- 阶段 2 两轮：轮 1 **NEEDS REVISION**（必改×3：热增 ref gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围 + 建议×7 含 z.union 实测收敛）→ 全数吸收 → 轮 2 **APPROVED**（残留 R1-R6 随批吸收含 prime/refresh 次序勘误；原文 s09-stage2-plan-review.md）
+- 阶段 2.5：AskUserQuestion 未获答 → 按接力序默认批准自主推进（披露，session 记录双落）
+- 阶段 4/5 **PASS / COMPLETE**（R1-R5 逐条 + 门墙七命令亲跑 + providers 零改动 diff 双点 + 三问全过；原文 s09-stage45-verification.md）
+- 功能扩展背景：2026-09-03 用户需求扩展（多 key/anysearch/溯源增强三特性批次前置；余额看板 v2 缓议）——ADR-0008/0009/0010 + roadmap M7（`9ade4ef`）
+
+**诚实标注（遗留项）**
+- 多 key 的派生 ref 名靠约定（`_2/_3` 后缀）；凭据页无池分组语义（README S12 说明）
+- round-robin 游标为进程内状态（重启归零——负载分摊语义非精确公平）；random 分布不设契约（成员资格断言）
+- index.ts 注释同义两遍（T10 🟢 注记）已随 T11 收敛；providers 机械行逗号风格疵（lint 不拦，留痕）
+- M3 with-key 用户槽位不变；v2 backlog：余额/积分看板（ADR-0008 缓议）
+
+**跟踪（观察期）**
+- 测试基线链：S07 196|6(202) → S08 203|8(211) → **S09 237|8(245)**（25 files，+34）；typecheck 双面 exit 0 / lint 0w0e 44 files / build 增量披露 52.61+25.19+27.17 / pack 五件 / check:i18n exit 0（23 keys）
+- 里程碑：M1 ✅ M2 ✅ M4 ✅；**M7 🚧（S09 ✅，余 S10/S11）**；M5 🚧（文档腿 S12）；M3 🚧（余用户 with-key 回填）；M6 ⏳
+- dont-do 累计 4 条（本棒无新增）；下一棒 = Session 10 anysearch 第六成员（ADR-0009 路线 B）
+
+---
+
 ## 2026-09-02 — e2e 场景收口（Session 08，M5 e2e 腿）
 
 **新增**

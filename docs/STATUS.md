@@ -26,7 +26,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S12——2026-09-03 特性批次前置顺延） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008/0009/0010） | 🚧（S09 多 APIKEY 棒进行中；余 S10/S11） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008/0009/0010） | 🚧（S09 多 APIKEY 棒 ✅；余 S10 anysearch 成员、S11 溯源增强） |
 
 ## Session 台账（一行一棒）
 
@@ -41,13 +41,13 @@
 | 06 | 2026-09-02 | 「网页搜索」设置页骨架 | ✅ | docs/sessions/2026-09-02-session-06.md（client half 端到端：构建契约 + 5 provider 卡 + 双链只读 + 浏览器六断言；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE 含 🟡 提交态清偿；基线 184\|6(190)） | 🟡+1→0（stage45 抓获提交态不自洽，`899e2fd` 清偿）🟢 观察×4 注记 |
 | 07 | 2026-09-02 | 优先级排序 + 覆盖标记 + i18n | ✅ | docs/sessions/2026-09-02-session-07.md（搜索链排序写 settings + 钉死覆盖标记（settings 层 D1）+ check:i18n 门禁两脚本 + 浏览器六断言；阶段 2 两轮审核 APPROVED 7/7 + 阶段 4/5 PASS/COMPLETE；M4 ✅） | 🟡+2→0（阶段 0 登记，T0 `0180c95` 清偿）+🟡+1→0（~/.dsh 口径，记录措辞处置 + dont-do 第四条）🟢 新登记×2（fetch 排序/恢复默认） |
 | 08 | 2026-09-02 | e2e 场景收口 | ✅ | docs/sessions/2026-09-02-session-08.md（loopback 七场景 + 到达序/摘要/署名断言 + 链级真实 API smoke 自跳；阶段 2 两轮审核 APPROVED + **阶段 2.5 用户真实批准** + 阶段 4/5 PASS/COMPLETE；src 零变更兑现；M5 e2e 腿 ✅） | 🟡+1→0（assemble 泄漏缺口，T8 加固清偿）+🟡 lint warning（T1 残留，T6 门墙抓获清偿） |
-| 09 | 2026-09-03 | 多 APIKEY 池 + 选择策略 | 🚧 | （进行中——计划 docs/plans/2026-09-03-009-s09-multi-apikey-pool-plan.md；阶段 2 两轮审核 APPROVED） | 阶段 0 对 S08 PASS（🔴0；审核面外 🟡 roadmap M5 尾注漏刷 → T0 清偿） |
+| 09 | 2026-09-03 | 多 APIKEY 池 + 选择策略 | ✅ | docs/sessions/2026-09-03-session-09.md（extraApiKeyEnvs 多 ref 池 + keySelection 三策略 + wire 级轮换实证 + GUI 多 key 列表 + settings 热通路；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE；provider 零改动兑现） | 🟡+1→0（阶段 0 抓获 roadmap M5 尾注漏刷，T0 穷举清偿）+🟡+1→0（T10 抓获台账算术 +30→+34，T11 更正）+🟢×3 注记 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 09（🚧 进行中，2026-09-03 启动；阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进——披露，S03-S07 同款兜底口径）
-- **所处里程碑**: M7 功能扩展（🚧 S09 多 APIKEY 棒执行中；余 S10 anysearch 成员、S11 溯源增强）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S12）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞 S09）
-- **上一棒**: Session 08（e2e 场景收口：loopback 七场景 + 链级真实 smoke 自跳，src 零变更）— 记录：docs/sessions/2026-09-02-session-08.md
-- **下一棒**: 本棒 S09 执行中（plan 009 T0-T11）；收官后 = S10 anysearch 第六成员（M7 第 2 棒）
-- **活跃债务**: 🔴×0 🟡×0（roadmap M5 尾注漏刷已 T0 清偿）🟢×2（fetch 排序/恢复默认按钮）+ L-2 + 观察（tsdown 弃用/sourcemap/s06 mtime/i18n CI S12 项；牙齿证明惯例候选；v2 backlog = 余额/积分看板 ADR-0008 缓议）——正本：progress-M7 台账（新开）+ ADR-0008 债务节
-- **更新时间**: 2026-09-03（S09 启动刷新）
+- **当前 session**: 无进行中（Session 09 ✅ 2026-09-03 收官）
+- **所处里程碑**: M7 功能扩展（🚧 S09 多 APIKEY 棒 ✅；余 S10 anysearch 成员 = 下一棒、S11 溯源增强）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S12）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞 S10）
+- **上一棒**: Session 09（多 APIKEY 池 + 选择策略：extraApiKeyEnvs 多 ref 池 + 三策略 wire 实证 + GUI 列表 + 热通路，provider 零改动）— 记录：docs/sessions/2026-09-03-session-09.md
+- **下一棒**: roadmap M7 段 = Session 10（anysearch 第六成员；ADR-0009 路线 B HTTP 自实现；底座就绪——keyPool 工厂成员无关）
+- **活跃债务**: 🔴×0 🟡×0 🟢×2（fetch 排序/恢复默认按钮）+ L-2 + 观察（tsdown 弃用/sourcemap/s06 mtime/i18n CI S12 项；牙齿证明惯例候选；index 注释已收敛）+ v2 backlog（余额/积分看板 ADR-0008 缓议）——正本：progress-M7 台账 + plan 009 债务映射节
+- **更新时间**: 2026-09-03（S09 阶段 6 收尾）

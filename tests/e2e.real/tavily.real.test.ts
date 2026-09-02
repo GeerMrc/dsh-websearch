@@ -15,7 +15,7 @@ const maybe = apiKey !== undefined && apiKey.length > 0 ? describe : describe.sk
 maybe('dshws-tavily real API', () => {
   it('returns sources for a live query', async () => {
     const provider = new TavilySearchProvider(resolveTavilyMemberOptions(
-      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' },
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => apiKey,
     ))
     expect(provider.available()).toBe(true)

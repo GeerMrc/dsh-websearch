@@ -48,13 +48,14 @@ export interface FakeCtxHandle {
   commitSettings(section: unknown): void
 }
 
-export function fakeCtx(options?: { withSettings?: boolean }): FakeCtxHandle {
+export function fakeCtx(options?: { withSettings?: boolean; values?: Record<string, string> }): FakeCtxHandle {
   const search: string[] = []
   const fetch: string[] = []
   const providers = new Map<string, WebSearchProvider | WebFetchProvider>()
   const configured = new Set<string>()
   const eventHandlers = new Set<(ref: CredentialRef) => void>()
   const logLines: string[] = []
+  const values: Record<string, string> = options?.values ?? {}
   let settingsHooks: SettingsHooks | undefined
   const ctx: FakeCtx = {
     logger: { info: (message) => void logLines.push(message) },
@@ -76,7 +77,7 @@ export function fakeCtx(options?: { withSettings?: boolean }): FakeCtxHandle {
         writable: true,
         ...(configured.has(String(ref)) ? { source: 'env' } : {}),
       }),
-      resolve: async (ref) => configured.has(String(ref)) ? { value: 'fake-key', source: 'env' } : undefined,
+      resolve: async (ref) => configured.has(String(ref)) ? { value: values[String(ref)] ?? 'fake-key', source: 'env' } : undefined,
     },
     inject: (names, cb) => {
       if (options?.withSettings === false) return

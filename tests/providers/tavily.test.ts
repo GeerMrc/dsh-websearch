@@ -12,7 +12,7 @@ import {
 const codes = MEMBER_ERROR_CODES.tavily
 
 const options = resolveTavilyMemberOptions(
-  { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' } satisfies TavilyMemberConfig,
+  { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' } satisfies TavilyMemberConfig,
   async () => 'tvly-key',
 )
 
@@ -29,7 +29,7 @@ afterEach(() => {
 
 describe('dshws-tavily option resolution', () => {
   it('fills the default base URL explicitly and passes apiKeyEnv through', () => {
-    const resolved = resolveTavilyMemberOptions({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY' }, async () => undefined)
+    const resolved = resolveTavilyMemberOptions({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined)
     expect(resolved.baseURL).toBe(TAVILY_DEFAULT_BASE_URL)
     expect(resolved.apiKeyRef).toBe('TAVILY_API_KEY')
     expect(resolved.maxResults).toBeUndefined()
@@ -37,7 +37,7 @@ describe('dshws-tavily option resolution', () => {
 
   it('passes explicit baseURL/maxResults through untouched', () => {
     const resolved = resolveTavilyMemberOptions(
-      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test', maxResults: 7 },
+      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test', maxResults: 7 , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => undefined,
     )
     expect(resolved.baseURL).toBe('https://proxy.test')
@@ -158,7 +158,7 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     const provider = new TavilySearchProvider(
-      resolveTavilyMemberOptions({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY' }, async () => undefined),
+      resolveTavilyMemberOptions({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined),
     )
     const caught = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.credentialMissing })
@@ -170,7 +170,7 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     vi.stubGlobal('fetch', vi.fn())
     const provider = new TavilySearchProvider(
       resolveTavilyMemberOptions(
-        { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' },
+        { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
         async () => {
           throw new Error('credentials service unreachable')
         },

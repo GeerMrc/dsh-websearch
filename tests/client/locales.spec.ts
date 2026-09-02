@@ -24,6 +24,17 @@ describe('client locales', () => {
     }
   })
 
+  it('carries the S09 extra-key management keys on both sides', () => {
+    expect(en.extraKeys).toBe('Additional keys')
+    expect(en.addKey).toBe('Add')
+    expect(en.removeKey).toBe('Remove')
+    expect(en.refName).toBe('New ref name')
+    expect(zh.extraKeys).toBe('附加 Key')
+    expect(zh.addKey).toBe('添加')
+    expect(zh.removeKey).toBe('移除')
+    expect(zh.refName).toBe('新 ref 名称')
+  })
+
   it('carries the S07 reorder and chain-state keys on both sides', () => {
     expect(en.moveUp).toBe('Move up')
     expect(en.moveDown).toBe('Move down')
