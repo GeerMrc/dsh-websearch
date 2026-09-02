@@ -64,7 +64,7 @@ Agent Note `2026-09-02-s04-credentials-wiring.md` §1（显式传 gates）/§3�
 - **热改通路**：链核 `run()` 每次迭代读 `this.#options.order`、每成员读 `perMemberTimeoutMs`
   （chain/core.ts）——**但 S04 壳构造器 `{ ...options, id }` 的对象展开会在构造时求值 getter
   并冻结为静态值**（阶段 2 审核 M-1 实证：chain/core.ts:220-222/:243-245），故热改必须连带壳
-  构造器改为 options 原对象透传（行为保持型修正，见 D2/T7）；成员 enabled gate 已是热读
+  构造器改为 options 原对象透传（行为保持型修正，见 D7/T7）；成员 enabled gate 已是热读
   （S04 D3）。settings 源同样要过 `resolveConfig` 显式默认化（schema 零默认注入，S03 实锚）。
 - **依赖面**：`@deepseek-ai/dsh-settings` npm 全列表 `0.0.1-rc.1..0.1.1-rc.2 + 0.1.2 线
   alpha.2..4`（dont-do 第 2 条纪律），宿主源码树 `packages/settings/settings` = 0.1.2-alpha.3；
@@ -72,7 +72,7 @@ Agent Note `2026-09-02-s04-credentials-wiring.md` §1（显式传 gates）/§3�
 - **脚手架提取候选**（S04 阶段 4/5 观察级）：deepseek.ts/tavily.ts 各 ~40 行错误脚手架
   （abort 三件套/正整数检查/错误体展开/凭据解析包装）近乎复制——本棒提取，避免四份复制。
 
-## 范围决策（D1-D6，供阶段 2 审核判定层级）
+## 范围决策（D1-D7，供阶段 2 审核判定层级）
 
 | # | 决策 | 依据 |
 |---|---|---|
