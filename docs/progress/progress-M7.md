@@ -19,11 +19,11 @@
 
 ## 进行中
 
-- Session 09（多 APIKEY 池 + 选择策略）——T0-T9 完成，T10 独立验证进行中，T11 待执行
+- 无（S09 收官；下一棒 S10 待启动）
 
 ## 待启动
 
-- S10（anysearch 第六成员）→ S11（session 溯源增强）→ S12（手册，原 S09 顺延）→ S13（上游验收准备，原 S10 顺延）
+- S10（anysearch 第六成员，M7 第 2 棒）——前置：S09 已收官（keyPool 工厂成员无关，anysearch 自动入池享池化；ADR-0009 路线 B 定谳）。后续：S11 溯源增强 → S12 手册（原 S09 顺延）→ S13 上游验收准备（原 S10 顺延）
 
 ## 已完成
 
@@ -46,17 +46,29 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | T7 | e2e 轮换：loopback auths 记录 + round-robin/order/random 三场景 | 完成（`5162870`；10 passed；**牙齿证明**：策略探针 order 化 → auths k1×3 恒序红 → 还原） |
 | T8 | 浏览器多 key GUI 实测（scratch 3414，主 Agent IAB 实测棒） | 完成（`c9bda05`；三断言全过：添加 ref→settings.yaml 落盘/写 fake 值→Saved+凭据 refs/Clear+Remove→refs:{}+extras:[]；kill 45497 精确零残留） |
 | T9 | 门墙七命令（提交态）+ 本台账 + Agent Note（docs/notes/2026-09-03-s09-multi-apikey.md） | 完成（数字见下节门墙表） |
-| T10 | 阶段 4/5 独立验证 | 进行中 |
-| T11 | 收尾 | 待执行 |
+| T10 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS：keys 9 + loopback 10 亲跑含 wire 轮换 + providers 零改动 diff 双点亲证 + 空池文案 ADR 正本逐字对齐 + 门墙七命令亲跑零偏差 + 隔离法证（3414=0/3080=90269 未动/s05b-s08 早窗）+ 三问全过；**🟡 ×1 抓获：台账增量算术 +30 应为 +34** → T11 更正清偿；🟢×3 注记；audit-log 正本 docs/sessions/audit-logs/2026-09-03-s09-stage45-verification.md） |
+| T11 | 收尾（🟡 算术更正 + index.ts 注释同义收敛随批 + 本文件 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge `--no-ff` + 接力指令） | 完成（本序列） |
 
 ### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
 | S06/S07/S08 | （历史） | 正本 progress-M4/M5 门墙表 |
-| S09 | ①`pnpm test` → **25 files（24 passed + 1 skipped），Tests 237 passed \| 8 skipped (245)**（211→245：+30 keys/apply 热通路/轮换场景/池行为，既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（44 files，96 rules）**④`pnpm build` → **增量披露（D7）：index.js 49.00→52.61 kB / index.d.ts 21.89→25.19 kB / client.js 20.54→27.17 kB**（src 本棒必变）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**23 keys** parity + 16 files 零 CJK）⑦`git status --short` 前后置 clean | S09 T9 提交态亲跑 |
+| S09 | ①`pnpm test` → **25 files（24 passed + 1 skipped），Tests 237 passed \| 8 skipped (245)**（211→245：**+34**——keys 9 + apply 6 + config 4 + controller 8 + section 3 + locales 1 + loopback 3；既有零破坏；T10 勘误：T9 原记 +30）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（44 files，96 rules）**④`pnpm build` → **增量披露（D7）：index.js 49.00→52.61 kB / index.d.ts 21.89→25.19 kB / client.js 20.54→27.17 kB**（src 本棒必变）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**23 keys** parity + 16 files 零 CJK）⑦`git status --short` 前后置 clean | S09 T9 提交态亲跑 |
 
 
+
+## 阶段验收（R1-R5，阶段收官时填）
+
+### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | 池与策略可重放 | PASS | keys.test 9 passed（三策略/就绪过滤/空池自抛列池）+ loopback 10 passed（round-robin auths 轮换 wire 级/order 跳未配置 primary/random ∈ 就绪集）+ 牙齿证明红签名 5162870 + 空池文案与 ADR-0008 Decision 3 逐字对齐（keys.ts:83-84） |
+| R2 | 默认零变化 + 热生效 | PASS | apply 17 + settings 6 = 23 passed（热切策略/pre-stored-key 次序/热删收缩）；providers 81 passed 仅机械缺省字面量（行为断言逐字未动）；resolveConfig 显式 `?? []`/`?? 'order'` ×五成员 |
+| R3 | GUI 多 key 通路 | PASS | client 51 passed（extraRefs 快照/池外拒绝/整表 patch/行渲染/追加/移除）+ check:i18n exit 0（23 keys + 16 files）+ T8 实物三件对上（settings-after-add/现 settings/credentials refs:{}） |
+| R4 | 门墙七命令（提交态） | PASS | test 25 files 237\|8(245) / typecheck exit 0 / lint 0w0e 44 files / build 增量披露 52.61+25.19+27.17（D7 口径）/ pack 五件 / check:i18n exit 0；前后 git status clean |
+| R5 | 五子证据 | PASS | ①隔离（3414 LISTEN=0/3080=90269 未动/s05b-s08 早窗/fake 值 refs:{} 复原）②门墙（上）③收尾件套（T11 序列）④原子翻转 + `--no-ff` ⑤audit-log 三份正本 |
 
 ## 技术债（台账）
 

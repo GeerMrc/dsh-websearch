@@ -98,8 +98,8 @@ export function apply(ctx: Context, config: Config): void {
   // fail the load here; settings-sourced names are grammar-checked at resolve
   // time and re-primed on every settings commit (see attachSettingsSection).
   // Entry-config pool names outside the credential grammar fail the load
-  // here (settings-sourced names are grammar-checked at resolve time and
-  // re-primed on every settings commit — see attachSettingsSection).
+  // here; settings-sourced names are checked at resolve time and re-primed
+  // on each settings commit (see attachSettingsSection).
   for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek]) {
     for (const name of [member.apiKeyEnv, ...member.extraApiKeyEnvs]) credentialRef(name)
   }
