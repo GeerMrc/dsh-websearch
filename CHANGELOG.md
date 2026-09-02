@@ -15,6 +15,41 @@
 
 ---
 
+## 2026-09-02 — 安装端到端 + 卸载复原（Session 05b，M3 收官棒·机械面）
+
+**新增**
+- 安装端到端实测（scratch 隔离配方 D1）：tarball 交付（16644B）→ `dsh plugin --profile web add` → 三处落盘（dependencies 翻 `file:` tarball / `dsh.profile.bundles` 自动追加 / dump 组合树 insert 行生效）；auto-scaffold（`PROFILE_TEMPLATES` web 模板）首命令即完成
+- 接线实测：用户层两行 patch（`web` 行 `searchProvider: dshws-chain` / `fetchProvider: dshws-chain-fetch`）→ `--dump-config` 组合树标量翻转（dump-wired.yml:352-353）
+- 卸载复原实测：`dsh plugin remove`（bundles reconcile 回模板，与宿主 plugin.ts:81-84 splice 预注册一致）+ 删两行 → dump 与安装前基线 **diff 零输出**（逐字节一致）
+- boot 加载证明：scratch 实例（3411，非 3080）日志零 load 错 + HTTP 401 token 健康态 + kill 零残留
+- **manifest 缺陷发现与修复**（`fdffe9e`）：`dsh.bundle.patch` 平铺顶层键 → 嵌套 `{"dsh":{"bundle":{"patch":…}}}`（宿主读取语法 profile.ts:832-834；平铺键从未被读取，缺陷潜伏 S03-S05a 三棒，由本棒安装实测暴露）
+- dont-do 第三条：收官序列 progress 状态区刷新义务（三次家族复发 + 本棒第 4 实例，「替换而非追加」）
+- Agent Note `docs/notes/2026-09-02-s05b-install-runbook.md`（安装/接线/卸载精确命令 + 嵌套键症状 + 用户槽位四步——S09 手册正素材）；audit-logs 3 份（token 脱敏）
+
+**清偿（1 笔）**
+- 阶段 0 新增 🟡×1（Y-1 progress-M3 状态区未随收官刷新，家族第三次复发）：T0 清偿（`19587ef`）；清偿自身引入重复 M3 行（家族第 4 实例）经阶段 2 轮 1 抓获修正（`65ac837`）—— dont-do 第三条顺势沉淀系统性防线
+
+**治理**
+- 阶段 0 前序审核（独立 general-purpose Agent，骨架库 v2，四维实测）：S05a **PASS**（🔴×0；🟡×1 Y-1 → T0 清偿 + dont-do 沉淀）
+- 阶段 2 计划审核（独立 general-purpose Agent）：轮 1 **NEEDS REVISION**（必改 ×3 + 建议 ×5）→ 全数吸收 → 同 Agent 复审 **APPROVED**（残项 1 锚点行号 → `2926723`；代核 remove reconcile 源码语义）
+- 阶段 2.5 人工终审：**用户真实批准**（「批准，自主执行到底」——AskUserQuestion 获答，S03 以来首次非默认推断）
+- 阶段 4/5：独立 Agent 验证 **R1-R4 全 PASS + R5 子①② PASS + COMPLETE**（门墙四命令亲跑零漂移 + 隔离法证（`~/.dsh` 本棒时间窗零写入）+ 冒烟重放与 dump-wired 逐字节互证；观察 ×5 全 🟢）
+- 分支纪律落地：开发在 `feat/s05b-install-e2e`，`--no-ff` 合入 master
+
+**诚实标注（遗留项）**
+- **M3 行保持 🚧**：机械面 ✅（安装/接线/复原/boot/隔离审计全过）；余用户 with-key 槽位（`web_search` 真实结果 + `[served-by:]` 首行）——指引 `docs/notes/2026-09-02-s05b-install-runbook.md` §4，S10/M6 同构，S06 不阻塞
+- L-2 🟢（per-profile GUI 二期）不变——唯一在册 🟢 债务
+- firecrawl fetch 面无独立 402/429 it（双面共用 #parse）——🟢 观察在档
+- `pnpm pack --dry-run` 在 pnpm 11.7.0 不可用（审核以 npm pack 等价核验）——S09 手册须知
+- scratch home 保留于 /tmp/dshws-s05b/home（用户槽位现场；易失，重建序列在 runbook §1）
+
+**跟踪（观察期）**
+- 测试基线链：47（S03）→ 93|2（S04）→ 157|6（S05a）→ **157 passed | 6 skipped（163；18 文件）零漂移**（本棒漂移哨兵口径——manifest 修复仅触 pack 面）；typecheck 0 error；lint 0w0e（30 files）；build 70.89 kB
+- dont-do 新增 1 条（收官状态区刷新，累计 3 条）；里程碑：M3 🚧 机械面收官；下一棒 Session 06（「网页搜索」设置页骨架）
+
+---
+
+
 ## 2026-09-02 — exa/perplexity/firecrawl + settings 热改（Session 05a，M3 第 3 棒）
 
 **新增**

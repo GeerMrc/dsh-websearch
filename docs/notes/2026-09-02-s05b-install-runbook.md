@@ -34,7 +34,7 @@ pnpm dsh --profile web --dump-config        # 验证：web 行标量翻转 + dsh
 - **症状**：安装警告 `dsh-websearch declares no dsh.bundle — installed as a plain dependency,
   not a profile layer`，bundles 不追加、bundle patch 不生效。
 - **根因**：S03 T1 把 ADR-0007/S02 记录中的「`dsh.bundle.patch` manifest 键」转写成 package.json
-  **平铺顶层键**——宿主读取语法是 `manifest.dsh?.bundle?.patch`（app-boot/profile.ts:838-840），
+  **平铺顶层键**——宿主读取语法是 `manifest.dsh?.bundle?.patch`（app-boot/profile.ts:832-834，阶段 4 校正），
   即嵌套形态 `{"dsh": {"bundle": {"patch": "./cordis.patch.yml"}}}`（上游 dsh-base/dsh-web-app
   两包实测均此形态）。平铺键从未被任何代码读取——S03-S05a 四棒零安装验证（安装端到端恰是
   S05b 范围），缺陷潜伏三个棒次由本棒 T2 实测暴露。
@@ -50,7 +50,7 @@ pnpm dsh plugin --profile web remove dsh-websearch   # dependencies 清空 + bun
 pnpm dsh --profile web --dump-config                 # 与安装前基线 diff = 零输出（逐字节一致）
 ```
 
-- `remove` 的 reconcile（apps/cli/src/plugin.ts:77-87，`wasDependency && !stillBundle → splice`）
+- `remove` 的 reconcile（apps/cli/src/plugin.ts:81-84，`wasDependency && !stillBundle → splice`；阶段 4 校正）
   实测与源码预期一致：bundles 自动回 `[dsh-base, dsh-web-app]`，无残留。
 - 复原判定 = `--dump-config` 与安装前基线 **diff 零输出**（本棒 dump-baseline.yml 与
   dump-restored.yml 逐字节一致实测）——上游行为完整复原的机制级证据。

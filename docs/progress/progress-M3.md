@@ -11,18 +11,16 @@
 |---|---|---|
 | M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
-| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（S03/S04/S05a ✅；余 S05b + 用户 with-key 槽位） |
+| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S05b；余用户 with-key 槽位回填——指引 docs/notes/2026-09-02-s05b-install-runbook.md §4） |
 | M4-M6 | 设置页完备 / 交付就绪 / 上游验收通过 | ⏳ |
 
 ## 进行中
 
-- Session 05b（安装端到端 + 卸载复原）：plan 005b 两轮审核 APPROVED（阶段 2.5 **用户真实批准**
-  「批准，自主执行到底」——S03 以来首次非默认推断），T0-T6 完成；T7（门墙 + Note + 台账）
-  收口中；T8/T9（阶段 4/5 + 收尾）待执行。开发在 `feat/s05b-install-e2e`
+- 无（S05b 机械面收官；下一棒 S06 待启动）
 
 ## 待启动
 
-- Session 06（「网页搜索」设置页骨架）——前置：S05b 收官（M3 with-key 槽位不阻塞，D4）
+- Session 06（「网页搜索」设置页骨架）——前置：S05b 已收官（M3 with-key 槽位不阻塞，D4）
 
 ## 已完成
 
@@ -144,7 +142,8 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 | T5 | 卸载复原 | 完成（`51f7b20`；remove 后 bundles reconcile 回模板（S-5 预注册兑现）+ 删两行 → dump 与基线 **diff 零输出**） |
 | T6 | 重装回接线态（用户槽位） | 完成（`9caca1a`；dump-wired.yml 恢复 352-353） |
 | T7 | 门墙四命令（漂移哨兵）+ Agent Note + 本台账 | 完成（下表 + docs/notes/2026-09-02-s05b-install-runbook.md；门墙与 S05a 终值逐位一致零漂移） |
-| T8/T9 | 阶段 4/5 独立验证 + 收尾 6 件套 | 待执行 |
+| T8 | 阶段 4/5 独立验证 | **R1-R4 全 PASS + R5 子①② PASS + 阶段 5 COMPLETE**（冒烟重放与 dump-wired.yml 逐字节互证；观察 ×5 全 🟢——Note 锚点两处已顺手校正、进行中措辞/转录数字/token 脱敏已入 T9；audit-log 正本 docs/sessions/audit-logs/2026-09-02-s05b-stage45-verification.md） |
+| T9 | 收尾 6 件套 + 原子翻转（roadmap S05b ✅ 附翻转规格 + M3 行 🚧 附注）+ `--no-ff` 合入 | 完成（本节状态区四处刷新 + session-05b 记录含用户实测指引节 + STATUS/roadmap/CHANGELOG 同序列 + 接力指令） |
 
 ### 门墙实测数字（S05b T7 收口，node v22.23.2 / pnpm 11.7.0）
 
@@ -154,6 +153,16 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 - `pnpm build` → lib/index.js 49.00 kB + lib/index.d.ts 21.89 kB（gzip 12.34/4.83）——与 S05a 终值逐位一致
 
 ## 阶段验收（R1-R5，阶段收官时填）
+
+### S05b 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | 基线对照可重放 | PASS | dump-baseline.yml:351-352 = deepseek-official/http；scratch scaffold 四件与 PROFILE_TEMPLATES 一致（`59d44fc`） |
+| R2 | 安装端到端可重放 | PASS | 三处落盘（deps file: tarball / bundles 追加 / dump diff `544a545,547` insert 生效）+ **manifest 嵌套形态修复**（`fdffe9e`，三方一致：上游 dsh-base/web-app = 宿主 profile.ts:832 读取语法）；tarball 形态 ADR-0007 |
+| R3 | 接线可重放 | PASS | 用户层两行 → dump-wired.yml:352-353 = dshws-chain/chain-fetch（`9dcee6d`） |
+| R4 | 卸载复原可重放 + boot 证明 | PASS | diff(baseline, restored) **零输出**亲跑（`51f7b20`）+ remove bundles reconcile 与 S-5 预注册（plugin.ts:81-84）一致；boot.log 3 行零错 + kill 零残留（`06296b3`） |
+| R5 | 五子证据 | PASS | ①隔离（DSH_HOME 全程 /tmp、端口 3411、`~/.dsh` 零写入法证——本棒时间窗零改动）②门墙四命令亲跑与台账逐位一致零漂移 ③④收尾件套/翻转闭环（本序列）⑤槽位指引落盘（runbook §4 + session-05b 指引节）；阶段 4/5 audit-log 在 docs/sessions/audit-logs/（token 已脱敏） |
 
 ### S05a 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-02，正本 audit-log stage45）
 
@@ -218,7 +227,10 @@ AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露�
 | dsh-web published types 含 ctx.web 增强（`declare module '@deepseek-ai/cordis'`）+ 内部 import dsh-llm | 审核 Agent 下载 alpha.4 tarball 实证（lib/types/index.d.ts:13、types.d.ts:7）+ T11 typecheck/探测互证 |
 | schemastery 实例可调用归一化（无 .validate；空对象→结构骨架） | T4 红绿循环实测（node_modules lib/types/index.d.ts:124-125） |
 | cordis 日志面 ctx.logger（printf 风格） | vendor/cordis/src/logger.ts + webhook/settings 用例（webhook/src/index.ts:154）+ T11 typecheck 实证 |
-| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；S04：93 passed \| 2 skipped（95）；**S05a 批次后：157 passed \| 6 skipped（163；18 文件）**（skip = 真实 API 无 key 自跳） |
+| 测试基线 | S03：47 条（6 文件）全绿——本仓首个基线；S04：93 passed \| 2 skipped（95）；S05a：157 passed \| 6 skipped（163）；**S05b：157 passed \| 6 skipped（163；18 文件）零漂移**（漂移哨兵口径——安装棒零测试面变更） |
+| dsh CLI/组合机制：--dump-config（apps/cli/src/dump-config.ts）/plugin pnpm 转发器 + reconcile splice（apps/cli/src/plugin.ts:81-84）/auto-scaffold PROFILE_TEMPLATES（app-boot/profile.ts:805-814，web 模板 = dsh-base+dsh-web-app live）/组合层级（profile-boot.ts:124-143/:156-173）/composeEntries（profile.ts:846-861）/bundle patch 读取语法（profile.ts:832-834，嵌套 dsh.bundle.patch） | S05b 阶段 1 亲读 + 轮 1 审核与阶段 4 审核三方实测一致（行号经两轮校正） |
+| 上游对照锚：base patch web 行 searchProvider: deepseek-official / fetchProvider: http（packages/bundle/base/cordis.patch.yml:450-454） | S05b 阶段 1 亲读 + T1/T5 dump 实测对照 |
+| S05b 安装三态 dump + 关键数字（/tmp 易失，转录存档） | 基线 351-352 / 接线 352-353 / install diff 544a545,547 / 复原 diff 零输出——命令原文与证据见本表 S05b 批次 + session-05b 记录 |
 | settings seam：installSection（index.ts:469-506）/SettingsSectionHooks（:868-886）/真实 seam 测试先例（tests/settings.spec.ts:700-760）；ns 语法 lowercase kebab | S05a 阶段 1 亲读 + 阶段 2 审核独立复核一致 |
 | 上游 provider 参考锚（S05a 增）：web-search-exa（:22/:56-65/:98-114）/web-search-perplexity（:22/:25/:28/:73-83/:113-118） | S05a 阶段 1 亲读 + 阶段 2 审核独立命中 |
 | firecrawl v2 线格式（POST /v2/search `data.web[]` 分组 / POST /v2/scrape `formats:['markdown']` + metadata.statusCode/url / 402/429 `{error}`） | 官方文档 2026-09-02 取证（plan 005a 背景节） |
