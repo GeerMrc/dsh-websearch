@@ -239,3 +239,61 @@ describe('runtime degradation (必测④)', () => {
     expect(calls).toEqual(['dshws-a', 'dshws-b', 'dshws-c'])
   })
 })
+
+describe('chain exhausted (必测⑤)', () => {
+  function throwingProvider(id: string, calls: string[], error: Error): WebSearchProvider {
+    return {
+      id,
+      available: () => true,
+      search: async () => {
+        calls.push(id)
+        throw error
+      },
+    }
+  }
+
+  it('throws DSHWS_CHAIN_EXHAUSTED with a per-member summary and the last error as cause', async () => {
+    const calls: string[] = []
+    const firstError = new Error('first quota exceeded')
+    const lastError = new Error('connection refused')
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-alpha': { provider: throwingProvider('dshws-alpha', calls, firstError) },
+        'dshws-beta': { provider: throwingProvider('dshws-beta', calls, lastError) },
+      }),
+      order: ['dshws-alpha', 'dshws-beta'],
+      perMemberTimeoutMs: 1000,
+    })
+    const error = await chain.search({ query: 'q' }).then(
+      () => {
+        throw new Error('expected the chain to reject')
+      },
+      (caught: unknown) => caught,
+    )
+    expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+    expect((error as Error).message).toContain('dshws-alpha: first quota exceeded')
+    expect((error as Error).message).toContain('dshws-beta: connection refused')
+    expect((error as { cause?: unknown }).cause).toBe(lastError)
+  })
+
+  it('reports exhaustion, not a missing configuration, when failures exist alongside skipped members', async () => {
+    const calls: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-off': { provider: trackingProvider('dshws-off', calls), enabled: false },
+        'dshws-down': { provider: throwingProvider('dshws-down', calls, new Error('only member failed')) },
+      }),
+      order: ['dshws-off', 'dshws-down'],
+      perMemberTimeoutMs: 1000,
+    })
+    const error = await chain.search({ query: 'q' }).then(
+      () => {
+        throw new Error('expected the chain to reject')
+      },
+      (caught: unknown) => caught,
+    )
+    expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+    expect((error as Error).message).toContain('dshws-down: only member failed')
+    expect(calls).toEqual(['dshws-down'])
+  })
+})
