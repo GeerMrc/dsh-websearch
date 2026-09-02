@@ -15,7 +15,7 @@ const maybe = apiKey !== undefined && apiKey.length > 0 ? describe : describe.sk
 maybe('dshws-deepseek real API', () => {
   it('returns sources for a live query', async () => {
     const provider = new DeepSeekSearchProvider(resolveDeepSeekMemberOptions(
-      { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' },
+      { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => apiKey,
     ))
     expect(provider.available()).toBe(true)

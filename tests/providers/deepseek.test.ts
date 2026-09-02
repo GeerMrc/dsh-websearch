@@ -17,7 +17,7 @@ import { MEMBER_ERROR_CODES } from '../../src/errors.ts'
 const codes = MEMBER_ERROR_CODES.deepseek
 
 const options = resolveDeepSeekMemberOptions(
-  { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' } satisfies DeepSeekMemberConfig,
+  { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' } satisfies DeepSeekMemberConfig,
   async () => 'dk-key',
 )
 
@@ -34,7 +34,7 @@ afterEach(() => {
 
 describe('dshws-deepseek option resolution', () => {
   it('fills provider defaults explicitly for omitted baseURL/model/maxTokens', () => {
-    const resolved = resolveDeepSeekMemberOptions({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' }, async () => undefined)
+    const resolved = resolveDeepSeekMemberOptions({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined)
     expect(resolved.baseURL).toBe(DEEPSEEK_DEFAULT_BASE_URL)
     expect(resolved.model).toBe(DEEPSEEK_DEFAULT_MODEL)
     expect(resolved.maxTokens).toBe(DEEPSEEK_DEFAULT_MAX_TOKENS)
@@ -43,7 +43,7 @@ describe('dshws-deepseek option resolution', () => {
 
   it('passes explicit baseURL/model/maxTokens through untouched', () => {
     const resolved = resolveDeepSeekMemberOptions(
-      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test/v1', model: 'm1', maxTokens: 128 },
+      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test/v1', model: 'm1', maxTokens: 128 , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => undefined,
     )
     expect(resolved.baseURL).toBe('https://proxy.test/v1')
@@ -170,7 +170,7 @@ describe('dshws-deepseek failure modes (mock HTTP)', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     const provider = new DeepSeekSearchProvider(
-      resolveDeepSeekMemberOptions({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' }, async () => undefined),
+      resolveDeepSeekMemberOptions({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined),
     )
     const caught = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.credentialMissing })
@@ -182,7 +182,7 @@ describe('dshws-deepseek failure modes (mock HTTP)', () => {
     vi.stubGlobal('fetch', vi.fn())
     const provider = new DeepSeekSearchProvider(
       resolveDeepSeekMemberOptions(
-        { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' },
+        { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
         async () => {
           throw new Error('credentials service unreachable')
         },

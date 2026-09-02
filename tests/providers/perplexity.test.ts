@@ -13,7 +13,7 @@ import {
 const codes = MEMBER_ERROR_CODES.perplexity
 
 const options = resolvePerplexityMemberOptions(
-  { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' } satisfies PerplexityMemberConfig,
+  { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' } satisfies PerplexityMemberConfig,
   async () => 'pplx-key',
 )
 
@@ -31,7 +31,7 @@ afterEach(() => {
 describe('dshws-perplexity option resolution', () => {
   it('fills the default base URL and model explicitly, passes apiKeyEnv through', () => {
     const resolved = resolvePerplexityMemberOptions(
-      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' },
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => undefined,
     )
     expect(resolved.baseURL).toBe(PERPLEXITY_DEFAULT_BASE_URL)
@@ -41,7 +41,7 @@ describe('dshws-perplexity option resolution', () => {
 
   it('passes explicit baseURL/model through untouched', () => {
     const resolved = resolvePerplexityMemberOptions(
-      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test', model: 'sonar-pro' },
+      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test', model: 'sonar-pro' , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => undefined,
     )
     expect(resolved.baseURL).toBe('https://proxy.test')
@@ -160,7 +160,7 @@ describe('dshws-perplexity failure modes (mock HTTP)', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     const provider = new PerplexitySearchProvider(
-      resolvePerplexityMemberOptions({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' }, async () => undefined),
+      resolvePerplexityMemberOptions({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined),
     )
     const caught = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.credentialMissing })
@@ -172,7 +172,7 @@ describe('dshws-perplexity failure modes (mock HTTP)', () => {
     vi.stubGlobal('fetch', vi.fn())
     const provider = new PerplexitySearchProvider(
       resolvePerplexityMemberOptions(
-        { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' },
+        { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
         async () => {
           throw new Error('credentials service unreachable')
         },

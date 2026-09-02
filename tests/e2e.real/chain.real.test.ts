@@ -18,7 +18,7 @@ maybe('dshws-chain real API (deepseek member)', () => {
   it('serves a real query through the chain with the served-by first line', async () => {
     const members = new MemberRegistry()
     const disposer = members.register(new DeepSeekSearchProvider(resolveDeepSeekMemberOptions(
-      { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' },
+      { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => apiKey,
     )))
     try {

@@ -13,7 +13,7 @@ import {
 const codes = MEMBER_ERROR_CODES.exa
 
 const options = resolveExaMemberOptions(
-  { enabled: true, apiKeyEnv: 'EXA_API_KEY' } satisfies ExaMemberConfig,
+  { enabled: true, apiKeyEnv: 'EXA_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' } satisfies ExaMemberConfig,
   async () => 'exa-key',
 )
 
@@ -30,7 +30,7 @@ afterEach(() => {
 
 describe('dshws-exa option resolution', () => {
   it('fills the default base URL explicitly and passes apiKeyEnv through', () => {
-    const resolved = resolveExaMemberOptions({ enabled: true, apiKeyEnv: 'EXA_API_KEY' }, async () => undefined)
+    const resolved = resolveExaMemberOptions({ enabled: true, apiKeyEnv: 'EXA_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined)
     expect(resolved.baseURL).toBe(EXA_DEFAULT_BASE_URL)
     expect(resolved.apiKeyRef).toBe('EXA_API_KEY')
     expect(resolved.numResults).toBeUndefined()
@@ -38,7 +38,7 @@ describe('dshws-exa option resolution', () => {
 
   it('passes explicit baseURL/numResults through untouched', () => {
     const resolved = resolveExaMemberOptions(
-      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test', numResults: 8 },
+      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test', numResults: 8 , extraApiKeyEnvs: [], keySelection: 'order' },
       async () => undefined,
     )
     expect(resolved.baseURL).toBe('https://proxy.test')
@@ -162,7 +162,7 @@ describe('dshws-exa failure modes (mock HTTP)', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     const provider = new ExaSearchProvider(
-      resolveExaMemberOptions({ enabled: true, apiKeyEnv: 'EXA_API_KEY' }, async () => undefined),
+      resolveExaMemberOptions({ enabled: true, apiKeyEnv: 'EXA_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined),
     )
     const caught = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.credentialMissing })
@@ -174,7 +174,7 @@ describe('dshws-exa failure modes (mock HTTP)', () => {
     vi.stubGlobal('fetch', vi.fn())
     const provider = new ExaSearchProvider(
       resolveExaMemberOptions(
-        { enabled: true, apiKeyEnv: 'EXA_API_KEY' },
+        { enabled: true, apiKeyEnv: 'EXA_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
         async () => {
           throw new Error('credentials service unreachable')
         },
