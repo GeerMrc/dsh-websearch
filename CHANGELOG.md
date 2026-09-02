@@ -12,6 +12,38 @@
 
 ---
 
+## 2026-09-02 — 插件宿主骨架 + 链式 meta-provider（Session 03，M3 第 1 棒）
+
+**新增**
+- 正式包骨架 `dsh-websearch@0.1.0`（`35969f0`）：package.json 按 ADR-0007（exports["."] 三键形态 / files / `dsh.bundle.patch` 键 / peer 域 cordis `>=4.0.1-rc.1 <5` + dsh-web `>=0.1.2-alpha.3 <0.1.3` / dep schemastery `>=3.18.1-rc.1 <4` / devDeps 按 dont-do 双实锚实钉）；tsdown esm+dts（outExtensions 钉 `.js`/`.d.ts`——默认 `.mjs`/`.d.mts` 与 exports 不符，实测修正）；cordis.patch.yml（insert 插件行，web 行标量覆盖留用户层）
+- 链核 `src/chain/core.ts`：泛型编排 ChainCore（选择级跳过/运行降级/超时预算/全败摘要/日志一处实现）+ `dshws-chain`/`dshws-chain-fetch` 双薄壳 + MemberRegistry 双注册直连拓扑；归因定稿 D2（search content 首行 `[served-by: <id>]` 两形态）+ D3（fetch 仅日志，body 零注入）
+- `src/errors.ts`：DSHWS_ 码清单（链级 3 码 + 五族成员命名空间）+ DshwsError + 全败摘要构造（cause=末位抛错）；`src/config.ts`：架构 §5 全字段 schema + resolveConfig 显式默认化（空链→内置序 tavily→exa→perplexity→firecrawl→deepseek / timeout 30000）
+- apply 装配：Config→resolveConfig→双链注册 ctx.web + `ctx.logger.info` 日志接线；`ctx.web` 增强、schemastery 可调用归一化、cordis logger 三处 npm 发布面 API 实证
+- Agent Note `docs/notes/2026-09-02-s03-chain-core-design.md`（链核 port/假面义务/归因定稿/构建契约事实）；progress-M3 台账（首个测试基线 47 条建立）
+
+**清偿（2 笔）**
+- 前序审核新增 🟡×3（progress-M1 M2 行镜像失同步 / R1「8 行」计数誊写 / V-03/V-04 收官留痕缺口）：T0 清偿，commit `c691caa`
+- L-3 🟢（spike 脚手架不入库，正式骨架重建）：T1 正式包骨架落库，`35969f0`
+
+**治理**
+- 阶段 0 前序审核（独立 Explore Agent，骨架库 v2，四维实测）：S02 **PASS**（🔴×0；新增🟡×3 流程卫生债 → T0 同棒清偿）
+- 阶段 2 计划审核（独立 general-purpose Agent）：轮 1 **NEEDS REVISION**（F-001 分支纪律 / F-002 链 available() 缺测 / F-003 六件套漏踩坑沉淀；F-004..F-008 🟢）→ 全项修订 → 同 Agent 复审 **APPROVED**（T1/T2 机械豁免类别确认成立）
+- 阶段 2.5 人工终审：AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露于 session-03 记录）
+- 阶段 4/5：独立 Agent 验证 **PASS / COMPLETE**（R1-R5 对峙 + 全量 47 测试与四命令亲跑复现 + 变异判别力独立复现 + 安全/契约/前瞻三问 CLEAN；V-01..V-06 全 🟢 已逐条落 progress-M3 台账）
+- 分支纪律落地：开发在 `feat/s03-host-skeleton`（阶段 4/5 PASS 后合入 master，AGENTS.md 首次代码棒执行）
+
+**诚实标注（遗留项）**
+- L-1 🟢（S04/S05a）/ L-2 🟢（二期）归属不变；L-3 已清偿
+- MemberRegistry.toResolver() 恒 enabled/ready 为 S03 假面——S04 接 credentials describe + 事件刷新时必须替换（Agent Note §2 义务）
+- 凭据热刷新未测（roadmap/plan 显式移 S04）；调用方 abort × 成员超时同窗竞争时序归 S08 e2e（plan 风险节）
+- 安装端到端（dsh plugin add + patch 两行）归 S05b；本棒无 scratch profile / 实例启动
+
+**跟踪（观察期）**
+- 测试基线链：**47 条（6 文件）全绿**（本仓首个基线）；typecheck 0 error；lint 0 warning（oxlint 96 rules）；build lib 20.34 kB
+- dont-do 新增 0 条（累计 2 条）；里程碑：M3 🚧 第 1 棒完成；下一棒 Session 04（deepseek/tavily provider + 凭据接线）
+
+---
+
 ## 2026-09-02 — 可行性 spike 五假设定谳（Session 02，M2 可行性定谳）
 
 **新增**

@@ -58,7 +58,24 @@
 
 ## 阶段验收（R1-R5，阶段收官时填）
 
-（T15 原子收尾时逐条对照 plan R1-R5 填 PASS/FAIL + 证据。）
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | 前序审核 🟡×3 清偿可重放 | PASS | progress-M1.md:14 M2 行 ✅ / progress-M2.md:52-54 收官对账补注 / STATUS.md:36,40-46 启动刷新——阶段 4 独立 Agent 逐项 file:line 核验（`c691caa`） |
+| R2 | 包骨架符合 ADR-0007 + dont-do 纪律 | PASS | package.json 逐键核验（name/version/exports["."]/files/dsh.bundle.patch/peer 域/dep/devDeps 实钉）；client 两键缺席 = D1（ADR-0006:47/ADR-0007:54 能力性表述）；pack --dry-run 重放四件清单；`35969f0` |
+| R3 | 链语义必测 8 项逐项红→绿留痕 + NO_MEMBER + available() + fetch 镜像 | PASS | 每任务一 commit（T3-T12 十连）；断言逐项对峙（阶段 4 独立 Agent 全文抽读 6 测试文件，含 ⑧ `not.toBeInstanceOf(DshwsError)` 直连裸错误与 available() 三态 257fb65）；全量 47 passed 亲跑复现 |
+| R4 | 门墙实测数字 | PASS | `pnpm test` 6 files/47 tests passed、`pnpm typecheck` exit 0、`pnpm lint` 0 warning 0 error（10 files/96 rules）、`pnpm build` lib 20.34 kB、pack 四件——阶段 4 独立 Agent 亲跑与下表数字全部一致 |
+| R5 | 收尾 6 件套齐备且原子翻转 + 分支闭环 | PASS | 本文件 R 表 / session-03 记录（前序审核节 + 规范强化节）/ STATUS 台账 + 当前位置块 / roadmap S03 行 ✅ / CHANGELOG / 接力指令（记录末节 + 回复末尾）——同一收尾序列完成；feat/s03-host-skeleton 合入 master 留痕 |
+
+### 阶段 4/5 独立验证发现（V-01..V-06，全 🟢 不阻塞，按流程改进承诺逐条落账）
+
+| # | 内容 | 处置 |
+|---|---|---|
+| V-01 | T6 变异红数字「6 红」不可精确复现（审核同向变异实测 8 failed；变异 diff 未随 commit 留存） | 留痕不处置；后续变异校验把 diff 同批留存 |
+| V-02 | T8 为纯测试 commit（行为体随 T7 落地），commit/台账/Agent Note 三处已披露 | 不处置；披露诚实，阶段 4 精确复现其「2 红」 |
+| V-03 | T1「.gitignore 核补」为 no-op（bootstrap 已建且覆盖足够）无留痕说明 | 不处置；验收点冗余非缺陷 |
+| V-04 | exports 额外 `"./package.json"` 键超出 plan 三键枚举（npm 惯例，plan 所列为必备非穷举） | 不处置 |
+| V-05 | 宪法必测清单「凭据热刷新」未在本棒——roadmap/plan 均显式移 S04 | 显式范围决策，非遗漏；S04 落实 |
+| V-06 | 调用方 abort 与成员超时同窗竞争时先记一次超时再降级一迭代才传播（语义收敛正确） | 时序组合面已显式归 S08 e2e（plan 风险节） |
 
 ## 技术债（台账）
 
