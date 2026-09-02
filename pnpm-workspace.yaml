@@ -17,3 +17,4 @@ minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-client-ui-settings@0.1.2-alpha.4'
   - '@deepseek-ai/dsh-client-ui-slots@0.1.2-alpha.4'
   - '@deepseek-ai/dsh-deque@0.1.2-alpha.4'
+  - '@deepseek-ai/dsh-client-ui-renderer@0.1.2-alpha.4'

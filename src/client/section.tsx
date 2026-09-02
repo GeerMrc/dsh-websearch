@@ -13,10 +13,10 @@
  *
  * @module dsh-websearch/client/section
  */
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { Button, Input, StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
-import type { ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
+import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
 import type { DshWsLocaleKey } from './locales.ts'
 
 /** Presentational contract; the entry binds these to the controller. */
@@ -25,6 +25,30 @@ export interface SectionProps {
   onSaveKey: (memberKey: string, value: string) => Promise<ActionResult>
   onClearKey: (memberKey: string) => Promise<ActionResult>
   onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
+}
+
+/**
+ * Bind a controller into a registrable section component: the slot mechanism
+ * supplies the `t` seat, the controller supplies state and actions through
+ * the store subscription. The factory lives next to the presentational
+ * component so the entry stays framework-light wiring.
+ */
+export function bindWebSearchSettingsSection(controller: WebSearchSettingsController) {
+  return function BoundWebSearchSettingsSection(props: PropsLocale<'dsh-websearch'>) {
+    const snapshot = useSyncExternalStore(
+      (onStoreChange) => controller.subscribe(onStoreChange),
+      () => controller.snapshot(),
+    )
+    return (
+      <WebSearchSettingsSection
+        t={props.t}
+        snapshot={snapshot}
+        onSaveKey={(key, value) => controller.setKey(key, value)}
+        onClearKey={(key) => controller.clearKey(key)}
+        onToggleEnabled={(key, enabled) => controller.setEnabled(key, enabled)}
+      />
+    )
+  }
 }
 
 const cardStyle = {
