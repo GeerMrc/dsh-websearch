@@ -24,7 +24,7 @@ describe('error code catalog', () => {
     expect(CHAIN_ERROR_CODES.memberTimeout).toBe('DSHWS_MEMBER_TIMEOUT')
   })
 
-  it('lands concrete code objects for landed providers and keeps prefixes for reserved families', () => {
+  it('lands concrete code objects for all five provider families', () => {
     expect(MEMBER_ERROR_CODES.deepseek).toEqual({
       credentialMissing: 'DSHWS_DEEPSEEK_CREDENTIAL_MISSING',
       requestFailed: 'DSHWS_DEEPSEEK_REQUEST_FAILED',
@@ -39,9 +39,27 @@ describe('error code catalog', () => {
       badResponse: 'DSHWS_TAVILY_BAD_RESPONSE',
       aborted: 'DSHWS_TAVILY_ABORTED',
     })
-    expect(MEMBER_ERROR_CODES.firecrawl).toBe('DSHWS_FIRECRAWL')
-    expect(MEMBER_ERROR_CODES.exa).toBe('DSHWS_EXA')
-    expect(MEMBER_ERROR_CODES.perplexity).toBe('DSHWS_PERPLEXITY')
+    expect(MEMBER_ERROR_CODES.exa).toEqual({
+      credentialMissing: 'DSHWS_EXA_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_EXA_REQUEST_FAILED',
+      httpError: 'DSHWS_EXA_HTTP_ERROR',
+      badResponse: 'DSHWS_EXA_BAD_RESPONSE',
+      aborted: 'DSHWS_EXA_ABORTED',
+    })
+    expect(MEMBER_ERROR_CODES.perplexity).toEqual({
+      credentialMissing: 'DSHWS_PERPLEXITY_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_PERPLEXITY_REQUEST_FAILED',
+      httpError: 'DSHWS_PERPLEXITY_HTTP_ERROR',
+      badResponse: 'DSHWS_PERPLEXITY_BAD_RESPONSE',
+      aborted: 'DSHWS_PERPLEXITY_ABORTED',
+    })
+    expect(MEMBER_ERROR_CODES.firecrawl).toEqual({
+      credentialMissing: 'DSHWS_FIRECRAWL_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_FIRECRAWL_REQUEST_FAILED',
+      httpError: 'DSHWS_FIRECRAWL_HTTP_ERROR',
+      badResponse: 'DSHWS_FIRECRAWL_BAD_RESPONSE',
+      aborted: 'DSHWS_FIRECRAWL_ABORTED',
+    })
   })
 })
 
