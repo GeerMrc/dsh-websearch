@@ -91,7 +91,7 @@ dsh-websearch:
   perplexity: { enabled, apiKeyEnv='PERPLEXITY_API_KEY', baseURL, model }
 ```
 
-错误码规范（稳定 string code，前缀 `DSHWS_`）：链级 `DSHWS_CHAIN_EXHAUSTED`（全成员耗尽，附逐成员摘要）、`DSHWS_NO_MEMBER_CONFIGURED`（链上无任何可用成员）；成员级由各 provider 自带码（`DSHWS_DEEPSEEK_*`/`DSHWS_TAVILY_*`/…，S03 定义清单落 `src/errors.ts`）。
+错误码规范（稳定 string code，前缀 `DSHWS_`）：链级 `DSHWS_CHAIN_EXHAUSTED`（全成员耗尽，附逐成员摘要）、`DSHWS_NO_MEMBER_CONFIGURED`（链上无任何可用成员）、`DSHWS_MEMBER_TIMEOUT`（链级日志码，成员超时降级时记录）；成员级由各 provider 自带码（`DSHWS_DEEPSEEK_*`/`DSHWS_TAVILY_*`/…，S03 定义清单落 `src/errors.ts`）。
 
 凭据：全部走 credentials 服务（ref 即 `apiKeyEnv` 名），GUI/凭据页写入 `~/.dsh/.credentials.yaml`，热生效；`available()` 基于其 describe 结果。禁字面 key 进任何文件。
 

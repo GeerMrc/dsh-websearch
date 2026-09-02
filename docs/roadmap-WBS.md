@@ -28,7 +28,7 @@
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **03** | 插件宿主骨架 + 链式 meta-provider | 包骨架（package.json name/version/files/exports 按 ADR-0007）/pnpm/tsdown；Config schema（含 `perMemberTimeoutMs`）；错误码清单 `src/errors.ts`；search/fetch 链编排 TDD（架构 §4 全语义，凭据解析用 fake） | 链语义必测 7 项（顺序/未配置跳过/不可用跳过/运行失败降级/全败 `DSHWS_CHAIN_EXHAUSTED`+摘要/servedBy content 首行署名/超时降级）逐项红→绿留痕；`pnpm test`、`pnpm build`、`pnpm typecheck`、`pnpm lint` 全绿（附命令原文与数字） | 1-2 天 | ⏳ |
+| **03** | 插件宿主骨架 + 链式 meta-provider | 包骨架（package.json name/version/files/exports 按 ADR-0007）/pnpm/tsdown；Config schema（含 `perMemberTimeoutMs`）；错误码清单 `src/errors.ts`；search/fetch 链编排 TDD（架构 §4 全语义，凭据解析用 fake） | 链语义必测 8 项（顺序/未配置跳过/不可用跳过/运行失败降级/全败 `DSHWS_CHAIN_EXHAUSTED`+摘要/servedBy content 首行署名/超时降级/钉死直连不降级）逐项红→绿留痕（凭据热刷新移 S04）；`pnpm test`、`pnpm build`、`pnpm typecheck`、`pnpm lint` 全绿（附命令原文与数字） | 1-2 天 | ⏳ |
 | **04** | deepseek/tavily provider + 凭据接线 | 两 provider 实现；credentials 每 provider 解析 + available() 缓存 + `credentials/reference-updated` 刷新 | 两 provider 单测（mock HTTP：成功/429/断网/超时）红→绿；凭据热刷新用例（写 ref→事件→available 翻转）红→绿；真实 API e2e 无 key 自跳实测 | 1 天 | ⏳ |
 | **05a** | exa/perplexity/firecrawl + settings 节 | 三 provider 实现（同 S04 测试口径）；installSection（链序/超时/启停热改） | 五 provider 注册冒烟全绿；settings 热改链序实测下次搜索生效；lint/typecheck 全绿 | 1 天 | ⏳ |
 | **05b** | 安装端到端 + 卸载复原 | bundle patch；scratch profile `dsh plugin add` + 两行 patch；端到端验证 | `web_search` 经 dshws-chain 出真实结果（配任一可用 key，content 首行 `[served-by: …]` 实测）；卸载插件+删 patch 后上游行为复原（对照验证） | 1 天 | ⏳ |
@@ -48,7 +48,7 @@
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **08** | e2e 场景收口 | loopback stub：断网降级/429 降级/超时降级/全败报错/顺序保持/servedBy 透出；真实 API e2e 自跳 | 各场景 e2e 绿（时序断言：失败成员→下一成员的调用序；`DSHWS_CHAIN_EXHAUSTED` 与逐成员摘要断言；content 首行署名断言） | 1 天 | ⏳ |
+| **08** | e2e 场景收口 | loopback stub：断网降级/429 降级/超时降级/全败报错/顺序保持/servedBy 透出/钉死直连不降级；真实 API e2e 自跳 | 各场景 e2e 绿（时序断言：失败成员→下一成员的调用序；`DSHWS_CHAIN_EXHAUSTED` 与逐成员摘要断言；content 首行署名断言） | 1 天 | ⏳ |
 | **09** | README + 迁移 + 升级手册 | README（zh/en：安装/配置/GUI/链语义）；anysearch 迁移（**先删其 patch 两行标量覆盖，再写本插件两行，附顺序与验证命令**）；docs/upgrade.md 升级演练手册 | 由独立审核 Agent 照手册从零在 scratch profile 走通安装→搜索并留痕；演练手册步骤可独立执行 | 1 天 | ⏳ |
 
 **里程碑 M5 交付就绪**：e2e 收口全绿，文档自洽可复现 —— 完成时填 ✅ 日期（Session 09 证据）

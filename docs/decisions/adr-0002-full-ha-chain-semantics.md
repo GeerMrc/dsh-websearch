@@ -10,7 +10,7 @@ origin: 方案 v3 用户批准（2026-09-02，用户选「完整高可用链」�
 
 ## Status
 
-accepted（2026-09-02，bootstrap 规划批准）
+accepted（2026-09-02，bootstrap 规划批准；同日 S01 独立审核 R-002 定谳修订：Decision 3 全败抛错对齐为链级 `DSHWS_CHAIN_EXHAUSTED`，Decision 4 补 servedBy 承载机制——两处为审核闭环内的定稿澄清，非决策反转）
 
 ## Context
 
@@ -22,7 +22,7 @@ accepted（2026-09-02，bootstrap 规划批准）
 
 1. **选择级**：成员未注册/未启用/凭据未配置/`available()`=false → 跳过，不消耗调用。
 2. **运行级**：成员调用抛错（429 限额、网络错误、宕机、超时）→ 记录后降级下一成员。
-3. **末端 fail-loud**：全部成员耗尽 → 抛最后一名成员的错误，错误信息附逐成员失败摘要。
+3. **末端 fail-loud**：全部成员耗尽 → 抛链级 `DSHWS_CHAIN_EXHAUSTED`，错误信息附逐成员失败摘要（成员 id + 失败原因/码，含末位成员错误）。
 4. 成功即返回。**servedBy 承载机制（审核 F-003 定谳）**：seam 结果类型封闭（`WebSearchResult` 仅 `content?/sources/truncated`），零侵入约束下不可加字段——署名承载于 `content` 首行 `[served-by: <成员id>]`（model-visible）+ 宿主日志一行；钉死直连不加前缀。
 5. 用户经组合标量钉死单个 provider 时直连、**不降级**（显式指定 = 用户意志，保留上游 fail-loud 语义）。
 
