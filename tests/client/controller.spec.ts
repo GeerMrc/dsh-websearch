@@ -121,17 +121,20 @@ describe('WebSearchSettingsController', () => {
       'perplexity',
       'firecrawl',
       'deepseek',
+      'anysearch',
     ])
     for (const member of snapshot.members) {
       expect(member.enabled).toBe(true)
     }
     expect(snapshot.members.find((member) => member.key === 'tavily')?.refName).toBe(DEFAULT_REF)
+    expect(snapshot.members.find((member) => member.key === 'anysearch')?.refName).toBe('ANYSEARCH_API_KEY')
     expect(snapshot.searchChain).toEqual([
       'dshws-tavily',
       'dshws-exa',
       'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-deepseek',
+      'dshws-anysearch',
     ])
     expect(snapshot.fetchChain).toEqual(snapshot.searchChain)
     expect(snapshot.timeoutMs).toBe(30000)
@@ -238,7 +241,7 @@ describe('WebSearchSettingsController', () => {
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek'],
+          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -402,6 +405,7 @@ describe('WebSearchSettingsController', () => {
       'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-deepseek',
+      'dshws-anysearch',
     ])
     expect(controller.snapshot().searchChainPinned).toBe(false)
   })

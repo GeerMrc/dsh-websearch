@@ -36,6 +36,7 @@ function defaultMembers(): MemberSnapshot[] {
     member('perplexity', 'Perplexity'),
     member('firecrawl', 'Firecrawl'),
     member('deepseek', 'DeepSeek'),
+    member('anysearch', 'AnySearch'),
   ]
 }
 
@@ -71,7 +72,7 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    expect(cards.length).toBe(5)
+    expect(cards.length).toBe(6)
     expect(screen.getByText('Tavily')).toBeTruthy()
     expect(screen.getByText('DeepSeek')).toBeTruthy()
   })

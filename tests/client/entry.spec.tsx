@@ -114,7 +114,7 @@ describe('client entry', () => {
     const Component = registered[0]!.component as (props: { t: typeof t }) => JSX.Element
 
     render(<Component t={t} />)
-    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(5))
+    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(6))
     expect(screen.getByText('Tavily')).toBeTruthy()
   })
 
@@ -126,7 +126,7 @@ describe('client entry', () => {
     const Component = registered[0]!.component as (props: { t: typeof t }) => JSX.Element
 
     render(<Component t={t} />)
-    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(5))
+    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(6))
     const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
     fireEvent.change(input, { target: { value: 'sk-fake-entry' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))

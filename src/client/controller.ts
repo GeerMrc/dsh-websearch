@@ -50,6 +50,7 @@ const MEMBERS = [
   { key: 'perplexity', label: 'Perplexity', memberId: 'dshws-perplexity', defaultRef: 'PERPLEXITY_API_KEY' },
   { key: 'firecrawl', label: 'Firecrawl', memberId: 'dshws-firecrawl', defaultRef: 'FIRECRAWL_API_KEY' },
   { key: 'deepseek', label: 'DeepSeek', memberId: 'dshws-deepseek', defaultRef: 'DEEPSEEK_API_KEY' },
+  { key: 'anysearch', label: 'AnySearch', memberId: 'dshws-anysearch', defaultRef: 'ANYSEARCH_API_KEY' },
 ] as const
 
 /** Built-in member order applied when the section omits a chain (ADR-0004). */
@@ -74,6 +75,7 @@ interface SectionValue {
   perplexity?: MemberSectionValue
   firecrawl?: MemberSectionValue
   deepseek?: MemberSectionValue
+  anysearch?: MemberSectionValue
 }
 
 /** One provider card's render-ready state. */
