@@ -26,7 +26,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S12——2026-09-03 特性批次前置顺延） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008/0009/0010） | 🚧（S09 ✅、S10 anysearch 成员 ✅；余 S11 溯源增强 = 下一棒） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012） | 🚧（S11 验收反馈调整棒 = 进行中；余 S12 策略棒、S13 溯源） |
 
 ## Session 台账（一行一棒）
 
@@ -43,12 +43,13 @@
 | 08 | 2026-09-02 | e2e 场景收口 | ✅ | docs/sessions/2026-09-02-session-08.md（loopback 七场景 + 到达序/摘要/署名断言 + 链级真实 API smoke 自跳；阶段 2 两轮审核 APPROVED + **阶段 2.5 用户真实批准** + 阶段 4/5 PASS/COMPLETE；src 零变更兑现；M5 e2e 腿 ✅） | 🟡+1→0（assemble 泄漏缺口，T8 加固清偿）+🟡 lint warning（T1 残留，T6 门墙抓获清偿） |
 | 09 | 2026-09-03 | 多 APIKEY 池 + 选择策略 | ✅ | docs/sessions/2026-09-03-session-09.md（extraApiKeyEnvs 多 ref 池 + keySelection 三策略 + wire 级轮换实证 + GUI 多 key 列表 + settings 热通路；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE；provider 零改动兑现） | 🟡+1→0（阶段 0 抓获 roadmap M5 尾注漏刷，T0 穷举清偿）+🟡+1→0（T10 抓获台账算术 +30→+34，T11 更正）+🟢×3 注记 |
 | 10 | 2026-09-03 | anysearch 第六成员 | ✅ | docs/sessions/2026-09-03-session-10.md（信封规格 HTTP 自实现 + content→snippet 补映射 + BUILT_IN 尾部追加 + 第 6 卡 + 池化自动享用 + 共存语义在档；阶段 2 **三轮**审核 APPROVED + 阶段 4/5 PASS/COMPLETE） | 🟡+1→0（门墙表 lint files 45→47 转录勘误，T10 清偿）+🟢 新登记（anysearch fetch 面 v1 不做） |
+| 11 | 2026-09-03 | 验收反馈调整（开关置灰 + 单槽逗号值 + 过滤未配置） | 🚧 | （进行中——计划 docs/plans/2026-09-03-011-s11-acceptance-adjustments-plan.md；阶段 2 两轮审核 APPROVED；**2.5 用户真实批准**「批准，自主推进」） | 阶段 0 对 S10 PASS（🔴0；🟡×3 记录更正类 → T0 清偿：stage2 log 修复/里程碑行×2/CHANGELOG 重排） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 10 ✅ 2026-09-03 收官）
-- **所处里程碑**: M7 功能扩展（🚧 S09 ✅、S10 anysearch 成员 ✅；余 S11 溯源增强 = 下一棒）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S12）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞 S11）
+- **当前 session**: Session 11（🚧 进行中，2026-09-03 启动；**阶段 2.5 用户真实批准**「批准，自主推进」）
+- **所处里程碑**: M7 功能扩展（🚧 S11 验收反馈调整棒执行中；S09/S10 ✅；余 S12 策略棒、S13 溯源）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S12）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞 S11）
 - **上一棒**: Session 10（anysearch 第六成员：信封规格 HTTP 自实现 + content→snippet 补映射 + 第 6 卡 + 池化自动享用 + 共存语义）— 记录：docs/sessions/2026-09-03-session-10.md
-- **下一棒**: roadmap M7 段 = Session 11（session 搜索溯源增强；ADR-0010 接管 tool.call.toolview web_search 卡 priority shadow；成员名映射复用 controller MEMBERS label 常量）
-- **活跃债务**: 🔴×0 🟡×0 🟢×3（fetch 排序/恢复默认按钮/anysearch fetch 面 v1 不做）+ L-2 + 观察（tsdown 弃用/sourcemap/s06 mtime/i18n CI S12 项；牙齿证明惯例候选；providers 机械行逗号风格）+ v2 backlog（余额/积分看板 ADR-0008 缓议）——正本：progress-M7 台账 + plan 010 债务映射节
-- **更新时间**: 2026-09-03（S10 阶段 6 收尾）
+- **下一棒**: 本棒 S11 执行中（plan 011 T0-T9）；收官后 = S12 优先级策略棒（random/序列编辑器，ADR-0012）
+- **活跃债务**: 🔴×0 🟡×0（阶段 0 抓获 🟡×3 记录更正类 → T0 清偿）🟢×3（fetch 排序/恢复默认按钮/anysearch fetch 面 v1 不做）+ L-2 + 观察（tsdown 弃用/sourcemap/s06 mtime/i18n CI S12 项；牙齿证明惯例候选；providers 机械行逗号风格）+ v2 backlog——正本：progress-M7 台账 + plan 011 债务映射节
+- **更新时间**: 2026-09-03（S11 启动刷新；ADR-0011 单槽逗号值改判在档）
