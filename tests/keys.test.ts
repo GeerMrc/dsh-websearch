@@ -4,27 +4,25 @@ import type { KeyPoolPorts } from '../src/keys.ts'
 import { MEMBER_ERROR_CODES } from '../src/errors.ts'
 
 /**
- * Fake of the pool's credential face: a readiness set (the gate's describe
- * cache) plus a per-ref value table (the service's per-operation resolve).
- * `refs`/`selection` are plain mutable cells so tests flip the live state the
- * way a settings commit would.
+ * Single-slot comma-value pool (ADR-0011): the member has ONE credential ref
+ * whose value is `k1,k2,...,kN`; the pool splits, trims, filters empties,
+ * enforces the limit, and selects per policy. Behavior map from the S09
+ * multi-ref form (plan 011 T2): #2/#7/#8 kept, #3/#5 rewritten onto the key
+ * sequence, #1 rewritten as missing-value fail-loud, #4 cursor modulo on
+ * value change, #6 empty/comma-only fail-loud, #9 limit overage added.
  */
 function makePool(overrides: {
-  refs?: string[]
   selection?: 'order' | 'round-robin' | 'random'
-  ready?: string[]
-  values?: Record<string, string | undefined>
+  value?: string | undefined
   rng?: () => number
 } = {}) {
-  const refs = overrides.refs ?? ['TAVILY_API_KEY']
   const selection = overrides.selection ?? 'order'
-  const ready = new Set(overrides.ready ?? refs)
-  const values: Record<string, string | undefined> = { ...overrides.values }
+  let value = overrides.value
   const ports: KeyPoolPorts = {
-    refs: () => refs,
+    ref: () => 'TAVILY_API_KEY',
     selection: () => selection,
-    isReady: (ref) => ready.has(ref),
-    resolve: async (ref) => values[ref],
+    isReady: () => value !== undefined && value.length > 0,
+    resolve: async () => value,
     label: 'Tavily',
     codes: MEMBER_ERROR_CODES.tavily,
     ...(overrides.rng !== undefined ? { rng: overrides.rng } : {}),
@@ -32,106 +30,73 @@ function makePool(overrides: {
   const pool = new KeyPool(ports)
   return {
     pool,
-    setReady: (ref: string, isReady: boolean) => {
-      if (isReady) ready.add(ref)
-      else ready.delete(ref)
-    },
-    setValue: (ref: string, value: string | undefined) => {
-      values[ref] = value
+    setValue: (next: string | undefined) => {
+      value = next
     },
   }
 }
 
 const codes = MEMBER_ERROR_CODES.tavily
 
-describe('KeyPool (ADR-0008)', () => {
-  it('order picks the first ready ref and skips an unready head', async () => {
-    const { pool } = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'],
-      ready: ['TAVILY_API_KEY_2'],
-      values: { TAVILY_API_KEY_2: 'key-two' },
-    })
-    await expect(pool.resolveApiKey()).resolves.toBe('key-two')
+describe('KeyPool single-slot comma value (ADR-0011)', () => {
+  it('serves the single key when the value has no comma (单 key 语义不变)', async () => {
+    const { pool } = makePool({ value: 'k1' })
+    await expect(pool.resolveApiKey()).resolves.toBe('k1')
+    await expect(pool.resolveApiKey()).resolves.toBe('k1')
   })
 
-  it('order keeps serving the head while it stays ready (single-ref behavior unchanged)', async () => {
-    const { pool, setValue } = makePool({ refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'] })
-    setValue('TAVILY_API_KEY', 'key-one')
-    await expect(pool.resolveApiKey()).resolves.toBe('key-one')
-    await expect(pool.resolveApiKey()).resolves.toBe('key-one')
-  })
-
-  it('round-robin rotates across the ready refs in pool order', async () => {
-    const { pool } = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2', 'TAVILY_API_KEY_3'],
-      values: { TAVILY_API_KEY: 'k1', TAVILY_API_KEY_2: 'k2', TAVILY_API_KEY_3: 'k3' },
-      selection: 'round-robin',
-    })
+  it('splits the comma value and rotates under round-robin', async () => {
+    const { pool } = makePool({ value: 'k1, k2, k3', selection: 'round-robin' })
     const seen: string[] = []
     for (let index = 0; index < 3; index += 1) seen.push(await pool.resolveApiKey())
     expect(seen).toEqual(['k1', 'k2', 'k3'])
   })
 
-  it('round-robin keeps rotating modulo the ready set when it shrinks and regrows', async () => {
-    const { pool, setReady, setValue } = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'],
-      values: { TAVILY_API_KEY: 'k1', TAVILY_API_KEY_2: 'k2' },
-      selection: 'round-robin',
-    })
+  it('rebuilds the rotation modulo the new sequence when the value changes', async () => {
+    const { pool, setValue } = makePool({ value: 'k1,k2', selection: 'round-robin' })
     expect(await pool.resolveApiKey()).toBe('k1')
-    setReady('TAVILY_API_KEY', false)
-    setValue('TAVILY_API_KEY_2', 'k2b')
-    expect(await pool.resolveApiKey()).toBe('k2b')
-    setReady('TAVILY_API_KEY', true)
-    setValue('TAVILY_API_KEY', 'k1b')
-    // The cursor rebuilt modulo the ready sequence in pool order.
+    setValue('k1b')
+    expect(await pool.resolveApiKey()).toBe('k1b')
+    setValue('k1b,k2b')
+    // Cursor modulo the new two-key sequence.
     expect(await pool.resolveApiKey()).toBe('k1b')
     expect(await pool.resolveApiKey()).toBe('k2b')
   })
 
-  it('random samples inside the ready set through the injected rng', async () => {
-    const head = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'],
-      values: { TAVILY_API_KEY: 'k1', TAVILY_API_KEY_2: 'k2' },
-      selection: 'random',
-      rng: () => 0,
-    })
+  it('random samples inside the split sequence through the injected rng', async () => {
+    const head = makePool({ value: 'k1,k2', selection: 'random', rng: () => 0 })
     await expect(head.pool.resolveApiKey()).resolves.toBe('k1')
-    const tail = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'],
-      values: { TAVILY_API_KEY: 'k1', TAVILY_API_KEY_2: 'k2' },
-      selection: 'random',
-      rng: () => 0.999,
-    })
+    const tail = makePool({ value: 'k1,k2', selection: 'random', rng: () => 0.999 })
     await expect(tail.pool.resolveApiKey()).resolves.toBe('k2')
   })
 
-  it('an empty ready set fails loud naming the primary and the whole pool', async () => {
-    const { pool } = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'],
-      ready: [],
-    })
-    const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)
-    expect(thrown).not.toBeNull()
-    const failure = thrown as unknown as { code: string; message: string }
-    expect(failure.code).toBe(codes.credentialMissing)
-    expect(failure.message).toContain('TAVILY_API_KEY')
-    expect(failure.message).toContain('TAVILY_API_KEY_2')
-  })
-
-  it('a selected ref whose value vanished after the gate read fails loud naming that ref', async () => {
-    const { pool } = makePool({
-      refs: ['TAVILY_API_KEY', 'TAVILY_API_KEY_2'],
-      values: {},
-    })
+  it('fails loud naming the ref when the value is missing (主值未存)', async () => {
+    const { pool } = makePool({ value: undefined })
     const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)
     expect((thrown as unknown as { code: string }).code).toBe(codes.credentialMissing)
     expect(thrown!.message).toContain('TAVILY_API_KEY')
   })
 
+  it('fails loud when the value is empty or comma-only after splitting (空/纯逗号)', async () => {
+    for (const value of ['', ' , , ']) {
+      const { pool } = makePool({ value })
+      const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)
+      expect((thrown as unknown as { code: string }).code).toBe(codes.credentialMissing)
+      expect(thrown!.message).toContain('TAVILY_API_KEY')
+    }
+  })
+
+  it('enforces the 10-key limit with a loud overage error (#9)', async () => {
+    const value = Array.from({ length: 11 }, (_, index) => `k${index}`).join(',')
+    const { pool } = makePool({ value })
+    const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe(codes.requestFailed)
+    expect(thrown!.message).toContain('10')
+  })
+
   it('a rejecting resolver surfaces as the member request-failure code', async () => {
     const ports: KeyPoolPorts = {
-      refs: () => ['TAVILY_API_KEY'],
+      ref: () => 'TAVILY_API_KEY',
       selection: () => 'order',
       isReady: () => true,
       resolve: async () => {
@@ -145,7 +110,7 @@ describe('KeyPool (ADR-0008)', () => {
   })
 
   it('a pre-aborted caller signal wins before any credential work', async () => {
-    const { pool } = makePool({ refs: ['TAVILY_API_KEY'], ready: [] })
+    const { pool } = makePool({ value: 'k1' })
     const controller = new AbortController()
     controller.abort()
     const thrown = await pool.resolveApiKey(controller.signal).then(() => null, (error: unknown) => error as Error)

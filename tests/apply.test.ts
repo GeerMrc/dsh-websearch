@@ -60,40 +60,9 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     expect(chain.available()).toBe(false)
   })
 
-  it('an extra pool ref alone contributes readiness when the primary is unconfigured (ADR-0008)', async () => {
-    const { ctx, providers, configured } = fakeCtx()
-    configured.add('TAVILY_SPARE')
-    apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
-    const chain = providers.get('dshws-chain') as WebSearchProvider
-    await flushGate()
-    expect(chain.available()).toBe(true)
-  })
-
-  it('an extra pool ref name outside the credential grammar fails loud at load', () => {
+  it('an anysearch ref name outside the credential grammar fails loud at load', () => {
     const { ctx } = fakeCtx()
-    expect(() => apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['not a valid ref!'] } }))
-      .toThrow(TypeError)
-  })
-
-  it('the pool thunk resolves through the first ready ref, skipping an unconfigured primary', async () => {
-    const { ctx, providers, configured } = fakeCtx()
-    configured.add('TAVILY_SPARE')
-    apply(ctx as unknown as Context, {
-      tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'], keySelection: 'order' },
-    })
-    const chain = providers.get('dshws-chain') as WebSearchProvider
-    await flushGate()
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } }))
-    vi.stubGlobal('fetch', fetchMock)
-    const result = await chain.search({ query: 'q' })
-    expect(result.sources).toEqual([{ url: 'https://tv.test' }])
-    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
-    expect(new Headers(init.headers).get('authorization')).toBe('Bearer fake-key')
-  })
-
-  it('an anysearch pool ref name outside the credential grammar fails loud at load', () => {
-    const { ctx } = fakeCtx()
-    expect(() => apply(ctx as unknown as Context, { anysearch: { extraApiKeyEnvs: ['not a valid ref!'] } }))
+    expect(() => apply(ctx as unknown as Context, { anysearch: { apiKeyEnv: 'not a valid ref!' } }))
       .toThrow(TypeError)
   })
 
@@ -113,14 +82,13 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
   })
 })
 
-describe('apply key-pool hot path (ADR-0008 settings 提交侧)', () => {
+describe('apply key-pool hot path (ADR-0011 单槽逗号值)', () => {
   it('a committed keySelection swap reaches the next search without re-registration', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx({
-      values: { TAVILY_API_KEY: 'k1', TAVILY_SPARE: 'k2' },
+      values: { TAVILY_API_KEY: 'k1,k2' },
     })
     configured.add('TAVILY_API_KEY')
-    configured.add('TAVILY_SPARE')
-    apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    apply(ctx as unknown as Context, { tavily: { keySelection: 'order' } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     const authOf = async (): Promise<string> => {
@@ -134,36 +102,36 @@ describe('apply key-pool hot path (ADR-0008 settings 提交侧)', () => {
     await chain.search({ query: 'b' })
     expect(await authOf()).toBe('Bearer k1')
 
-    commitSettings({ tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'], keySelection: 'round-robin' } })
-    // The cursor starts at 0 over the ready sequence in pool order: primary
-    // first, then the spare — the second post-swap search pins the policy.
+    commitSettings({ tavily: { keySelection: 'round-robin' } })
+    // Cursor starts at 0 over the split key sequence: k1 first, then k2 —
+    // the second post-swap search pins the policy.
     await chain.search({ query: 'c' })
     expect(await authOf()).toBe('Bearer k1')
     await chain.search({ query: 'd' })
     expect(await authOf()).toBe('Bearer k2')
   })
 
-  it('a pool ref added by a settings commit is primed without an event (pre-stored key)', async () => {
-    const { ctx, providers, configured, commitSettings } = fakeCtx({ values: { TAVILY_SPARE: 'spare' } })
-    configured.add('TAVILY_SPARE')
+  it('storing a value by a settings commit flips readiness without an event (gate prime)', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx({ values: { TAVILY_API_KEY: 'late-key' } })
     apply(ctx as unknown as Context, {})
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     expect(chain.available()).toBe(false)
 
-    commitSettings({ tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    configured.add('TAVILY_API_KEY')
+    commitSettings({})
     await vi.waitFor(() => expect(chain.available()).toBe(true))
   })
 
-  it('a pool ref removed by a settings commit stops contributing readiness', async () => {
+  it('a committed member disable stops contributing readiness', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
-    configured.add('TAVILY_SPARE')
-    apply(ctx as unknown as Context, { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } })
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, { tavily: { keySelection: 'order' } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     expect(chain.available()).toBe(true)
 
-    commitSettings({ tavily: { extraApiKeyEnvs: [] } })
+    commitSettings({ tavily: { enabled: false } })
     await vi.waitFor(() => expect(chain.available()).toBe(false))
   })
 })
