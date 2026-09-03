@@ -34,29 +34,19 @@ describe('resolveConfig', () => {
 
   it('defaults every provider section to enabled with its credential-ref env name', () => {
     const resolved = resolveConfig({})
-    expect(resolved.deepseek).toEqual({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
-    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
-    expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
-    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
-    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' })
-  })
-
-  it('pools default to empty extras with order selection (ADR-0008)', () => {
-    const resolved = resolveConfig({})
-    for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek]) {
-      expect(member.extraApiKeyEnvs).toEqual([])
-      expect(member.keySelection).toBe('order')
-    }
+    expect(resolved.deepseek).toEqual({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'order' })
+    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'order' })
+    expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'order' })
+    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'order' })
+    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'order' })
   })
 
   it('passes through configured extra refs and key selection per member', () => {
     const resolved = resolveConfig({
-      tavily: { extraApiKeyEnvs: ['TAVILY_API_KEY_2', 'TAVILY_POOL_BACKUP'], keySelection: 'round-robin' },
-      deepseek: { extraApiKeyEnvs: ['DEEPSEEK_SPARE'], keySelection: 'random' },
+      tavily: { keySelection: 'round-robin' },
+      deepseek: { keySelection: 'random' },
     })
-    expect(resolved.tavily.extraApiKeyEnvs).toEqual(['TAVILY_API_KEY_2', 'TAVILY_POOL_BACKUP'])
     expect(resolved.tavily.keySelection).toBe('round-robin')
-    expect(resolved.deepseek.extraApiKeyEnvs).toEqual(['DEEPSEEK_SPARE'])
     expect(resolved.deepseek.keySelection).toBe('random')
     expect(resolved.exa.keySelection).toBe('order')
   })
@@ -66,7 +56,6 @@ describe('resolveConfig', () => {
     expect(resolved.anysearch).toEqual({
       enabled: true,
       apiKeyEnv: 'ANYSEARCH_API_KEY',
-      extraApiKeyEnvs: [],
       keySelection: 'order',
     })
   })
@@ -80,7 +69,6 @@ describe('resolveConfig', () => {
       apiKeyEnv: 'MY_ANYSEARCH_KEY',
       baseURL: 'https://anysearch.example',
       zone: 'cn',
-      extraApiKeyEnvs: [],
       keySelection: 'order',
     })
   })
@@ -96,7 +84,6 @@ describe('resolveConfig', () => {
       apiKeyEnv: 'MY_EXA_KEY',
       baseURL: 'https://exa.example',
       numResults: 7,
-      extraApiKeyEnvs: [],
       keySelection: 'order',
     })
   })
@@ -107,12 +94,12 @@ describe('Config schema', () => {
     expect(Config({})).toEqual({
       searchChain: [],
       fetchChain: [],
-      deepseek: { extraApiKeyEnvs: [] },
-      tavily: { extraApiKeyEnvs: [] },
-      firecrawl: { extraApiKeyEnvs: [] },
-      exa: { extraApiKeyEnvs: [] },
-      perplexity: { extraApiKeyEnvs: [] },
-      anysearch: { extraApiKeyEnvs: [] },
+      deepseek: {},
+      tavily: {},
+      firecrawl: {},
+      exa: {},
+      perplexity: {},
+      anysearch: {},
     })
   })
 
@@ -133,13 +120,6 @@ describe('Config schema', () => {
 
   it('rejects an invalid anysearch zone at the schema', () => {
     const hostile = { anysearch: { zone: 'mars' } } as unknown as Config
-    expect(() => Config(hostile)).toThrow()
-  })
-
-  it('rejects a non-string extra pool ref at runtime', () => {
-    // Same guard posture as the chain test: the runtime validator defends the
-    // YAML-loaded config surface, the static type covers in-tree callers.
-    const hostile = { tavily: { extraApiKeyEnvs: ['TAVILY_API_KEY_2', 42] } } as unknown as Config
     expect(() => Config(hostile)).toThrow()
   })
 

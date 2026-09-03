@@ -123,7 +123,7 @@ export function apply(ctx: Context, config: Config): void {
   ): KeyPool =>
     new KeyPool({
       ref: () => live.current()[memberKey].apiKeyEnv,
-      selection: () => live.current()[memberKey].keySelection,
+      selection: () => live.current()[memberKey].keySelection ?? 'order',
       isReady: (ref) => gate.isReady(ref),
       resolve: async (ref) => (await credentials.resolve(credentialRef(ref)))?.value,
       label,

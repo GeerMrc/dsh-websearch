@@ -18,7 +18,7 @@ const maybe = apiKey !== undefined && apiKey.length > 0 ? describe : describe.sk
 maybe('dshws-anysearch real API', () => {
   it('returns sources for a live query', async () => {
     const provider = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
-      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY' , keySelection: 'order' },
       async () => apiKey,
     ))
     expect(provider.available()).toBe(true)

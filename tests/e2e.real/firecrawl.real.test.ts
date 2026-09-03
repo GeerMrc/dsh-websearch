@@ -20,7 +20,7 @@ const maybe = apiKey !== undefined && apiKey.length > 0 ? describe : describe.sk
 maybe('dshws-firecrawl real API', () => {
   it('returns sources for a live search query', async () => {
     const provider = new FirecrawlProvider(resolveFirecrawlMemberOptions(
-      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
       async () => apiKey,
     ))
     expect(provider.available()).toBe(true)
@@ -32,7 +32,7 @@ maybe('dshws-firecrawl real API', () => {
 
   it('fetches a page as text through the scrape face', async () => {
     const provider = new FirecrawlProvider(resolveFirecrawlMemberOptions(
-      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
       async () => apiKey,
     ))
     const result = await provider.fetch({ url: 'https://example.com' })

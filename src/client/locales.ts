@@ -34,10 +34,7 @@ export type DshWsLocaleKey =
   | 'moveDown'
   | 'chainDefault'
   | 'chainPinned'
-  | 'extraKeys'
-  | 'addKey'
-  | 'removeKey'
-  | 'refName'
+  | 'keyFieldNote'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -66,10 +63,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   moveDown: 'Move down',
   chainDefault: 'Built-in default order',
   chainPinned: 'Pinned (overrides default)',
-  extraKeys: 'Additional keys',
-  addKey: 'Add',
-  removeKey: 'Remove',
-  refName: 'New ref name',
+  keyFieldNote: 'Comma-separate multiple keys (max 10)',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -93,8 +87,5 @@ export const zh: Record<DshWsLocaleKey, string> = {
   moveDown: '下移',
   chainDefault: '内置默认序',
   chainPinned: '已钉死（覆盖默认序）',
-  extraKeys: '附加 Key',
-  addKey: '添加',
-  removeKey: '移除',
-  refName: '新 ref 名称',
+  keyFieldNote: '多把 key 用逗号分隔（最多 10 把）',
 }

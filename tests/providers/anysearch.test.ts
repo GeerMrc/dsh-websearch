@@ -21,7 +21,6 @@ function makeProvider(overrides: Record<string, unknown> = {}): AnysearchSearchP
     {
       enabled: true,
       apiKeyEnv: 'ANYSEARCH_API_KEY',
-      extraApiKeyEnvs: [],
       keySelection: 'order',
       ...overrides,
     },
@@ -153,7 +152,7 @@ describe('dshws-anysearch availability and anchors', () => {
   it('is available when the base URL parses and unavailable otherwise', () => {
     expect(makeProvider().available()).toBe(true)
     expect(new AnysearchSearchProvider(resolveAnysearchMemberOptions(
-      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', baseURL: 'not a url' , extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', baseURL: 'not a url'  },
       async () => 'k',
     )).available()).toBe(false)
   })

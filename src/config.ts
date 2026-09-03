@@ -36,8 +36,6 @@ export interface DeepSeekSettings {
   model?: string
   /** Response token cap; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   maxTokens?: number
-  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
-  extraApiKeyEnvs?: string[]
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -52,8 +50,6 @@ export interface TavilySettings {
   baseURL?: string
   /** Default result count; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   maxResults?: number
-  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
-  extraApiKeyEnvs?: string[]
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -66,8 +62,6 @@ export interface FirecrawlSettings {
   apiKeyEnv?: string
   /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   baseURL?: string
-  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
-  extraApiKeyEnvs?: string[]
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -82,8 +76,6 @@ export interface ExaSettings {
   baseURL?: string
   /** Default result count; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   numResults?: number
-  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
-  extraApiKeyEnvs?: string[]
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -98,8 +90,6 @@ export interface PerplexitySettings {
   baseURL?: string
   /** Sonar model; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   model?: string
-  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
-  extraApiKeyEnvs?: string[]
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -114,8 +104,6 @@ export interface AnysearchSettings {
   baseURL?: string
   /** Regional zone passed through to the request body; omitted = not sent. Launch-static. */
   zone?: 'cn' | 'intl'
-  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
-  extraApiKeyEnvs?: string[]
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -153,7 +141,6 @@ export const Config: z<Config> = z.object({
     baseURL: z.string(),
     model: z.string(),
     maxTokens: z.number().step(1).min(1),
-    extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   tavily: z.object({
@@ -161,14 +148,12 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     maxResults: z.number().step(1).min(1),
-    extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   firecrawl: z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
-    extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   exa: z.object({
@@ -176,7 +161,6 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     numResults: z.number().step(1).min(1),
-    extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   perplexity: z.object({
@@ -184,7 +168,6 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     model: z.string(),
-    extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -192,7 +175,6 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     zone: z.union(['cn', 'intl']),
-    extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
 })
@@ -202,39 +184,31 @@ export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'e
   baseURL?: string
   model?: string
   maxTokens?: number
-  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
-  extraApiKeyEnvs: string[]
-  /** Pool selection policy (ADR-0008). */
-  keySelection: KeySelection
+  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  keySelection?: KeySelection
 }
 
 /** Fully defaulted settings for one member. */
 export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   maxResults?: number
-  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
-  extraApiKeyEnvs: string[]
-  /** Pool selection policy (ADR-0008). */
-  keySelection: KeySelection
+  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  keySelection?: KeySelection
 }
 
 /** Fully defaulted settings for one member. */
 export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
-  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
-  extraApiKeyEnvs: string[]
-  /** Pool selection policy (ADR-0008). */
-  keySelection: KeySelection
+  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  keySelection?: KeySelection
 }
 
 /** Fully defaulted settings for one member. */
 export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   numResults?: number
-  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
-  extraApiKeyEnvs: string[]
-  /** Pool selection policy (ADR-0008). */
-  keySelection: KeySelection
+  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  keySelection?: KeySelection
 }
 
 /** Fully defaulted settings for one member. */
@@ -242,20 +216,16 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
   baseURL?: string
   /** Regional zone passed to the request body; absent = not sent. */
   zone?: 'cn' | 'intl'
-  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
-  extraApiKeyEnvs: string[]
-  /** Pool selection policy (ADR-0008). */
-  keySelection: KeySelection
+  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  keySelection?: KeySelection
 }
 
 /** Fully defaulted settings for one member. */
 export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   model?: string
-  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
-  extraApiKeyEnvs: string[]
-  /** Pool selection policy (ADR-0008). */
-  keySelection: KeySelection
+  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  keySelection?: KeySelection
 }
 
 /** Fully defaulted plugin configuration; the chain providers consume this, not the raw `Config`. */
@@ -289,7 +259,6 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     deepseek: {
       enabled: config.deepseek?.enabled ?? true,
       apiKeyEnv: config.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY',
-      extraApiKeyEnvs: config.deepseek?.extraApiKeyEnvs ?? [],
       keySelection: config.deepseek?.keySelection ?? 'order',
       baseURL: config.deepseek?.baseURL,
       model: config.deepseek?.model,
@@ -298,7 +267,6 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     tavily: {
       enabled: config.tavily?.enabled ?? true,
       apiKeyEnv: config.tavily?.apiKeyEnv ?? 'TAVILY_API_KEY',
-      extraApiKeyEnvs: config.tavily?.extraApiKeyEnvs ?? [],
       keySelection: config.tavily?.keySelection ?? 'order',
       baseURL: config.tavily?.baseURL,
       maxResults: config.tavily?.maxResults,
@@ -306,14 +274,12 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     firecrawl: {
       enabled: config.firecrawl?.enabled ?? true,
       apiKeyEnv: config.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
-      extraApiKeyEnvs: config.firecrawl?.extraApiKeyEnvs ?? [],
       keySelection: config.firecrawl?.keySelection ?? 'order',
       baseURL: config.firecrawl?.baseURL,
     },
     exa: {
       enabled: config.exa?.enabled ?? true,
       apiKeyEnv: config.exa?.apiKeyEnv ?? 'EXA_API_KEY',
-      extraApiKeyEnvs: config.exa?.extraApiKeyEnvs ?? [],
       keySelection: config.exa?.keySelection ?? 'order',
       baseURL: config.exa?.baseURL,
       numResults: config.exa?.numResults,
@@ -321,7 +287,6 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     perplexity: {
       enabled: config.perplexity?.enabled ?? true,
       apiKeyEnv: config.perplexity?.apiKeyEnv ?? 'PERPLEXITY_API_KEY',
-      extraApiKeyEnvs: config.perplexity?.extraApiKeyEnvs ?? [],
       keySelection: config.perplexity?.keySelection ?? 'order',
       baseURL: config.perplexity?.baseURL,
       model: config.perplexity?.model,
@@ -331,7 +296,6 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       apiKeyEnv: config.anysearch?.apiKeyEnv ?? 'ANYSEARCH_API_KEY',
       baseURL: config.anysearch?.baseURL,
       zone: config.anysearch?.zone,
-      extraApiKeyEnvs: config.anysearch?.extraApiKeyEnvs ?? [],
       keySelection: config.anysearch?.keySelection ?? 'order',
     },
   }

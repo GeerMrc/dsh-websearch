@@ -176,7 +176,7 @@ describe('WebSearchSettingsController', () => {
     const controller = new WebSearchSettingsController(makePorts(remote))
     await controller.init()
 
-    const result = await controller.setKey('tavily', DEFAULT_REF, 'sk-fake-tavily')
+    const result = await controller.setKey('tavily', 'sk-fake-tavily')
     expect(result.ok).toBe(true)
     expect(remote.setCalls).toEqual([[DEFAULT_REF, 'sk-fake-tavily']])
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.configured).toBe(true)
@@ -188,7 +188,7 @@ describe('WebSearchSettingsController', () => {
     const controller = new WebSearchSettingsController(makePorts(remote))
     await controller.init()
 
-    const result = await controller.setKey('tavily', DEFAULT_REF, 'sk-fake')
+    const result = await controller.setKey('tavily', 'sk-fake')
     expect(result.ok).toBe(false)
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.configured).toBe(false)
   })
@@ -199,7 +199,7 @@ describe('WebSearchSettingsController', () => {
     const controller = new WebSearchSettingsController(makePorts(remote))
     await controller.init()
 
-    const result = await controller.clearKey('tavily', DEFAULT_REF)
+    const result = await controller.clearKey('tavily')
     expect(result.ok).toBe(true)
     expect(remote.unsetCalls).toEqual([DEFAULT_REF])
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.configured).toBe(false)
@@ -233,6 +233,9 @@ describe('WebSearchSettingsController', () => {
   it('moveSearchChainEntry patches the full materialized order with the current revision', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))
+    for (const ref of ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY', 'FIRECRAWL_API_KEY', 'DEEPSEEK_API_KEY', 'ANYSEARCH_API_KEY']) {
+      remote.creds.set(ref, { configured: true, source: 'file', writable: true })
+    }
     await controller.init()
 
     const result = await controller.moveSearchChainEntry('dshws-exa', -1)
@@ -253,6 +256,9 @@ describe('WebSearchSettingsController', () => {
   it('moving on the built-in order materializes the explicit chain and flips the pinned flag', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))
+    for (const ref of ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY', 'FIRECRAWL_API_KEY', 'DEEPSEEK_API_KEY', 'ANYSEARCH_API_KEY']) {
+      remote.creds.set(ref, { configured: true, source: 'file', writable: true })
+    }
     await controller.init()
     expect(controller.snapshot().searchChainPinned).toBe(false)
     expect(controller.snapshot().fetchChainPinned).toBe(false)
@@ -292,103 +298,6 @@ describe('WebSearchSettingsController', () => {
     const result = await controller.moveSearchChainEntry('dshws-unknown', 1)
     expect(result.ok).toBe(false)
     expect(remote.updateCalls).toEqual([])
-  })
-
-  it('snapshots extra pool refs with their credential facts', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } }
-    remote.creds.set('TAVILY_SPARE', { configured: true, source: 'file', writable: true })
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const tavily = controller.snapshot().members.find((member) => member.key === 'tavily')
-    expect(tavily?.extraRefs).toEqual([{ ref: 'TAVILY_SPARE', configured: true, writable: true }])
-    const exa = controller.snapshot().members.find((member) => member.key === 'exa')
-    expect(exa?.extraRefs).toEqual([])
-  })
-
-  it('describes the whole pool, not just the primary ref', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE', 'TAVILY_SPARE_2'] } }
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const described = remote.describeCalls.at(-1)!
-    expect(described).toContain('TAVILY_API_KEY')
-    expect(described).toContain('TAVILY_SPARE')
-    expect(described).toContain('TAVILY_SPARE_2')
-  })
-
-  it('setKey writes through an explicit extra pool ref', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } }
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const result = await controller.setKey('tavily', 'TAVILY_SPARE', 'sk-spare')
-    expect(result.ok).toBe(true)
-    expect(remote.setCalls).toEqual([['TAVILY_SPARE', 'sk-spare']])
-  })
-
-  it('setKey rejects a ref outside the member pool', async () => {
-    const remote = new FakeRemote()
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const result = await controller.setKey('tavily', 'EXA_API_KEY', 'sk-x')
-    expect(result.ok).toBe(false)
-    expect(remote.setCalls).toEqual([])
-  })
-
-  it('clearKey unsets an explicit extra pool ref', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } }
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const result = await controller.clearKey('tavily', 'TAVILY_SPARE')
-    expect(result.ok).toBe(true)
-    expect(remote.unsetCalls).toEqual(['TAVILY_SPARE'])
-  })
-
-  it('addExtraKey patches the whole extras array with the current revision', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } }
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const result = await controller.addExtraKey('tavily', 'TAVILY_SPARE_2')
-    expect(result.ok).toBe(true)
-    expect(remote.updateCalls).toEqual([
-      { ns: 'dsh-websearch', patch: { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE', 'TAVILY_SPARE_2'] } }, expectedRevision: 0 },
-    ])
-    expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.extraRefs.map((extra) => extra.ref))
-      .toEqual(['TAVILY_SPARE', 'TAVILY_SPARE_2'])
-  })
-
-  it('addExtraKey rejects empty and duplicate ref names without calling the remote', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE'] } }
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    expect((await controller.addExtraKey('tavily', '')).ok).toBe(false)
-    expect((await controller.addExtraKey('tavily', 'TAVILY_SPARE')).ok).toBe(false)
-    expect((await controller.addExtraKey('tavily', 'TAVILY_API_KEY')).ok).toBe(false)
-    expect(remote.updateCalls).toEqual([])
-  })
-
-  it('removeExtraKey patches the filtered extras array', async () => {
-    const remote = new FakeRemote()
-    remote.nsValue = { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE', 'TAVILY_SPARE_2'] } }
-    const controller = new WebSearchSettingsController(makePorts(remote))
-    await controller.init()
-
-    const result = await controller.removeExtraKey('tavily', 'TAVILY_SPARE')
-    expect(result.ok).toBe(true)
-    expect(remote.updateCalls).toEqual([
-      { ns: 'dsh-websearch', patch: { tavily: { extraApiKeyEnvs: ['TAVILY_SPARE_2'] } }, expectedRevision: 0 },
-    ])
   })
 
   it('a move conflict reports not-ok and keeps the described order', async () => {
