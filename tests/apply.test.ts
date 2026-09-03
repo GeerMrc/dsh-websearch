@@ -75,6 +75,22 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     expect(chain.available()).toBe(true)
   })
 
+  it('skips a member whose credential ref is unconfigured and serves from the next member (gate 跳过腿 e2e)', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    // Only exa configured — tavily primary NOT configured (skipped).
+    configured.add('EXA_API_KEY')
+    apply(ctx as unknown as Context, { searchChain: ['dshws-tavily', 'dshws-exa'] })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://exa.test', highlights: ['exa snippet'] }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const result = await chain.search({ query: 'gate' })
+    // The unconfigured tavily never reached fetch; exa served.
+    const [url] = fetchMock.mock.calls[0] as unknown as [string]
+    expect(url).toContain('exa')
+    expect(result.sources.length).toBeGreaterThan(0)
+  })
+
   it('a ref name outside the credential grammar fails loud at load (misconfiguration)', () => {
     const { ctx } = fakeCtx()
     expect(() => apply(ctx as unknown as Context, { tavily: { apiKeyEnv: 'not a valid ref!' } }))

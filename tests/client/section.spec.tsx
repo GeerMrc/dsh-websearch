@@ -213,6 +213,31 @@ describe('WebSearchSettingsSection', () => {
     }
   })
 
+  it("an unconfigured member's switch is disabled (置灰断言)", () => {
+    const members = defaultMembers()
+    members[0] = member('tavily', 'Tavily', { configured: false })
+    members[1] = member('exa', 'Exa', { configured: true })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const tavilySwitch = screen.getByRole('switch', { name: 'Tavily Enabled' }) as HTMLButtonElement
+    const exaSwitch = screen.getByRole('switch', { name: 'Exa Enabled' }) as HTMLButtonElement
+    expect(tavilySwitch.disabled).toBe(true)
+    expect(exaSwitch.disabled).toBe(false)
+  })
+
+  it('the key field renders the ! helper note (keyFieldNote 渲染)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    expect(card.textContent).toContain(en.keyFieldNote)
+  })
+
+  it('unconfigured members are hidden from the priority list (过滤未配置)', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
+    // All members are configured:true in the default fixture — all visible.
+    const visibleIds = [...searchList.querySelectorAll('li > span')].map((span) => span.textContent)
+    expect(visibleIds).toEqual(BUILT_IN)
+  })
+
   it('a failed move shows failed feedback and a later success clears it', async () => {
     const onMoveSearch = vi.fn(async () => ({ ok: false }) as ActionResult)
     const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveSearch })} t={t} />)
