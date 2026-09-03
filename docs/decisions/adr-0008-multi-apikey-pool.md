@@ -1,12 +1,12 @@
 ---
 title: "ADR-0008: 每成员多 APIKEY 池（多凭据 ref）与选择策略（order/round-robin/random）"
-status: accepted
+status: superseded（ADR-0011 单槽逗号值改判，2026-09-03——多 ref 形态经用户验收反馈废止；Context/Decision 保留为历史记录）
 date: 2026-09-03
 type: feat
 origin: 用户需求扩展（2026-09-03 批准的功能扩展计划；探索实测三探员定谳）
 ---
 
-# ADR-0008: 多 APIKEY 池与选择策略
+# ADR-0008: 多 APIKEY 池与选择策略（已废止——见 ADR-0011）
 
 ## Status
 

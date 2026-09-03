@@ -15,7 +15,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S12） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008/0009/0010） | 🚧（S09 多 APIKEY 棒 ✅；余 S10 anysearch 成员 = 进行中、S11） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09 ✅、S10 anysearch 成员 ✅；余 S11 = 进行中） |
 
 ## 进行中
 
@@ -48,7 +48,7 @@ session 记录双落）。
 | T7 | 浏览器六卡实测（scratch 3415，主 Agent IAB 实测棒） | 完成（`c5d2ae7`；六卡序/anysearch 卡全要素/fake 值写入 Configured 翻转+凭据 refs 落盘/Clear 复原 refs:{}；kill 95580 精确零残留） |
 | T8 | 门墙七命令（提交态）+ 本台账 + Agent Note（docs/notes/2026-09-03-s10-anysearch-member.md） | 完成（数字见下节门墙表） |
 | T9 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS：13 单测 + 11 loopback 亲跑含信封 wire 复证 + 门墙七命令亲跑零偏差 + providers 外零漂移 + 空池/信封契约 ADR 正本对齐 + 隔离法证（3415=0/3080=90269 未动/s05b-s09 早窗/refs:{} 复原亲读）+ 三问全过；**🟡 ×1 抓获：门墙表 lint files 45 应为 47**（转录误差）→ T10 勘正清偿；🟢×2 注记；audit-log 正本 docs/sessions/audit-logs/2026-09-03-s10-stage45-verification.md） |
-| T10 | 收尾（🟡 files 勘正随批 + index.ts 注释收敛**实删**核对随批 + 本文件 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge `--no-ff` + 接力指令） | 完成（本序列） |
+| T10 | 收尾（🟡 files 勘正随批 + index.ts 注释收敛**实删**核对随批 + 本文件 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge `--no-ff` + 接力指令） | 完成（本序列；**勘正**：session-10 记录「阶段 3 T0-T9 十 commit」实为 9 commit——T5/T6 合并；阶段 0 审核同类瑕点复现，时点快照不回改） |
 
 ### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
 

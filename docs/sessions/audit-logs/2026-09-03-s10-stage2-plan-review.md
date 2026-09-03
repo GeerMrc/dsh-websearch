@@ -1,6 +1,6 @@
-# Session 10 阶段 2 计划审核输出（三轮全文）
+# Session 10 阶段 2 计划审核输出（三轮；轮 1 为 reconstructed 判词级重建，轮 2/轮 3 逐字）
 
-> **落盘说明**：本文件为 Session 10 阶段 2 独立审核 Agent 轮 1/轮 2/轮 3（同 Agent 续审）输出原文逐字（主 Agent 转录落盘，无敏感值）。审核对象：docs/plans/2026-09-03-010-s10-anysearch-member-plan.md。
+> **落盘说明**：本文件为 Session 10 阶段 2 独立审核 Agent 三轮输出转录（主 Agent 落盘，无敏感值）。**转录缺陷修复（S11 T0）**：初版误漏轮 1 原文且轮 3 重复两遍（转录脚本复用了被 resume 覆盖的 agent 输出文件）——轮 1 以 reconstructed 判词级重建（源 = plan 010 留痕节 + 轮 2 点验回引），轮 3 去重保留一份。审核对象：docs/plans/2026-09-03-010-s10-anysearch-member-plan.md。
 
 ---
 
@@ -24,6 +24,48 @@
 ## 终判理由
 
 三轮累计：轮 1 必改 ×1（波及面 3 处 + config 四件制品点名）+ 建议 ×5、轮 2 残留必改 ×1（语法循环非泛化点）+ 观察 ×2，全部闭合且修订精确对准 file:line 实证，未引入计划外改动（本轮全文重读 diff 核对：仅 plan:39-46/90/91/154 四处，均在议定范围内）。计划现为可执行验收契约：WBS 与 roadmap S10 验收五条全覆盖、波及面穷举完备、不变量均有牙齿测试点名、TDD/验证类/实测棒分类沿先例。可进入阶段 2.5 用户终审批准。
+
+# 轮 1：S10 计划独立审核报告（阶段 2，master@3059b36 干净亲证）
+
+> **参数头**：审核库 v2 ｜ 阶段 2 ｜ 审核对象 plan 010 ｜ 输入指针：plan 010、ADR-0009、roadmap M7 段 S10 行、src/providers/tavily.ts、src/errors.ts、src/config.ts、src/index.ts、src/client/controller.ts、tests/apply.test.ts、tests/e2e/loopback.test.ts、tests/e2e.real/tavily.real.test.ts ｜ 偏离说明：无。
+> **[reconstructed]** 本区块为轮 1 报告的判词级重建（轮 1 逐字原文因转录缺陷缺失——见文末转录说明；重建源 = plan 010 阶段 2 留痕节 + 轮 2 点验表对轮 1 的逐项回引 + 审核会话记录），非逐字原文。
+
+## 结论
+
+**NEEDS REVISION**（1 项必改：波及面清单三处实证遗漏 + config 四件制品无任务点名；余为建议/观察）
+
+## 必改清单（阻塞项）
+
+**必改①：计划「既有断言随行为更新点」清单不完备——亲测遗漏 3 处会红的断言 + T1 未点名 config 四件制品**
+
+1. **tests/settings.test.ts:71** 遗漏：fetchChain BUILT_IN 精确列表断言——尾部追加（T1）即红，而 T1 scope 未含 settings.test。
+2. **tests/config.test.ts:82-90** 遗漏：空配置骨架断言——schema 增 anysearch 节后按归一化行为将含 `anysearch: { extraApiKeyEnvs: [] }`，T1 红（若亲测不入骨架需留豁免理由）。
+3. **tests/client/entry.spec.tsx:117、129** 遗漏：children.length 5 断言——MEMBERS 增第 6 项（T4）即红（经真实 controller 渲染）。
+4. **T1 未点名 config anysearch 节四件制品**：roadmap S10 交付列明确含 config anysearch 节，D2 已定谳设计（与 TavilyMemberConfig 惯例同构亲核属实），但 T1/T2/T3 内容列均未点名 config.ts 落地。
+
+**修法**：阶段 1 锚点清单 + D4 波及面补入上列 3 处（附 file:line）；T1 内容列增 config anysearch 节四件制品。
+
+## 建议清单
+
+1. **T10 前置列笔误**：写「T10」（自引用），应为 T9。
+2. **信封 code 类型定谳**：wire 显式 `readonly code: number`，漂移字符串 `!== 0` 判真 → httpError fail-loud（安全方向）。
+3. **content→snippet 同时存在用例**：补 both-present（snippet 胜）+ content-only（回退）两形，锁死优先级。
+4. **controller.spec:129-135 明示**：默认 searchChain 精确列表在 T4 同红——「成员清单五→六」扩写为「成员清单 + 默认链序两处」。
+5. **T3 scope 点名**：MemberKey union 增 anysearch、公共导出块三件、语法校验循环。
+
+## 观察清单
+
+- 锚点行号微漂（对象正确）：controller MEMBERS 实际 47-53、MemberSectionValue 62-66、members 数组 181-215。
+- roadmap S10 WBS「locales」字样由 D5 零新键定谳取代——T8 Agent Note 留一句。
+- 门墙七命令口径一致；端口 3415 无冲突先例。
+- README/architecture 无「五成员」计数散文，docs 门墙无本棒耦合。
+- 🟡 债务①②实物亲证成立（index.ts:96-102 两句同义并存/progress-M7:18 与 progress-M5:17 未推进）。
+- chain 门控语义亲证：#isUsable skip 不入 failures；loopback MEMBERS 经显式 searchChain 钉死，anysearch 追加零波及。
+
+**判定**：其余面（WBS 对 roadmap S10 验收五条全覆盖、分类沿先例、D6/D7 配方同构、高危披露、债务归属）核实可执行。
+
+---
+
 
 ---
 
@@ -65,24 +107,3 @@
 
 
 ---
-
-# S10 计划阶段 2 复审（轮 3，残留点验）
-
-**结论：APPROVED**
-
-## 逐点点验
-
-| # | 点验项 | 判定 | 依据 |
-|---|---|---|---|
-| 1 | 必改② | ✅ 闭合 | T3（plan:91）已按轮 2 修法逐字落地：①「语法校验循环数组字面量增 `resolved.anysearch`（index.ts:103-105——非泛化点，不增即静默漏防载入校验）」——与实物相符（index.ts:103 显式字面量，已亲证）；②红测试升格为验收项：「anysearch 池 ref 名出语法 → load 抛 TypeError 红测试（沿 apply.test.ts:72-76/94-98 先例）」+ 验收要点列「语法红测试为验收项」——不变量从声称变牙齿。导出块三件同步改为「ANYSEARCH_MEMBER_ID / resolveAnysearchMemberOptions / 公共 provider 类导出」，与既有成员对称面一致 |
-| 2 | 观察 1 | ✅ 到位 | plan:154 风险节「默认序断言（config.test/settings.test）随行为更新」——窄化消除，与锚点/D4/T1 口径一致 |
-| 3 | 观察 2 | ✅ 到位 | T2（plan:90）「resolveAnysearchMemberOptions（命名成员键拼写一体惯例）」；D2 `AnysearchMemberConfig` 不变——函数/类型/成员键拼写统一为 Anysearch，D5 卡片 label `'AnySearch'` 保留品牌位，与在库惯例（resolveTavilyMemberOptions/TavilyMemberConfig + label 'Tavily'）同构 |
-| 4 | 轮 2 留痕节 | ✅ 到位 | plan:39-44 忠实转录轮 2 结论（残留必改②内容 + 「点验 1-6/8 全闭合」+ 观察 1/2 吸收记录），plan:46 轮 3 占位就位 |
-
-## 残留项
-
-无阻塞项。一条化妆级观察（不吸收亦可）：plan:37/:44 两处 audit-log 指注写「两轮全文」——轮 3 结论补记后实为三轮，T0 转录时按实际轮数写（或径写「全文」）即可，属转录时点自然消解项，不影响计划可执行性。
-
-## 终判理由
-
-三轮累计：轮 1 必改 ×1（波及面 3 处 + config 四件制品点名）+ 建议 ×5、轮 2 残留必改 ×1（语法循环非泛化点）+ 观察 ×2，全部闭合且修订精确对准 file:line 实证，未引入计划外改动（本轮全文重读 diff 核对：仅 plan:39-46/90/91/154 四处，均在议定范围内）。计划现为可执行验收契约：WBS 与 roadmap S10 验收五条全覆盖、波及面穷举完备、不变量均有牙齿测试点名、TDD/验证类/实测棒分类沿先例。可进入阶段 2.5 用户终审批准。

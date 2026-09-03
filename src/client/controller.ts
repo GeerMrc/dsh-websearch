@@ -43,8 +43,8 @@ export interface ExtraRefFact {
   readonly writable: boolean
 }
 
-/** Bundled member display metadata; ids and default refs mirror the node half. */
-const MEMBERS = [
+/** Bundled member display metadata; ids and default refs mirror the node half (exported for the S11 attribution card's label mapping). */
+export const MEMBERS = [
   { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY' },
   { key: 'exa', label: 'Exa', memberId: 'dshws-exa', defaultRef: 'EXA_API_KEY' },
   { key: 'perplexity', label: 'Perplexity', memberId: 'dshws-perplexity', defaultRef: 'PERPLEXITY_API_KEY' },
