@@ -36,10 +36,8 @@ interface AssembleOverrides {
   tavilyBaseURL?: string
   exaEnabled?: boolean
   withAnysearch?: boolean
-  /** Extra tavily pool refs: configured up front and patched into the member config. */
-  tavilyExtras?: string[]
   tavilyKeySelection?: 'order' | 'round-robin' | 'random'
-  /** Explicit configured-ref set (defaults: the three primaries plus tavilyExtras). */
+  /** Explicit configured-ref set (defaults: the three primaries). */
   configuredRefs?: string[]
   /** Per-ref credential values (defaults keep 'fake-key' for every ref). */
   values?: Record<string, string>
@@ -53,14 +51,13 @@ async function assemble(
   try {
     const handle = fakeCtx({ withSettings: false, values: overrides?.values })
     const configured = overrides?.configuredRefs
-      ?? [...REFS, ...(overrides?.tavilyExtras ?? []), ...(overrides?.withAnysearch ? ['ANYSEARCH_API_KEY'] : [])]
+      ?? [...REFS, ...(overrides?.withAnysearch ? ['ANYSEARCH_API_KEY'] : [])]
     for (const ref of configured) handle.configured.add(ref)
     apply(handle.ctx as unknown as Context, {
       searchChain: overrides?.searchChain ?? [...MEMBERS],
       perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
       tavily: {
         baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily`,
-        ...(overrides?.tavilyExtras !== undefined ? { extraApiKeyEnvs: overrides.tavilyExtras } : {}),
         ...(overrides?.tavilyKeySelection !== undefined ? { keySelection: overrides.tavilyKeySelection } : {}),
       },
       exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
@@ -246,9 +243,8 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       { '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://tv.test/rr' }] } } },
       {
         searchChain: ['dshws-tavily'],
-        tavilyExtras: ['TAVILY_SPARE_2', 'TAVILY_SPARE_3'],
         tavilyKeySelection: 'round-robin',
-        values: { TAVILY_API_KEY: 'k1', TAVILY_SPARE_2: 'k2', TAVILY_SPARE_3: 'k3' },
+        values: { TAVILY_API_KEY: 'k1,k2,k3' },
       },
     )
     try {
@@ -260,21 +256,20 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     }
   })
 
-  it('an order pool skips an unconfigured ref and serves with the first ready key (order 首就绪)', async () => {
+  it('skips a member whose credential ref is unconfigured and serves from the next member (gate 跳过腿)', async () => {
     const { server, chain } = await assemble(
-      { '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://tv.test/order' }] } } },
       {
-        searchChain: ['dshws-tavily'],
-        tavilyExtras: ['TAVILY_SPARE_2'],
-        // Primary NOT configured (omitted from values/configured): order skips it.
-        configuredRefs: ['TAVILY_SPARE_2'],
-        values: { TAVILY_SPARE_2: 'spare-key' },
+        // Tavily primary NOT configured (omitted from configuredRefs): the chain skips it.
+        '/exa/search': { kind: 'success', body: { results: [{ url: 'https://exa.test/gate', highlights: ['gate snippet'] }] } },
       },
+      { configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY'].slice(1) },
     )
     try {
-      await chain.search({ query: 'a' })
+      const result = await chain.search({ query: 'a' })
       await chain.search({ query: 'b' })
-      expect(server.auths).toEqual(['Bearer spare-key', 'Bearer spare-key'])
+      // The unconfigured member never reaches the stub; the ready one serves both.
+      expect(server.arrivals).toEqual(['POST /exa/search', 'POST /exa/search'])
+      expect(result.content).toBe('[served-by: dshws-exa]')
     } finally {
       await server.close()
     }
@@ -286,9 +281,8 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       { '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://tv.test/rand' }] } } },
       {
         searchChain: ['dshws-tavily'],
-        tavilyExtras: ['TAVILY_SPARE_2', 'TAVILY_SPARE_3'],
         tavilyKeySelection: 'random',
-        values: { TAVILY_API_KEY: 'k1', TAVILY_SPARE_2: 'k2', TAVILY_SPARE_3: 'k3' },
+        values: { TAVILY_API_KEY: 'k1,k2,k3' },
       },
     )
     try {

@@ -15,7 +15,7 @@ const maybe = apiKey !== undefined && apiKey.length > 0 ? describe : describe.sk
 maybe('dshws-exa real API', () => {
   it('returns sources for a live query', async () => {
     const provider = new ExaSearchProvider(resolveExaMemberOptions(
-      { enabled: true, apiKeyEnv: 'EXA_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
       async () => apiKey,
     ))
     expect(provider.available()).toBe(true)

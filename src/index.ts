@@ -104,7 +104,7 @@ export function apply(ctx: Context, config: Config): void {
   // fail the load here; settings-sourced names are grammar-checked at resolve
   // time and re-primed on every settings commit (see attachSettingsSection).
   for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek, resolved.anysearch]) {
-    for (const name of [member.apiKeyEnv, ...member.extraApiKeyEnvs]) credentialRef(name)
+    credentialRef(member.apiKeyEnv)
   }
 
   const gate = new CredentialGate({
@@ -122,11 +122,8 @@ export function apply(ctx: Context, config: Config): void {
     codes: (typeof MEMBER_ERROR_CODES)[keyof typeof MEMBER_ERROR_CODES],
   ): KeyPool =>
     new KeyPool({
-      refs: () => {
-        const member = live.current()[memberKey]
-        return [member.apiKeyEnv, ...member.extraApiKeyEnvs]
-      },
-      selection: () => live.current()[memberKey].keySelection,
+      ref: () => live.current()[memberKey].apiKeyEnv,
+      selection: () => live.current()[memberKey].keySelection ?? 'order',
       isReady: (ref) => gate.isReady(ref),
       resolve: async (ref) => (await credentials.resolve(credentialRef(ref)))?.value,
       label,

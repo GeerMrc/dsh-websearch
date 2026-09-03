@@ -19,11 +19,11 @@
 
 ## 进行中
 
-- 无（S10 收官；下一棒 S11 待启动）
+- 无（S11 收官；下一棒 S12 待启动）
 
 ## 待启动
 
-- S11（session 溯源增强，M7 第 3 棒）——前置：S10 已收官（成员名映射复用面 = controller MEMBERS label 常量；served-by 双面断言在档）。后续：S12 手册（原 S09 顺延）→ S13 上游验收准备（原 S10 顺延）
+- S12（优先级策略棒，random/序列编辑器 + ADR-0012）——前置：S11 已收官（单槽逗号值底座 + 三策略保留）；S13 溯源 → S14 手册 → S15 上游验收准备
 
 ## 已完成
 
@@ -56,6 +56,28 @@ session 记录双落）。
 |---|---|---|
 | S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
 | S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**（T9 勘误：T8 原记 45）④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
+
+### S11 调整批（2026-09-03，分支 feat/s11-adjustments）
+
+阶段 0 独立审核 S10 **PASS**（🔴×0；🟡×3 记录更正类 T0 清偿）→ plan 011 → 阶段 2 两轮
+**APPROVED** → 阶段 2.5 **用户真实批准**（第 3 次）→ 逐一执行 → 阶段 4/5 进行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 011 + ADR-0011/0008 superseded + audit-log + 🟡×3 清偿 | 完成（`32afef7`+`2f7c9b0`） |
+| T1-T4 | 回退批：config extras 全退场/keys.ts 单槽化/index 单 ref/client extras UI 退场+置灰+过滤+可见序列交换+keyFieldNote/locales 四删一增（20 键） | 完成（`34a6325`+`b5c2579`；全量 241\|9(250)） |
+| T5 | e2e 改写 | 完成（含在 C1） |
+| T6 | 浏览器实测棒 | 待补（用户 3416 实例可直接查看；正式 3417 scratch 留 S12 期补做） |
+| T7 | 门墙七命令 + 台账 + Agent Note | 完成（`570ddc0`；数字见下节） |
+| T8 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS + 门墙七命令亲跑 + extras 零残留 grep + ADR-0011 一致性 + 三问全过；🟡×2 勘正随 T9：门墙表 test 241→245/audit-log stage2 补落；🟢×3；audit-log 正本三份在档） |
+| T9 | 收尾（🟡 勘正 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令） | 完成（本序列） |
+
+### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
+
+| 棒 | 命令 | 数字 |
+|---|---|---|
+| S09/S10 | （历史） | 正本 progress-M7 上节 |
+| S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 

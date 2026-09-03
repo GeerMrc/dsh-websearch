@@ -12,40 +12,6 @@
 
 ---
 
-## 2026-09-02 — 优先级排序 + 覆盖标记 + i18n（Session 07，M4 第 2 棒收官）
-
-**新增**
-- 搜索链排序：设置页搜索链逐项 ↑/↓ 按钮（per-item aria-label、首/末边界 disabled）→ `moveSearchChainEntry` 全量数组 patch 经 `settings.update`（expectedRevision 防护）→ `settings.yaml` 落盘 → 下次搜索生效（热通路 S05a 已验 + 本棒热链序回归绿；端到端 order 时序断言归 S08——plan 007 D6 分层证据）
-- 钉死覆盖标记（语义定谳 = settings 层，plan 007 D1）：链块双徽章（`data-dshws-chain-state=default|pinned` + 双语文案）——settings 显式在场 = 已钉死（覆盖内置默认序）；组合标量层（`searchProvider`）client 不可达，v1 不显示
-- i18n 门禁两脚本（零依赖 .mjs，node 直跑）+ `pnpm check:i18n` 入门墙：`scripts/check-locales.mjs`（union/en/zh 三集合 parity，fail-loud）+ `scripts/check-cjk.mjs`（状态机剥注释→CJK 码位扫描，行号保真）；拒绝路径双证（zh 独有键 exit 1 / CJK 字面量 exit 1）
-- locales 扩四键（moveUp/moveDown/chainDefault/chainPinned zh/en，19 键编译期 parity）
-- 浏览器六断言（scratch 3413 主 Agent IAB 实测）：排序 UI+双徽章初始态、下移→序物化翻转+徽章翻 pinned+settings.yaml 实物落盘、reload 持久、边界复验、fetch 链独立、kill 零残留
-- 测试基线 190→**202**（+12：locales 1/controller 6/section 5）；client.js 16.52→20.54 kB（node 面 49.00+21.89 与 S06 逐字节一致零漂移）
-- Agent Note `docs/notes/2026-09-02-s07-priority-i18n.md`（排序物化语义/门禁脚本实录——S09 正素材）；audit-logs 3 份
-
-**清偿（3 笔）**
-- 阶段 0 新登记 🟡×2（门墙数字三载体誊写 / STATUS 总览 M4 行漏刷）：T0 清偿（`0180c95`——session-06 门墙节指针化 + STATUS ⏳→🚧）+ dont-do 第三条扩化（状态区清单七处）
-- 阶段 4/5 抓获 🟡×1（~/.dsh mtime 落窗，绝对零接触主张不可证）：session-07 记录措辞处置清偿（「本棒动作零接触」+ 归属证据链：常驻 3080 实例 welcomeNoticeVersion 持久化）+ **dont-do 第四条沉淀**（隔离法证方法学）
-
-**治理**
-- 阶段 0 独立审核 S06 **PASS**（🔴0 🟡新登记×2 🟢 坐实；27 client tests 子集亲跑；原文 s07-stage0-review-of-s06.md）
-- 阶段 2 两轮：轮 1 **NEEDS REVISION**（必改×1 makeSnapshot 机械配套 + 建议×5）→ 全数吸收 → 轮 2 **APPROVED**（7/7 闭合零残留，25 组锚点亲验；原文 s07-stage2-plan-review.md）
-- 阶段 2.5：AskUserQuestion 未获答 → 按接力序默认批准自主推进（披露，session 记录双落）
-- 阶段 4/5 **PASS / COMPLETE**（R1-R6 逐条 + 门墙七命令提交态亲跑 + node 面 cmp 逐字节取证 + 三问；原文 s07-stage45-verification.md）
-
-**诚实标注（遗留项）**
-- 覆盖标记为 settings 层语义；用户 patch 钉死单成员直连（组合标量层）GUI v1 不显示（client 观测面不含 cordis 组合层——零内核侵入约束，plan 007 D1）
-- 「恢复默认序」按钮与 fetch 链排序 🟢 新登记不排期（后者 roadmap S07 仅 search 链原样）
-- i18n 门禁 CI 接线缺位（本仓无 CI）——S09 手册项；IAB evaluate 合成点击路径依赖在档（locator click 挂起未解）
-- M3 with-key 用户槽位不变（本棒零接触凭据面）
-
-**跟踪（观察期）**
-- 测试基线链：S05a/b 157|6(163) → S06 184|6(190) → **S07 196|6(202)**（22 files）；typecheck 双面 exit 0 / lint 0w0e 38 files / pack 五件
-- 里程碑：M1 ✅ M2 ✅ **M4 ✅ 2026-09-02**；M3 🚧（余用户 with-key 回填）；M5-M6 ⏳
-- dont-do：+1 条（隔离法证，累计 4 条）；下一棒 = Session 08 e2e 场景收口（loopback stub 七场景 + 顺序保持时序断言）
-
----
-
 ## 2026-09-03 — anysearch 第六成员（Session 10，M7 第 2 棒）
 
 **新增**
@@ -77,6 +43,8 @@
 - 测试基线链：S08 203|8(211) → S09 237|8(245) → **S10 257|9(266)**（27 files，+21）；typecheck 双面 exit 0 / lint 0w0e 47 files / build 增量披露 58.09+28.70+27.30 / pack 五件 / check:i18n exit 0（23 keys + 17 files）
 - 里程碑：M1 ✅ M2 ✅ M4 ✅；**M7 🚧（S09 ✅ S10 ✅，余 S11）**；M5 🚧（文档腿 S12）；M3 🚧（余用户 with-key 回填）；M6 ⏳
 - dont-do 累计 4 条（本棒无新增）；下一棒 = Session 11 session 溯源增强（M7 第 3 棒/收官棒）
+
+---
 
 ---
 
@@ -116,6 +84,8 @@
 
 ---
 
+---
+
 ## 2026-09-02 — e2e 场景收口（Session 08，M5 e2e 腿）
 
 **新增**
@@ -149,6 +119,44 @@
 
 ---
 
+---
+
+## 2026-09-02 — 优先级排序 + 覆盖标记 + i18n（Session 07，M4 第 2 棒收官）
+
+**新增**
+- 搜索链排序：设置页搜索链逐项 ↑/↓ 按钮（per-item aria-label、首/末边界 disabled）→ `moveSearchChainEntry` 全量数组 patch 经 `settings.update`（expectedRevision 防护）→ `settings.yaml` 落盘 → 下次搜索生效（热通路 S05a 已验 + 本棒热链序回归绿；端到端 order 时序断言归 S08——plan 007 D6 分层证据）
+- 钉死覆盖标记（语义定谳 = settings 层，plan 007 D1）：链块双徽章（`data-dshws-chain-state=default|pinned` + 双语文案）——settings 显式在场 = 已钉死（覆盖内置默认序）；组合标量层（`searchProvider`）client 不可达，v1 不显示
+- i18n 门禁两脚本（零依赖 .mjs，node 直跑）+ `pnpm check:i18n` 入门墙：`scripts/check-locales.mjs`（union/en/zh 三集合 parity，fail-loud）+ `scripts/check-cjk.mjs`（状态机剥注释→CJK 码位扫描，行号保真）；拒绝路径双证（zh 独有键 exit 1 / CJK 字面量 exit 1）
+- locales 扩四键（moveUp/moveDown/chainDefault/chainPinned zh/en，19 键编译期 parity）
+- 浏览器六断言（scratch 3413 主 Agent IAB 实测）：排序 UI+双徽章初始态、下移→序物化翻转+徽章翻 pinned+settings.yaml 实物落盘、reload 持久、边界复验、fetch 链独立、kill 零残留
+- 测试基线 190→**202**（+12：locales 1/controller 6/section 5）；client.js 16.52→20.54 kB（node 面 49.00+21.89 与 S06 逐字节一致零漂移）
+- Agent Note `docs/notes/2026-09-02-s07-priority-i18n.md`（排序物化语义/门禁脚本实录——S09 正素材）；audit-logs 3 份
+
+**清偿（3 笔）**
+- 阶段 0 新登记 🟡×2（门墙数字三载体誊写 / STATUS 总览 M4 行漏刷）：T0 清偿（`0180c95`——session-06 门墙节指针化 + STATUS ⏳→🚧）+ dont-do 第三条扩化（状态区清单七处）
+- 阶段 4/5 抓获 🟡×1（~/.dsh mtime 落窗，绝对零接触主张不可证）：session-07 记录措辞处置清偿（「本棒动作零接触」+ 归属证据链：常驻 3080 实例 welcomeNoticeVersion 持久化）+ **dont-do 第四条沉淀**（隔离法证方法学）
+
+**治理**
+- 阶段 0 独立审核 S06 **PASS**（🔴0 🟡新登记×2 🟢 坐实；27 client tests 子集亲跑；原文 s07-stage0-review-of-s06.md）
+- 阶段 2 两轮：轮 1 **NEEDS REVISION**（必改×1 makeSnapshot 机械配套 + 建议×5）→ 全数吸收 → 轮 2 **APPROVED**（7/7 闭合零残留，25 组锚点亲验；原文 s07-stage2-plan-review.md）
+- 阶段 2.5：AskUserQuestion 未获答 → 按接力序默认批准自主推进（披露，session 记录双落）
+- 阶段 4/5 **PASS / COMPLETE**（R1-R6 逐条 + 门墙七命令提交态亲跑 + node 面 cmp 逐字节取证 + 三问；原文 s07-stage45-verification.md）
+
+**诚实标注（遗留项）**
+- 覆盖标记为 settings 层语义；用户 patch 钉死单成员直连（组合标量层）GUI v1 不显示（client 观测面不含 cordis 组合层——零内核侵入约束，plan 007 D1）
+- 「恢复默认序」按钮与 fetch 链排序 🟢 新登记不排期（后者 roadmap S07 仅 search 链原样）
+- i18n 门禁 CI 接线缺位（本仓无 CI）——S09 手册项；IAB evaluate 合成点击路径依赖在档（locator click 挂起未解）
+- M3 with-key 用户槽位不变（本棒零接触凭据面）
+
+**跟踪（观察期）**
+- 测试基线链：S05a/b 157|6(163) → S06 184|6(190) → **S07 196|6(202)**（22 files）；typecheck 双面 exit 0 / lint 0w0e 38 files / pack 五件
+- 里程碑：M1 ✅ M2 ✅ **M4 ✅ 2026-09-02**；M3 🚧（余用户 with-key 回填）；M5-M6 ⏳
+- dont-do：+1 条（隔离法证，累计 4 条）；下一棒 = Session 08 e2e 场景收口（loopback stub 七场景 + 顺序保持时序断言）
+
+---
+
+---
+
 ## 2026-09-02 — 「网页搜索」设置页骨架（Session 06，M4 第 1 棒）
 
 **新增**
@@ -178,6 +186,8 @@
 - 测试 22 files / 184 passed | 6 skipped (190)；typecheck 双面 exit 0；lint 0w0e 38 files；build 49.00+21.89+16.52 kB；pack 五件
 - dont-do 维持 3 条（本棒零新增；T9 抓获的「提交态门墙」教训入 session 踩坑节，未达系统性门槛）
 - 下一棒：Session 07（优先级排序 + 覆盖标记 + i18n）
+
+---
 
 ---
 
@@ -215,6 +225,8 @@
 
 ---
 
+---
+
 ## 2026-09-02 — exa/perplexity/firecrawl + settings 热改（Session 05a，M3 第 3 棒）
 
 **新增**
@@ -247,6 +259,8 @@
 **跟踪（观察期）**
 - 测试基线链：47（S03）→ 93 passed | 2 skipped（S04）→ **157 passed | 6 skipped（163；18 文件）**（skip = 真实 API 无 key 自跳）；typecheck 0 error；lint 0w0e（30 files，96 rules）；build lib 70.89 kB（js 49.00 + d.ts 21.89）
 - dont-do 新增 0 条（累计 2 条）；里程碑：M3 🚧 第 3 棒完成（余 S05b 收官棒）；下一棒 Session 05b（安装端到端 + 卸载复原）
+
+---
 
 ---
 
@@ -291,6 +305,8 @@
 
 ---
 
+---
+
 ## 2026-09-02 — 插件宿主骨架 + 链式 meta-provider（Session 03，M3 第 1 棒）
 
 **新增**
@@ -325,6 +341,8 @@
 
 ---
 
+---
+
 ## 2026-09-02 — 可行性 spike 五假设定谳（Session 02，M2 可行性定谳）
 
 **新增**
@@ -352,6 +370,8 @@
 **跟踪（观察期）**
 - 测试基线链：无（spike 类不建基线）→ 首个基线 S03 建立
 - dont-do 新增 1 条（latest dist-tag 失真，累计 2 条）；里程碑：M2 ✅（本条目）；下一棒 Session 03（插件宿主骨架 + 链式 meta-provider）
+
+---
 
 ---
 

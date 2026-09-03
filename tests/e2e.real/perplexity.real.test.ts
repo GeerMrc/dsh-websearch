@@ -21,7 +21,7 @@ const maybe = apiKey !== undefined && apiKey.length > 0 ? describe : describe.sk
 maybe('dshws-perplexity real API', () => {
   it('returns content and sources for a live query', async () => {
     const provider = new PerplexitySearchProvider(resolvePerplexityMemberOptions(
-      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY'  },
       async () => apiKey,
     ))
     expect(provider.available()).toBe(true)

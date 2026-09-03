@@ -12,7 +12,7 @@ import {
 const codes = MEMBER_ERROR_CODES.firecrawl
 
 const options = resolveFirecrawlMemberOptions(
-  { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' } satisfies FirecrawlMemberConfig,
+  { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  } satisfies FirecrawlMemberConfig,
   async () => 'fc-key',
 )
 
@@ -33,14 +33,14 @@ afterEach(() => {
 
 describe('dshws-firecrawl option resolution', () => {
   it('fills the default base URL explicitly and passes apiKeyEnv through', () => {
-    const resolved = resolveFirecrawlMemberOptions({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined)
+    const resolved = resolveFirecrawlMemberOptions({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  }, async () => undefined)
     expect(resolved.baseURL).toBe(FIRECRAWL_DEFAULT_BASE_URL)
     expect(resolved.apiKeyRef).toBe('FIRECRAWL_API_KEY')
   })
 
   it('passes explicit baseURL through untouched', () => {
     const resolved = resolveFirecrawlMemberOptions(
-      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test' , extraApiKeyEnvs: [], keySelection: 'order' },
+      { enabled: true, apiKeyEnv: 'MY_KEY', baseURL: 'https://proxy.test'  },
       async () => undefined,
     )
     expect(resolved.baseURL).toBe('https://proxy.test')
@@ -147,7 +147,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
     const provider = new FirecrawlProvider(
-      resolveFirecrawlMemberOptions({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' }, async () => undefined),
+      resolveFirecrawlMemberOptions({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  }, async () => undefined),
     )
     const caught = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.credentialMissing })
@@ -159,7 +159,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     vi.stubGlobal('fetch', vi.fn())
     const provider = new FirecrawlProvider(
       resolveFirecrawlMemberOptions(
-        { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' , extraApiKeyEnvs: [], keySelection: 'order' },
+        { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
         async () => {
           throw new Error('credentials service unreachable')
         },
