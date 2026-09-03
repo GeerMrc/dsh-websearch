@@ -35,6 +35,7 @@ interface AssembleOverrides {
   searchChain?: string[]
   tavilyBaseURL?: string
   exaEnabled?: boolean
+  withAnysearch?: boolean
   /** Extra tavily pool refs: configured up front and patched into the member config. */
   tavilyExtras?: string[]
   tavilyKeySelection?: 'order' | 'round-robin' | 'random'
@@ -51,9 +52,9 @@ async function assemble(
   const server = await startLoopback(behavior)
   try {
     const handle = fakeCtx({ withSettings: false, values: overrides?.values })
-    for (const ref of overrides?.configuredRefs ?? [...REFS, ...(overrides?.tavilyExtras ?? [])]) {
-      handle.configured.add(ref)
-    }
+    const configured = overrides?.configuredRefs
+      ?? [...REFS, ...(overrides?.tavilyExtras ?? []), ...(overrides?.withAnysearch ? ['ANYSEARCH_API_KEY'] : [])]
+    for (const ref of configured) handle.configured.add(ref)
     apply(handle.ctx as unknown as Context, {
       searchChain: overrides?.searchChain ?? [...MEMBERS],
       perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
@@ -64,6 +65,7 @@ async function assemble(
       },
       exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
       perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
+      ...(overrides?.withAnysearch ? { anysearch: { baseURL: `http://127.0.0.1:${server.port}/anysearch` } } : {}),
     })
     const chain = handle.providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
@@ -296,6 +298,28 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         expect(keys.has(server.auths.at(-1)!.replace('Bearer ', ''))).toBe(true)
       }
       expect(server.auths).toHaveLength(6)
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('an anysearch envelope success flows through the chain with attribution (信封场景)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/anysearch/v1/search': {
+          kind: 'success',
+          body: { code: 0, message: 'ok', data: { results: [{ url: 'https://as.test/1', title: 'AS', content: 'envelope body text' }] } },
+        },
+      },
+      { searchChain: ['dshws-anysearch'], withAnysearch: true },
+    )
+    try {
+      const result = await chain.search({ query: 'envelope' })
+      // The content field falls back to the snippet (official mapping gap, ADR-0009).
+      expect(result.sources).toEqual([{ url: 'https://as.test/1', title: 'AS', snippet: 'envelope body text' }])
+      expect(result.content).toBe('[served-by: dshws-anysearch]')
+      expect(server.auths[0]).toBe('Bearer fake-key')
+      expect(server.arrivals).toEqual(['POST /anysearch/v1/search'])
     } finally {
       await server.close()
     }
