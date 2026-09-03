@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- Session 10（anysearch 第六成员）——T0 进行中，T1-T10 待执行
+- Session 10（anysearch 第六成员）——T0-T8 完成，T9 独立验证进行中，T10 待执行
 
 ## 待启动
 
@@ -27,7 +27,37 @@
 
 ## 已完成
 
-### S09 多 APIKEY 池批（2026-09-03，分支 feat/s09-multi-apikey-pool）
+### S10 anysearch 成员批（2026-09-03，分支 feat/s10-anysearch-member）
+
+阶段 0 独立审核 S09 **PASS**（🔴×0；审核面外 🟡×2 记录更正类 = index 注释「已收敛」
+声称与实物不符 + progress 里程碑行括注漏刷〔dont-do 家族第五次〕，T0 清偿 `8ac6107`）→
+plan 010 落盘 → 阶段 2 **三轮**审核（轮 1 NEEDS REVISION 必改×1 波及面三处遗漏 + T1
+未点名 config 四件制品，建议×5；轮 2 残留必改×1 语法校验循环非泛化点；轮 3 **APPROVED**
+无阻塞残留）→ 阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进（披露，
+session 记录双落）。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 010 + 阶段 0/2 audit-log + 🟡×2 清偿（index 注释实删/progress 里程碑行×2）+ STATUS 启动刷新 | 完成（`8ac6107`，master 直提） |
+| T1 | errors anysearch 五码族 + BUILT_IN 尾部追加 + config anysearch 节四件制品 | 完成（`ddfb4ae`；红 5 failed\|23 passed → 28 passed；骨架注入形态亲测留痕；**settings.test fetchChain 漏更新带红 amend——提交态红线教训第二次**） |
+| T2 | src/providers/anysearch.ts（信封/content→snippet/zone 透传/五失败形态） | 完成（`c121f8c`；红=模块缺失 → 13 passed；**T1/T2 提交曾误 amend 掺包——reset --soft 重排干净**；isPositiveInteger 未用导入清偿） |
+| T3 | index.ts 接线：members 第 6 项（尾部）+ pool + gates + MemberKey/导出块/校验循环 + anysearch 语法红测试 | 完成（`8641b2f`；红 3 failed\|16 passed → 19 passed；首轮误插 firecrawl/deepseek 之间被拓扑断言抓住修正） |
+| T4 | client 第 6 卡：MEMBERS/SectionValue/deriveSnapshot 泛化 | 完成（`545ba42`；红 3 failed\|48 passed → 51 passed；controller.spec 默认链序三处硬编码随第 6 成员更新） |
+| T5 | e2e 信封场景：anysearch 单成员链 + content→snippet + servedBy | 完成（`5e639b0`；11 passed） |
+| T6 | 真实 API smoke：anysearch.real.test.ts（无 key 自跳） | 完成（`3bcd650`；1 passed\|1 skipped 亲见） |
+| T7 | 浏览器六卡实测（scratch 3415，主 Agent IAB 实测棒） | 完成（`c5d2ae7`；六卡序/anysearch 卡全要素/fake 值写入 Configured 翻转+凭据 refs 落盘/Clear 复原 refs:{}；kill 95580 精确零残留） |
+| T8 | 门墙七命令（提交态）+ 本台账 + Agent Note（docs/notes/2026-09-03-s10-anysearch-member.md） | 完成（数字见下节门墙表） |
+| T9 | 阶段 4/5 独立验证 | 进行中 |
+| T10 | 收尾 | 待执行 |
+
+### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
+
+| 棒 | 命令（七件全名） | 数字 |
+|---|---|---|
+| S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
+| S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（45 files，96 rules）**④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
+
+### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
 阶段 0 独立审核 S08 **PASS**（🔴×0；审核面外 🟡×1 = roadmap M5 尾注 S09→S12 漏刷，
 T0 清偿 `1290b5b`）→ plan 009 落盘 → 阶段 2 轮 1 **NEEDS REVISION**（必改 ×3：热增 ref
