@@ -23,6 +23,7 @@ import { Config, resolveConfig } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
+import { AnysearchSearchProvider, resolveAnysearchMemberOptions } from './providers/anysearch.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
@@ -47,6 +48,11 @@ export {
   DeepSeekSearchProvider,
   resolveDeepSeekMemberOptions,
 } from './providers/deepseek.ts'
+export {
+  ANYSEARCH_MEMBER_ID,
+  AnysearchSearchProvider,
+  resolveAnysearchMemberOptions,
+} from './providers/anysearch.ts'
 export {
   TAVILY_MEMBER_ID,
   TavilySearchProvider,
@@ -78,7 +84,7 @@ export const inject = ['web', 'credentials']
 export { Config }
 
 /** The bundled members, keyed by their config section. */
-type MemberKey = 'tavily' | 'exa' | 'perplexity' | 'firecrawl' | 'deepseek'
+type MemberKey = 'tavily' | 'exa' | 'perplexity' | 'firecrawl' | 'deepseek' | 'anysearch'
 
 /**
  * Plugin entry point: build the priority chains and the five bundled members,
@@ -97,7 +103,7 @@ export function apply(ctx: Context, config: Config): void {
   // configured extras. Entry-config names outside the credential grammar
   // fail the load here; settings-sourced names are grammar-checked at resolve
   // time and re-primed on every settings commit (see attachSettingsSection).
-  for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek]) {
+  for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek, resolved.anysearch]) {
     for (const name of [member.apiKeyEnv, ...member.extraApiKeyEnvs]) credentialRef(name)
   }
 
@@ -133,6 +139,7 @@ export function apply(ctx: Context, config: Config): void {
     perplexity: keyPool('perplexity', 'Perplexity', MEMBER_ERROR_CODES.perplexity),
     firecrawl: keyPool('firecrawl', 'Firecrawl', MEMBER_ERROR_CODES.firecrawl),
     deepseek: keyPool('deepseek', 'DeepSeek', MEMBER_ERROR_CODES.deepseek),
+    anysearch: keyPool('anysearch', 'Anysearch', MEMBER_ERROR_CODES.anysearch),
   } as const
 
   const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({
@@ -175,6 +182,9 @@ export function apply(ctx: Context, config: Config): void {
   const firecrawl = new FirecrawlProvider(
     resolveFirecrawlMemberOptions(resolved.firecrawl, () => pools.firecrawl.resolveApiKey()),
   )
+  const anysearch = new AnysearchSearchProvider(
+    resolveAnysearchMemberOptions(resolved.anysearch, () => pools.anysearch.resolveApiKey()),
+  )
   const members: readonly {
     provider: WebSearchProvider
     memberKey: MemberKey
@@ -208,6 +218,11 @@ export function apply(ctx: Context, config: Config): void {
       ),
       memberKey: 'deepseek',
       pool: pools.deepseek,
+    },
+    {
+      provider: anysearch,
+      memberKey: 'anysearch',
+      pool: pools.anysearch,
     },
   ]
   for (const { provider, memberKey, pool } of members) {

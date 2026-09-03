@@ -5,10 +5,10 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 describe('apply assembly', () => {
-  it('registers the chains and all five members with ctx.web (double registration topology)', () => {
+  it('registers the chains and all six members with ctx.web (double registration topology)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, {})
-    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek'])
+    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
     expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
   })
 
@@ -89,6 +89,21 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     expect(result.sources).toEqual([{ url: 'https://tv.test' }])
     const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer fake-key')
+  })
+
+  it('an anysearch pool ref name outside the credential grammar fails loud at load', () => {
+    const { ctx } = fakeCtx()
+    expect(() => apply(ctx as unknown as Context, { anysearch: { extraApiKeyEnvs: ['not a valid ref!'] } }))
+      .toThrow(TypeError)
+  })
+
+  it('the anysearch member contributes readiness through its configured primary ref', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('ANYSEARCH_API_KEY')
+    apply(ctx as unknown as Context, { searchChain: ['dshws-anysearch'] })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain.available()).toBe(true)
   })
 
   it('a ref name outside the credential grammar fails loud at load (misconfiguration)', () => {
