@@ -46,6 +46,40 @@
 
 ---
 
+## 2026-09-03 — anysearch 第六成员（Session 10，M7 第 2 棒）
+
+**新增**
+- `dshws-anysearch` 第六成员（ADR-0009 路线 B HTTP 自实现）：`POST {base}/v1/search` + Bearer（凭据 ref `ANYSEARCH_API_KEY` 缺省）；**信封分支**——HTTP 200 且 `code !== 0` → `DSHWS_ANYSEARCH_HTTP_ERROR`（message + request_id 诊断）；映射补官方 provider 丢弃 content 的缺口（snippet 在先、content 回退，两形用例锁死优先级）
+- `MEMBER_ERROR_CODES.anysearch` 五码族；config `anysearch` 节四件制品（enabled/apiKeyEnv/baseURL/zone cn|intl——zone 仅配置时透传请求体）
+- `BUILT_IN_MEMBER_ORDER` 尾部追加（ADR-0004 中立开箱语义不变；未配 key 自动跳过）——**自动享用 S09 池化**（extraApiKeyEnvs/keySelection 全泛化）
+- client 第 6 卡（label 'AnySearch' 代码常量，零新 locale 键）
+- 与 3080 官方 anysearch 插件共存语义在档（id `dshws-anysearch` vs `anysearch` 零冲突；用户层 patch 后写覆盖切换链路——S12 素材）
+- 测试基线 245→**266**（257 passed | 9 skipped；27 files，+21）；build 增量披露 58.09/28.70/27.30 kB
+- Agent Note `docs/notes/2026-09-03-s10-anysearch-member.md`（信封规格/一行入池/共存语义/三坑——S12 正素材）；audit-logs 3 份
+
+**清偿（2+1 笔）**
+- 阶段 0 抓获 🟡×2（记录更正类，9ade4ef 治理批遗留）：①index.ts 注释同义两遍**实删**（非改词）②progress 里程碑行括注漏刷 ×2（progress-M7/M5 镜像）——dont-do 第三条家族第五次，T0 清偿（`8ac6107`）
+- 阶段 4/5 抓获 🟡×1（门墙表 lint files 45 应为 47 转录误差）：T10 勘正清偿
+
+**治理**
+- 阶段 0 独立审核 S09 **PASS**（🔴0；五子集亲跑零偏差 + 增量算术独立复算 + providers 零改动亲证；原文 s10-stage0-review-of-s09.md）
+- 阶段 2 **三轮**：轮 1 **NEEDS REVISION**（必改×1 波及面三处遗漏 + T1 未点名 config 四件制品，建议×5）→ 轮 2 残留**必改×1**（「语法校验循环已泛化」与实物相反——index.ts:103 字面量枚举）→ 轮 3 **APPROVED**（原文 s10-stage2-plan-review.md 三轮全文）
+- 阶段 2.5：AskUserQuestion 未获答 → 按接力序默认批准自主推进（披露，session 记录双落）
+- 阶段 4/5 **PASS / COMPLETE**（R1-R5 逐条 + 门墙七命令亲跑 + refs:{} 复原亲读 + 三问全过；原文 s10-stage45-verification.md）
+
+**诚实标注（遗留项）**
+- anysearch fetch 面（/v1/extract → dshws-anysearch-fetch）v1 不做（ADR-0009 Consequences 登记，需要时同模式追加）
+- 信封 wire `code: number`——上游漂移字符串时判真 fail-loud（安全方向，已注记）
+- T1 批内 settings.test 断言漏更新带红 amend（提交态红线第二次）；T2 误 amend 掺包 reset --soft 重排——两坑入 session 踩坑节
+- M3 with-key 用户槽位不变；anysearch 真实 smoke 与其互补（用户有 key 可择机跑真）
+
+**跟踪（观察期）**
+- 测试基线链：S08 203|8(211) → S09 237|8(245) → **S10 257|9(266)**（27 files，+21）；typecheck 双面 exit 0 / lint 0w0e 47 files / build 增量披露 58.09+28.70+27.30 / pack 五件 / check:i18n exit 0（23 keys + 17 files）
+- 里程碑：M1 ✅ M2 ✅ M4 ✅；**M7 🚧（S09 ✅ S10 ✅，余 S11）**；M5 🚧（文档腿 S12）；M3 🚧（余用户 with-key 回填）；M6 ⏳
+- dont-do 累计 4 条（本棒无新增）；下一棒 = Session 11 session 溯源增强（M7 第 3 棒/收官棒）
+
+---
+
 ## 2026-09-03 — 多 APIKEY 池 + 选择策略（Session 09，M7 第 1 棒）
 
 **新增**

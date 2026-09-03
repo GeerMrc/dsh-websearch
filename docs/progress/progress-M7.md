@@ -19,11 +19,11 @@
 
 ## 进行中
 
-- Session 10（anysearch 第六成员）——T0-T8 完成，T9 独立验证进行中，T10 待执行
+- 无（S10 收官；下一棒 S11 待启动）
 
 ## 待启动
 
-- S11（session 溯源增强，M7 第 3 棒）→ S12 手册（原 S09 顺延）→ S13 上游验收准备（原 S10 顺延）
+- S11（session 溯源增强，M7 第 3 棒）——前置：S10 已收官（成员名映射复用面 = controller MEMBERS label 常量；served-by 双面断言在档）。后续：S12 手册（原 S09 顺延）→ S13 上游验收准备（原 S10 顺延）
 
 ## 已完成
 
@@ -47,15 +47,15 @@ session 记录双落）。
 | T6 | 真实 API smoke：anysearch.real.test.ts（无 key 自跳） | 完成（`3bcd650`；1 passed\|1 skipped 亲见） |
 | T7 | 浏览器六卡实测（scratch 3415，主 Agent IAB 实测棒） | 完成（`c5d2ae7`；六卡序/anysearch 卡全要素/fake 值写入 Configured 翻转+凭据 refs 落盘/Clear 复原 refs:{}；kill 95580 精确零残留） |
 | T8 | 门墙七命令（提交态）+ 本台账 + Agent Note（docs/notes/2026-09-03-s10-anysearch-member.md） | 完成（数字见下节门墙表） |
-| T9 | 阶段 4/5 独立验证 | 进行中 |
-| T10 | 收尾 | 待执行 |
+| T9 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS：13 单测 + 11 loopback 亲跑含信封 wire 复证 + 门墙七命令亲跑零偏差 + providers 外零漂移 + 空池/信封契约 ADR 正本对齐 + 隔离法证（3415=0/3080=90269 未动/s05b-s09 早窗/refs:{} 复原亲读）+ 三问全过；**🟡 ×1 抓获：门墙表 lint files 45 应为 47**（转录误差）→ T10 勘正清偿；🟢×2 注记；audit-log 正本 docs/sessions/audit-logs/2026-09-03-s10-stage45-verification.md） |
+| T10 | 收尾（🟡 files 勘正随批 + index.ts 注释收敛**实删**核对随批 + 本文件 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge `--no-ff` + 接力指令） | 完成（本序列） |
 
 ### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
 | S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
-| S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（45 files，96 rules）**④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
+| S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**（T9 勘误：T8 原记 45）④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
@@ -99,6 +99,18 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | R3 | GUI 多 key 通路 | PASS | client 51 passed（extraRefs 快照/池外拒绝/整表 patch/行渲染/追加/移除）+ check:i18n exit 0（23 keys + 16 files）+ T8 实物三件对上（settings-after-add/现 settings/credentials refs:{}） |
 | R4 | 门墙七命令（提交态） | PASS | test 25 files 237\|8(245) / typecheck exit 0 / lint 0w0e 44 files / build 增量披露 52.61+25.19+27.17（D7 口径）/ pack 五件 / check:i18n exit 0；前后 git status clean |
 | R5 | 五子证据 | PASS | ①隔离（3414 LISTEN=0/3080=90269 未动/s05b-s08 早窗/fake 值 refs:{} 复原）②门墙（上）③收尾件套（T11 序列）④原子翻转 + `--no-ff` ⑤audit-log 三份正本 |
+
+## 阶段验收（R1-R5，阶段收官时填）
+
+### S10 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | anysearch 成员全链路 | PASS | anysearch.test 13 passed（信封成功/snippet 优先级两形/content 回退/信封 code≠0/429/断网/abort/bad JSON/zone 透传/available）+ loopback 11 passed（信封场景 content→snippet wire 复证 + servedBy）+ BUILT_IN 尾部追加断言 + 既有场景零漂移 |
+| R2 | GUI 六卡 + key 写通路 | PASS | client 51 passed（成员清单六项/anysearch 默认 ref）+ T7 三断言（六卡序/写 fake 值翻转+refs 落盘/Clear 复原）+ /tmp/dshws-s10/ 实物亲读 |
+| R3 | 共存语义在档 + 真实 smoke 自跳 | PASS | ADR-0009 Decision 5（id 零冲突 + patch 后写覆盖）+ Agent Note 共存节 + anysearch.real 1 passed\|1 skipped 亲见 |
+| R4 | 门墙七命令（提交态） | PASS | test 27 files 257\|9(266) / typecheck exit 0 / lint 0w0e **47 files**（T9 勘误）/ build 增量披露 58.09+28.70+27.30 / pack 五件 / check:i18n exit 0（23 keys + 17 files）；前后 git status clean |
+| R5 | 五子证据 | PASS | ①隔离（3415 LISTEN=0/3080=90269 未动/s05b-s09 早窗/sk-fake-anysearch 零残留亲扫/refs:{} 复原亲读）②门墙（上）③收尾件套（T10 序列）④原子翻转 + `--no-ff` ⑤audit-log 三份正本 |
 
 ## 技术债（台账）
 

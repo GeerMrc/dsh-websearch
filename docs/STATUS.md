@@ -26,7 +26,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S12——2026-09-03 特性批次前置顺延） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008/0009/0010） | 🚧（S09 ✅；S10 anysearch 成员 = 进行中；余 S11） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008/0009/0010） | 🚧（S09 ✅、S10 anysearch 成员 ✅；余 S11 溯源增强 = 下一棒） |
 
 ## Session 台账（一行一棒）
 
@@ -42,13 +42,13 @@
 | 07 | 2026-09-02 | 优先级排序 + 覆盖标记 + i18n | ✅ | docs/sessions/2026-09-02-session-07.md（搜索链排序写 settings + 钉死覆盖标记（settings 层 D1）+ check:i18n 门禁两脚本 + 浏览器六断言；阶段 2 两轮审核 APPROVED 7/7 + 阶段 4/5 PASS/COMPLETE；M4 ✅） | 🟡+2→0（阶段 0 登记，T0 `0180c95` 清偿）+🟡+1→0（~/.dsh 口径，记录措辞处置 + dont-do 第四条）🟢 新登记×2（fetch 排序/恢复默认） |
 | 08 | 2026-09-02 | e2e 场景收口 | ✅ | docs/sessions/2026-09-02-session-08.md（loopback 七场景 + 到达序/摘要/署名断言 + 链级真实 API smoke 自跳；阶段 2 两轮审核 APPROVED + **阶段 2.5 用户真实批准** + 阶段 4/5 PASS/COMPLETE；src 零变更兑现；M5 e2e 腿 ✅） | 🟡+1→0（assemble 泄漏缺口，T8 加固清偿）+🟡 lint warning（T1 残留，T6 门墙抓获清偿） |
 | 09 | 2026-09-03 | 多 APIKEY 池 + 选择策略 | ✅ | docs/sessions/2026-09-03-session-09.md（extraApiKeyEnvs 多 ref 池 + keySelection 三策略 + wire 级轮换实证 + GUI 多 key 列表 + settings 热通路；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE；provider 零改动兑现） | 🟡+1→0（阶段 0 抓获 roadmap M5 尾注漏刷，T0 穷举清偿）+🟡+1→0（T10 抓获台账算术 +30→+34，T11 更正）+🟢×3 注记 |
-| 10 | 2026-09-03 | anysearch 第六成员 | 🚧 | （进行中——计划 docs/plans/2026-09-03-010-s10-anysearch-member-plan.md；阶段 2 三轮审核 APPROVED） | 阶段 0 对 S09 PASS（🔴0；🟡×2 记录更正类 → T0 清偿：index 注释实删 + progress 里程碑行×2） |
+| 10 | 2026-09-03 | anysearch 第六成员 | ✅ | docs/sessions/2026-09-03-session-10.md（信封规格 HTTP 自实现 + content→snippet 补映射 + BUILT_IN 尾部追加 + 第 6 卡 + 池化自动享用 + 共存语义在档；阶段 2 **三轮**审核 APPROVED + 阶段 4/5 PASS/COMPLETE） | 🟡+1→0（门墙表 lint files 45→47 转录勘误，T10 清偿）+🟢 新登记（anysearch fetch 面 v1 不做） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 10（🚧 进行中，2026-09-03 启动；阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进——披露，S03-S07/S09 同款兜底口径）
-- **所处里程碑**: M7 功能扩展（🚧 S10 anysearch 成员棒执行中；S09 ✅；余 S11 溯源增强）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S12）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞 S10）
-- **上一棒**: Session 09（多 APIKEY 池 + 选择策略：extraApiKeyEnvs 多 ref 池 + 三策略 wire 实证 + GUI 列表 + 热通路，provider 零改动）— 记录：docs/sessions/2026-09-03-session-09.md
-- **下一棒**: 本棒 S10 执行中（plan 010 T0-T10）；收官后 = S11 session 溯源增强（M7 第 3 棒）
-- **活跃债务**: 🔴×0 🟡×0 🟢×2（fetch 排序/恢复默认按钮）+ L-2 + 观察（tsdown 弃用/sourcemap/s06 mtime/i18n CI S12 项；牙齿证明惯例候选；index 注释已收敛）+ v2 backlog（余额/积分看板 ADR-0008 缓议）——正本：progress-M7 台账 + plan 009 债务映射节
-- **更新时间**: 2026-09-03（S10 启动刷新）
+- **当前 session**: 无进行中（Session 10 ✅ 2026-09-03 收官）
+- **所处里程碑**: M7 功能扩展（🚧 S09 ✅、S10 anysearch 成员 ✅；余 S11 溯源增强 = 下一棒）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S12）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞 S11）
+- **上一棒**: Session 10（anysearch 第六成员：信封规格 HTTP 自实现 + content→snippet 补映射 + 第 6 卡 + 池化自动享用 + 共存语义）— 记录：docs/sessions/2026-09-03-session-10.md
+- **下一棒**: roadmap M7 段 = Session 11（session 搜索溯源增强；ADR-0010 接管 tool.call.toolview web_search 卡 priority shadow；成员名映射复用 controller MEMBERS label 常量）
+- **活跃债务**: 🔴×0 🟡×0 🟢×3（fetch 排序/恢复默认按钮/anysearch fetch 面 v1 不做）+ L-2 + 观察（tsdown 弃用/sourcemap/s06 mtime/i18n CI S12 项；牙齿证明惯例候选；providers 机械行逗号风格）+ v2 backlog（余额/积分看板 ADR-0008 缓议）——正本：progress-M7 台账 + plan 010 债务映射节
+- **更新时间**: 2026-09-03（S10 阶段 6 收尾）
