@@ -60,6 +60,13 @@ export const MEMBER_ERROR_CODES = {
     badResponse: 'DSHWS_PERPLEXITY_BAD_RESPONSE',
     aborted: 'DSHWS_PERPLEXITY_ABORTED',
   },
+  anysearch: {
+    credentialMissing: 'DSHWS_ANYSEARCH_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_ANYSEARCH_REQUEST_FAILED',
+    httpError: 'DSHWS_ANYSEARCH_HTTP_ERROR',
+    badResponse: 'DSHWS_ANYSEARCH_BAD_RESPONSE',
+    aborted: 'DSHWS_ANYSEARCH_ABORTED',
+  },
 } as const
 
 /** Domain error with a machine-routable string code and the standard `cause` slot. */

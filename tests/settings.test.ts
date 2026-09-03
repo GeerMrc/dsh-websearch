@@ -68,7 +68,7 @@ describe('LiveResolvedConfig', () => {
     live.setSource(() => ({}))
     expect(live.current().perMemberTimeoutMs).toBe(30000)
     expect(live.current().perplexity.enabled).toBe(true)
-    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek'])
+    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
   })
 })
 

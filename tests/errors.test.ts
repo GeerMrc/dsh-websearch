@@ -46,6 +46,13 @@ describe('error code catalog', () => {
       badResponse: 'DSHWS_EXA_BAD_RESPONSE',
       aborted: 'DSHWS_EXA_ABORTED',
     })
+    expect(MEMBER_ERROR_CODES.anysearch).toEqual({
+      credentialMissing: 'DSHWS_ANYSEARCH_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_ANYSEARCH_REQUEST_FAILED',
+      httpError: 'DSHWS_ANYSEARCH_HTTP_ERROR',
+      badResponse: 'DSHWS_ANYSEARCH_BAD_RESPONSE',
+      aborted: 'DSHWS_ANYSEARCH_ABORTED',
+    })
     expect(MEMBER_ERROR_CODES.perplexity).toEqual({
       credentialMissing: 'DSHWS_PERPLEXITY_CREDENTIAL_MISSING',
       requestFailed: 'DSHWS_PERPLEXITY_REQUEST_FAILED',
