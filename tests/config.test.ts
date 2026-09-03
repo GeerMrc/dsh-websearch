@@ -10,6 +10,7 @@ describe('resolveConfig', () => {
       'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-deepseek',
+      'dshws-anysearch',
     ])
     expect(resolved.searchChain).toEqual(BUILT_IN_MEMBER_ORDER)
     expect(resolved.fetchChain).toEqual(BUILT_IN_MEMBER_ORDER)
@@ -60,6 +61,30 @@ describe('resolveConfig', () => {
     expect(resolved.exa.keySelection).toBe('order')
   })
 
+  it('defaults the anysearch section like the other members (ADR-0009)', () => {
+    const resolved = resolveConfig({})
+    expect(resolved.anysearch).toEqual({
+      enabled: true,
+      apiKeyEnv: 'ANYSEARCH_API_KEY',
+      extraApiKeyEnvs: [],
+      keySelection: 'order',
+    })
+  })
+
+  it('passes through anysearch overrides including zone (ADR-0009)', () => {
+    const resolved = resolveConfig({
+      anysearch: { apiKeyEnv: 'MY_ANYSEARCH_KEY', baseURL: 'https://anysearch.example', zone: 'cn' },
+    })
+    expect(resolved.anysearch).toEqual({
+      enabled: true,
+      apiKeyEnv: 'MY_ANYSEARCH_KEY',
+      baseURL: 'https://anysearch.example',
+      zone: 'cn',
+      extraApiKeyEnvs: [],
+      keySelection: 'order',
+    })
+  })
+
   it('honors explicit provider section overrides and passes provider options through', () => {
     const resolved = resolveConfig({
       tavily: { enabled: false },
@@ -87,6 +112,7 @@ describe('Config schema', () => {
       firecrawl: { extraApiKeyEnvs: [] },
       exa: { extraApiKeyEnvs: [] },
       perplexity: { extraApiKeyEnvs: [] },
+      anysearch: { extraApiKeyEnvs: [] },
     })
   })
 
@@ -103,6 +129,11 @@ describe('Config schema', () => {
     const numeric = { exa: { keySelection: 42 } } as unknown as Config
     expect(() => Config(bogus)).toThrow()
     expect(() => Config(numeric)).toThrow()
+  })
+
+  it('rejects an invalid anysearch zone at the schema', () => {
+    const hostile = { anysearch: { zone: 'mars' } } as unknown as Config
+    expect(() => Config(hostile)).toThrow()
   })
 
   it('rejects a non-string extra pool ref at runtime', () => {

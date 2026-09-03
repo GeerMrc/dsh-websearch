@@ -15,6 +15,7 @@ export const BUILT_IN_MEMBER_ORDER: readonly string[] = [
   'dshws-perplexity',
   'dshws-firecrawl',
   'dshws-deepseek',
+  'dshws-anysearch',
 ]
 
 /** Per-member timeout budget applied when the config omits one (ADR-0002). */
@@ -103,6 +104,22 @@ export interface PerplexitySettings {
   keySelection?: KeySelection
 }
 
+/** Anysearch member settings (`dshws-anysearch`, ADR-0009). */
+export interface AnysearchSettings {
+  /** Defaults to `true`. Hot: settings changes apply to the next search. */
+  enabled?: boolean
+  /** Defaults to `ANYSEARCH_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  apiKeyEnv?: string
+  /** API endpoint base; provider default applies when omitted. Launch-static: a settings change applies at next launch. */
+  baseURL?: string
+  /** Regional zone passed through to the request body; omitted = not sent. Launch-static. */
+  zone?: 'cn' | 'intl'
+  /** Additional credential refs forming the member's key pool after `apiKeyEnv` (ADR-0008). Hot: settings changes apply to the next search. */
+  extraApiKeyEnvs?: string[]
+  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  keySelection?: KeySelection
+}
+
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
 export interface Config {
   /** Search priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. Unknown ids are skipped at call time. Hot: settings changes apply to the next search. */
@@ -121,6 +138,8 @@ export interface Config {
   exa?: ExaSettings
   /** Perplexity member settings. */
   perplexity?: PerplexitySettings
+  /** Anysearch member settings (ADR-0009). */
+  anysearch?: AnysearchSettings
 }
 
 /** Validation schema the cordis loader applies to the `dsh-websearch` config section. */
@@ -168,6 +187,14 @@ export const Config: z<Config> = z.object({
     extraApiKeyEnvs: z.array(z.string()),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
+  anysearch: z.object({
+    enabled: z.boolean(),
+    apiKeyEnv: z.string(),
+    baseURL: z.string(),
+    zone: z.union(['cn', 'intl']),
+    extraApiKeyEnvs: z.array(z.string()),
+    keySelection: z.union(['order', 'round-robin', 'random']),
+  }),
 })
 
 /** Fully defaulted settings for one member. */
@@ -211,6 +238,17 @@ export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 
 }
 
 /** Fully defaulted settings for one member. */
+export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 'enabled' | 'apiKeyEnv'>> {
+  baseURL?: string
+  /** Regional zone passed to the request body; absent = not sent. */
+  zone?: 'cn' | 'intl'
+  /** Remaining credential refs of the pool after `apiKeyEnv`; empty when the member is single-key (ADR-0008). */
+  extraApiKeyEnvs: string[]
+  /** Pool selection policy (ADR-0008). */
+  keySelection: KeySelection
+}
+
+/** Fully defaulted settings for one member. */
 export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   model?: string
@@ -233,6 +271,7 @@ export interface ResolvedWebSearchConfig {
   readonly firecrawl: FirecrawlMemberConfig
   readonly exa: ExaMemberConfig
   readonly perplexity: PerplexityMemberConfig
+  readonly anysearch: AnysearchMemberConfig
 }
 
 /**
@@ -286,6 +325,14 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.perplexity?.keySelection ?? 'order',
       baseURL: config.perplexity?.baseURL,
       model: config.perplexity?.model,
+    },
+    anysearch: {
+      enabled: config.anysearch?.enabled ?? true,
+      apiKeyEnv: config.anysearch?.apiKeyEnv ?? 'ANYSEARCH_API_KEY',
+      baseURL: config.anysearch?.baseURL,
+      zone: config.anysearch?.zone,
+      extraApiKeyEnvs: config.anysearch?.extraApiKeyEnvs ?? [],
+      keySelection: config.anysearch?.keySelection ?? 'order',
     },
   }
 }
