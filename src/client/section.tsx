@@ -142,9 +142,10 @@ const statusDotStyle = (configured: boolean) =>
       : 'var(--dsw-alias-state-warn-label)',
   }) as const
 
+// The Input primitive's own wrapper carries the full field visual (32px, r8,
+// bg-layer-1, border) — only the width needs asserting here.
 const inputStyle = {
   width: '100%',
-  boxSizing: 'border-box' as const,
 } as const
 
 /** Chain rows render the brand label; ids stay the test/action payload (D3). */
@@ -204,7 +205,6 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
               <li key={id} data-testid={`dshws-chain-item-${id}`} style={chainRowStyle}>
                 <span style={chainIndexStyle}>{index + 1}</span>
                 <span data-dshws-chain-label="">{labelOf(id)}</span>
-                <span style={{ flex: 1 }} />
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"

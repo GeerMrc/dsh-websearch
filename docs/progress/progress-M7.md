@@ -124,8 +124,8 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T1 | 成员卡结构重排：头行（名+自绘状态点三件套+右开关 36×20 thumb）/输入独占行/hint 行（格式化文案）/footer（Clear+Save+feedback）；keyFieldNoteExample 删（21 keys） | 完成（`8f46952`；红 5 failed〔含 Input wrapper 假绿修正+旧 feedback 块漏网双渲染清除〕→ 绿 48 passed；typecheck 0；i18n 21） |
 | T2 | 链区块收敛：未配置隐藏/紧凑链卡（12px 标题+badge+hint 顺序串+grid 行+28px 图标钮+280 滚动）/timeout hint 化/失败反馈红字行/fetchChain 展示移除/页头 intro+max-width 720；ⓘ/Tooltip 全撤（20 keys） | 完成（`5f70466`；红 4 failed → 绿 49 passed；数据面 fetchChain 字段不动；grep 活引用面零残留） |
 | T3 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见下节门墙表；提交态 5f70466） |
-| T4 | 浏览器实测棒（3419，起前 lsof 查占）：computed style 断言 + 未配置/已配置截图 | 待启动 |
-| T5 | 阶段 4/5 独立验证 | 待启动 |
+| T4 | 浏览器实测棒（3419，起前 lsof 查占=空闲）：computed style 断言 + 双态截图 + 复原 | 完成（卡 padding 12/14+radius 12；输入 wrapper 高 32/r8/layer-1——**实测发现 Input 原语 wrapper 自带全部字段视觉，height:32 冗余已撤**；hint 12/18；thumb translateX(16px)；状态点 role=img aria "Not configured"；未配置态链区块不存在=0；已配置态链卡 1+品牌名行+绿开关+顺序 hint；**grid 行 5 元素占位 span 残留致 ↓ 换行——删除后 4 元素同线 rowH 40**；截图×3 与 /tmp/dshws-s12a/ 实物；Clear 复原凭据零残留；**同版本 tarball 重复 add 被 pnpm 跳过——rm node_modules 强制重装**；3416/3080/61518 零接触） |
+| T5 | 阶段 4/5 独立验证 | 进行中 |
 | T6 | 收尾：session-12a 补全 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 待启动 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
