@@ -16,6 +16,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { Button, IconQuestionOutline14, Input, StateDot, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
+import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
 import type { DshWsLocaleKey } from './locales.ts'
 
@@ -80,6 +81,9 @@ const switchStyle = (configured: boolean, enabled: boolean) =>
         : 'var(--dsw-alias-border-l2)',
   }) as const
 
+/** Chain rows render the brand label; ids stay the test/action payload (D3). */
+const labelOf = (id: string): string => MEMBERS.find((member) => member.memberId === id)?.label ?? id
+
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
   const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch } = props
@@ -89,6 +93,10 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
     const result = await onMoveSearch(id, delta)
     setChainFeedback(result.ok ? undefined : 'failed')
   }
+
+  const visibleSearch = snapshot.searchChain.filter((id) =>
+    snapshot.members.some((m) => m.memberId === id && m.configured),
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -114,13 +122,15 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
         </div>
         <ol data-testid="dshws-search-chain" style={{ margin: 0, paddingLeft: 20 }}>
-          {snapshot.searchChain.filter((id) => snapshot.members.some((m) => m.key === id.replace('dshws-', '') && m.configured)).map((id, index) => (
+          {/* Disabled boundaries follow the FILTERED (visible) list: computing them
+          against the full chain left the last visible ↓ clickable and failing. */}
+          {visibleSearch.map((id, index) => (
             <li key={id} data-testid={`dshws-chain-item-${id}`} style={chainItemStyle}>
-              <span>{id}</span>
+              <span>{labelOf(id)}</span>
               {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
               <button
                 type="button"
-                aria-label={`${id} ${t('moveUp')}`}
+                aria-label={`${labelOf(id)} ${t('moveUp')}`}
                 disabled={index === 0}
                 onClick={() => void move(id, -1)}
                 style={moveButtonStyle}
@@ -129,8 +139,8 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
               </button>
               <button
                 type="button"
-                aria-label={`${id} ${t('moveDown')}`}
-                disabled={index === snapshot.searchChain.length - 1}
+                aria-label={`${labelOf(id)} ${t('moveDown')}`}
+                disabled={index === visibleSearch.length - 1}
                 onClick={() => void move(id, 1)}
                 style={moveButtonStyle}
               >
@@ -146,7 +156,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         <ol data-testid="dshws-fetch-chain" style={{ margin: 0, paddingLeft: 20 }}>
           {snapshot.fetchChain.map((id) => (
             <li key={id}>
-              <span>{id}</span>
+              <span>{labelOf(id)}</span>
             </li>
           ))}
         </ol>

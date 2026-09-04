@@ -13,12 +13,14 @@ import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 // which this stub pins to the own dictionary.
 const t: TranslateNS<'dsh-websearch'> = (key) => en[key as DshWsLocaleKey] ?? key
 
-const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek']
+const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch']
+const BRANDS = ['Tavily', 'Exa', 'Perplexity', 'Firecrawl', 'DeepSeek', 'AnySearch']
 
 function member(key: string, label: string, overrides: Partial<MemberSnapshot> = {}): MemberSnapshot {
   return {
     key,
     label,
+    memberId: `dshws-${key}`,
     refName: `${key.toUpperCase()}_API_KEY`,
     enabled: true,
     configured: true,
@@ -35,6 +37,7 @@ function defaultMembers(): MemberSnapshot[] {
     member('perplexity', 'Perplexity'),
     member('firecrawl', 'Firecrawl'),
     member('deepseek', 'DeepSeek'),
+    member('anysearch', 'AnySearch'),
       ]
 }
 
@@ -68,9 +71,10 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    expect(cards.length).toBe(5)
-    expect(screen.getByText('Tavily')).toBeTruthy()
-    expect(screen.getByText('DeepSeek')).toBeTruthy()
+    expect(cards.length).toBe(6)
+    // Scoped to the cards grid: the brand label also renders in chain rows.
+    expect(within(screen.getByTestId('dshws-members')).getByText('Tavily')).toBeTruthy()
+    expect(within(screen.getByTestId('dshws-members')).getByText('AnySearch')).toBeTruthy()
   })
 
   it('renders localized heading and description through the t seat', () => {
@@ -141,13 +145,13 @@ describe('WebSearchSettingsSection', () => {
     expect((exaClear as HTMLButtonElement).disabled).toBe(true)
   })
 
-  it('renders both chains in snapshot order plus the timeout budget', () => {
+  it('renders both chains as brand names in snapshot order plus the timeout budget (反馈③)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
     const lists = chains.querySelectorAll('ol')
     expect(lists.length).toBe(2)
     for (const list of lists) {
-      expect(Array.from(list.querySelectorAll('li > span')).map((span) => span.textContent)).toEqual(BUILT_IN)
+      expect(Array.from(list.querySelectorAll('li > span')).map((span) => span.textContent)).toEqual(BRANDS)
     }
     expect(chains.textContent).toContain('30000')
   })
@@ -158,22 +162,22 @@ describe('WebSearchSettingsSection', () => {
     const fetchList = container.querySelector('[data-testid="dshws-fetch-chain"]')!
     const upButtons = searchList.querySelectorAll('button[aria-label$="Move up"]')
     const downButtons = searchList.querySelectorAll('button[aria-label$="Move down"]')
-    expect(upButtons.length).toBe(5)
-    expect(downButtons.length).toBe(5)
-    expect(screen.getByRole('button', { name: 'dshws-tavily Move up' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'dshws-exa Move down' })).toBeTruthy()
+    expect(upButtons.length).toBe(6)
+    expect(downButtons.length).toBe(6)
+    expect(screen.getByRole('button', { name: 'Tavily Move up' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Exa Move down' })).toBeTruthy()
     expect(fetchList.querySelectorAll('button').length).toBe(0)
   })
 
   it('boundary move buttons disable at the ends of the search chain', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    const firstUp = searchList.querySelector('button[aria-label="dshws-tavily Move up"]') as HTMLButtonElement
-    const firstDown = searchList.querySelector('button[aria-label="dshws-tavily Move down"]') as HTMLButtonElement
+    const firstUp = searchList.querySelector('button[aria-label="Tavily Move up"]') as HTMLButtonElement
+    const firstDown = searchList.querySelector('button[aria-label="Tavily Move down"]') as HTMLButtonElement
     const lastDown = searchList.querySelector(
-      'button[aria-label="dshws-deepseek Move down"]',
+      'button[aria-label="AnySearch Move down"]',
     ) as HTMLButtonElement
-    const lastUp = searchList.querySelector('button[aria-label="dshws-deepseek Move up"]') as HTMLButtonElement
+    const lastUp = searchList.querySelector('button[aria-label="AnySearch Move up"]') as HTMLButtonElement
     expect(firstUp.disabled).toBe(true)
     expect(firstDown.disabled).toBe(false)
     expect(lastUp.disabled).toBe(false)
@@ -184,9 +188,9 @@ describe('WebSearchSettingsSection', () => {
     const onMoveSearch = vi.fn(async () => ({ ok: true }) as ActionResult)
     const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveSearch })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    fireEvent.click(searchList.querySelector('button[aria-label="dshws-exa Move up"]')!)
+    fireEvent.click(searchList.querySelector('button[aria-label="Exa Move up"]')!)
     await waitFor(() => expect(onMoveSearch).toHaveBeenCalledWith('dshws-exa', -1))
-    fireEvent.click(searchList.querySelector('button[aria-label="dshws-tavily Move down"]')!)
+    fireEvent.click(searchList.querySelector('button[aria-label="Tavily Move down"]')!)
     await waitFor(() => expect(onMoveSearch).toHaveBeenCalledWith('dshws-tavily', 1))
   })
 
@@ -266,19 +270,30 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.queryByRole('tooltip')).toBeNull()
   })
 
-  it('unconfigured members are hidden from the priority list (过滤未配置)', () => {
-    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+  it('unconfigured members are hidden from the priority list and the visible end is disabled (过滤未配置——S11 🟡1 清偿 + 边界修复)', () => {
+    const members = defaultMembers()
+    members[1] = member('exa', 'Exa', { configured: false })
+    members[5] = member('anysearch', 'AnySearch', { configured: false })
+    const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    // All members are configured:true in the default fixture — all visible.
-    const visibleIds = [...searchList.querySelectorAll('li > span')].map((span) => span.textContent)
-    expect(visibleIds).toEqual(BUILT_IN)
+    const visible = [...searchList.querySelectorAll('li > span')].map((span) => span.textContent)
+    expect(visible).toEqual(['Tavily', 'Perplexity', 'Firecrawl', 'DeepSeek'])
+    // The disabled boundary must follow the FILTERED list: the last visible
+    // item's down button is disabled (previously computed against the full
+    // chain length, so it stayed clickable and reported a bogus failure).
+    const firstUp = searchList.querySelector('button[aria-label="Tavily Move up"]') as HTMLButtonElement
+    const lastDown = searchList.querySelector('button[aria-label="DeepSeek Move down"]') as HTMLButtonElement
+    const lastUp = searchList.querySelector('button[aria-label="DeepSeek Move up"]') as HTMLButtonElement
+    expect(firstUp.disabled).toBe(true)
+    expect(lastDown.disabled).toBe(true)
+    expect(lastUp.disabled).toBe(false)
   })
 
   it('a failed move shows failed feedback and a later success clears it', async () => {
     const onMoveSearch = vi.fn(async () => ({ ok: false }) as ActionResult)
     const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveSearch })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    fireEvent.click(searchList.querySelector('button[aria-label="dshws-exa Move up"]')!)
+    fireEvent.click(searchList.querySelector('button[aria-label="Exa Move up"]')!)
     await waitFor(() => expect(screen.getByTestId('dshws-chain-feedback').textContent).toBe(en.failed))
 
     const succeeding = vi.fn(async () => ({ ok: true }) as ActionResult)
@@ -286,7 +301,7 @@ describe('WebSearchSettingsSection', () => {
       <WebSearchSettingsSection {...makeProps({ onMoveSearch: succeeding })} t={t} />,
     )
     const list = rerendered.container.querySelector('[data-testid="dshws-search-chain"]')!
-    fireEvent.click(list.querySelector('button[aria-label="dshws-exa Move up"]')!)
+    fireEvent.click(list.querySelector('button[aria-label="Exa Move up"]')!)
     await waitFor(() => expect(succeeding).toHaveBeenCalled())
     // Scoped to the fresh instance: the first container is still mounted until
     // afterEach cleanup, so a document-wide query would hit its leftover span.

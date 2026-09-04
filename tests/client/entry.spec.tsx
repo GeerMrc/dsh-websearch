@@ -115,7 +115,8 @@ describe('client entry', () => {
 
     render(<Component t={t} />)
     await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(6))
-    expect(screen.getByText('Tavily')).toBeTruthy()
+    // Scoped to the cards grid: the brand label also renders in chain rows.
+    expect(within(screen.getByTestId('dshws-members')).getByText('Tavily')).toBeTruthy()
   })
 
   it('saving a key in the bound section reaches ctx.remote.credentials.set', async () => {
