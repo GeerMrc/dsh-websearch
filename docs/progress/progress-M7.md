@@ -104,7 +104,7 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T4 | 反馈④：ChainStateBadge default 态 ⓘ（结构同 T1）+ Tooltip 出「chainDefaultHint + MEMBERS labels join(' → ')」动态顺序 + pinned 态无 ⓘ | 完成（`0b04c38`；红 1 failed\|17 passed → 绿 45 passed；i18n 22 keys；测试自撞（全局 aria 计数 vs 成员卡 switch）当场修正） |
 | T5 | S11 🟡2/🟡3 清偿：controller.spec 混合序列交换断言（跳过两个未配置成员交换+原位保持+末位越界 not-ok）+ 双牙齿探针（A：破坏跳过循环 → patch 断言红；B：loopback 轮换 order 化 → 恒序红） | 完成（`c040a98`；探针 A 红 1 failed\|16 passed/探针 B 红 expected Bearer k1×3——均还原绿；还原后 28 passed） |
 | T6 | 门墙七命令（提交态）+ 本台账/门墙表 + Agent Note（docs/notes/2026-09-04-s12-uiux-alignment.md） | 完成（数字见下节门墙表；提交态 c040a98） |
-| T7 | 浏览器实测棒（scratch 3417，3416 零接触）：S11 遗留五断言（🟡4）+ S12 新四项 | 进行中 |
+| T7 | 浏览器实测棒（scratch 3418，3416/3080/残留 61518 零接触）：S11 遗留五断言（🟡4）+ S12 新四项 | 完成（九项断言全过留痕：①ⓘ anchor 六卡 ②keyFieldNote tooltip 含示例+blur 收 ③默认序 ⓘ tooltip 含动态六品牌顺序 ④未配开关 disabled+灰 rgba(255,255,255,.12) ⑤已配开=绿 rgb(34,197,94) ⑥链行品牌名（fetch 六行+搜索链混合两行）⑦搜索链全未配置空列表〔S11 🟡1 浏览器面〕⑧可见列表边界（首↑/末↓ disabled）⑨逗号 3 把→保存→凭据落盘（.credentials.yaml len=8 keys=3）+ Clear→refs 全清复原；截图+文件证据 /tmp/dshws-s12/；**披露：超限 11 把 = 凭据层诚实落盘不拦（keys=11 文件实证），拦截在搜索期（keys.test:101-107 fail-loud 单测在档）——S11 plan T6「GUI 拦截」预期按实测修正（plan 012 风险预案）**；3417 被凌晨残留实例占用（pid 61518，DSH_HOME=/tmp/dshws-review），未 kill 改用 3418） |
 | T8 | 阶段 4/5 独立验证（含 S11 案卷复验闭合） | 待启动 |
 | T9 | 收尾：session-12 记录 + S11 台账翻账 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 待启动 |
 
