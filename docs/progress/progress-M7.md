@@ -145,8 +145,8 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T1 | 页头单图标：六卡 hint 删 + h3 后 IconQuestionOutline14+Tooltip（keyFieldNote 文案） | 完成（`ba61392`；红 1 failed → 绿 49 passed；i18n 20 keys 不变） |
 | T2 | DeepSeek 澄清 badge：头行 11px 胶囊（title 展开句）+ 两新键（22 keys） | 完成（`1708cbe`；红 1 failed → 绿 50 passed；typecheck 0） |
 | T3 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note（两级调用逻辑表 + DeepSeek 结论） | 完成（数字见门墙表 12b 行；提交态 1708cbe） |
-| T4 | 浏览器实测棒（3420，起前查占）：页头图标 hover/六卡无 hint/deepseek badge/截图归档 | 待启动 |
-| T5 | 阶段 4/5 独立验证 | 待启动 |
+| T4 | 浏览器实测棒（3420，起前查占=空闲）：页头图标 tooltip/六卡 hint 零残留/deepseek badge/截图归档 | 完成（页头 anchor+tooltip 文案亲见〔**focus() 在 webview 后台态不生效——focusin 冒泡触发**，手法沉淀〕；六卡 hint 0；badge text+title 完整且他卡零污染；未配置链区块 0+开关灰；截图 screenshot-header-tooltip.png 归档 /tmp/dshws-s12b/；无 fake 值写入故无复原面；3416/3080/61518 零接触） |
+| T5 | 阶段 4/5 独立验证 | 进行中 |
 | T6 | 收尾：session-12b 补全 + 原子收官（dont-do ⑤ ls 清单）+ merge + 接力指令 | 待启动 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
