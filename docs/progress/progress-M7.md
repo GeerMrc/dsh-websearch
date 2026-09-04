@@ -82,6 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
+| 12a | ①`pnpm test` → **251 passed \| 9 skipped (260)**（257→260：+3 净增 = T1 新 4−删 1 + T2 改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.03→24.80 kB**（结构重排）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**20 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12a T3 提交态亲跑（node v24.3.0） |
 | S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑 + T8 独立复验零偏差（node v24.3.0） |
 
 ### S12 UI/UX 对齐批（2026-09-04，分支 feat/s12-uiux-alignment）
@@ -107,6 +108,25 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T7 | 浏览器实测棒（scratch 3418，3416/3080/残留 61518 零接触）：S11 遗留五断言（🟡4）+ S12 新四项 | 完成（九项断言全过留痕：①ⓘ anchor 六卡 ②keyFieldNote tooltip 含示例+blur 收 ③默认序 ⓘ tooltip 含动态六品牌顺序 ④未配开关 disabled+灰 rgba(255,255,255,.12) ⑤已配开=绿 rgb(34,197,94) ⑥链行品牌名（fetch 六行+搜索链混合两行）⑦搜索链全未配置空列表〔S11 🟡1 浏览器面〕⑧可见列表边界（首↑/末↓ disabled）⑨逗号 3 把→保存→凭据落盘（.credentials.yaml len=8 keys=3）+ Clear→refs 全清复原；截图+文件证据 /tmp/dshws-s12/；**披露：超限 11 把 = 凭据层诚实落盘不拦（keys=11 文件实证），拦截在搜索期（实现 src/keys.ts:101-107 + 单测 tests/keys.test.ts:89-95——T8 🟡-3 行号勘正）——S11 plan T6「GUI 拦截」预期按实测修正（plan 012 风险预案）**；3417 被凌晨残留实例占用（pid 61518，DSH_HOME=/tmp/dshws-review），未 kill 改用 3418） |
 | T8 | 阶段 4/5 独立验证（含 S11 案卷复验闭合） | **PASS / COMPLETE**（R1-R7 逐条 PASS + 门墙七命令亲跑零偏差 + 提交链 8 枚逐枚一致 + S11 案卷闭合判定成立〔stage45 补完清单五腿全清偿 + plan 011 浏览器腿代偿成立〕+ 探针 A 独立重演红亲证 + 安全/契约/前瞻三问全过 + 冒烟四项留痕；🟡×3 记录类〔ADR 前向引用×3/fallback 论证面/行号转录〕随 T9 勘正清偿；audit-log 正本 docs/sessions/audit-logs/2026-09-04-s12-stage45-verification.md） |
 | T9 | 收尾：session-12 记录 + S11 台账翻账 + 🟡×3 勘正 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 完成（本序列） |
+
+### 12a 设置页布局重构批（2026-09-04，分支 feat/s12a-settings-redesign）
+
+阶段 0 独立采信审核（无产品变更分支）**PASS**（🔴×0；🟡×1=用户二轮反馈四点=本棒主体；
+冒烟 46 passed 自洽；正本 …/2026-09-04-s12a-stage0-review-of-s12.md）→ plan 012a →
+阶段 2 两轮（轮 1 NEEDS REVISION 必改×4〔阶段 0 条款错锚+自核/骨架未入 T0/启动状态区
+漏项/状态点 a11y 断裂〕+ 建议×6 → 全数吸收 → 轮 2 **APPROVED**；正本
+…/2026-09-04-s12a-stage2-plan-review.md）→ 阶段 2.5 **用户真实批准**（第 5 次「批准，
+自主推进」，含两处字面表述替换裁定：去图标改 hint 行/页头静态 intro）→ 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 012a + 阶段 0/2 audit-log + roadmap 12a 插行 + 启动全状态区（STATUS 台账/位置块/M7 总览行 + progress-M7 三处）+ session-12a 骨架 | 完成（`da4df11`） |
+| T1 | 成员卡结构重排：头行（名+自绘状态点三件套+右开关 36×20 thumb）/输入独占行/hint 行（格式化文案）/footer（Clear+Save+feedback）；keyFieldNoteExample 删（21 keys） | 完成（`8f46952`；红 5 failed〔含 Input wrapper 假绿修正+旧 feedback 块漏网双渲染清除〕→ 绿 48 passed；typecheck 0；i18n 21） |
+| T2 | 链区块收敛：未配置隐藏/紧凑链卡（12px 标题+badge+hint 顺序串+grid 行+28px 图标钮+280 滚动）/timeout hint 化/失败反馈红字行/fetchChain 展示移除/页头 intro+max-width 720；ⓘ/Tooltip 全撤（20 keys） | 完成（`5f70466`；红 4 failed → 绿 49 passed；数据面 fetchChain 字段不动；grep 活引用面零残留） |
+| T3 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见下节门墙表；提交态 5f70466） |
+| T4 | 浏览器实测棒（3419，起前 lsof 查占）：computed style 断言 + 未配置/已配置截图 | 待启动 |
+| T5 | 阶段 4/5 独立验证 | 待启动 |
+| T6 | 收尾：session-12a 补全 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 待启动 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
