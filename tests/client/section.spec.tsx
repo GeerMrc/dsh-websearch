@@ -248,16 +248,16 @@ describe('WebSearchSettingsSection', () => {
     )
   })
 
-  it('the key note is a static hint paragraph below the input — no info icon anywhere (12a 反馈①②)', () => {
+  it('the key format note lives behind a single page-header icon (12b 反馈①)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const card = screen.getByTestId('dshws-member-tavily')
-    // Host convention: no label-side info icon, no tooltip bubble in settings.
-    expect(within(card).queryByRole('tooltip')).toBeNull()
-    expect(within(card).queryByRole('button', { name: en.keyFieldNote })).toBeNull()
-    // The formatted note sits as its own paragraph after the input row.
-    const hint = within(card).getByText(en.keyFieldNote)
-    expect(hint.tagName).toBe('P')
-    expect(en.keyFieldNote).toContain('{APIKEY1,APIKEY2,...}')
+    // Per-card hint paragraphs are gone — the note is stated once, page-level.
+    expect(within(screen.getByTestId('dshws-members')).queryByText(en.keyFieldNote)).toBeNull()
+    // One icon anchor after the heading; focus shows the formatted note.
+    const anchor = screen.getByRole('button', { name: en.keyFieldNote })
+    fireEvent.focus(anchor)
+    expect(screen.getByRole('tooltip').textContent).toBe(en.keyFieldNote)
+    fireEvent.blur(anchor)
+    expect(screen.queryByRole('tooltip')).toBeNull()
   })
 
   it('the card head row pairs a semantic status dot with the brand name and the switch (12a D1)', () => {

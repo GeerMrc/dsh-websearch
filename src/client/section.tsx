@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useState, useSyncExternalStore } from 'react'
-import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconQuestionOutline14, Input, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
@@ -87,6 +87,18 @@ const footerStyle = {
   alignItems: 'center',
   justifyContent: 'flex-end',
   gap: 8,
+} as const
+
+/** Page-header info anchor (12b): the single key-format note seat. */
+const infoButtonStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  color: 'inherit',
+  opacity: 0.6,
+  cursor: 'help',
 } as const
 
 const feedbackStyle = {
@@ -171,7 +183,16 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
       <div>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>{t('title')}</h3>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          {t('title')}
+          {/* Page-level key-format note (12b): stated once behind this icon instead
+          of repeated as a hint paragraph on every member card. */}
+          <Tooltip label={t('keyFieldNote')} side="bottom" delayMs={400} maxWidth={320}>
+            <button type="button" aria-label={t('keyFieldNote')} style={infoButtonStyle}>
+              <IconQuestionOutline14 />
+            </button>
+          </Tooltip>
+        </h3>
         <p style={{ margin: 0, marginTop: 4, fontSize: 14, lineHeight: '22px', color: 'var(--dsw-alias-label-tertiary)' }}>{t('description')}</p>
       </div>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -337,7 +358,6 @@ function MemberCard(props: {
         onChange={(event) => setDraft(event.target.value)}
         style={inputStyle}
       />
-      <p style={hintStyle}>{t('keyFieldNote')}</p>
       <div style={footerStyle}>
         {feedback ? (
           <span role="status" data-testid={`dshws-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
