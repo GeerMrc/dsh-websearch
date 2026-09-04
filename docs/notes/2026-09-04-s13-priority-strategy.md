@@ -38,5 +38,10 @@
   ——六卡渲染即 ReferenceError，jsdom 批红 25 failed 当场暴露（非静默假绿；与「原语
   wrapper 假绿」家族对照：wrapper 假绿是断言过松，本次是渲染硬错）。新增 prop 时
   解构/传递/Props 三处逐一核对。
+- **后台 webview locator click 不派发**：IAB 面板可见但后台态下，Playwright locator
+  click 对快照可见元素两次超时（actionability 不过）；`dom_cua.click` 返回成功但无
+  效果（假成功）。**可靠通路 = `cua.click` 坐标点击**（截图定位）。与 12b「后台态
+  focus() 不生效（focusin 冒泡触发）」同族——后台 webview 的输入派发面整体不可信，
+  逐动作以「预期效果出现」判定而非调用成功。
 - **门墙表锚点**：progress 门墙表按棒分行（S09/S10、S11、12b 各占一行），编辑时
   锚串必须含中间行——「头部 + 目标行」连续匹配会失败。

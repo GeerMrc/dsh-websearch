@@ -148,6 +148,7 @@ S09/S10 先例，披露双落 session 记录与 ADR-0012）→ 逐一执行中�
 | T2 | controller 通路（TDD）：MemberSectionValue/MemberSnapshot.keySelection（deriveSnapshot 默认 order）+ setKeySelection patch（revision 携带/冲突 not-ok）；section.spec 两 fixture helper 补必填字段（机械 accommodation） | 完成（`27dd261`；红 **3 failed\|17 passed** → 绿 controller 20 + section 22；typecheck 双面 0） |
 | T3 | 控件 + hint（TDD）：成员卡 role=group 三段 segmented（aria-pressed/未配置禁用/成员前缀 aria-label/bg-layer-1 pressed 视觉）+ hint 插值策略名（两级语义句）；locales +5 键（27） | 完成（`7aa0e5f`；红 **3 failed\|22 passed** → 绿 client 三 spec **50 passed**；typecheck 双面 0；check:i18n 27 keys parity + 17 files 零 CJK；**执行缺陷一处当场修复：Section 解构漏 onSetKeySelection（渲染即 ReferenceError 批红，无假绿）**） |
 | T4 | 门墙七命令（提交态 7aa0e5f）+ 本台账/门墙表 + Agent Note（docs/notes/2026-09-04-s13-priority-strategy.md） | 完成（数字见门墙表 S13 行） |
+| T5 | 浏览器实测棒（3421，起前 lsof 查占=空闲）：六卡控件/默认序/hint + fake 值→Configured 解禁 + 关开关→切 Random→settings.yaml 深合并同存 + 截图归档 + Clear 复原 | 完成（六卡 group×6 + Order pressed 默认 + 未配置禁用亲见；Random [pressed] + hint 实时「"Random"」；**实物在盘：settings.yaml `tavily: {enabled: false, keySelection: random}` 同存——deep-merge 兄弟字段存活实测**；截图 screenshot-tavily-random.png 归档 /tmp/dshws-s13/；Clear→Not configured+refs:{} 复原亲读〔browser-session grant=宿主自身连接密钥，非凭据〕；kill 17316 精确、3416/3080/61518 零接触；**坑：后台 webview locator click 不派发（两次超时）——cua 坐标点击通路可用，dom_cua click 假成功无效果**） |
 
 ### 12b 设置页信息收敛批（2026-09-04，分支 feat/s12b-page-info-deepseek）
 
