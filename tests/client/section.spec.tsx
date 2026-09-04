@@ -132,28 +132,33 @@ describe('WebSearchSettingsSection', () => {
     expect((exaClear as HTMLButtonElement).disabled).toBe(true)
   })
 
-  it('renders both chains as brand names in snapshot order plus the timeout budget (反馈③)', () => {
+  it('renders the search chain as a compact card with brand names and no fetch block (12a 反馈④)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
-    const lists = chains.querySelectorAll('ol')
-    expect(lists.length).toBe(2)
-    for (const list of lists) {
-      expect(Array.from(list.querySelectorAll('li > span')).map((span) => span.textContent)).toEqual(BRANDS)
-    }
+    // The read-only fetch chain block is gone; exactly one list remains.
+    expect(chains.querySelectorAll('ol').length).toBe(1)
+    expect(container.querySelector('[data-testid="dshws-fetch-chain"]')).toBeNull()
+    const rows = Array.from(chains.querySelectorAll('[data-dshws-chain-label]')).map((span) => span.textContent)
+    expect(rows).toEqual(BRANDS)
+    // The timeout folded into the card hint line.
     expect(chains.textContent).toContain('30000')
+  })
+
+  it('the chain section is hidden entirely while no member is configured (12a 反馈④)', () => {
+    const members = defaultMembers().map((m) => member(m.key, m.label, { configured: false }))
+    const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    expect(container.querySelector('[data-testid="dshws-chains"]')).toBeNull()
   })
 
   it('the search chain is reorderable and the fetch chain stays read-only', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    const fetchList = container.querySelector('[data-testid="dshws-fetch-chain"]')!
     const upButtons = searchList.querySelectorAll('button[aria-label$="Move up"]')
     const downButtons = searchList.querySelectorAll('button[aria-label$="Move down"]')
     expect(upButtons.length).toBe(6)
     expect(downButtons.length).toBe(6)
     expect(screen.getByRole('button', { name: 'Tavily Move up' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Exa Move down' })).toBeTruthy()
-    expect(fetchList.querySelectorAll('button').length).toBe(0)
   })
 
   it('boundary move buttons disable at the ends of the search chain', () => {
@@ -181,51 +186,28 @@ describe('WebSearchSettingsSection', () => {
     await waitFor(() => expect(onMoveSearch).toHaveBeenCalledWith('dshws-tavily', 1))
   })
 
-  it('chain badges reflect the pinned flags on both chains', () => {
+  it('the chain badge reflects the pinned flag on the search chain', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const badges = container.querySelectorAll('[data-dshws-chain-state]')
-    expect(badges.length).toBe(2)
-    for (const badge of badges) {
-      expect(badge.getAttribute('data-dshws-chain-state')).toBe('default')
-      expect(badge.textContent).toBe(en.chainDefault)
-    }
+    expect(badges.length).toBe(1)
+    expect(badges[0].getAttribute('data-dshws-chain-state')).toBe('default')
     cleanup()
-    const pinnedSnapshot: SectionSnapshot = {
-      ...makeSnapshot(),
-      searchChainPinned: true,
-      fetchChainPinned: true,
-    }
+    const pinnedSnapshot: SectionSnapshot = { ...makeSnapshot(), searchChainPinned: true }
     const pinned = render(<WebSearchSettingsSection {...makeProps({ snapshot: pinnedSnapshot })} t={t} />)
     const pinnedBadges = pinned.container.querySelectorAll('[data-dshws-chain-state]')
-    expect(pinnedBadges.length).toBe(2)
-    for (const badge of pinnedBadges) {
-      expect(badge.getAttribute('data-dshws-chain-state')).toBe('pinned')
-      expect(badge.textContent).toBe(en.chainPinned)
-    }
+    expect(pinnedBadges.length).toBe(1)
+    expect(pinnedBadges[0].getAttribute('data-dshws-chain-state')).toBe('pinned')
   })
 
-  it('the default-order badge carries an info tooltip explaining the built-in order (反馈④ ⓘ)', () => {
+  it('the chain card hint explains the built-in order with no info icon (12a 反馈④)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
-    // Both chains show the ⓘ next to the default badge; focus shows the order,
-    // derived from MEMBERS (never a hardcoded sequence).
-    const anchors = within(chains as HTMLElement).getAllByRole('button', { name: en.chainDefault })
-    expect(anchors.length).toBe(2)
-    fireEvent.focus(anchors[0])
-    const bubble = screen.getByRole('tooltip')
-    expect(bubble.textContent).toContain(en.chainDefaultHint)
-    expect(bubble.textContent).toContain(BRANDS.join(' → '))
-    fireEvent.blur(anchors[0])
-    expect(screen.queryByRole('tooltip')).toBeNull()
-    // A pinned order is user-authored — no ⓘ, nothing to explain.
-    cleanup()
-    const pinnedSnapshot: SectionSnapshot = {
-      ...makeSnapshot(),
-      searchChainPinned: true,
-      fetchChainPinned: true,
-    }
-    const pinned = render(<WebSearchSettingsSection {...makeProps({ snapshot: pinnedSnapshot })} t={t} />)
-    expect(within(pinned.container.querySelector('[data-testid="dshws-chains"]') as HTMLElement).queryByRole('button', { name: en.chainDefault })).toBeNull()
+    // The ⓘ/tooltip pattern is gone from the whole section.
+    expect(within(chains as HTMLElement).queryByRole('tooltip')).toBeNull()
+    expect(within(chains as HTMLElement).queryByRole('button', { name: en.chainDefault })).toBeNull()
+    // The hint line spells the semantics and derives the order from MEMBERS.
+    expect(chains.textContent).toContain(en.chainDefaultHint)
+    expect(chains.textContent).toContain(BRANDS.join(' → '))
   })
 
   it("an unconfigured member's switch is disabled (置灰断言)", () => {
@@ -321,7 +303,7 @@ describe('WebSearchSettingsSection', () => {
     members[5] = member('anysearch', 'AnySearch', { configured: false })
     const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    const visible = [...searchList.querySelectorAll('li > span')].map((span) => span.textContent)
+    const visible = [...searchList.querySelectorAll('[data-dshws-chain-label]')].map((span) => span.textContent)
     expect(visible).toEqual(['Tavily', 'Perplexity', 'Firecrawl', 'DeepSeek'])
     // The disabled boundary must follow the FILTERED list: the last visible
     // item's down button is disabled (previously computed against the full

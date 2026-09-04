@@ -25,7 +25,6 @@ export type DshWsLocaleKey =
   | 'configured'
   | 'notConfigured'
   | 'searchChain'
-  | 'fetchChain'
   | 'timeout'
   | 'saved'
   | 'cleared'
@@ -47,7 +46,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const en: Record<DshWsLocaleKey, string> = {
   nav: 'Web Search',
   title: 'Web Search',
-  description: 'Manage search provider priority, API keys, and member toggles.',
+  description: 'Manage search provider priority, API keys, and member toggles. Configured members are tried in chain order and the next one takes over on failure.',
   apiKey: 'API Key',
   save: 'Save',
   clear: 'Clear',
@@ -55,7 +54,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   configured: 'Configured',
   notConfigured: 'Not configured',
   searchChain: 'Search chain',
-  fetchChain: 'Fetch chain',
   timeout: 'Per-member timeout',
   saved: 'Saved',
   cleared: 'Cleared',
@@ -72,7 +70,7 @@ export const en: Record<DshWsLocaleKey, string> = {
 export const zh: Record<DshWsLocaleKey, string> = {
   nav: '网页搜索',
   title: '网页搜索',
-  description: '管理搜索引擎优先级、API key 与成员启停。',
+  description: '管理搜索引擎优先级、API key 与成员启停。已配置成员按链序依次尝试，失败自动降级到下一个。',
   apiKey: 'API Key',
   save: '保存',
   clear: '清除',
@@ -80,7 +78,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   configured: '已配置',
   notConfigured: '未配置',
   searchChain: '搜索链',
-  fetchChain: '抓取链',
   timeout: '单成员超时',
   saved: '已保存',
   cleared: '已清除',
