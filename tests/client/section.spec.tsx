@@ -83,19 +83,6 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByText(en.description)).toBeTruthy()
   })
 
-  it('the status dot maps configured to done and missing to warning', () => {
-    const members = defaultMembers()
-    members[0] = member('tavily', 'Tavily', { configured: true, source: 'file' })
-    members[1] = member('exa', 'Exa', { configured: false })
-    const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
-    const tavily = container.querySelector('[data-testid="dshws-member-tavily"]')!
-    expect(tavily.querySelector('[data-state="done"]')).toBeTruthy()
-    expect(tavily.textContent).toContain(en.configured)
-    const exa = container.querySelector('[data-testid="dshws-member-exa"]')!
-    expect(exa.querySelector('[data-state="warning"]')).toBeTruthy()
-    expect(exa.textContent).toContain(en.notConfigured)
-  })
-
   it('the switch reflects enabled and forwards toggle clicks', async () => {
     const onToggleEnabled = vi.fn(async () => ({ ok: true }) as ActionResult)
     const members = defaultMembers()
@@ -261,10 +248,10 @@ describe('WebSearchSettingsSection', () => {
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     const tavily = screen.getByRole('switch', { name: 'Tavily Enabled' }) as HTMLButtonElement
     expect(tavily.disabled).toBe(true)
-    expect(tavily.style.background).toBe('var(--dsw-alias-border-l2)')
+    expect(tavily.style.background).toBe('var(--dsw-alias-border-l3)')
     const exa = screen.getByRole('switch', { name: 'Exa Enabled' }) as HTMLButtonElement
     expect(exa.getAttribute('aria-checked')).toBe('false')
-    expect(exa.style.background).toBe('var(--dsw-alias-border-l2)')
+    expect(exa.style.background).toBe('var(--dsw-alias-border-l3)')
     const deepseek = screen.getByRole('switch', { name: 'DeepSeek Enabled' }) as HTMLButtonElement
     expect(deepseek.style.background).toBe('var(--dsw-alias-state-success-primary)')
     // Action feedback is a polite live region (host savedNotice convention);
@@ -279,19 +266,53 @@ describe('WebSearchSettingsSection', () => {
     )
   })
 
-  it('the key field shows the format note via a focusable info tooltip (反馈① ℹ️ hover)', () => {
+  it('the key note is a static hint paragraph below the input — no info icon anywhere (12a 反馈①②)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const card = screen.getByTestId('dshws-member-tavily')
-    // The permanent inline note is gone; the copy lives in the hover/focus bubble.
-    expect(within(card).queryByText(en.keyFieldNote)).toBeNull()
-    const anchor = within(card).getByRole('button', { name: en.keyFieldNote })
-    // Focus leg shows the bubble immediately (hover walks the delayMs timer).
-    fireEvent.focus(anchor)
-    const bubble = screen.getByRole('tooltip')
-    expect(bubble.textContent).toContain(en.keyFieldNote)
-    expect(bubble.textContent).toContain(en.keyFieldNoteExample)
-    fireEvent.blur(anchor)
-    expect(screen.queryByRole('tooltip')).toBeNull()
+    // Host convention: no label-side info icon, no tooltip bubble in settings.
+    expect(within(card).queryByRole('tooltip')).toBeNull()
+    expect(within(card).queryByRole('button', { name: en.keyFieldNote })).toBeNull()
+    // The formatted note sits as its own paragraph after the input row.
+    const hint = within(card).getByText(en.keyFieldNote)
+    expect(hint.tagName).toBe('P')
+    expect(en.keyFieldNote).toContain('{APIKEY1,APIKEY2,...}')
+  })
+
+  it('the card head row pairs a semantic status dot with the brand name and the switch (12a D1)', () => {
+    const members = defaultMembers()
+    members[0] = member('tavily', 'Tavily', { configured: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const tavilyDot = within(screen.getByTestId('dshws-member-tavily')).getByRole('img', { name: en.notConfigured })
+    expect(tavilyDot.getAttribute('title')).toBe(en.notConfigured)
+    const exaDot = within(screen.getByTestId('dshws-member-exa')).getByRole('img', { name: en.configured })
+    expect(exaDot.getAttribute('title')).toBe(en.configured)
+  })
+
+  it('the key input owns its line and the actions live in a separate footer row (12a 反馈③)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    const input = within(card).getByLabelText('Tavily API Key')
+    // The Input primitive wraps the field in a span; that wrapper must be a
+    // DIRECT child of the card (its own line), with no button in it.
+    const wrap = input.parentElement as HTMLElement
+    expect(wrap.parentElement).toBe(card)
+    expect(wrap.querySelector('button')).toBeNull()
+    // Save and Clear share a dedicated footer row.
+    const save = within(card).getByRole('button', { name: 'Tavily Save' })
+    const footer = save.parentElement as HTMLElement
+    expect(within(footer).getByRole('button', { name: 'Tavily Clear' })).toBeTruthy()
+    expect(footer).not.toBe(wrap)
+  })
+
+  it('the switch track carries a 16px thumb span that follows the enabled state (12a D1)', () => {
+    const members = defaultMembers()
+    members[1] = member('exa', 'Exa', { enabled: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const tavilyThumb = screen.getByRole('switch', { name: 'Tavily Enabled' }).querySelector('span')
+    expect(tavilyThumb).toBeTruthy()
+    expect((tavilyThumb as HTMLElement).style.transform).toBe('translateX(16px)')
+    const exaThumb = screen.getByRole('switch', { name: 'Exa Enabled' }).querySelector('span')
+    expect((exaThumb as HTMLElement).style.transform).toBe('translateX(0px)')
   })
 
   it('unconfigured members are hidden from the priority list and the visible end is disabled (过滤未配置——S11 🟡1 清偿 + 边界修复)', () => {
