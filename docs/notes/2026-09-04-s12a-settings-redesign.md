@@ -48,3 +48,11 @@
   双渲染（feedback×2）。教训：**结构替换后 grep 旧选择器/testid 清点数量**。
 - **测试自撞第二型**：链行加序号/占位 span 后 `li > span` 选择器多命中——品牌名加
   `data-dshws-chain-label` 稳定标记，测试不用位置型选择器。
+- **坑（原语 wrapper 假绿第二型）**：断言「输入行独占」时 `input.parentElement` 是 Input
+  原语自带 wrapper（span.wrap）而非布局行——第一版断言空转。**对第三方原语的 DOM 断言
+  必须先读原语实现**（修法：断言 wrapper 是卡片直接子级）。
+- **坑（同版本 tarball 重复 add 被 pnpm 跳过）**：同一 scratch home 里 `plugin add`
+  同版本号（0.1.0）但内容已变的 tarball，pnpm 跳过重装（installed mtime 不变）——
+  **rm -rf profile node_modules/<pkg> + lockfile 后重 add** 强制重装，或每次递增版本号。
+- **坑（结构大块替换漏网第二型）**：MemberCard 结构 python 大块替换时旧尾部 feedback
+  块漏删 → 同 testid 双渲染。教训：**结构替换后 grep 旧 testid/选择器清点数量**。

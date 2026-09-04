@@ -12,6 +12,30 @@
 
 ---
 
+## 2026-09-04 — 设置页布局系统性重构（Session 12a，M7 插行棒）
+
+**新增**
+- 成员卡纵向结构（对齐宿主 Models/Plugins 布局惯例——深度摸底实锚）：头行=品牌名+自绘语义状态点（role=img+aria-label+title，读屏可闻）+右开关（36×20+16px thumb 圆点）；**输入框独占整行**；key 格式说明改**控件下方 hint 行**（ⓘ/Tooltip 惯例外形态全撤）；Save/Clear 移**独立 footer 行**右对齐
+- hint 文案格式化：`Multiple keys: {APIKEY1,APIKEY2,...} (max 10)`／`多把 key：{APIKEY1,APIKEY2,...}（最多 10 把）`（用户表述采纳；keyFieldNoteExample 键删除）
+- 链区块收敛：未配置态**整块隐藏**（原半屏静态列表消除）；已配置态紧凑卡（12px 标题+badge+默认序说明+序号/品牌名/28px 图标钮行+280px 内滚动）；timeout 折入 hint
+- fetchChain 只读展示区块移除（披露的功能收缩；信息并入页头 intro；数据面 schema/快照字段不动）
+- 页头 intro 重写（含链调用降级逻辑句）+ 面板 max-width 720 + 间距/字号/圆角全量对齐宿主常数表
+- 测试基线 257→**260**（251 passed | 9 skipped）；i18n 22→**20 keys**；client.js 24.80→**24.68 kB**；index.js/index.d.ts 零漂移（node 侧零变更兑现）
+- Agent Note `docs/notes/2026-09-04-s12a-settings-redesign.md`（宿主布局惯例表/重构映射/四坑）；audit-logs 3 份
+
+**治理**
+- 阶段 0 独立采信审核 PASS（无产品变更分支）→ 阶段 2 两轮（轮 1 NEEDS REVISION 必改×4——含阶段 0 条款错锚与主 Agent 自核拦截——→ 轮 2 APPROVED）→ 阶段 2.5 用户真实批准（第 5 次，含两处字面表述替换裁定：去图标改 hint 行/页头静态 intro）→ 阶段 4/5 **PASS / COMPLETE**（门墙本审零偏差；🟡×2 记录类收官勘正）
+
+**诚实标注（遗留项）**
+- CSS module 化未做（宿主共享 preset 为工作区相对导入不可复用）——🟢 债务另棒评估；内联方案无伪元素/hover 微交互
+- fetchChain 只读展示移除为功能收缩（用户批准披露点）
+- T4 截图初未归档（Browser Use 截图仅入会话 artifacts）——T6 补归档双态 PNG；d561598 commit message 转写失真——勘误注记在档
+
+**跟踪（观察期）**
+- 测试基线链 248→251；i18n 22→20 keys；下一 session 接力摘要：S13 = 优先级策略棒（ADR-0012）
+
+---
+
 ## 2026-09-04 — 设置页 UI/UX 对齐 + S11 治理修复批（Session 12，M7 第 4 棒）
 
 **新增**
