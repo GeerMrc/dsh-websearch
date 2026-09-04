@@ -15,11 +15,11 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09/S10/S11/S12/12a ✅；12b 进行中；余 S13 策略、S14 fetch 调研+溯源） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09/S10/S11/S12/12a/12b ✅；余 S13 策略、S14 fetch 调研+溯源） |
 
 ## 进行中
 
-- 12b 设置页信息收敛棒（2026-09-04 启动；阶段 2 两轮 APPROVED + 2.5 第 6 次「批准推荐方案」；plan 012b 在档）
+- 无（12b 收官）
 
 ## 待启动
 
@@ -82,7 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
-| 12b | ①`pnpm test` → **252 passed \| 9 skipped (261)**（260→261：+1 = T2 badge 断言；T1 改写净零）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.68→26.25 kB**（页头图标+badge）；index.js/index.d.ts 零漂移 ⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12b T3 提交态亲跑（node v24.3.0） |
+| 12b | ①`pnpm test` → **252 passed \| 9 skipped (261)**（260→261：+1 = T2 badge 断言；T1 改写净零）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.68→26.25 kB**（页头图标+badge）；index.js/index.d.ts 零漂移 ⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12b T3 提交态亲跑（node v24.3.0）；T5 复验 1a57023 终态零偏差 |
 | 12a | ①`pnpm test` → **251 passed \| 9 skipped (260)**（257→260：+3 净增 = T1 新 4−删 1 + T2 改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.03→24.80 kB**（结构重排）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**20 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12a T3 提交态亲跑（node v24.3.0）；T5 复验 d561598 终态：client.js **24.68 kB**、余六件零偏差 |
 | S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑 + T8 独立复验零偏差（node v24.3.0） |
 
@@ -146,8 +146,8 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T2 | DeepSeek 澄清 badge：头行 11px 胶囊（title 展开句）+ 两新键（22 keys） | 完成（`1708cbe`；红 1 failed → 绿 50 passed；typecheck 0） |
 | T3 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note（两级调用逻辑表 + DeepSeek 结论） | 完成（数字见门墙表 12b 行；提交态 1708cbe） |
 | T4 | 浏览器实测棒（3420，起前查占=空闲）：页头图标 tooltip/六卡 hint 零残留/deepseek badge/截图归档 | 完成（页头 anchor+tooltip 文案亲见〔**focus() 在 webview 后台态不生效——focusin 冒泡触发**，手法沉淀〕；六卡 hint 0；badge text+title 完整且他卡零污染；未配置链区块 0+开关灰；截图 screenshot-header-tooltip.png 归档 /tmp/dshws-s12b/；无 fake 值写入故无复原面；3416/3080/61518 零接触） |
-| T5 | 阶段 4/5 独立验证 | 进行中 |
-| T6 | 收尾：session-12b 补全 + 原子收官（dont-do ⑤ ls 清单）+ merge + 接力指令 | 待启动 |
+| T5 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 全 PASS + 门墙本审零偏差亲证 + 浏览器截图实物采信 + 三腿全过 + 冒烟 12b 用例 2 passed；🟡×1 随 T6 补守卫清偿；audit-log 正本 …/2026-09-04-s12b-stage45-verification.md） |
+| T6 | 收尾：🟡-1 补卡内 tooltip null 守卫（22 passed）+ session-12b 补全 + 原子收官（dont-do ⑤ ls 清单）+ merge + 接力指令 | 完成（本序列） |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 

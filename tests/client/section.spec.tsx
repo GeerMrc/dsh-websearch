@@ -258,6 +258,8 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByRole('tooltip').textContent).toBe(en.keyFieldNote)
     fireEvent.blur(anchor)
     expect(screen.queryByRole('tooltip')).toBeNull()
+    // The member-card subtrees stay tooltip-free (the icon is page-level only).
+    expect(within(screen.getByTestId('dshws-members')).queryByRole('tooltip')).toBeNull()
   })
 
   it('only the DeepSeek card carries the shared-with-models badge (12b 反馈②)', () => {
