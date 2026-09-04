@@ -82,6 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
+| S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑（node v24.3.0） |
 
 ### S12 UI/UX 对齐批（2026-09-04，分支 feat/s12-uiux-alignment）
 
@@ -96,7 +97,16 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 
 | 任务 | 内容 | 结果 |
 |---|---|---|
-| T0 | 治理修复批：S11 记录 reconstructed 补落 + 本台账勘正（T8 入账撤销/节头 🟡6/遗留腿入账）+ roadmap 重排（12-16 用户 2026-09-04 序列+头部规则行改写）+ CHANGELOG S11 条目 + S11 audit-log 参数头×3 补录 + dont-do 两条新条目 + STATUS 启动刷新 | 进行中 |
+| T0 | 治理修复批：S11 记录 reconstructed 补落 + 本台账勘正（T8 入账撤销/节头 🟡6/遗留腿入账）+ roadmap 重排（12-16 用户 2026-09-04 序列+头部规则行改写）+ CHANGELOG S11 条目 + S11 audit-log 参数头×3 补录 + dont-do 两条新条目 + STATUS 启动刷新 | 完成（`eb05ba4`；15 文件 +607/−39；grep 令牌集八项穷举——活引用面零残留，历史时点快照不回改） |
+| T1 | 反馈①：keyFieldNote 内联小字 → 可聚焦 button anchor（aria-label=keyFieldNote）包 IconQuestionOutline14 + Tooltip（side=bottom delayMs=400 maxWidth=320）+ keyFieldNoteExample 键（21 keys） | 完成（`9be6860`；红 1 failed\|15 passed（内联 span 残留）→ 绿 21 passed；typecheck 双面 0；i18n 21 keys） |
+| T2 | 反馈②：switchStyle(configured, enabled)——configured&&enabled 才绿（未配置 enabled 默认 true 的误导绿修复）+ feedback span role=status | 完成（`10f5d8e`；红 1 failed\|16 passed（未配置成员实得 success-primary）→ 绿 17 passed；**首 commit 管道吞退出码带红——amend 重写绿提交，提交态红线第四次**） |
+| T3 | 反馈③：链行品牌名渲染（labelOf：memberId→MEMBERS.label，aria 同口径，id 级 testid/载荷保持）+ ↑↓ 边界改过滤后可见列表（末位假失败修复）+ MemberSnapshot.memberId 落地（S11 D5）+ 负路径过滤断言（🟡1 清偿）+ fixture 6 成员（🟢①） | 完成（`2512f03`；红 6 failed\|11 passed → 绿 client 44 passed；node 面 keys/apply/loopback 37 passed 零漂移；labelOf fallback 防御路径披露——filter 保证不可达，无专用测试） |
+| T4 | 反馈④：ChainStateBadge default 态 ⓘ（结构同 T1）+ Tooltip 出「chainDefaultHint + MEMBERS labels join(' → ')」动态顺序 + pinned 态无 ⓘ | 完成（`0b04c38`；红 1 failed\|17 passed → 绿 45 passed；i18n 22 keys；测试自撞（全局 aria 计数 vs 成员卡 switch）当场修正） |
+| T5 | S11 🟡2/🟡3 清偿：controller.spec 混合序列交换断言（跳过两个未配置成员交换+原位保持+末位越界 not-ok）+ 双牙齿探针（A：破坏跳过循环 → patch 断言红；B：loopback 轮换 order 化 → 恒序红） | 完成（`c040a98`；探针 A 红 1 failed\|16 passed/探针 B 红 expected Bearer k1×3——均还原绿；还原后 28 passed） |
+| T6 | 门墙七命令（提交态）+ 本台账/门墙表 + Agent Note（docs/notes/2026-09-04-s12-uiux-alignment.md） | 完成（数字见下节门墙表；提交态 c040a98） |
+| T7 | 浏览器实测棒（scratch 3417，3416 零接触）：S11 遗留五断言（🟡4）+ S12 新四项 | 进行中 |
+| T8 | 阶段 4/5 独立验证（含 S11 案卷复验闭合） | 待启动 |
+| T9 | 收尾：session-12 记录 + S11 台账翻账 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 待启动 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
