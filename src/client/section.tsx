@@ -199,14 +199,36 @@ const infoButtonStyle = {
   cursor: 'help',
 } as const
 
-/** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1). */
+/** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1).
+ * The default (unpinned) state carries an ⓘ whose bubble spells the built-in order,
+ * derived from MEMBERS — the same source as BUILT_IN_MEMBER_ORDER, never hardcoded. */
 function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => string }) {
+  if (props.pinned) {
+    return (
+      <span
+        data-dshws-chain-state="pinned"
+        style={{ fontSize: 12 }}
+      >
+        {props.t('chainPinned')}
+      </span>
+    )
+  }
   return (
     <span
-      data-dshws-chain-state={props.pinned ? 'pinned' : 'default'}
-      style={{ fontSize: 12 }}
+      data-dshws-chain-state="default"
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 12 }}
     >
-      {props.pinned ? props.t('chainPinned') : props.t('chainDefault')}
+      {props.t('chainDefault')}
+      <Tooltip
+        label={`${props.t('chainDefaultHint')} ${MEMBERS.map((member) => member.label).join(' → ')}`}
+        side="bottom"
+        delayMs={400}
+        maxWidth={320}
+      >
+        <button type="button" aria-label={props.t('chainDefault')} style={infoButtonStyle}>
+          <IconQuestionOutline14 />
+        </button>
+      </Tooltip>
     </span>
   )
 }

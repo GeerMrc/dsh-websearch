@@ -217,6 +217,30 @@ describe('WebSearchSettingsSection', () => {
     }
   })
 
+  it('the default-order badge carries an info tooltip explaining the built-in order (反馈④ ⓘ)', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const chains = container.querySelector('[data-testid="dshws-chains"]')!
+    // Both chains show the ⓘ next to the default badge; focus shows the order,
+    // derived from MEMBERS (never a hardcoded sequence).
+    const anchors = within(chains as HTMLElement).getAllByRole('button', { name: en.chainDefault })
+    expect(anchors.length).toBe(2)
+    fireEvent.focus(anchors[0])
+    const bubble = screen.getByRole('tooltip')
+    expect(bubble.textContent).toContain(en.chainDefaultHint)
+    expect(bubble.textContent).toContain(BRANDS.join(' → '))
+    fireEvent.blur(anchors[0])
+    expect(screen.queryByRole('tooltip')).toBeNull()
+    // A pinned order is user-authored — no ⓘ, nothing to explain.
+    cleanup()
+    const pinnedSnapshot: SectionSnapshot = {
+      ...makeSnapshot(),
+      searchChainPinned: true,
+      fetchChainPinned: true,
+    }
+    const pinned = render(<WebSearchSettingsSection {...makeProps({ snapshot: pinnedSnapshot })} t={t} />)
+    expect(within(pinned.container.querySelector('[data-testid="dshws-chains"]') as HTMLElement).queryByRole('button', { name: en.chainDefault })).toBeNull()
+  })
+
   it("an unconfigured member's switch is disabled (置灰断言)", () => {
     const members = defaultMembers()
     members[0] = member('tavily', 'Tavily', { configured: false })
