@@ -15,15 +15,15 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09 ✅、S10 ✅、S11 调整棒 ✅〔收官证据链缺口 → S12 修复批闭合中〕；余 S13 策略、S14 fetch 调研+溯源） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09/S10/S11/S12 ✅〔S11 收官证据链缺口已由 S12 T0+T8 闭合〕；余 S13 策略、S14 fetch 调研+溯源） |
 
 ## 进行中
 
-- S12 设置页 UI/UX 对齐棒（2026-09-04 启动；阶段 2.5 用户批准「批准，自主推进」第 4 次；plan 012 在档）
+- 无（S12 收官）
 
 ## 待启动
 
-- S13 优先级策略棒（成员级 random/序列 + ADR-0012）→ S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（S12 T0 重排版）
+- S13 优先级策略棒（成员级 random/序列 + ADR-0012）→ S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap
 
 ## 已完成
 
@@ -82,7 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
-| S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑（node v24.3.0） |
+| S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑 + T8 独立复验零偏差（node v24.3.0） |
 
 ### S12 UI/UX 对齐批（2026-09-04，分支 feat/s12-uiux-alignment）
 
@@ -100,13 +100,13 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T0 | 治理修复批：S11 记录 reconstructed 补落 + 本台账勘正（T8 入账撤销/节头 🟡6/遗留腿入账）+ roadmap 重排（12-16 用户 2026-09-04 序列+头部规则行改写）+ CHANGELOG S11 条目 + S11 audit-log 参数头×3 补录 + dont-do 两条新条目 + STATUS 启动刷新 | 完成（`eb05ba4`；15 文件 +607/−39；grep 令牌集八项穷举——活引用面零残留，历史时点快照不回改） |
 | T1 | 反馈①：keyFieldNote 内联小字 → 可聚焦 button anchor（aria-label=keyFieldNote）包 IconQuestionOutline14 + Tooltip（side=bottom delayMs=400 maxWidth=320）+ keyFieldNoteExample 键（21 keys） | 完成（`9be6860`；红 1 failed\|15 passed（内联 span 残留）→ 绿 21 passed；typecheck 双面 0；i18n 21 keys） |
 | T2 | 反馈②：switchStyle(configured, enabled)——configured&&enabled 才绿（未配置 enabled 默认 true 的误导绿修复）+ feedback span role=status | 完成（`10f5d8e`；红 1 failed\|16 passed（未配置成员实得 success-primary）→ 绿 17 passed；**首 commit 管道吞退出码带红——amend 重写绿提交，提交态红线第四次**） |
-| T3 | 反馈③：链行品牌名渲染（labelOf：memberId→MEMBERS.label，aria 同口径，id 级 testid/载荷保持）+ ↑↓ 边界改过滤后可见列表（末位假失败修复）+ MemberSnapshot.memberId 落地（S11 D5）+ 负路径过滤断言（🟡1 清偿）+ fixture 6 成员（🟢①） | 完成（`2512f03`；红 6 failed\|11 passed → 绿 client 44 passed；node 面 keys/apply/loopback 37 passed 零漂移；labelOf fallback 防御路径披露——filter 保证不可达，无专用测试） |
+| T3 | 反馈③：链行品牌名渲染（labelOf：memberId→MEMBERS.label，aria 同口径，id 级 testid/载荷保持）+ ↑↓ 边界改过滤后可见列表（末位假失败修复）+ MemberSnapshot.memberId 落地（S11 D5）+ 负路径过滤断言（🟡1 清偿）+ fixture 6 成员（🟢①） | 完成（`2512f03`；红 6 failed\|11 passed → 绿 client 44 passed；node 面 keys/apply/loopback 37 passed 零漂移；labelOf fallback 披露勘正（T8 🟡-2）——searchChain 由过滤保证不可达；fetchChain 不过滤、外来 id 可达（渲染原 id 良性），无专用测试） |
 | T4 | 反馈④：ChainStateBadge default 态 ⓘ（结构同 T1）+ Tooltip 出「chainDefaultHint + MEMBERS labels join(' → ')」动态顺序 + pinned 态无 ⓘ | 完成（`0b04c38`；红 1 failed\|17 passed → 绿 45 passed；i18n 22 keys；测试自撞（全局 aria 计数 vs 成员卡 switch）当场修正） |
 | T5 | S11 🟡2/🟡3 清偿：controller.spec 混合序列交换断言（跳过两个未配置成员交换+原位保持+末位越界 not-ok）+ 双牙齿探针（A：破坏跳过循环 → patch 断言红；B：loopback 轮换 order 化 → 恒序红） | 完成（`c040a98`；探针 A 红 1 failed\|16 passed/探针 B 红 expected Bearer k1×3——均还原绿；还原后 28 passed） |
 | T6 | 门墙七命令（提交态）+ 本台账/门墙表 + Agent Note（docs/notes/2026-09-04-s12-uiux-alignment.md） | 完成（数字见下节门墙表；提交态 c040a98） |
-| T7 | 浏览器实测棒（scratch 3418，3416/3080/残留 61518 零接触）：S11 遗留五断言（🟡4）+ S12 新四项 | 完成（九项断言全过留痕：①ⓘ anchor 六卡 ②keyFieldNote tooltip 含示例+blur 收 ③默认序 ⓘ tooltip 含动态六品牌顺序 ④未配开关 disabled+灰 rgba(255,255,255,.12) ⑤已配开=绿 rgb(34,197,94) ⑥链行品牌名（fetch 六行+搜索链混合两行）⑦搜索链全未配置空列表〔S11 🟡1 浏览器面〕⑧可见列表边界（首↑/末↓ disabled）⑨逗号 3 把→保存→凭据落盘（.credentials.yaml len=8 keys=3）+ Clear→refs 全清复原；截图+文件证据 /tmp/dshws-s12/；**披露：超限 11 把 = 凭据层诚实落盘不拦（keys=11 文件实证），拦截在搜索期（keys.test:101-107 fail-loud 单测在档）——S11 plan T6「GUI 拦截」预期按实测修正（plan 012 风险预案）**；3417 被凌晨残留实例占用（pid 61518，DSH_HOME=/tmp/dshws-review），未 kill 改用 3418） |
-| T8 | 阶段 4/5 独立验证（含 S11 案卷复验闭合） | 待启动 |
-| T9 | 收尾：session-12 记录 + S11 台账翻账 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 待启动 |
+| T7 | 浏览器实测棒（scratch 3418，3416/3080/残留 61518 零接触）：S11 遗留五断言（🟡4）+ S12 新四项 | 完成（九项断言全过留痕：①ⓘ anchor 六卡 ②keyFieldNote tooltip 含示例+blur 收 ③默认序 ⓘ tooltip 含动态六品牌顺序 ④未配开关 disabled+灰 rgba(255,255,255,.12) ⑤已配开=绿 rgb(34,197,94) ⑥链行品牌名（fetch 六行+搜索链混合两行）⑦搜索链全未配置空列表〔S11 🟡1 浏览器面〕⑧可见列表边界（首↑/末↓ disabled）⑨逗号 3 把→保存→凭据落盘（.credentials.yaml len=8 keys=3）+ Clear→refs 全清复原；截图+文件证据 /tmp/dshws-s12/；**披露：超限 11 把 = 凭据层诚实落盘不拦（keys=11 文件实证），拦截在搜索期（实现 src/keys.ts:101-107 + 单测 tests/keys.test.ts:89-95——T8 🟡-3 行号勘正）——S11 plan T6「GUI 拦截」预期按实测修正（plan 012 风险预案）**；3417 被凌晨残留实例占用（pid 61518，DSH_HOME=/tmp/dshws-review），未 kill 改用 3418） |
+| T8 | 阶段 4/5 独立验证（含 S11 案卷复验闭合） | **PASS / COMPLETE**（R1-R7 逐条 PASS + 门墙七命令亲跑零偏差 + 提交链 8 枚逐枚一致 + S11 案卷闭合判定成立〔stage45 补完清单五腿全清偿 + plan 011 浏览器腿代偿成立〕+ 探针 A 独立重演红亲证 + 安全/契约/前瞻三问全过 + 冒烟四项留痕；🟡×3 记录类〔ADR 前向引用×3/fallback 论证面/行号转录〕随 T9 勘正清偿；audit-log 正本 docs/sessions/audit-logs/2026-09-04-s12-stage45-verification.md） |
+| T9 | 收尾：session-12 记录 + S11 台账翻账 + 🟡×3 勘正 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 完成（本序列） |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
@@ -167,7 +167,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 
 | 债务 | 等级 | 归属 |
 |---|---|---|
-| S11 遗留腿四笔：jsdom 过滤负路径断言 / 混合序列交换断言 / 牙齿探针 / 浏览器棒（T6） | 🟡 | S12 T3/T5/T7 清偿 + T8 复验闭合（S12 阶段 0 🔴2 证据部分 + 🟡1-4 登记；清偿后在本行注记翻账） |
+| S11 遗留腿四笔：jsdom 过滤负路径断言 / 混合序列交换断言 / 牙齿探针 / 浏览器棒（T6） | 🟡 | ~~S12 T3/T5/T7 清偿 + T8 复验闭合~~ **已翻账（2026-09-04 T9）：四腿全清偿，T8 独立复验判定 S11 验收采信链闭合（正本 docs/sessions/audit-logs/2026-09-04-s12-stage45-verification.md 第二节；S11 🔴2 证据面就此闭合）** |
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 009 债务映射节正本） |
 | fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |

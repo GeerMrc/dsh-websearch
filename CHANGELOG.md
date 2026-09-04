@@ -12,6 +12,32 @@
 
 ---
 
+## 2026-09-04 — 设置页 UI/UX 对齐 + S11 治理修复批（Session 12，M7 第 4 棒）
+
+**新增**
+- 反馈①：多 key 提示改 info 图标 hover（可聚焦 button anchor + 宿主 `Tooltip`，含格式示例键 `keyFieldNoteExample`；宿主无 InfoIcon，用 `IconQuestionOutline14` 对齐——披露点经用户批准）
+- 反馈②：开关颜色跟随配置态——`configured && enabled` 才渲染语义绿（修复未配置成员 enabled 默认 true 的「误导绿」）；已配+关=灰（推导分支，披露点）；feedback 补 `role="status"`
+- 反馈③：搜索/抓取链行渲染**品牌名**（memberId→MEMBERS.label；aria 同口径；testid/载荷保持 id 级）+ ↑↓ 禁用边界改**过滤后可见列表**（修复末位可见项 ↓ 恒可点+假失败 bug）；`MemberSnapshot.memberId` 落地（S11 plan D5）
+- 反馈④：默认序 ⓘ hover 说明（`chainDefaultHint` + MEMBERS 动态顺序派生，零硬编码；pinned 态无 ⓘ）；locales 20→**22 键**
+- S11 治理修复批：session-11 记录 reconstructed 补落（🔴1）/ progress-M7 假 PASS 入账撤销 + 案卷闭合（🔴2，五腿清偿 + T8 独立复验）/ roadmap 按用户 2026-09-04 序列重排 12-16 / CHANGELOG S11 补录 / dont-do +2 条（收官工件缺失形态、gate 翻转无留痕形态）
+- S11 遗留腿清偿：混合序列交换断言 + 双牙齿探针（破坏跳过循环红 / 轮换 order 化 `Bearer k1×3` 恒序红）+ 浏览器九断言（scratch 3418）
+- 测试基线 254→**257**（248 passed | 9 skipped；+3 净增）；build 增量披露 client.js 21.57→24.03 kB（index.js/index.d.ts 零漂移——node 侧零变更兑现）
+- Agent Note `docs/notes/2026-09-04-s12-uiux-alignment.md`；audit-logs 3 份
+
+**治理**
+- 阶段 0 独立审核 S11 **BLOCKED**（🔴×2 收官证据链）→ 修复批并入 T0（先债后新）→ 阶段 2 两轮（NEEDS REVISION 必改×3〔Tooltip anchor 机制/披露缺失/重排同步面〕→ APPROVED）→ 阶段 2.5 用户真实批准（第 4 次，AskUserQuestion 获答「批准，自主推进」）→ 阶段 4/5 **PASS / COMPLETE**（S11 验收采信链闭合判定成立；🟡×3 记录类随收官勘正）
+
+**诚实标注（遗留项）**
+- 超限 11 把 key 在凭据层诚实落盘不拦（拦截在搜索期，`src/keys.ts:101-107` fail-loud + `tests/keys.test.ts:89-95` 单测）——S11 plan「GUI 拦截」预期按实测修正
+- 3417 端口被凌晨残留实例占用（pid 61518，DSH_HOME=/tmp/dshws-review；未 kill）——本棒改道 3418，下棒起实例先查占
+- session 记录骨架未随 T0 创建（plan 自身根治式写法违例一次），T9 一次成文——已在踩坑节披露
+
+**跟踪（观察期）**
+- dont-do 六条（本棒 +2）；测试基线链 245→257；i18n 20→22 keys
+- 下一 session 接力摘要：S13 = 优先级策略棒（成员级 random/序列 + ADR-0012）
+
+---
+
 ## 2026-09-03 — 验收反馈调整：单槽逗号值 + 开关置灰 + 过滤未配置（Session 11，M7 调整棒；2026-09-04 补录）
 
 > 补录说明：本条目由 Session 12 治理修复批补写（S11 收官提交 b23097b 漏落 CHANGELOG——
