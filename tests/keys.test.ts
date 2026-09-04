@@ -70,6 +70,27 @@ describe('KeyPool single-slot comma value (ADR-0011)', () => {
     await expect(tail.pool.resolveApiKey()).resolves.toBe('k2')
   })
 
+  it('random draws without replacement within a deck cycle, reshuffling per cycle (ADR-0012 变体 B)', async () => {
+    // rng ≡ 0 pins the ascending Fisher-Yates to the identity permutation, so the
+    // deck order equals the split order and each cycle must serve k1,k2,k3 once.
+    const { pool } = makePool({ value: 'k1,k2,k3', selection: 'random', rng: () => 0 })
+    const firstCycle: string[] = []
+    for (let index = 0; index < 3; index += 1) firstCycle.push(await pool.resolveApiKey())
+    expect([...firstCycle].sort()).toEqual(['k1', 'k2', 'k3'])
+    const secondCycle: string[] = []
+    for (let index = 0; index < 3; index += 1) secondCycle.push(await pool.resolveApiKey())
+    expect([...secondCycle].sort()).toEqual(['k1', 'k2', 'k3'])
+  })
+
+  it('rebuilds the random deck when the split sequence changes (热改池值)', async () => {
+    const { pool, setValue } = makePool({ value: 'k1,k2,k3', selection: 'random', rng: () => 0 })
+    expect(await pool.resolveApiKey()).toBe('k1')
+    setValue('a1,a2')
+    const after: string[] = []
+    for (let index = 0; index < 2; index += 1) after.push(await pool.resolveApiKey())
+    expect([...after].sort()).toEqual(['a1', 'a2'])
+  })
+
   it('fails loud naming the ref when the value is missing (主值未存)', async () => {
     const { pool } = makePool({ value: undefined })
     const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)

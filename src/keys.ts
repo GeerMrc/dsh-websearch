@@ -3,7 +3,8 @@
  * `resolveApiKey` thunk (ADR-0011 single-slot comma value). The member has
  * ONE credential ref whose value is `k1,k2,...,kN` — the pool resolves it
  * fresh per call, splits it into the key sequence, and selects one key per
- * the member's `keySelection` policy (order / round-robin / random).
+ * the member's `keySelection` policy (order / round-robin / random; random
+ * is without-replacement per ADR-0012).
  *
  * Failure faces, in the order they fire: a caller abort wins first; a
  * rejecting resolver is the member's request-failure; an over-limit pool is
@@ -56,6 +57,10 @@ export class KeyPool {
   readonly #ports: KeyPoolPorts
   /** Round-robin cursor over the key sequence; modulo-applied per call. */
   #cursor = 0
+  /** Without-replacement deck for `random` (ADR-0012); a permutation of the last seen split. */
+  #deck: string[] = []
+  /** Next deck index to draw; `>= deck.length` means the cycle is exhausted. */
+  #deckPos = 0
 
   constructor(ports: KeyPoolPorts) {
     this.#ports = ports
@@ -117,11 +122,22 @@ export class KeyPool {
     })
   }
 
+  /**
+   * Draw one key per policy. `random` draws from a shuffled deck without
+   * replacement (ADR-0012): mid-cycle draws walk the deck; an exhausted deck
+   * or a split whose multiset no longer matches the deck (hot value change)
+   * reshuffles first. A failed request consumes its draw — no same-member
+   * retry, the chain degrades instead.
+   */
   #select(keys: readonly string[]): string {
     const selection = this.#ports.selection()
     if (selection === 'random') {
       const rng = this.#ports.rng ?? Math.random
-      return keys[Math.floor(rng() * keys.length)]
+      if (this.#deckPos >= this.#deck.length || !KeyPool.#sameMultiset(this.#deck, keys)) {
+        this.#deck = KeyPool.#shuffle(keys, rng)
+        this.#deckPos = 0
+      }
+      return this.#deck[this.#deckPos++]
     }
     if (selection === 'round-robin') {
       const picked = keys[this.#cursor % keys.length]
@@ -129,5 +145,28 @@ export class KeyPool {
       return picked
     }
     return keys[0]
+  }
+
+  /** Fisher-Yates (ascending form): `rng ≡ 0` yields the identity permutation. */
+  static #shuffle(keys: readonly string[], rng: () => number): string[] {
+    const deck = [...keys]
+    for (let i = 0; i < deck.length - 1; i += 1) {
+      const j = i + Math.floor(rng() * (deck.length - i))
+      ;[deck[i], deck[j]] = [deck[j], deck[i]]
+    }
+    return deck
+  }
+
+  /** Whether both sequences contain exactly the same keys with the same multiplicities. */
+  static #sameMultiset(a: readonly string[], b: readonly string[]): boolean {
+    if (a.length !== b.length) return false
+    const counts = new Map<string, number>()
+    for (const key of a) counts.set(key, (counts.get(key) ?? 0) + 1)
+    for (const key of b) {
+      const left = counts.get(key)
+      if (left === undefined) return false
+      counts.set(key, left - 1)
+    }
+    return true
   }
 }
