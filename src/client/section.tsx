@@ -101,6 +101,15 @@ const infoButtonStyle = {
   cursor: 'help',
 } as const
 
+/** 11px pill (host badge convention) marking the DeepSeek card's shared credential. */
+const sharedBadgeStyle = {
+  fontSize: 11,
+  padding: '1px 6px',
+  borderRadius: 999,
+  border: '1px solid var(--dsw-alias-border-l2)',
+  color: 'var(--dsw-alias-label-tertiary)',
+} as const
+
 const feedbackStyle = {
   flex: 1,
   fontSize: 12,
@@ -337,6 +346,9 @@ function MemberCard(props: {
       <div style={cardHeadStyle}>
         <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
         <strong style={nameStyle}>{member.label}</strong>
+        {member.key === 'deepseek' ? (
+          <span title={t('sharedWithModelsDetail')} style={sharedBadgeStyle}>{t('sharedWithModels')}</span>
+        ) : null}
         <span style={{ flex: 1 }} />
         <button
           type="button"

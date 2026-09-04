@@ -260,6 +260,16 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.queryByRole('tooltip')).toBeNull()
   })
 
+  it('only the DeepSeek card carries the shared-with-models badge (12b 反馈②)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const badge = within(screen.getByTestId('dshws-member-deepseek')).getByText(en.sharedWithModels)
+    expect(badge.getAttribute('title')).toBe(en.sharedWithModelsDetail)
+    // The other five cards have no such badge.
+    for (const key of ['tavily', 'exa', 'perplexity', 'firecrawl', 'anysearch']) {
+      expect(within(screen.getByTestId(`dshws-member-${key}`)).queryByText(en.sharedWithModels)).toBeNull()
+    }
+  })
+
   it('the card head row pairs a semantic status dot with the brand name and the switch (12a D1)', () => {
     const members = defaultMembers()
     members[0] = member('tavily', 'Tavily', { configured: false })

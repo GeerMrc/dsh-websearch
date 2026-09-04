@@ -35,6 +35,8 @@ export type DshWsLocaleKey =
   | 'chainDefaultHint'
   | 'chainPinned'
   | 'keyFieldNote'
+  | 'sharedWithModels'
+  | 'sharedWithModelsDetail'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -64,6 +66,8 @@ export const en: Record<DshWsLocaleKey, string> = {
   chainDefaultHint: 'Members are tried in this built-in order while the chain is not pinned; a pinned order overrides it:',
   chainPinned: 'Pinned (overrides default)',
   keyFieldNote: 'Multiple keys: {APIKEY1,APIKEY2,...} (max 10)',
+  sharedWithModels: 'Shared with Models',
+  sharedWithModelsDetail: 'Uses the same DEEPSEEK_API_KEY credential as the Models settings page; the last save wins.',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -88,4 +92,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   chainDefaultHint: '未钉死时成员按此内置默认序依次尝试；钉死序会覆盖默认序：',
   chainPinned: '已钉死（覆盖默认序）',
   keyFieldNote: '多把 key：{APIKEY1,APIKEY2,...}（最多 10 把）',
+  sharedWithModels: '共用模型 Key',
+  sharedWithModelsDetail: '与模型设置页共用同一把 DEEPSEEK_API_KEY；两处修改后写覆盖先写。',
 }
