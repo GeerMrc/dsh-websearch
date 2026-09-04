@@ -24,6 +24,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     refName: `${key.toUpperCase()}_API_KEY`,
     enabled: true,
     configured: true,
+    keySelection: 'order',
     source: undefined,
     writable: true,
     ...overrides,
@@ -61,6 +62,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onClearKey: vi.fn(async () => ({ ok: true }) as ActionResult),
     onToggleEnabled: vi.fn(async () => ({ ok: true }) as ActionResult),
     onMoveSearch: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -345,5 +347,51 @@ describe('WebSearchSettingsSection', () => {
     // Scoped to the fresh instance: the first container is still mounted until
     // afterEach cleanup, so a document-wide query would hit its leftover span.
     expect(rerendered.container.querySelector('[data-testid="dshws-chain-feedback"]')).toBeNull()
+  })
+
+  it('renders a key-selection group on every card with the order policy pressed by default (S13 D2)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    for (const [index, key] of ['tavily', 'exa', 'perplexity', 'firecrawl', 'deepseek', 'anysearch'].entries()) {
+      const card = screen.getByTestId(`dshws-member-${key}`)
+      const group = within(card).getByRole('group', { name: `${BRANDS[index]} ${en.keySelection}` })
+      const buttons = within(group).getAllByRole('button')
+      expect(buttons.length).toBe(3)
+      // The live policy is pressed and carries the pressed field visual.
+      const pressed = within(group).getByRole('button', { name: `${BRANDS[index]} ${en.keySelOrder}` }) as HTMLButtonElement
+      expect(pressed.getAttribute('aria-pressed')).toBe('true')
+      expect(pressed.style.background).toBe('var(--dsw-alias-bg-layer-1)')
+      for (const other of [en.keySelRoundRobin, en.keySelRandom]) {
+        expect((within(group).getByRole('button', { name: `${BRANDS[index]} ${other}` }).getAttribute('aria-pressed'))).toBe('false')
+      }
+    }
+  })
+
+  it('clicking a strategy reports the member and policy, and the pressed state follows the snapshot (S13 D2/D4)', async () => {
+    const onSetKeySelection = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const first = render(<WebSearchSettingsSection {...makeProps({ onSetKeySelection })} t={t} />)
+    fireEvent.click(
+      within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.keySelRandom}` }),
+    )
+    await waitFor(() => expect(onSetKeySelection).toHaveBeenCalledWith('tavily', 'random'))
+
+    const members = defaultMembers()
+    members[0] = member('tavily', 'Tavily', { keySelection: 'random' })
+    first.rerender(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members), onSetKeySelection })} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    expect((within(card).getByRole('button', { name: `Tavily ${en.keySelRandom}` }).getAttribute('aria-pressed'))).toBe('true')
+    expect((within(card).getByRole('button', { name: `Tavily ${en.keySelOrder}` }).getAttribute('aria-pressed'))).toBe('false')
+  })
+
+  it('an unconfigured member disables the control, and the hint states the two-level semantics (S13 D3)', () => {
+    const members = defaultMembers()
+    members[0] = member('tavily', 'Tavily', { configured: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    for (const strategy of [en.keySelOrder, en.keySelRoundRobin, en.keySelRandom]) {
+      expect(((within(card).getByRole('button', { name: `Tavily ${strategy}` })) as HTMLButtonElement).disabled).toBe(true)
+    }
+    // The hint interpolates the live policy name and states no-swap degrade.
+    const hint = within(card).getByTestId('dshws-keysel-hint-tavily')
+    expect(hint.textContent).toBe(en.keySelectionHint.replace('{policy}', en.keySelOrder))
   })
 })

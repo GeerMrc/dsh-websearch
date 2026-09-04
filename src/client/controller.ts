@@ -56,6 +56,8 @@ const DEFAULT_PER_MEMBER_TIMEOUT_MS = 30000
 interface MemberSectionValue {
   enabled?: boolean
   apiKeyEnv?: string
+  /** Pool selection policy; client default mirrors the node half's `resolveConfig` (S13 D4). */
+  keySelection?: 'order' | 'round-robin' | 'random'
 }
 
 interface SectionValue {
@@ -79,6 +81,8 @@ export interface MemberSnapshot {
   readonly refName: string
   readonly enabled: boolean
   readonly configured: boolean
+  /** Pool selection policy, defaulted to `order` in deriveSnapshot (ADR-0008; S13 D4). */
+  readonly keySelection: 'order' | 'round-robin' | 'random'
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -121,6 +125,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       refName,
       enabled: section?.enabled ?? true,
       configured: fact?.configured === true,
+      keySelection: section?.keySelection ?? 'order',
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -210,6 +215,18 @@ export class WebSearchSettingsController {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { enabled } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    this.#value = (result.value.value ?? {}) as SectionValue
+    this.#revision = result.value.revision
+    this.#recompute()
+    return { ok: true }
+  }
+
+  /** Set a member's `keySelection` through the settings remote (hot gate; S13 D4). */
+  async setKeySelection(memberKey: string, keySelection: 'order' | 'round-robin' | 'random'): Promise<ActionResult> {
+    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
+    if (!member) return { ok: false }
+    const result = await this.#ports.updateSettings(NS, { [member.key]: { keySelection } }, this.#revision)
     if (!result.ok) return { ok: false }
     this.#value = (result.value.value ?? {}) as SectionValue
     this.#revision = result.value.revision

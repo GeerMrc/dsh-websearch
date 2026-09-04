@@ -19,11 +19,11 @@
 
 ## 进行中
 
-- 无（12b 收官）
+- 无（S13 收官）
 
 ## 待启动
 
-- S13 优先级策略棒（成员级 random/序列 + ADR-0012）→ S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（12b 插行后）
+- S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（12b 插行后）
 
 ## 已完成
 
@@ -82,6 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
+| S13 | ①`pnpm test` → T4 提交态（7aa0e5f）**260 passed \| 9 skipped (269)**（261→269：+8 = keys 2 + controller 3 + section 3）；🟡-1 清偿后终态（b08b26e）**261 passed \| 9 skipped (270)**（+1 重复多重集重建腿）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：index.js 57.96→59.41 kB**（牌堆逻辑；终态 59.42）；index.d.ts **27.04 kB 零漂移**（公共类型未动）；**client.js 26.25→29.98 kB**（控件+hint+5 键）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**27 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S13 T4 提交态亲跑 + T6 独立复验零偏差 + 🟡-1 清偿复验 CONFIRMED（node v22.23.2 / pnpm 11.7.0） |
 | 12b | ①`pnpm test` → **252 passed \| 9 skipped (261)**（260→261：+1 = T2 badge 断言；T1 改写净零）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.68→26.25 kB**（页头图标+badge）；index.js/index.d.ts 零漂移 ⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12b T3 提交态亲跑（node v24.3.0）；T5 复验 1a57023 终态零偏差 |
 | 12a | ①`pnpm test` → **251 passed \| 9 skipped (260)**（257→260：+3 净增 = T1 新 4−删 1 + T2 改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.03→24.80 kB**（结构重排）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**20 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12a T3 提交态亲跑（node v24.3.0）；T5 复验 d561598 终态：client.js **24.68 kB**、余六件零偏差 |
 | S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑 + T8 独立复验零偏差（node v24.3.0） |
@@ -128,6 +129,39 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T4 | 浏览器实测棒（3419，起前 lsof 查占=空闲）：computed style 断言 + 双态截图 + 复原 | 完成（卡 padding 12/14+radius 12；输入 wrapper 高 32/r8/layer-1——**实测发现 Input 原语 wrapper 自带全部字段视觉，height:32 冗余已撤**；hint 12/18；thumb translateX(16px)；状态点 role=img aria "Not configured"；未配置态链区块不存在=0；已配置态链卡 1+品牌名行+绿开关+顺序 hint；**grid 行 5 元素占位 span 残留致 ↓ 换行——删除后 4 元素同线 rowH 40**；截图×3 与 /tmp/dshws-s12a/ 实物；Clear 复原凭据零残留；**同版本 tarball 重复 add 被 pnpm 跳过——rm node_modules 强制重装**；3416/3080/61518 零接触）——**勘误（T5 🟡-2）**：本行「height:32 冗余已撤」转写失真，d561598 实删的是 `boxSizing:'border-box'`（height:32 从未入过任何提交）；截图实物初未归档（Browser Use 截图仅入会话 artifacts），T6 已补归档双态 PNG 至 /tmp/dshws-s12a/ |
 | T5 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R6/R7 全 PASS + 门墙本审零偏差亲证〔client.js 终态 **24.68 kB** 落账〕+ 三问全过 + 冒烟 12a 用例 7 passed；🟡×2 记录类随 T6 清偿：截图腿补落盘 + d561598 勘误注记；audit-log 正本 …/2026-09-04-s12a-stage45-verification.md） |
 | T6 | 收尾：🟡-1 截图补落盘（重启 3419 归档双态 PNG×2 至 /tmp/dshws-s12a/）+ 🟡-2 勘误注记 + session-12a 补全 + Agent Note 补坑 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 完成（本序列） |
+
+### S13 优先级策略批（2026-09-04，分支 feat/s13-priority-strategy）
+
+阶段 0 独立审核 S12b **PASS**（🔴×0；🟡×1 = session-12b/12a 记录缺「开发规范强化说明」
+节〔模板漂移自 12a 起，前序审核两节口径漏检〕；🟢×5 记录类；正本
+…/2026-09-04-s13-stage0-review-of-s12b.md）→ plan 013（ADR-0012 变体 B 定谳〔升序
+Fisher-Yates 钉牌〕+ GUI 控件〔自绘三段 segmented〕+ 两级调用说明 hint；D1-D6）→
+阶段 2 两轮（轮 1 NEEDS REVISION 必改×2〔洗牌公式未钉押硬币/fixture helper 面漏认领〕+
+建议×5 → 全数吸收 → 轮 2 **APPROVED**；正本 …/2026-09-04-s13-stage2-plan-review.md）→
+阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进（**推荐方案 + 变体 B**，
+S09/S10 先例，披露双落 session 记录与 ADR-0012）→ 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 013 + ADR-0012（accepted，变体 B）+ 阶段 0/2 audit-log 入库 + 🟡-1 清偿（12a/12b 补节头 + 勘注）+ 🟢① STATUS 台账行序归位 + 🟢② 本台账补 CSS module 化/anysearch fetch 面两行镜像 + roadmap S13 行验收细化 + 启动全状态区 + session-13 骨架 | 完成（`e26a7dd`） |
+| T1 | keys.ts 变体 B（TDD）：洗牌牌堆 + 升序 Fisher-Yates（`j = i + floor(rng() × (n − i))`，rng≡0↔恒等排列）+ 多重集不一致重建；新断言「恒值 rng 三连发 = 池排列」+「热改池值重建腿」 | 完成（`04c0e5c`；红 **2 failed\|9 passed**（现状基线 [k1,k1,k1]/[a1,a1] 真红）→ 绿 **11 passed**（钉牌单发 ：66-71 两断言存活）；apply.test 17 passed 热通路零漂移） |
+| T2 | controller 通路（TDD）：MemberSectionValue/MemberSnapshot.keySelection（deriveSnapshot 默认 order）+ setKeySelection patch（revision 携带/冲突 not-ok）；section.spec 两 fixture helper 补必填字段（机械 accommodation） | 完成（`27dd261`；红 **3 failed\|17 passed** → 绿 controller 20 + section 22；typecheck 双面 0） |
+| T3 | 控件 + hint（TDD）：成员卡 role=group 三段 segmented（aria-pressed/未配置禁用/成员前缀 aria-label/bg-layer-1 pressed 视觉）+ hint 插值策略名（两级语义句）；locales +5 键（27） | 完成（`7aa0e5f`；红 **3 failed\|22 passed** → 绿 client 三 spec **50 passed**；typecheck 双面 0；check:i18n 27 keys parity + 17 files 零 CJK；**执行缺陷一处当场修复：Section 解构漏 onSetKeySelection（渲染即 ReferenceError 批红，无假绿）**） |
+| T4 | 门墙七命令（提交态 7aa0e5f）+ 本台账/门墙表 + Agent Note（docs/notes/2026-09-04-s13-priority-strategy.md） | 完成（数字见门墙表 S13 行） |
+| T5 | 浏览器实测棒（3421，起前 lsof 查占=空闲）：六卡控件/默认序/hint + fake 值→Configured 解禁 + 关开关→切 Random→settings.yaml 深合并同存 + 截图归档 + Clear 复原 | 完成（六卡 group×6 + Order pressed 默认 + 未配置禁用亲见；Random [pressed] + hint 实时「"Random"」；**实物在盘：settings.yaml `tavily: {enabled: false, keySelection: random}` 同存——deep-merge 兄弟字段存活实测**；截图 screenshot-tavily-random.png 归档 /tmp/dshws-s13/；Clear→Not configured+refs:{} 复原亲读〔browser-session grant=宿主自身连接密钥，非凭据〕；kill 17316 精确、3416/3080/61518 零接触；**坑：后台 webview locator click 不派发（两次超时）——cua 坐标点击通路可用，dom_cua click 假成功无效果**） |
+| T6 | 阶段 4/5 独立验证（全量唯一责任点 + R1-R6 对峙 + 三问） | **PASS / COMPLETE**（门墙七命令亲跑零偏差 + 增量 +8 逐文件亲数 + ADR-0012 与实现逐句对照 + 安全/契约/前瞻三问全过 + client/node 默认 order 六成员对称亲证；**🟡×1 抓获：#sameMultiset 漏 `left<=0`——重复多重集平移（k1,k1,k2→k1,k2,k2）陈旧牌堆存活〔探针实证〕→ b08b26e 当场清偿（S12b 先例）**；🟢×2〔STATUS 行序——b08b26e 顺手归位；失败不回牌钉牌断言——入台账归 S14/S15〕；🟡-1 复验 **CONFIRMED**（同 Agent：diff 逐行/判别力双推演/261\|9(270) 亲跑）；audit-log 正本 docs/sessions/audit-logs/2026-09-04-s13-stage45-verification.md） |
+| T7 | 收尾：🟡-1 清偿批 + session-13 补全 + 原子收官（dont-do ⑤ ls 清单）+ STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令 | 完成（本序列） |
+
+### S13 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-04，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | ADR-0012 在档且与实现一致 | PASS | adr-0012 accepted 在档；公式逐字符等价（ADR ↔ keys.ts #shuffle）；多重集重建/失败不回牌/成员级注记/2.5 披露逐句对峙；🟡-1 缺口已清偿复验 CONFIRMED |
+| R2 | 变体 B 测试面 | PASS | pre-fix 有放回亲证（git show 04c0e5c^）→ 恒值 rng 三连发真红；红绿 2f\|9p→11p + 🟡-1 腿 1f\|11p→12p；钉牌单发 ：66-71 零漂移 |
+| R3 | GUI 控件通路 | PASS | controller.spec patch 载荷逐字断言；deriveSnapshot 显式默认 order（六成员与 node resolveConfig 对称亲证）；未配置禁用；deep-merge 实物在盘 |
+| R4 | 说明 UI + i18n | PASS | zh hint 逐字含「单把失败不换把，直接降级下一成员」；{policy} 渲染层插值；27 keys parity + 17 files 零 CJK |
+| R5 | 门墙七命令 | PASS | T4 提交态 + T6 独立复验 + 🟡-1 清偿复验三层亲跑零偏差（终态 261\|9(270) / exit 0 / 0w0e / 59.42+27.04+29.98 / 五件 / 27+17 / clean） |
+| R6 | 浏览器实物 + 隔离 | PASS | /tmp/dshws-s13/ 五件亲见 + settings.yaml 实读 + 截图非空亲阅 + refs:{} 复原 + 3421 精确收/常驻零接触 |
 
 ### 12b 设置页信息收敛批（2026-09-04，分支 feat/s12b-page-info-deepseek）
 
@@ -212,6 +246,9 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 009 债务映射节正本） |
 | fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
+| 设置页 CSS module 化（内联 style 收敛） | 🟢 | 维持不排期（12a 登记；S15 顺手候选——**本行为 S13 T0 补镜像**，原登记 plan 012a） |
+| anysearch fetch 面（fetch 链成员 v1 不做） | 🟢 | 维持不排期（S10 登记——**本行为 S13 T0 补镜像**） |
+| 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | S14/S15 顺手补一条（S13 阶段 4/5 登记） |
 | firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排） |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |

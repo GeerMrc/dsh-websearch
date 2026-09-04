@@ -12,6 +12,34 @@
 
 ---
 
+## 2026-09-04 — 优先级策略棒：ADR-0012 变体 B + keySelection 控件（Session 13，M7）
+
+**新增**
+- ADR-0012 定谳：key 级 `random` 策略改判**不放回随机**（洗牌牌堆：一轮内每把 key 恰抽一次，抽尽按升序 Fisher-Yates `j = i + floor(rng() × (n − i))` 重洗〔rng≡0↔恒等排列，既存钉牌断言零漂移〕；拆分序列与牌堆多重集不一致即重建；失败不回牌——直接链层降级；**成员级保持顺序降级不变**；S11 用户方向 + 2.5 默认批准披露）（`04c0e5c`）
+- 成员卡 keySelection GUI 控件（12b 移交交付）：role=group 三段 segmented（aria-pressed 标当前项 / 未配置禁用 / 成员前缀 aria-label / pressed = bg-layer-1+border-l3）；写 settings 热生效，patch 深合并不清同成员兄弟字段（`27dd261`+`7aa0e5f`）
+- 两级调用顺序说明 hint：控件行下插值当前策略名——「多把 key 按「{policy}」选取；单把失败不换把，直接降级下一成员」（locales 22→**27 keys**）（`7aa0e5f`）
+- 测试基线 261→**270**（261 passed | 9 skipped；+9：keys 3〔含重复多重集重建腿〕+ controller 3 + section 3）；index.js 57.96→**59.42 kB**（index.d.ts 27.04 零漂移）；client.js 26.25→**29.98 kB**
+- Agent Note `docs/notes/2026-09-04-s13-priority-strategy.md`（ADR-0012 语义表 + 控件面 + 三坑）；audit-logs 3 份
+
+**清偿（1 笔）**
+- 阶段 0 承接 🟡×1（session-12a/12b 记录缺「开发规范强化说明」节——模板漂移自 12a 起）：T0 补节头 + 勘注，内容原文不动（`e26a7dd`）；本棒记录自骨架起三★节占位（防复发）
+
+**治理**
+- 阶段 0 独立审核 S12b PASS（零产品漂移采信分支 + 冒烟 22 passed + 交付物六项逐核）→ 阶段 2 两轮（轮 1 NEEDS REVISION 必改×2〔洗牌公式未钉押硬币/fixture 面漏认领〕+ 建议×5 → 全数吸收 → 轮 2 APPROVED）→ 阶段 2.5 AskUserQuestion 未获答 → **按接力序取默认批准项自主推进**（推荐方案 + 变体 B；S09/S10 先例，双落披露）→ 阶段 4/5 **PASS / COMPLETE**（门墙七命令亲跑零偏差 + ADR 与实现逐句对照 + 三问全过；**🟡×1 抓获：sameMultiset 漏 `left<=0`——重复多重集平移陈旧牌堆存活〔探针实证〕→ b08b26e 当场清偿，同 Agent 复验 CONFIRMED**）
+
+**诚实标注（遗留项）**
+- 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环）——🟢 归 S14/S15 顺手补
+- 🟡-1 清偿过程披露：首版「整周期多重集」断言被陈旧尾抽 + 自然重洗掩盖而假绿（12 passed）——改判别点为热改后立即首抽后证红（expected 'k2' to be 'k1'）
+- 维持项：fetch 排序 UI / 恢复默认按钮 / anysearch fetch 面 / CSS module 化 / L-2 / 观察×4 / v2 backlog（余额看板 + fetch 兜底开关 → S14 调研）
+
+**跟踪（观察期）**
+- 测试基线链：252\|9(261) → **261\|9(270)**；typecheck 双面 exit 0；lint 0w0e 47 files；check:i18n 27 keys + 17 files 零 CJK
+- M7 计数：S09/S10/S11/S12/12a/12b/13 ✅；余 S14（fetch 调研+溯源）；M5 文档腿 S15；M3 余用户 with-key 回填
+- dont-do 新增：0 条（三坑入 session 记录 + Agent Note，未达系统性门槛）
+- 下一棒：S14 = fetch 兜底开关调研 + session 搜索溯源增强（ADR-0010）
+
+---
+
 ## 2026-09-04 — 设置页信息收敛 + DeepSeek 双配置澄清（Session 12b，M7 插行棒）
 
 **新增**
