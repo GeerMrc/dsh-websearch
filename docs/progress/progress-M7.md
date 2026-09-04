@@ -82,6 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
+| 12b | ①`pnpm test` → **252 passed \| 9 skipped (261)**（260→261：+1 = T2 badge 断言；T1 改写净零）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.68→26.25 kB**（页头图标+badge）；index.js/index.d.ts 零漂移 ⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12b T3 提交态亲跑（node v24.3.0） |
 | 12a | ①`pnpm test` → **251 passed \| 9 skipped (260)**（257→260：+3 净增 = T1 新 4−删 1 + T2 改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.03→24.80 kB**（结构重排）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**20 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12a T3 提交态亲跑（node v24.3.0）；T5 复验 d561598 终态：client.js **24.68 kB**、余六件零偏差 |
 | S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑 + T8 独立复验零偏差（node v24.3.0） |
 
@@ -127,6 +128,26 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T4 | 浏览器实测棒（3419，起前 lsof 查占=空闲）：computed style 断言 + 双态截图 + 复原 | 完成（卡 padding 12/14+radius 12；输入 wrapper 高 32/r8/layer-1——**实测发现 Input 原语 wrapper 自带全部字段视觉，height:32 冗余已撤**；hint 12/18；thumb translateX(16px)；状态点 role=img aria "Not configured"；未配置态链区块不存在=0；已配置态链卡 1+品牌名行+绿开关+顺序 hint；**grid 行 5 元素占位 span 残留致 ↓ 换行——删除后 4 元素同线 rowH 40**；截图×3 与 /tmp/dshws-s12a/ 实物；Clear 复原凭据零残留；**同版本 tarball 重复 add 被 pnpm 跳过——rm node_modules 强制重装**；3416/3080/61518 零接触）——**勘误（T5 🟡-2）**：本行「height:32 冗余已撤」转写失真，d561598 实删的是 `boxSizing:'border-box'`（height:32 从未入过任何提交）；截图实物初未归档（Browser Use 截图仅入会话 artifacts），T6 已补归档双态 PNG 至 /tmp/dshws-s12a/ |
 | T5 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R6/R7 全 PASS + 门墙本审零偏差亲证〔client.js 终态 **24.68 kB** 落账〕+ 三问全过 + 冒烟 12a 用例 7 passed；🟡×2 记录类随 T6 清偿：截图腿补落盘 + d561598 勘误注记；audit-log 正本 …/2026-09-04-s12a-stage45-verification.md） |
 | T6 | 收尾：🟡-1 截图补落盘（重启 3419 归档双态 PNG×2 至 /tmp/dshws-s12a/）+ 🟡-2 勘误注记 + session-12a 补全 + Agent Note 补坑 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 完成（本序列） |
+
+### 12b 设置页信息收敛批（2026-09-04，分支 feat/s12b-page-info-deepseek）
+
+阶段 0 独立采信审核 **PASS**（🔴×0；冒烟 49 passed；正本
+…/2026-09-04-s12b-stage0-review-of-s12a.md——初审执行在先落盘遗漏由阶段 2 复审抓获）
+→ plan 012b（含 DeepSeek 双配置分析四点结论 + 两级调用逻辑现状 + S13 衔接）→ 阶段 2
+两轮（轮 1 NEEDS REVISION 必改×2〔locale 键算术 20→22/断言改写面穷举〕+ 建议×5 →
+全数吸收 → 轮 2 残留 R-M1 阶段 0 正本漏落盘 → 补落后即 **APPROVED**；正本
+…/2026-09-04-s12b-stage2-plan-review.md）→ 阶段 2.5 **用户真实批准**（第 6 次「批准
+推荐方案」——D2 裁定 DeepSeek 卡保留+澄清 badge）→ 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 012b + 阶段 0/2 audit-log + roadmap 12b 插行 + S13 WBS 增补 + 启动全状态区 + session-12b 骨架 | 完成（`e9b2e66`） |
+| T1 | 页头单图标：六卡 hint 删 + h3 后 IconQuestionOutline14+Tooltip（keyFieldNote 文案） | 完成（`ba61392`；红 1 failed → 绿 49 passed；i18n 20 keys 不变） |
+| T2 | DeepSeek 澄清 badge：头行 11px 胶囊（title 展开句）+ 两新键（22 keys） | 完成（`1708cbe`；红 1 failed → 绿 50 passed；typecheck 0） |
+| T3 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note（两级调用逻辑表 + DeepSeek 结论） | 完成（数字见门墙表 12b 行；提交态 1708cbe） |
+| T4 | 浏览器实测棒（3420，起前查占）：页头图标 hover/六卡无 hint/deepseek badge/截图归档 | 待启动 |
+| T5 | 阶段 4/5 独立验证 | 待启动 |
+| T6 | 收尾：session-12b 补全 + 原子收官（dont-do ⑤ ls 清单）+ merge + 接力指令 | 待启动 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
