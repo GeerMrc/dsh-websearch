@@ -63,7 +63,9 @@ const cardStyle = {
   gap: 8,
 } as const
 
-const switchStyle = (enabled: boolean) =>
+/** Track color follows the configured state (反馈②): green only when the member
+ * is configured AND enabled — an unconfigured member never renders green. */
+const switchStyle = (configured: boolean, enabled: boolean) =>
   ({
     width: 34,
     height: 20,
@@ -72,7 +74,10 @@ const switchStyle = (enabled: boolean) =>
     padding: 0,
     cursor: 'pointer',
     position: 'relative' as const,
-    background: enabled ? 'var(--dsw-alias-state-success-primary)' : 'var(--dsw-alias-border-l2)',
+    background:
+      configured && enabled
+        ? 'var(--dsw-alias-state-success-primary)'
+        : 'var(--dsw-alias-border-l2)',
   }) as const
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
@@ -237,7 +242,7 @@ function MemberCard(props: {
           aria-label={`${member.label} ${t('enabled')}`}
           disabled={!member.configured}
           onClick={() => void onToggleEnabled(member.key, !member.enabled)}
-          style={{ ...switchStyle(member.enabled), cursor: member.configured ? 'pointer' : 'not-allowed', opacity: member.configured ? 1 : 0.4 }}
+          style={{ ...switchStyle(member.configured, member.enabled), cursor: member.configured ? 'pointer' : 'not-allowed', opacity: member.configured ? 1 : 0.4 }}
         />
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
@@ -276,7 +281,7 @@ function MemberCard(props: {
         </Button>
       </div>
       {feedback ? (
-        <span data-testid={`dshws-feedback-${member.key}`}>{t(feedback)}</span>
+        <span data-testid={`dshws-feedback-${member.key}`} role="status">{t(feedback)}</span>
       ) : null}
     </div>
   )

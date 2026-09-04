@@ -224,6 +224,33 @@ describe('WebSearchSettingsSection', () => {
     expect(exaSwitch.disabled).toBe(false)
   })
 
+  it('the switch color tracks the configured state, not the enabled flag (反馈②)', async () => {
+    const members = defaultMembers()
+    // Unconfigured with enabled defaulting to true must NOT render green.
+    members[0] = member('tavily', 'Tavily', { configured: false })
+    // Configured but toggled off stays gray; only configured+enabled is green.
+    members[1] = member('exa', 'Exa', { enabled: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const tavily = screen.getByRole('switch', { name: 'Tavily Enabled' }) as HTMLButtonElement
+    expect(tavily.disabled).toBe(true)
+    expect(tavily.style.background).toBe('var(--dsw-alias-border-l2)')
+    const exa = screen.getByRole('switch', { name: 'Exa Enabled' }) as HTMLButtonElement
+    expect(exa.getAttribute('aria-checked')).toBe('false')
+    expect(exa.style.background).toBe('var(--dsw-alias-border-l2)')
+    const deepseek = screen.getByRole('switch', { name: 'DeepSeek Enabled' }) as HTMLButtonElement
+    expect(deepseek.style.background).toBe('var(--dsw-alias-state-success-primary)')
+    // Action feedback is a polite live region (host savedNotice convention);
+    // verified on the save leg — toggling has never rendered member feedback.
+    const input = within(screen.getByTestId('dshws-member-deepseek')).getByLabelText(
+      'DeepSeek API Key',
+    ) as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'sk-fake-ds' } })
+    fireEvent.click(within(screen.getByTestId('dshws-member-deepseek')).getByRole('button', { name: 'DeepSeek Save' }))
+    await waitFor(() =>
+      expect(screen.getByTestId('dshws-feedback-deepseek').getAttribute('role')).toBe('status'),
+    )
+  })
+
   it('the key field shows the format note via a focusable info tooltip (反馈① ℹ️ hover)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const card = screen.getByTestId('dshws-member-tavily')
