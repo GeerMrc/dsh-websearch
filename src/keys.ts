@@ -164,7 +164,9 @@ export class KeyPool {
     for (const key of a) counts.set(key, (counts.get(key) ?? 0) + 1)
     for (const key of b) {
       const left = counts.get(key)
-      if (left === undefined) return false
+      // `left <= 0` catches duplicate-multiplicity shifts (k1,k1,k2 → k1,k2,k2):
+      // the same key set, so `undefined` alone never fires (S13 stage-4/5 🟡-1).
+      if (left === undefined || left <= 0) return false
       counts.set(key, left - 1)
     }
     return true

@@ -46,8 +46,8 @@
 | 11 | 2026-09-03 | 验收反馈调整（开关置灰 + 单槽逗号值 + 过滤未配置） | ✅ | docs/sessions/2026-09-03-session-11.md（reconstructed 补落 2026-09-04；ADR-0011 改判 + 开关置灰 + 过滤 + 可见序列交换 + keyFieldNote；技术面全绿经 S12 阶段 0 复核亲证；收官证据链缺口由 S12 修复批闭合） | S12 阶段 0 审定 **BLOCKED**（🔴×2 收官证据链 + 🟡×9）——🔴/🟡 全部由 S12 T0/T3/T5/T7/T8 认领闭合 |
 | 12 | 2026-09-04 | 设置页 UI/UX 对齐（用户反馈四项）+ S11 治理修复批 | ✅ | docs/sessions/2026-09-04-session-12.md（四项 ⓘ hover/开关色/品牌名+边界/默认序说明 + S11 记录补落/roadmap 重排/案卷闭合；阶段 2 两轮 APPROVED + 2.5 第 4 次 + 阶段 4/5 PASS/COMPLETE） | 承接 S11 🔴×2+🟡×9 全清偿（T8 复验闭合）；新抓获 🟡×3（T8 记录类）T9 勘正；🟢 维持 |
 | 12a | 2026-09-04 | 设置页布局系统性重构（用户二轮反馈四点） | ✅ | docs/sessions/2026-09-04-session-12a.md（成员卡纵向结构/输入独占行/hint 格式化文案/链区块未配置隐藏/紧凑链卡/fetchChain 展示移除/页头 intro；阶段 2 两轮 APPROVED + 2.5 第 5 次 + 阶段 4/5 PASS/COMPLETE） | 二轮反馈 🟡×1 全清偿；T5 抓获 🟡×2 记录类 T6 勘正；新登记 🟢×2 |
-| 13 | 2026-09-04 | 优先级策略棒：ADR-0012 定谳 + keySelection GUI 控件 + 两级调用顺序说明 UI | 🚧 | 执行中（plan 013：docs/plans/2026-09-04-013-s13-priority-strategy-plan.md） | 阶段 0 承接 🟡×1（12a/12b 记录缺「开发规范强化说明」节）→ T0 清偿；🟢×5 处置见 plan 013 债务映射节 |
 | 12b | 2026-09-04 | 设置页信息收敛 + DeepSeek 双配置澄清（用户三轮反馈） | ✅ | docs/sessions/2026-09-04-session-12b.md（页头单图标/DeepSeek 澄清 badge/两级调用逻辑文档化 + S13 移交；阶段 2 两轮 APPROVED + 2.5 第 6 次 + 阶段 4/5 PASS/COMPLETE） | 三轮反馈 🟡×2 全清偿；T5 抓获 🟡×1 T6 补守卫 |
+| 13 | 2026-09-04 | 优先级策略棒：ADR-0012 定谳 + keySelection GUI 控件 + 两级调用顺序说明 UI | 🚧 | 执行中（plan 013：docs/plans/2026-09-04-013-s13-priority-strategy-plan.md） | 阶段 0 承接 🟡×1（12a/12b 记录缺「开发规范强化说明」节）→ T0 清偿；🟢×5 处置见 plan 013 债务映射节 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 

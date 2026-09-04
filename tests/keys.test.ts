@@ -91,6 +91,20 @@ describe('KeyPool single-slot comma value (ADR-0011)', () => {
     expect([...after].sort()).toEqual(['a1', 'a2'])
   })
 
+  it('rebuilds the random deck when duplicate multiplicities shift (S13 阶段 4/5 🟡-1)', async () => {
+    // k1,k1,k2 → k1,k2,k2 keeps the same key set; only the multiplicities move.
+    // The stale deck [k1,k1,k2] must be rebuilt immediately (ADR-0012 D2): with
+    // rng ≡ 0 the rebuilt identity deck draws k1 first — the stale deck's tail
+    // would serve k2 and keep the old multiplicities until natural exhaustion.
+    const { pool, setValue } = makePool({ value: 'k1,k1,k2', selection: 'random', rng: () => 0 })
+    expect(await pool.resolveApiKey()).toBe('k1')
+    expect(await pool.resolveApiKey()).toBe('k1')
+    setValue('k1,k2,k2')
+    expect(await pool.resolveApiKey()).toBe('k1')
+    expect(await pool.resolveApiKey()).toBe('k2')
+    expect(await pool.resolveApiKey()).toBe('k2')
+  })
+
   it('fails loud naming the ref when the value is missing (主值未存)', async () => {
     const { pool } = makePool({ value: undefined })
     const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)
