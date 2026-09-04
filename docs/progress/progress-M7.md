@@ -82,6 +82,7 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
+| S13 | ①`pnpm test` → **260 passed \| 9 skipped (269)**（261→269：+8 = keys 2 + controller 3 + section 3；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：index.js 57.96→59.41 kB**（牌堆逻辑）；index.d.ts **27.04 kB 零漂移**（公共类型未动）；**client.js 26.25→29.98 kB**（控件+hint+5 键）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**27 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S13 T4 提交态亲跑（node v22.23.2 / pnpm 11.7.0） |
 | 12b | ①`pnpm test` → **252 passed \| 9 skipped (261)**（260→261：+1 = T2 badge 断言；T1 改写净零）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.68→26.25 kB**（页头图标+badge）；index.js/index.d.ts 零漂移 ⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12b T3 提交态亲跑（node v24.3.0）；T5 复验 1a57023 终态零偏差 |
 | 12a | ①`pnpm test` → **251 passed \| 9 skipped (260)**（257→260：+3 净增 = T1 新 4−删 1 + T2 改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files）**④`pnpm build` → **增量披露：client.js 24.03→24.80 kB**（结构重排）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**20 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | 12a T3 提交态亲跑（node v24.3.0）；T5 复验 d561598 终态：client.js **24.68 kB**、余六件零偏差 |
 | S12 | ①`pnpm test` → **26 passed files + 1 skipped (27)，Tests 248 passed \| 9 skipped (257)**（254→257：+3 净增 = T2 色矩阵 1 + T4 ⓘ 1 + T5 混合序列 1；T1 为断言改写净零；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**④`pnpm build` → **增量披露：client.js 21.57→24.03 kB**（Tooltip/图标/品牌名/ⓘ 引入）；index.js 57.96 / index.d.ts 27.04 零漂移（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**22 keys** parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S12 T6 提交态亲跑 + T8 独立复验零偏差（node v24.3.0） |
@@ -142,7 +143,11 @@ S09/S10 先例，披露双落 session 记录与 ADR-0012）→ 逐一执行中�
 
 | 任务 | 内容 | 结果 |
 |---|---|---|
-| T0 | 治理批：plan 013 + ADR-0012（accepted，变体 B）+ 阶段 0/2 audit-log 入库 + 🟡-1 清偿（12a/12b 补节头 + 勘注）+ 🟢① STATUS 台账行序归位 + 🟢② 本台账补 CSS module 化/anysearch fetch 面两行镜像 + roadmap S13 行验收细化 + 启动全状态区 + session-13 骨架 | 完成（本批次首提交） |
+| T0 | 治理批：plan 013 + ADR-0012（accepted，变体 B）+ 阶段 0/2 audit-log 入库 + 🟡-1 清偿（12a/12b 补节头 + 勘注）+ 🟢① STATUS 台账行序归位 + 🟢② 本台账补 CSS module 化/anysearch fetch 面两行镜像 + roadmap S13 行验收细化 + 启动全状态区 + session-13 骨架 | 完成（`e26a7dd`） |
+| T1 | keys.ts 变体 B（TDD）：洗牌牌堆 + 升序 Fisher-Yates（`j = i + floor(rng() × (n − i))`，rng≡0↔恒等排列）+ 多重集不一致重建；新断言「恒值 rng 三连发 = 池排列」+「热改池值重建腿」 | 完成（`04c0e5c`；红 **2 failed\|9 passed**（现状基线 [k1,k1,k1]/[a1,a1] 真红）→ 绿 **11 passed**（钉牌单发 ：66-71 两断言存活）；apply.test 17 passed 热通路零漂移） |
+| T2 | controller 通路（TDD）：MemberSectionValue/MemberSnapshot.keySelection（deriveSnapshot 默认 order）+ setKeySelection patch（revision 携带/冲突 not-ok）；section.spec 两 fixture helper 补必填字段（机械 accommodation） | 完成（`27dd261`；红 **3 failed\|17 passed** → 绿 controller 20 + section 22；typecheck 双面 0） |
+| T3 | 控件 + hint（TDD）：成员卡 role=group 三段 segmented（aria-pressed/未配置禁用/成员前缀 aria-label/bg-layer-1 pressed 视觉）+ hint 插值策略名（两级语义句）；locales +5 键（27） | 完成（`7aa0e5f`；红 **3 failed\|22 passed** → 绿 client 三 spec **50 passed**；typecheck 双面 0；check:i18n 27 keys parity + 17 files 零 CJK；**执行缺陷一处当场修复：Section 解构漏 onSetKeySelection（渲染即 ReferenceError 批红，无假绿）**） |
+| T4 | 门墙七命令（提交态 7aa0e5f）+ 本台账/门墙表 + Agent Note（docs/notes/2026-09-04-s13-priority-strategy.md） | 完成（数字见门墙表 S13 行） |
 
 ### 12b 设置页信息收敛批（2026-09-04，分支 feat/s12b-page-info-deepseek）
 
