@@ -27,6 +27,7 @@ export interface SectionProps {
   onClearKey: (memberKey: string) => Promise<ActionResult>
   onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
   onMoveSearch: (id: string, delta: -1 | 1) => Promise<ActionResult>
+  onSetKeySelection: (memberKey: string, selection: 'order' | 'round-robin' | 'random') => Promise<ActionResult>
 }
 
 /**
@@ -49,6 +50,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onClearKey={(key) => controller.clearKey(key)}
         onToggleEnabled={(key, enabled) => controller.setEnabled(key, enabled)}
         onMoveSearch={(id, delta) => controller.moveSearchChainEntry(id, delta)}
+        onSetKeySelection={(key, selection) => controller.setKeySelection(key, selection)}
       />
     )
   }
@@ -109,6 +111,32 @@ const sharedBadgeStyle = {
   border: '1px solid var(--dsw-alias-border-l2)',
   color: 'var(--dsw-alias-label-tertiary)',
 } as const
+
+/** Key-selection row (S13 D2): label + three segments; the pressed segment
+ * carries the field visual (bg-layer-1/border-l3 — Input wrapper precedent). */
+const keySelRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+} as const
+
+const keySelLabelStyle = {
+  fontSize: 12,
+  color: 'var(--dsw-alias-label-secondary)',
+} as const
+
+const keySelButtonStyle = (pressed: boolean, configured: boolean) =>
+  ({
+    fontSize: 12,
+    lineHeight: '18px',
+    padding: '2px 10px',
+    cursor: configured ? 'pointer' : 'not-allowed',
+    opacity: configured ? 1 : 0.4,
+    borderRadius: 6,
+    border: `1px solid var(--dsw-alias-border-${pressed ? 'l3' : 'l2'})`,
+    background: pressed ? 'var(--dsw-alias-bg-layer-1)' : 'transparent',
+    color: pressed ? 'var(--dsw-alias-label-secondary)' : 'var(--dsw-alias-label-tertiary)',
+  }) as const
 
 const feedbackStyle = {
   flex: 1,
@@ -172,9 +200,20 @@ const inputStyle = {
 /** Chain rows render the brand label; ids stay the test/action payload (D3). */
 const labelOf = (id: string): string => MEMBERS.find((member) => member.memberId === id)?.label ?? id
 
+/** The three pool policies and their label keys, in control order (S13 D2). */
+const KEY_SELECTIONS = [
+  { value: 'order', labelKey: 'keySelOrder' },
+  { value: 'round-robin', labelKey: 'keySelRoundRobin' },
+  { value: 'random', labelKey: 'keySelRandom' },
+] as const
+
+/** Locale key for one policy value (the hint interpolates the live policy name). */
+const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): DshWsLocaleKey =>
+  KEY_SELECTIONS.find((entry) => entry.value === selection)?.labelKey ?? 'keySelOrder'
+
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -213,6 +252,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             onSaveKey={onSaveKey}
             onClearKey={onClearKey}
             onToggleEnabled={onToggleEnabled}
+            onSetKeySelection={onSetKeySelection}
           />
         ))}
       </div>
@@ -319,8 +359,9 @@ function MemberCard(props: {
   onSaveKey: SectionProps['onSaveKey']
   onClearKey: SectionProps['onClearKey']
   onToggleEnabled: SectionProps['onToggleEnabled']
+  onSetKeySelection: SectionProps['onSetKeySelection']
 }) {
-  const { member, t, onSaveKey, onClearKey, onToggleEnabled } = props
+  const { member, t, onSaveKey, onClearKey, onToggleEnabled, onSetKeySelection } = props
   const [draft, setDraft] = useState('')
   const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
   const save = async (): Promise<void> => {
@@ -370,6 +411,29 @@ function MemberCard(props: {
         onChange={(event) => setDraft(event.target.value)}
         style={inputStyle}
       />
+      {/* Key-selection control (S13 D2/D3): the pool policy plus the two-level
+      call-semantics note — per-button member-prefixed names avoid the
+      identical-buttons ambiguity (S06 lesson). */}
+      <div role="group" aria-label={`${member.label} ${t('keySelection')}`} style={keySelRowStyle}>
+        <span style={keySelLabelStyle}>{t('keySelection')}</span>
+        {KEY_SELECTIONS.map((entry) => (
+          <button
+            key={entry.value}
+            type="button"
+            aria-pressed={member.keySelection === entry.value}
+            aria-label={`${member.label} ${t(entry.labelKey)}`}
+            data-testid={`dshws-keysel-${member.key}-${entry.value}`}
+            disabled={!member.configured}
+            onClick={() => void onSetKeySelection(member.key, entry.value)}
+            style={keySelButtonStyle(member.keySelection === entry.value, member.configured)}
+          >
+            {t(entry.labelKey)}
+          </button>
+        ))}
+      </div>
+      <p data-testid={`dshws-keysel-hint-${member.key}`} style={{ ...hintStyle, marginTop: -6 }}>
+        {t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
+      </p>
       <div style={footerStyle}>
         {feedback ? (
           <span role="status" data-testid={`dshws-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>

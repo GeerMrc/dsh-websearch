@@ -35,6 +35,11 @@ export type DshWsLocaleKey =
   | 'chainDefaultHint'
   | 'chainPinned'
   | 'keyFieldNote'
+  | 'keySelection'
+  | 'keySelOrder'
+  | 'keySelRoundRobin'
+  | 'keySelRandom'
+  | 'keySelectionHint'
   | 'sharedWithModels'
   | 'sharedWithModelsDetail'
 
@@ -66,6 +71,11 @@ export const en: Record<DshWsLocaleKey, string> = {
   chainDefaultHint: 'Members are tried in this built-in order while the chain is not pinned; a pinned order overrides it:',
   chainPinned: 'Pinned (overrides default)',
   keyFieldNote: 'Multiple keys: {APIKEY1,APIKEY2,...} (max 10)',
+  keySelection: 'Key selection',
+  keySelOrder: 'Order',
+  keySelRoundRobin: 'Round-robin',
+  keySelRandom: 'Random',
+  keySelectionHint: 'Multiple keys are drawn by "{policy}"; a failing key is not retried — the next chain member takes over.',
   sharedWithModels: 'Shared with Models',
   sharedWithModelsDetail: 'Uses the same DEEPSEEK_API_KEY credential as the Models settings page; the last save wins.',
 }
@@ -92,6 +102,11 @@ export const zh: Record<DshWsLocaleKey, string> = {
   chainDefaultHint: '未钉死时成员按此内置默认序依次尝试；钉死序会覆盖默认序：',
   chainPinned: '已钉死（覆盖默认序）',
   keyFieldNote: '多把 key：{APIKEY1,APIKEY2,...}（最多 10 把）',
+  keySelection: 'Key 策略',
+  keySelOrder: '顺序',
+  keySelRoundRobin: '轮询',
+  keySelRandom: '随机',
+  keySelectionHint: '多把 key 按「{policy}」选取；单把失败不换把，直接降级下一成员。',
   sharedWithModels: '共用模型 Key',
   sharedWithModelsDetail: '与模型设置页共用同一把 DEEPSEEK_API_KEY；两处修改后写覆盖先写。',
 }
