@@ -230,6 +230,43 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.enabled).toBe(true)
   })
 
+  it('init derives the order selection default and honors described values (S13 D4)', async () => {
+    const remote = new FakeRemote()
+    remote.nsValue = { tavily: { keySelection: 'round-robin' } }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    const snapshot = controller.snapshot()
+    expect(snapshot.members.find((member) => member.key === 'tavily')?.keySelection).toBe('round-robin')
+    expect(snapshot.members.find((member) => member.key === 'exa')?.keySelection).toBe('order')
+  })
+
+  it('setKeySelection patches the member selection with the current revision (S13 D4)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    const result = await controller.setKeySelection('tavily', 'random')
+    expect(result.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      { ns: 'dsh-websearch', patch: { tavily: { keySelection: 'random' } }, expectedRevision: 0 },
+    ])
+    expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.keySelection).toBe('random')
+    expect(controller.snapshot().revision).toBe(1)
+  })
+
+  it('setKeySelection conflict reports not-ok and keeps the described selection', async () => {
+    const remote = new FakeRemote()
+    remote.nsValue = { tavily: { keySelection: 'round-robin' } }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    remote.failNextUpdate = true
+
+    const result = await controller.setKeySelection('tavily', 'random')
+    expect(result.ok).toBe(false)
+    expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.keySelection).toBe('round-robin')
+  })
+
   it('moveSearchChainEntry patches the full materialized order with the current revision', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))

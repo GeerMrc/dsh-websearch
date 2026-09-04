@@ -24,6 +24,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     refName: `${key.toUpperCase()}_API_KEY`,
     enabled: true,
     configured: true,
+    keySelection: 'order',
     source: undefined,
     writable: true,
     ...overrides,
