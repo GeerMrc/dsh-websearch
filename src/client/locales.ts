@@ -25,7 +25,6 @@ export type DshWsLocaleKey =
   | 'configured'
   | 'notConfigured'
   | 'searchChain'
-  | 'fetchChain'
   | 'timeout'
   | 'saved'
   | 'cleared'
@@ -36,7 +35,6 @@ export type DshWsLocaleKey =
   | 'chainDefaultHint'
   | 'chainPinned'
   | 'keyFieldNote'
-  | 'keyFieldNoteExample'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -48,7 +46,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const en: Record<DshWsLocaleKey, string> = {
   nav: 'Web Search',
   title: 'Web Search',
-  description: 'Manage search provider priority, API keys, and member toggles.',
+  description: 'Manage search provider priority, API keys, and member toggles. Configured members are tried in chain order and the next one takes over on failure.',
   apiKey: 'API Key',
   save: 'Save',
   clear: 'Clear',
@@ -56,7 +54,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   configured: 'Configured',
   notConfigured: 'Not configured',
   searchChain: 'Search chain',
-  fetchChain: 'Fetch chain',
   timeout: 'Per-member timeout',
   saved: 'Saved',
   cleared: 'Cleared',
@@ -66,15 +63,14 @@ export const en: Record<DshWsLocaleKey, string> = {
   chainDefault: 'Built-in default order',
   chainDefaultHint: 'Members are tried in this built-in order while the chain is not pinned; a pinned order overrides it:',
   chainPinned: 'Pinned (overrides default)',
-  keyFieldNote: 'Comma-separate multiple keys (max 10)',
-  keyFieldNoteExample: 'e.g. sk-key-one,sk-key-two',
+  keyFieldNote: 'Multiple keys: {APIKEY1,APIKEY2,...} (max 10)',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
 export const zh: Record<DshWsLocaleKey, string> = {
   nav: '网页搜索',
   title: '网页搜索',
-  description: '管理搜索引擎优先级、API key 与成员启停。',
+  description: '管理搜索引擎优先级、API key 与成员启停。已配置成员按链序依次尝试，失败自动降级到下一个。',
   apiKey: 'API Key',
   save: '保存',
   clear: '清除',
@@ -82,7 +78,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   configured: '已配置',
   notConfigured: '未配置',
   searchChain: '搜索链',
-  fetchChain: '抓取链',
   timeout: '单成员超时',
   saved: '已保存',
   cleared: '已清除',
@@ -92,6 +87,5 @@ export const zh: Record<DshWsLocaleKey, string> = {
   chainDefault: '内置默认序',
   chainDefaultHint: '未钉死时成员按此内置默认序依次尝试；钉死序会覆盖默认序：',
   chainPinned: '已钉死（覆盖默认序）',
-  keyFieldNote: '多把 key 用逗号分隔（最多 10 把）',
-  keyFieldNoteExample: '例：sk-key-one,sk-key-two',
+  keyFieldNote: '多把 key：{APIKEY1,APIKEY2,...}（最多 10 把）',
 }

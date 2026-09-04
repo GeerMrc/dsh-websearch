@@ -24,9 +24,12 @@ describe('client locales', () => {
     }
   })
 
-  it('carries the S11 key field note on both sides', () => {
-    expect(en.keyFieldNote).toBe('Comma-separate multiple keys (max 10)')
-    expect(zh.keyFieldNote).toBe('多把 key 用逗号分隔（最多 10 把）')
+  it('carries the 12a formatted key field note on both sides (反馈②)', () => {
+    expect(en.keyFieldNote).toBe('Multiple keys: {APIKEY1,APIKEY2,...} (max 10)')
+    expect(zh.keyFieldNote).toBe('多把 key：{APIKEY1,APIKEY2,...}（最多 10 把）')
+    // The example key is gone from the union (checked without tripping TS2339).
+    expect('keyFieldNoteExample' in en).toBe(false)
+    expect('keyFieldNoteExample' in zh).toBe(false)
   })
 
   it('carries the S07 reorder and chain-state keys on both sides', () => {

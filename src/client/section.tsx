@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useState, useSyncExternalStore } from 'react'
-import { Button, IconQuestionOutline14, Input, StateDot, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
@@ -56,30 +56,97 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
 
 const cardStyle = {
   border: '1px solid var(--dsw-alias-border-l2)',
-  borderRadius: 8,
-  background: 'var(--dsw-alias-bg-base)',
-  padding: 12,
+  borderRadius: 12,
+  background: 'var(--dsw-alias-bg-layer-3)',
+  padding: '12px 14px',
   display: 'flex',
   flexDirection: 'column',
+  gap: 12,
+} as const
+
+const cardHeadStyle = {
+  display: 'flex',
+  alignItems: 'center',
   gap: 8,
 } as const
 
-/** Track color follows the configured state (反馈②): green only when the member
- * is configured AND enabled — an unconfigured member never renders green. */
+const nameStyle = {
+  fontSize: 14,
+  fontWeight: 500,
+} as const
+
+const hintStyle = {
+  margin: 0,
+  fontSize: 12,
+  lineHeight: '18px',
+  color: 'var(--dsw-alias-label-tertiary)',
+} as const
+
+const footerStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: 8,
+} as const
+
+const feedbackStyle = {
+  flex: 1,
+  fontSize: 12,
+  color: 'var(--dsw-alias-state-success-primary)',
+} as const
+
+/** Track follows the host switch shape (36x20, pad 2, r10 — SubagentModelSelectionCard
+ * precedent) while keeping the S12 user-decided semantic green: green only when the
+ * member is configured AND enabled — an unconfigured member never renders green. */
 const switchStyle = (configured: boolean, enabled: boolean) =>
   ({
-    width: 34,
-    height: 20,
-    borderRadius: 10,
-    border: 'none',
-    padding: 0,
-    cursor: 'pointer',
+    boxSizing: 'border-box' as const,
     position: 'relative' as const,
+    flex: '0 0 auto' as const,
+    width: 36,
+    height: 20,
+    padding: 2,
+    border: 'none',
+    borderRadius: 10,
+    cursor: 'pointer',
     background:
       configured && enabled
         ? 'var(--dsw-alias-state-success-primary)'
-        : 'var(--dsw-alias-border-l2)',
+        : 'var(--dsw-alias-border-l3)',
   }) as const
+
+const thumbStyle = (enabled: boolean) =>
+  ({
+    display: 'block' as const,
+    position: 'absolute' as const,
+    top: 2,
+    left: 2,
+    width: 16,
+    height: 16,
+    borderRadius: '50%',
+    background: 'var(--dsw-alias-label-primary-foreground)',
+    transition: 'transform 120ms ease',
+    transform: enabled ? 'translateX(16px)' : 'translateX(0px)',
+  }) as const
+
+/** Semantic status dot (host credentialDot precedent): role=img + aria-label +
+ * title carry the configured state for assistive tech, unlike aria-hidden StateDot. */
+const statusDotStyle = (configured: boolean) =>
+  ({
+    flex: '0 0 auto' as const,
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: configured
+      ? 'var(--dsw-alias-state-success-primary)'
+      : 'var(--dsw-alias-state-warn-label)',
+  }) as const
+
+// The Input primitive's own wrapper carries the full field visual (32px, r8,
+// bg-layer-1, border) — only the width needs asserting here.
+const inputStyle = {
+  width: '100%',
+} as const
 
 /** Chain rows render the brand label; ids stay the test/action payload (D3). */
 const labelOf = (id: string): string => MEMBERS.find((member) => member.memberId === id)?.label ?? id
@@ -97,12 +164,15 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   const visibleSearch = snapshot.searchChain.filter((id) =>
     snapshot.members.some((m) => m.memberId === id && m.configured),
   )
+  // The chain card only earns its place once at least one member is configured:
+  // with nothing configured it read as a half-screen block of static copy.
+  const showChains = snapshot.members.some((m) => m.configured)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
       <div>
-        <h3 style={{ margin: 0 }}>{t('title')}</h3>
-        <p style={{ margin: 0 }}>{t('description')}</p>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>{t('title')}</h3>
+        <p style={{ margin: 0, marginTop: 4, fontSize: 14, lineHeight: '22px', color: 'var(--dsw-alias-label-tertiary)' }}>{t('description')}</p>
       </div>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {snapshot.members.map((member) => (
@@ -116,119 +186,99 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           />
         ))}
       </div>
-      <section data-testid="dshws-chains" style={{ ...cardStyle, padding: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <h4 style={{ margin: 0 }}>{t('searchChain')}</h4>
-          <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
-        </div>
-        <ol data-testid="dshws-search-chain" style={{ margin: 0, paddingLeft: 20 }}>
-          {/* Disabled boundaries follow the FILTERED (visible) list: computing them
-          against the full chain left the last visible ↓ clickable and failing. */}
-          {visibleSearch.map((id, index) => (
-            <li key={id} data-testid={`dshws-chain-item-${id}`} style={chainItemStyle}>
-              <span>{labelOf(id)}</span>
-              {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
-              <button
-                type="button"
-                aria-label={`${labelOf(id)} ${t('moveUp')}`}
-                disabled={index === 0}
-                onClick={() => void move(id, -1)}
-                style={moveButtonStyle}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                aria-label={`${labelOf(id)} ${t('moveDown')}`}
-                disabled={index === visibleSearch.length - 1}
-                onClick={() => void move(id, 1)}
-                style={moveButtonStyle}
-              >
-                ↓
-              </button>
-            </li>
-          ))}
-        </ol>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <h4 style={{ margin: 0 }}>{t('fetchChain')}</h4>
-          <ChainStateBadge pinned={snapshot.fetchChainPinned} t={t} />
-        </div>
-        <ol data-testid="dshws-fetch-chain" style={{ margin: 0, paddingLeft: 20 }}>
-          {snapshot.fetchChain.map((id) => (
-            <li key={id}>
-              <span>{labelOf(id)}</span>
-            </li>
-          ))}
-        </ol>
-        <span>
-          {t('timeout')}: {snapshot.timeoutMs} ms
-        </span>
-        {chainFeedback ? <span data-testid="dshws-chain-feedback">{t(chainFeedback)}</span> : null}
-      </section>
+      {showChains ? (
+        <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('searchChain')}</h4>
+            <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
+          </div>
+          <p style={hintStyle}>
+            {t('chainDefaultHint')} {MEMBERS.map((m) => m.label).join(' → ')}
+          </p>
+          <ol
+            data-testid="dshws-search-chain"
+            style={{ margin: 0, paddingLeft: 0, listStyle: 'none', maxHeight: 280, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}
+          >
+            {/* Disabled boundaries follow the FILTERED (visible) list: computing them
+            against the full chain left the last visible ↓ clickable and failing. */}
+            {visibleSearch.map((id, index) => (
+              <li key={id} data-testid={`dshws-chain-item-${id}`} style={chainRowStyle}>
+                <span style={chainIndexStyle}>{index + 1}</span>
+                <span data-dshws-chain-label="">{labelOf(id)}</span>
+                {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
+                <button
+                  type="button"
+                  aria-label={`${labelOf(id)} ${t('moveUp')}`}
+                  disabled={index === 0}
+                  onClick={() => void move(id, -1)}
+                  style={moveButtonStyle}
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  aria-label={`${labelOf(id)} ${t('moveDown')}`}
+                  disabled={index === visibleSearch.length - 1}
+                  onClick={() => void move(id, 1)}
+                  style={moveButtonStyle}
+                >
+                  ↓
+                </button>
+              </li>
+            ))}
+          </ol>
+          <p style={hintStyle}>
+            {t('timeout')}: {snapshot.timeoutMs} ms
+          </p>
+          {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
+        </section>
+      ) : null}
     </div>
   )
 }
 
-const chainItemStyle = {
-  display: 'flex',
+const chainRowStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'auto minmax(0, 1fr) auto auto',
+  gap: 8,
   alignItems: 'center',
-  gap: 6,
-  justifyContent: 'space-between',
+  padding: 6,
+  borderRadius: 6,
+} as const
+
+const chainIndexStyle = {
+  fontSize: 12,
+  color: 'var(--dsw-alias-label-tertiary)',
+  minWidth: 14,
 } as const
 
 const moveButtonStyle = {
-  width: 22,
-  height: 22,
+  width: 28,
+  height: 28,
   lineHeight: 1,
   padding: 0,
   cursor: 'pointer',
-  border: '1px solid var(--dsw-alias-border-l2)',
-  borderRadius: 4,
-  background: 'var(--dsw-alias-bg-base)',
-} as const
-
-/** Transparent focusable anchor for the key-format tooltip (copy lives in the bubble). */
-const infoButtonStyle = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: 0,
   border: 'none',
+  borderRadius: 6,
   background: 'transparent',
-  color: 'inherit',
-  opacity: 0.6,
-  cursor: 'help',
+  color: 'var(--dsw-alias-label-secondary)',
 } as const
 
-/** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1).
- * The default (unpinned) state carries an ⓘ whose bubble spells the built-in order,
- * derived from MEMBERS — the same source as BUILT_IN_MEMBER_ORDER, never hardcoded. */
+/** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1);
+ * a plain 11px badge — the default-order explanation lives in the card hint line. */
 function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => string }) {
-  if (props.pinned) {
-    return (
-      <span
-        data-dshws-chain-state="pinned"
-        style={{ fontSize: 12 }}
-      >
-        {props.t('chainPinned')}
-      </span>
-    )
-  }
   return (
     <span
-      data-dshws-chain-state="default"
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 12 }}
+      data-dshws-chain-state={props.pinned ? 'pinned' : 'default'}
+      style={{
+        fontSize: 11,
+        padding: '1px 6px',
+        borderRadius: 999,
+        border: '1px solid var(--dsw-alias-border-l2)',
+        color: 'var(--dsw-alias-label-tertiary)',
+      }}
     >
-      {props.t('chainDefault')}
-      <Tooltip
-        label={`${props.t('chainDefaultHint')} ${MEMBERS.map((member) => member.label).join(' → ')}`}
-        side="bottom"
-        delayMs={400}
-        maxWidth={320}
-      >
-        <button type="button" aria-label={props.t('chainDefault')} style={infoButtonStyle}>
-          <IconQuestionOutline14 />
-        </button>
-      </Tooltip>
+      {props.pinned ? props.t('chainPinned') : props.t('chainDefault')}
     </span>
   )
 }
@@ -259,13 +309,13 @@ function MemberCard(props: {
   }
 
 
+  const statusText = member.configured ? t('configured') : t('notConfigured')
+
   return (
     <div data-testid={`dshws-member-${member.key}`} style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        {/* StateDot is aria-hidden by contract; the status text pairs with it. */}
-        <StateDot state={member.configured ? 'done' : 'warning'} />
-        <strong>{member.label}</strong>
-        <span>{member.configured ? t('configured') : t('notConfigured')}</span>
+      <div style={cardHeadStyle}>
+        <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
+        <strong style={nameStyle}>{member.label}</strong>
         <span style={{ flex: 1 }} />
         <button
           type="button"
@@ -275,33 +325,25 @@ function MemberCard(props: {
           disabled={!member.configured}
           onClick={() => void onToggleEnabled(member.key, !member.enabled)}
           style={{ ...switchStyle(member.configured, member.enabled), cursor: member.configured ? 'pointer' : 'not-allowed', opacity: member.configured ? 1 : 0.4 }}
-        />
-      </div>
-      <div style={{ display: 'flex', gap: 6 }}>
-        <Input
-          type="password"
-          aria-label={`${member.label} ${t('apiKey')}`}
-          placeholder={member.refName}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          style={{ flex: 1 }}
-        />
-        {/* Format note lives in a hover/focus bubble; the focusable button is the
-        Tooltip anchor (a bare svg would drop the injected handlers/ref). */}
-        <Tooltip label={`${t('keyFieldNote')} ${t('keyFieldNoteExample')}`} side="bottom" delayMs={400} maxWidth={320}>
-          <button type="button" aria-label={t('keyFieldNote')} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
-          </button>
-        </Tooltip>
-        <Button
-          variant="primary"
-          size="sm"
-          disabled={draft === ''}
-          aria-label={`${member.label} ${t('save')}`}
-          onClick={() => void save()}
         >
-          {t('save')}
-        </Button>
+          <span style={thumbStyle(member.enabled)} />
+        </button>
+      </div>
+      <Input
+        type="password"
+        aria-label={`${member.label} ${t('apiKey')}`}
+        placeholder={member.refName}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        style={inputStyle}
+      />
+      <p style={hintStyle}>{t('keyFieldNote')}</p>
+      <div style={footerStyle}>
+        {feedback ? (
+          <span role="status" data-testid={`dshws-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
+        ) : (
+          <span style={{ flex: 1 }} />
+        )}
         <Button
           variant="outline"
           size="sm"
@@ -311,10 +353,16 @@ function MemberCard(props: {
         >
           {t('clear')}
         </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={draft === ''}
+          aria-label={`${member.label} ${t('save')}`}
+          onClick={() => void save()}
+        >
+          {t('save')}
+        </Button>
       </div>
-      {feedback ? (
-        <span data-testid={`dshws-feedback-${member.key}`} role="status">{t(feedback)}</span>
-      ) : null}
     </div>
   )
 }
