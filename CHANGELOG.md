@@ -12,6 +12,28 @@
 
 ---
 
+## 2026-09-04 — 设置页信息收敛 + DeepSeek 双配置澄清（Session 12b，M7 插行棒）
+
+**新增**
+- key 格式提示收敛：六卡重复 hint 段落撤除 → 页头「网页搜索 ⓘ」单图标悬停提示（用户裁定形态；宿主无「!」圆圈，用问号圆圈 IconQuestionOutline14）
+- DeepSeek 卡澄清：头行「共用模型 Key」badge（title 展开句——与模型设置页共用同一把 DEEPSEEK_API_KEY，后写覆盖先写）；locales 20→**22 keys**
+- 两级调用逻辑文档化（Agent Note 正本）：跨工具=**顺序降级**（非轮询；caller abort 直传例外）；同工具多 key=order（默认恒首把）/round-robin（逐请求轮换）/random（采样），失败不换把直接链层降级——顺序可视化配置需求划归 **S13 策略棒**（roadmap WBS 增补 keySelection GUI 控件移交）
+- 测试基线 260→**261**（252 passed | 9 skipped）；client.js 24.68→**26.25 kB**；node 侧零变更兑现
+- Agent Note `docs/notes/2026-09-04-s12b-page-info-deepseek.md`；audit-logs 3 份
+
+**治理**
+- 阶段 0 独立采信审核 PASS（无产品变更分支；正本漏落盘由阶段 2 复审 R-M1 抓获补落——dont-do ⑤ 家族）→ 阶段 2 两轮（NEEDS REVISION 必改×2 → 轮 2 残留 R-M1 修复后 APPROVED）→ 阶段 2.5 用户真实批准（第 6 次「批准推荐方案」——DeepSeek 卡保留+badge，不移除）→ 阶段 4/5 **PASS / COMPLETE**（门墙本审零偏差；截图实物采信；🟡×1 T6 补守卫清偿）
+
+**诚实标注（遗留项）**
+- keySelection GUI 控件与调用顺序可视化未做——S13 策略棒认领（roadmap WBS 已增补）
+- 「成员卡子树 tooltip null 守卫」缺口（T5 抓获）——T6 补齐（22 passed）
+- webview 后台态 programmatic focus() 不生效——focusin 冒泡触发手法沉淀
+
+**跟踪（观察期）**
+- 测试基线链 251→252；i18n 20→22 keys；下一 session 接力摘要：S13 = 优先级策略棒（ADR-0012）
+
+---
+
 ## 2026-09-04 — 设置页布局系统性重构（Session 12a，M7 插行棒）
 
 **新增**
