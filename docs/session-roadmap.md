@@ -6,7 +6,7 @@
 > 2. 启动方式两种（优先 A）——**A.** 粘贴上一 session 记录末尾的**启动指令**；**B.** 输入 `按 .session-start 启动 Session N`；
 > 3. 状态列**只在阶段 6 原子收尾时写入** `✅ 日期`（验收证据用指针引用 session 记录/plan，不内嵌数字与行号清单）；与 STATUS.md 台账行 ✅ 同一收尾动作完成，禁止提前预写收官状态。
 >
-> **规则**：从最小编号往下找第一个 ⏳ 即下一个 session；前置依赖未完成先完成它。行宽上限：目标列 ≤2 行；WBS/验收细节放引用目标。偏离路线图用小数编号插行（10a/10b），下游编号不顺延。Spike 行验收形态为「假设/验收标准/结论」三节。架构术语与模块边界见 `docs/00-architecture.md`。本表已按 S01 独立审核（2026-09-02，F-001..F-019）修订。
+> **规则**：从最小编号往下找第一个 ⏳ 即下一个 session；前置依赖未完成先完成它。行宽上限：目标列 ≤2 行；WBS/验收细节放引用目标。偏离路线图默认小数编号插行（10a/10b）、下游编号不顺延；**整段重排须用户权威确认并经 2.5 终审批准**——2026-09-04 用户重排（S12=UI/UX 对齐、S13 策略、S14 fetch 调研+溯源、S15 手册、S16 验收准备）为批准首例，本规则对该次重排让位（S12 T0 记录）。Spike 行验收形态为「假设/验收标准/结论」三节。架构术语与模块边界见 `docs/00-architecture.md`。本表已按 S01 独立审核（2026-09-02，F-001..F-019）修订。
 
 ## 治理与规划（M1 治理与规划定稿）
 
@@ -46,30 +46,34 @@
 
 ## 功能扩展（M7 功能扩展）
 
-> 2026-09-03 用户需求扩展批次（ADR-0008/0009/0010 定谳；原 S09/S10 顺延为 S12/S13）。
+> 2026-09-03 用户需求扩展批次（ADR-0008/0009/0010 定谳）；2026-09-04 用户 UI/UX 反馈四项插入，
+> 待执行尾按用户重排整段重编号（S12-S16，头部规则行让位记录在案）。
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
 | **09** | 多 APIKEY 池 + 选择策略 | config 每成员 `extraApiKeyEnvs` + `keySelection`（order/round-robin/random，ADR-0008）；`src/keys.ts` KeyPool（thunk 落点，provider 零改动）；gate/prime 全池扩展；GUI 附加 keys 列表（自绘仿链排序）+ typed locales；loopback stub 记 Authorization header 轮换断言 | 不配置 = 现状零变化；round-robin 三 key 三连发逐把轮换（e2e 实测）+ random 冒烟 + order 首个就绪；全空池才 CREDENTIAL_MISSING；策略/池 settings 热生效实测；门墙全绿 | 1-2 天 | ✅ 2026-09-03（docs/sessions/2026-09-03-session-09.md；wire 级轮换实证 + 牙齿证明 + 浏览器多 key GUI 三断言；provider 零改动兑现） |
 | **10** | anysearch 第六成员 | `src/providers/anysearch.ts` HTTP 自实现（ADR-0009：POST /v1/search + 信封 code≠0 → httpError + content→snippet 补映射）；`MEMBER_ERROR_CODES.anysearch` 五码族；config anysearch 节（enabled/apiKeyEnv/baseURL/zone）；BUILT_IN_MEMBER_ORDER 尾部追加；node 接线 + client 第 6 卡 + locales；单测（envelope/429/断网/超时）+ loopback 扩展 + 真实 API smoke 自跳 | 成员全链路绿（链可含 dshws-anysearch 降级/署名/排序）；GUI 六卡渲染 + key 写通路；与 3080 anysearch 插件共存语义在档；真实 smoke 无 key 自跳；门墙全绿 | 1-2 天 | ✅ 2026-09-03（docs/sessions/2026-09-03-session-10.md；信封 wire 复证 + 六卡浏览器断言 + 共存语义 ADR-0009 在档；池化自动享用兑现） |
-| **11** | session 搜索溯源增强 | 插件 client half 接管 `tool.call.toolview` web_search key（priority shadow，ADR-0010）；解析 served-by 首行 → 折叠行服务徽标；回退语义（无署名/形状不符 → 宿主同构/generic）；成员名映射 + typed locales；jsdom 契约 + 浏览器实测（session 视图徽标可见 + 回退态） | 徽标在 session 工具调用行可见（浏览器实测）；直连/外来结果回退态正确；宿主源码零 diff 断言；门墙全绿（含 check:i18n 新键） | 1-2 天 | ⏳ |
+| **11** | 验收反馈调整：开关置灰 + 单槽逗号值 + 过滤未配置（2026-09-03 执行；2026-09-04 补登） | extras 四件制品退场 + keys.ts 单槽化（ADR-0008 superseded → ADR-0011，上限 10 fail-loud）+ 开关置灰 + 优先级列表过滤 + 可见序列交换 + keyFieldNote | 技术面全绿（S12 阶段 0 独立复核亲证：子集 188 passed + 静态四件全过）；收官证据链缺口（session 记录/roadmap/CHANGELOG/接力指令 + 阶段 4/5 遗留腿）由 S12 修复批闭合 | 1 天 | ✅ 2026-09-03（docs/sessions/2026-09-03-session-11.md〔reconstructed 补落〕；遗留腿转 S12 T3/T5/T7 认领） |
+| **12** | 设置页 UI/UX 对齐（用户 2026-09-04 反馈四项） | ①多 key 提示改 info 图标 hover + 格式示例 ②开关颜色跟随配置态（未配灰/已配开绿）③链列表收敛：品牌名渲染 + 可见列表禁用边界 ④默认序 ⓘ hover 动态说明；+ S11 治理修复批（T0：S11 记录补落/roadmap 重排/CHANGELOG/参数头/dont-do 两条） | WBS/验收正本：docs/plans/2026-09-04-012-s12-uiux-alignment-plan.md（R1-R7：四项 jsdom+浏览器断言 + S11 遗留腿清偿 + 治理修复批核验 + 门墙） | 1 天 | ⏳ |
+| **13** | 优先级策略棒：成员级 random/序列 + ADR-0012 | keySelection 成员级 random/序列变体定谳（ADR-0012；S11 时用户方向确认「变体 B 不放回随机」仍可讨论）+ 编辑器 GUI + 多 key 策略控件再评估（plan 011 债务映射 🟢） | 待 S12 后 plan 细化（WBS/验收随 plan 013 落盘） | 1-2 天 | ⏳ |
+| **14** | fetch 兜底开关调研 + session 搜索溯源增强 | fetch：兜底开关调研（v2 backlog 首棒：余额/积分看板 + fetch 兜底开关，结论落 ADR/注记）；溯源（原 11 行 WBS 平移，ADR-0010 不变）：client half 接管 `tool.call.toolview` web_search key（priority shadow）+ served-by 徽标 + 回退语义 + 成员名映射（复用 controller MEMBERS label） | 徽标在 session 工具调用行可见（浏览器实测）；直连/外来结果回退态正确；宿主源码零 diff 断言；门墙全绿（含 check:i18n 新键）；fetch 调研结论在档 | 1-2 天 | ⏳ |
 
-**里程碑 M7 功能扩展**：每成员多 APIKEY（多 ref 池 + order/round-robin/random）+ anysearch 第六成员 + session 工具调用溯源徽标（零内核侵入）—— 完成时填 ✅ 日期（Session 11 证据）；v2 backlog：各成员余额/积分定期统计与数据看板（ADR-0008 缓议章节，未排期）
+**里程碑 M7 功能扩展**：每成员多 APIKEY（单槽逗号值〔ADR-0011〕+ order/round-robin/random）+ anysearch 第六成员 + 设置页 UI/UX 对齐 + session 工具调用溯源徽标（零内核侵入）—— 完成时填 ✅ 日期（Session 14 证据）；v2 backlog：余额/积分看板 + fetch 兜底开关（S14 调研）
 
 ## 验证与文档（M5 交付就绪）
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
 | **08** | e2e 场景收口 | loopback stub：断网降级/429 降级/超时降级/全败报错/顺序保持/servedBy 透出/钉死直连不降级；真实 API e2e 自跳 | 各场景 e2e 绿（时序断言：失败成员→下一成员的调用序；`DSHWS_CHAIN_EXHAUSTED` 与逐成员摘要断言；content 首行署名断言） | 1 天 | ✅ 2026-09-02（docs/sessions/2026-09-02-session-08.md；loopback 七场景 + 链级真实 smoke 自跳；src 零变更兑现） |
-| **12** | README + 迁移 + 升级手册（原 S09，2026-09-03 顺延——特性三棒前置，手册一次写全含 anysearch 迁移新现实） | README（zh/en：安装/配置/GUI/链语义/**多 key 池**）；anysearch 迁移（**先删其 patch 两行标量覆盖，再写本插件两行，附顺序与验证命令**；含官方 anysearch 插件共存/退役语义 ADR-0009）；docs/upgrade.md 升级演练手册（含溯源替身卡片维护点 ADR-0010） | 由独立审核 Agent 照手册从零在 scratch profile 走通安装→搜索并留痕；演练手册步骤可独立执行 | 1 天 | ⏳ |
+| **15** | README + 迁移 + 升级手册（原 S12 行；2026-09-04 重排编号） | README（zh/en：安装/配置/GUI/链语义/**多 key 单槽逗号值**）；anysearch 迁移（**先删其 patch 两行标量覆盖，再写本插件两行，附顺序与验证命令**；含官方 anysearch 插件共存/退役语义 ADR-0009）；docs/upgrade.md 升级演练手册（含溯源替身卡片维护点 ADR-0010） | 由独立审核 Agent 照手册从零在 scratch profile 走通安装→搜索并留痕；演练手册步骤可独立执行 | 1 天 | ⏳ |
 
-**里程碑 M5 交付就绪**：e2e 收口全绿，文档自洽可复现 —— 🚧 e2e 收口腿 ✅ 2026-09-02（Session 08 证据：loopback 七场景 + 真实 API 自跳）；文档腿 S12——两腿齐后填 ✅（Session 12 证据；2026-09-03 顺延勘注）
+**里程碑 M5 交付就绪**：e2e 收口全绿，文档自洽可复现 —— 🚧 e2e 收口腿 ✅ 2026-09-02（Session 08 证据：loopback 七场景 + 真实 API 自跳）；文档腿 S15——两腿齐后填 ✅（Session 15 证据；2026-09-04 重排勘注）
 
 ## 上游验收（M6 上游验收通过）
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
 |---|---|---|---|---|---|
-| **13** | 上游重建验收准备（原 S10，2026-09-03 顺延） | 全新上游 build 环境步骤；验收清单（无 DEEPSEEK key 可搜索/GUI 全流程/降级演示/卸载复原）；anysearch 退役步骤 | 清单文档 + 环境备好；实测环节由用户择机执行，STATUS.md 保持 M6 未决直至用户证据回填 | 0.5 天 | ⏳ |
+| **16** | 上游重建验收准备（原 S13 行；2026-09-04 重排编号） | 全新上游 build 环境步骤；验收清单（无 DEEPSEEK key 可搜索/GUI 全流程/降级演示/卸载复原）；anysearch 退役步骤 | 清单文档 + 环境备好；实测环节由用户择机执行，STATUS.md 保持 M6 未决直至用户证据回填 | 0.5 天 | ⏳ |
 
 **里程碑 M6 上游验收通过**：用户在上游全新构建上完成验收清单 —— 完成时填 ✅ 日期（用户实测证据）
 

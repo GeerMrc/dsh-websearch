@@ -1,6 +1,7 @@
 # Session 11 阶段 0 前序审核输出（审核对象：Session 10）
 
 > **落盘说明**：本文件为 Session 11 阶段 0 独立审核 Agent 输出原文逐字（主 Agent 转录落盘，无敏感值）。
+> **参数头（S12 T0 补录）**：审核库 v2｜阶段 0｜Session 11 审 S10｜输入指针：对象 Session 10（anysearch 第六成员，收官 master fbb817f，基线 3059b36）+ S10 台账/plan 010/audit-log｜偏离说明：当时未按 v1.2 记参数头，本行按 log 头部参数补记；当期提示词原文不可考（S12 阶段 0 🟡9）。
 
 ---
 

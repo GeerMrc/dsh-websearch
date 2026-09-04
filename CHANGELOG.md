@@ -12,6 +12,34 @@
 
 ---
 
+## 2026-09-03 — 验收反馈调整：单槽逗号值 + 开关置灰 + 过滤未配置（Session 11，M7 调整棒；2026-09-04 补录）
+
+> 补录说明：本条目由 Session 12 治理修复批补写（S11 收官提交 b23097b 漏落 CHANGELOG——
+> S12 阶段 0 审核 🔴1 家族抓获，🟡8）。
+
+**新增**
+- 多 key 形态改判**单槽逗号值**（ADR-0008 superseded → ADR-0011）：每成员一个凭据 ref，值 = `k1,...,kN` 逗号串（上限 10 把拆分后 fail-loud；`keySelection` 三策略保留、作用于拆分后 key 序列——轮换对象 ref 级改 key 级）；S09 `extraApiKeyEnvs` 多 ref 池回退（config 四件制品 ×六成员退场，pre-release 无兼容承诺）
+- 开关**置灰禁用**未配置成员（`disabled={!member.configured}`；行为零变化——链本就跳过）
+- 优先级列表**过滤未配置成员** + move 升级**可见序列交换**（delta 方向跳过未配置成员与相邻已配置成员交换）
+- key 输入框 `!` helper text（`keyFieldNote`：多把 key 逗号分隔最多 10 把）；locales 四删一增（19→**20 键**）
+- 测试基线 266→**254**（245 passed | 9 skipped；extras 行为删改对冲净减）；build 增量披露 57.96/27.04/21.57 kB（退场缩减）
+- Agent Note `docs/notes/2026-09-03-s11-adjustments.md`（单槽语义/回退决策/三坑——S12 正素材）；audit-logs 3 份
+
+**治理**
+- 阶段 0 独立审核 S10 **PASS**（🟡×3 记录更正类 T0 清偿）→ 阶段 2 两轮（NEEDS REVISION → APPROVED）→ 阶段 2.5 用户真实批准（第 3 次）
+- 阶段 4/5 独立验证在盘正本 = **BLOCKED**（`65bef4e` 时点；R1/R3 证据条未齐）；收官提交曾误入账「PASS / COMPLETE」——2026-09-04 由 S12 阶段 0 审核（🔴2）撤销勘正（progress-M7 T8 行勘正注记在档）
+
+**诚实标注（遗留项）**
+- T6 浏览器实测棒未执行（scratch 3417 五断言）——转 S12 认领
+- 阶段 4/5 遗留腿三笔：过滤负路径断言 / 混合序列交换断言 / 牙齿探针重演——转 S12 T3/T5 清偿
+- 收官序列四件缺：session 记录（2026-09-04 reconstructed 补落）/ roadmap 更新 / CHANGELOG（即本条目）/ 接力指令——S12 T0 治理修复批补齐
+
+**跟踪（观察期）**
+- dont-do 新增 2 条（S12 T0 入册）：收官声称完成而核心工件缺失形态 / 验收 gate 翻转无留痕形态
+- 下一 session 接力摘要：S12 = 设置页 UI/UX 对齐（用户 2026-09-04 反馈四项）
+
+---
+
 ## 2026-09-03 — anysearch 第六成员（Session 10，M7 第 2 棒）
 
 **新增**

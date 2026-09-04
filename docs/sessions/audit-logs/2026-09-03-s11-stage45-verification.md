@@ -1,6 +1,7 @@
 # Session 11 阶段 4/5 独立验证输出（正本转录）
 
 > 落盘说明：本文件为 Session 11 阶段 4/5 独立验证 Agent 输出原文逐字。
+> **参数头（S12 T0 补录）**：审核库 v2｜阶段 4/5｜Session 11｜输入指针：plan 正本 011 + commit 范围 32afef7..65bef4e（feat/s11-adjustments）+ 测试命令（pnpm test/typecheck/lint/build/pack/check:i18n）｜偏离说明：当时未按 v1.2 记参数头，本行按 log 基线行补记；当期提示词原文不可考（S12 阶段 0 🟡9）。本 log 结论 BLOCKED 为在盘正本——收官曾误入账 PASS，S12 阶段 0 🔴2 勘正。
 
 ---
 

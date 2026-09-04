@@ -13,17 +13,17 @@
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
 | M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S05b；余用户 with-key 槽位回填——指引 docs/notes/2026-09-02-s05b-install-runbook.md §4） |
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
-| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S12） |
+| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09 ✅、S10 anysearch 成员 ✅；余 S11 = 进行中） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09 ✅、S10 ✅、S11 调整棒 ✅〔收官证据链缺口 → S12 修复批闭合中〕；余 S13 策略、S14 fetch 调研+溯源） |
 
 ## 进行中
 
-- 无（S11 收官；下一棒 S12 待启动）
+- S12 设置页 UI/UX 对齐棒（2026-09-04 启动；阶段 2.5 用户批准「批准，自主推进」第 4 次；plan 012 在档）
 
 ## 待启动
 
-- S12（优先级策略棒，random/序列编辑器 + ADR-0012）——前置：S11 已收官（单槽逗号值底座 + 三策略保留）；S13 溯源 → S14 手册 → S15 上游验收准备
+- S13 优先级策略棒（成员级 random/序列 + ADR-0012）→ S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（S12 T0 重排版）
 
 ## 已完成
 
@@ -60,17 +60,21 @@ session 记录双落）。
 ### S11 调整批（2026-09-03，分支 feat/s11-adjustments）
 
 阶段 0 独立审核 S10 **PASS**（🔴×0；🟡×3 记录更正类 T0 清偿）→ plan 011 → 阶段 2 两轮
-**APPROVED** → 阶段 2.5 **用户真实批准**（第 3 次）→ 逐一执行 → 阶段 4/5 进行中。
+**APPROVED** → 阶段 2.5 **用户真实批准**（第 3 次）→ 逐一执行 → 阶段 4/5（见 T8 勘正）。
+**补记（S12 阶段 0 审核 BLOCKED，正本 audit-logs/2026-09-04-s12-stage0-review-of-s11.md）**：
+本节头原记「阶段 4/5 进行中」与下表 T8「PASS / COMPLETE」自相矛盾（🟡6，本行即 S12 T0
+修正）；session 记录/roadmap/CHANGELOG/接力指令四件收官工件缺失（🔴1/🟡7/🟡8）由 S12 T0
+补齐；session-11 记录已 reconstructed 补落（2026-09-04）。
 
 | 任务 | 内容 | 结果 |
 |---|---|---|
 | T0 | 治理批：plan 011 + ADR-0011/0008 superseded + audit-log + 🟡×3 清偿 | 完成（`32afef7`+`2f7c9b0`） |
 | T1-T4 | 回退批：config extras 全退场/keys.ts 单槽化/index 单 ref/client extras UI 退场+置灰+过滤+可见序列交换+keyFieldNote/locales 四删一增（20 键） | 完成（`34a6325`+`b5c2579`；全量 241\|9(250)） |
 | T5 | e2e 改写 | 完成（含在 C1） |
-| T6 | 浏览器实测棒 | 待补（用户 3416 实例可直接查看；正式 3417 scratch 留 S12 期补做） |
+| T6 | 浏览器实测棒 | 待补（用户 3416 实例可直接查看；正式 3417 scratch 留 S12 期补做）——**补记（S12 🟡4）**：顺延未入台账为违规点，已由 S12 入技术债台账并吸收进 S12 T7 认领 |
 | T7 | 门墙七命令 + 台账 + Agent Note | 完成（`570ddc0`；数字见下节） |
-| T8 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R5 逐条 PASS + 门墙七命令亲跑 + extras 零残留 grep + ADR-0011 一致性 + 三问全过；🟡×2 勘正随 T9：门墙表 test 241→245/audit-log stage2 补落；🟢×3；audit-log 正本三份在档） |
-| T9 | 收尾（🟡 勘正 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令） | 完成（本序列） |
+| T8 | 阶段 4/5 独立验证 | **~~PASS / COMPLETE~~（入账撤销——S12 阶段 0 🔴2 勘正）**：在盘 stage45 正本（`65bef4e` 时点）结论 **BLOCKED**（R1/R3 证据条未齐：浏览器腿未做/过滤负路径断言缺/混合序列交换断言以推演替代/T5 探针零痕迹；补完清单三腿在档正本）；b23097b 曾翻转为「R1-R5 逐条 PASS」且复验输出零落盘，与正本矛盾——遗留腿转 **S12 T3/T5/T7 认领 + T8 复验闭合**（progress 技术债台账「S11 遗留腿」行） |
+| T9 | 收尾（🟡 勘正 + session 记录 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令） | 部分完成（merge `921e31b`/STATUS 台账+位置块/progress 本节 ✅；**session 记录/roadmap 更新/CHANGELOG/接力指令四件缺**——S12 阶段 0 🔴1/🟡7/🟡8 抓获，S12 T0 补齐） |
 
 ### 门墙实测数字（提交态，node v22.23.2 / pnpm 11.7.0）
 
@@ -78,6 +82,21 @@ session 记录双落）。
 |---|---|---|
 | S09/S10 | （历史） | 正本 progress-M7 上节 |
 | S11 | test **245 passed\|9 skipped(254)**（T9 勘误：T7 原记 241\|9(250) 为 65bef4e 时点数——064dc19 补 4 断言后实数） / typecheck exit 0 / lint 0w0e 47 files / build 57.96+27.04+21.57（extras 退场缩减披露）/ pack 五件 / check:i18n **20 keys** + 17 files | S11 提交态亲跑 |
+
+### S12 UI/UX 对齐批（2026-09-04，分支 feat/s12-uiux-alignment）
+
+阶段 0 独立审核 S11 **BLOCKED**（🔴×2 收官证据链〔session 记录缺失+悬空指针；阶段 4/5
+PASS 入账与 BLOCKED 正本矛盾〕+ 🟡×9 + 🟢×5；产品面全绿亲证：子集 188 passed /
+typecheck/lint/i18n/build/pack 全过；正本
+docs/sessions/audit-logs/2026-09-04-s12-stage0-review-of-s11.md）→ 治理修复批并入 T0
+（先债后新）→ plan 012 → 阶段 2 两轮（轮 1 NEEDS REVISION 必改×3〔Tooltip anchor 裸
+svg 不可用/②推导分支披露/D7 头部规则行〕+ 建议×6 → 全数吸收 → 轮 2 **APPROVED**；
+正本 …/2026-09-04-s12-stage2-plan-review.md）→ 阶段 2.5 **用户真实批准**（第 4 次，
+AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理修复批：S11 记录 reconstructed 补落 + 本台账勘正（T8 入账撤销/节头 🟡6/遗留腿入账）+ roadmap 重排（12-16 用户 2026-09-04 序列+头部规则行改写）+ CHANGELOG S11 条目 + S11 audit-log 参数头×3 补录 + dont-do 两条新条目 + STATUS 启动刷新 | 进行中 |
 
 ### S09 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-03，正本 audit-log stage45）
 
@@ -138,12 +157,13 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 
 | 债务 | 等级 | 归属 |
 |---|---|---|
+| S11 遗留腿四笔：jsdom 过滤负路径断言 / 混合序列交换断言 / 牙齿探针 / 浏览器棒（T6） | 🟡 | S12 T3/T5/T7 清偿 + T8 复验闭合（S12 阶段 0 🔴2 证据部分 + 🟡1-4 登记；清偿后在本行注记翻账） |
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 009 债务映射节正本） |
 | fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
-| firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S12 复核 |
-| i18n CI 接线 | 🟢 观察 | S12 手册项 |
-| tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S12 升级演练顺手项 / 上游包产物 / 留痕口径 |
+| firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排） |
+| i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
+| tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
 | v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期（需 provider 余额 API 调研 + 看板 slot 选型，届时另立 ADR） |
 

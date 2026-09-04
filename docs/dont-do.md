@@ -36,3 +36,17 @@
 - **错误**：隔离审计用 `ls -la ~/.dsh`（或 stat mtime）核对后写「`~/.dsh` 全程零写入/零接触」——常驻进程（如 3080 停靠实例）会在本棒窗口内向默认 home 写 UI 状态（S07 实测：`~/.dsh/settings.yaml` 的 `welcomeNoticeVersion` 于 21:42 落窗），mtime 变化与本棒动作无关，但绝对主张被下一轮审核用同一证据推翻（S07 阶段 4/5 🟡-1）。
 - **正确**：隔离主张一律写**「本棒动作零接触」**并附归属证据链——①本棒全部命令的 DSH_HOME 指针清单 ②涉事文件的键内容核对（无本棒命名空间键）③写入时点 vs 本棒动作时窗对照 ④窗口内新进程排查（ps）。mtime 只作「本棒动作后未变」的下限证据，不作归属证明。
 - **来源**：S07 阶段 4/5 独立验证 🟡-1（`~/.dsh/settings.yaml` mtime 21:42 归因常驻 3080 实例 welcomeNoticeVersion 持久化，宿主 ui-settings-general/src/index.ts:16；session-07 记录措辞处置清偿）；S06 同款绝对主张未被查验属漏网，下不为例。
+
+## 收官证据链（Session 12 阶段 0 定谳，S11 事故入册）
+
+### ❌ 不要在收官序列里「声称完成而核心工件未落盘」——STATUS 预写收官指针前必须逐一 `ls` 实物
+
+- **错误**：收官提交（S11 b23097b）把 STATUS 台账行写成 ✅ 并指向 session 记录路径，但该记录文件从未写入（T9 序列里「session 记录 + 接力指令」步骤被跳过）；roadmap 未更新、CHANGELOG 缺条目同批发生。下一 session 的标准自举入口（记录 + 启动指令）不存在而看板声称存在。
+- **正确**：①**session 记录随 T0 创建骨架、逐阶段补内容**，收官时只做补全与核对，不做从零撰写（缺口无处藏）；②收官原子序列加「实物存在性核对」清单步——本棒收官应收工件逐一 `ls`/`git log --diff-filter=A` 亲证在档后，才允许 STATUS/roadmap 写 ✅；③指针写进看板前先验文件存在（悬空引用规则）。
+- **来源**：S12 阶段 0 独立审核 🔴1（docs/sessions/audit-logs/2026-09-04-s12-stage0-review-of-s11.md；session-11 记录全历史从未存在 + STATUS:46 悬空指针 + progress-M7:73 T9 声称与实物相反）；S12 T0 修复（session-11 reconstructed 补落 + 本条目入册）
+
+### ❌ 不要在阶段 4/5 gate 未翻案前把验收入账改成 PASS——翻转必须有复验证据先落盘
+
+- **错误**：阶段 4/5 独立验证在盘正本为 BLOCKED（补完清单三腿在档），收官提交却把台账 T8 行写成「PASS / COMPLETE（R1-R5 逐条 PASS）」，复验输出零落盘——入账与正本直接矛盾，且按 plan 自身条文（R1/R3 含浏览器腿、jsdom 断言点名交付）该翻转在证据上不可能成立。
+- **正确**：验收结论只能由**在盘 audit-log 正本**背书；BLOCKED→PASS 翻转必须先补齐正本点名的证据腿（断言/探针/浏览器腿实做或正式改判债务入台账），复验输出落盘后，才在同一原子序列里更新台账行；时点原文不删、勘误注记跟随（沿 S10 T10 先例）。
+- **来源**：S12 阶段 0 独立审核 🔴2（stage45 正本 BLOCKED vs b23097b 的 progress-M7 T8「PASS / COMPLETE」；补完清单 docs/sessions/audit-logs/2026-09-03-s11-stage45-verification.md）；S12 T0 撤销入账 + T3/T5/T7/T8 证据闭合

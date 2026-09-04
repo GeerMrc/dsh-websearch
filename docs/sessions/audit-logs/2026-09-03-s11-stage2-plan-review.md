@@ -1,6 +1,7 @@
 # Session 11 阶段 2 计划审核输出（两轮全文）
 
 > **落盘说明**：本文件为 Session 11 阶段 2 独立审核 Agent 两轮输出转录（主 Agent 落盘，无敏感值）。
+> **参数头（S12 T0 补录）**：审核库 v2｜阶段 2｜Session 11（plan 011 两轮，同 Agent 复审）｜输入指针：plan 正本 docs/plans/2026-09-03-011-s11-acceptance-adjustments-plan.md + roadmap M7 段｜偏离说明：当时未按 v1.2 记参数头；轮 1 为 reconstructed 判词级重建（agent 输出文件被 resume 覆盖，原文不可考）；轮 2 原文逐字（S12 阶段 0 🟡9）。
 
 ---
 
