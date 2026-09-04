@@ -19,11 +19,11 @@
 
 ## 进行中
 
-- 无（12b 收官）
+- S13 优先级策略棒（ADR-0012 定谳 + keySelection GUI 控件 + 两级调用顺序说明 UI，plan 013：docs/plans/2026-09-04-013-s13-priority-strategy-plan.md）——T0 治理批执行中
 
 ## 待启动
 
-- S13 优先级策略棒（成员级 random/序列 + ADR-0012）→ S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（12b 插行后）
+- S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（12b 插行后）
 
 ## 已完成
 
@@ -129,6 +129,21 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T5 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R6/R7 全 PASS + 门墙本审零偏差亲证〔client.js 终态 **24.68 kB** 落账〕+ 三问全过 + 冒烟 12a 用例 7 passed；🟡×2 记录类随 T6 清偿：截图腿补落盘 + d561598 勘误注记；audit-log 正本 …/2026-09-04-s12a-stage45-verification.md） |
 | T6 | 收尾：🟡-1 截图补落盘（重启 3419 归档双态 PNG×2 至 /tmp/dshws-s12a/）+ 🟡-2 勘误注记 + session-12a 补全 + Agent Note 补坑 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 完成（本序列） |
 
+### S13 优先级策略批（2026-09-04，分支 feat/s13-priority-strategy）
+
+阶段 0 独立审核 S12b **PASS**（🔴×0；🟡×1 = session-12b/12a 记录缺「开发规范强化说明」
+节〔模板漂移自 12a 起，前序审核两节口径漏检〕；🟢×5 记录类；正本
+…/2026-09-04-s13-stage0-review-of-s12b.md）→ plan 013（ADR-0012 变体 B 定谳〔升序
+Fisher-Yates 钉牌〕+ GUI 控件〔自绘三段 segmented〕+ 两级调用说明 hint；D1-D6）→
+阶段 2 两轮（轮 1 NEEDS REVISION 必改×2〔洗牌公式未钉押硬币/fixture helper 面漏认领〕+
+建议×5 → 全数吸收 → 轮 2 **APPROVED**；正本 …/2026-09-04-s13-stage2-plan-review.md）→
+阶段 2.5 AskUserQuestion 未获答，按接力序取默认批准项自主推进（**推荐方案 + 变体 B**，
+S09/S10 先例，披露双落 session 记录与 ADR-0012）→ 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 013 + ADR-0012（accepted，变体 B）+ 阶段 0/2 audit-log 入库 + 🟡-1 清偿（12a/12b 补节头 + 勘注）+ 🟢① STATUS 台账行序归位 + 🟢② 本台账补 CSS module 化/anysearch fetch 面两行镜像 + roadmap S13 行验收细化 + 启动全状态区 + session-13 骨架 | 完成（本批次首提交） |
+
 ### 12b 设置页信息收敛批（2026-09-04，分支 feat/s12b-page-info-deepseek）
 
 阶段 0 独立采信审核 **PASS**（🔴×0；冒烟 49 passed；正本
@@ -212,6 +227,8 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 009 债务映射节正本） |
 | fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
+| 设置页 CSS module 化（内联 style 收敛） | 🟢 | 维持不排期（12a 登记；S15 顺手候选——**本行为 S13 T0 补镜像**，原登记 plan 012a） |
+| anysearch fetch 面（fetch 链成员 v1 不做） | 🟢 | 维持不排期（S10 登记——**本行为 S13 T0 补镜像**） |
 | firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排） |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
