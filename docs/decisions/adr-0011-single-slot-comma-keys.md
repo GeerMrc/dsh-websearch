@@ -47,4 +47,4 @@ ADR-0008 定的多 ref 形态（`extraApiKeyEnvs` 追加引用名 + 逐个起名
 ### 负面 / 风险
 - 凭据页看到的是逗号串（不透明）；清除 = 整池清（用户确认接受）。
 - key 个体无独立状态（无法单独清除第 2 把）——重配即整池覆盖。
-- config breaking（extraApiKeyEnvs 删除）——pre-release 无兼容承诺；settings.yaml 已落该字段的部署需手工删除（S12 手册注记）。
+- config breaking（extraApiKeyEnvs 删除）——pre-release 无兼容承诺；settings.yaml 已落该字段的部署需手工删除（S15 手册注记；2026-09-04 重排勘注）。

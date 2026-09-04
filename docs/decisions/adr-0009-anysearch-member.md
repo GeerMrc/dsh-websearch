@@ -54,9 +54,9 @@ accepted（2026-09-03，功能扩展计划用户批准）
 ### 正面后果
 - 用户现有 anysearch APIKEY 直接可用（ref `ANYSEARCH_API_KEY` 经凭据页/环境注入）；与 ADR-0008 多 key 池天然组合。
 - anysearch 的 fetch 面（`/v1/extract`）v1 不做（fetch 链仍单成员 firecrawl）；需要时按同模式追加 `dshws-anysearch-fetch`，本 ADR 不预设计。
-- 官方 anysearch 插件退役路径不受影响（S13 上游验收清单既有步骤）。
+- 官方 anysearch 插件退役路径不受影响（S16 上游验收清单既有步骤；2026-09-04 重排勘注）。
 
 ### 负面后果 / 风险
 - HTTP 规格自实现 = 上游 API 变更的自担面（信封/字段漂移 → badResponse/httpError fail-loud，真实 API smoke 有 key 时可early-warning）。
 - 官方 provider 的额外能力（tag/params/language 等透传字段）v1 不全量透传——按需增补，不预设计。
-- 用户同时装官方 anysearch 插件与本成员时存在「两套 anysearch」心智（README/迁移手册需写清共存与切换语义，S12 素材）。
+- 用户同时装官方 anysearch 插件与本成员时存在「两套 anysearch」心智（README/迁移手册需写清共存与切换语义，S15 素材；2026-09-04 重排勘注）。

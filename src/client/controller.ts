@@ -74,6 +74,8 @@ interface SectionValue {
 export interface MemberSnapshot {
   readonly key: string
   readonly label: string
+  /** Chain-id alignment key (`dshws-<key>`) — chain filtering maps ids through this, not string surgery. */
+  readonly memberId: string
   readonly refName: string
   readonly enabled: boolean
   readonly configured: boolean
@@ -115,6 +117,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     return {
       key: member.key,
       label: member.label,
+      memberId: member.memberId,
       refName,
       enabled: section?.enabled ?? true,
       configured: fact?.configured === true,

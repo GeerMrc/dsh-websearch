@@ -33,8 +33,10 @@ export type DshWsLocaleKey =
   | 'moveUp'
   | 'moveDown'
   | 'chainDefault'
+  | 'chainDefaultHint'
   | 'chainPinned'
   | 'keyFieldNote'
+  | 'keyFieldNoteExample'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -62,8 +64,10 @@ export const en: Record<DshWsLocaleKey, string> = {
   moveUp: 'Move up',
   moveDown: 'Move down',
   chainDefault: 'Built-in default order',
+  chainDefaultHint: 'Members are tried in this built-in order while the chain is not pinned; a pinned order overrides it:',
   chainPinned: 'Pinned (overrides default)',
   keyFieldNote: 'Comma-separate multiple keys (max 10)',
+  keyFieldNoteExample: 'e.g. sk-key-one,sk-key-two',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -86,6 +90,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   moveUp: '上移',
   moveDown: '下移',
   chainDefault: '内置默认序',
+  chainDefaultHint: '未钉死时成员按此内置默认序依次尝试；钉死序会覆盖默认序：',
   chainPinned: '已钉死（覆盖默认序）',
   keyFieldNote: '多把 key 用逗号分隔（最多 10 把）',
+  keyFieldNoteExample: '例：sk-key-one,sk-key-two',
 }
