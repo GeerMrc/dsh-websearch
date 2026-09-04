@@ -280,6 +280,44 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().fetchChainPinned).toBe(false)
   })
 
+  it('a move in a mixed configured set swaps with the adjacent configured member, skipping unconfigured ones (S11 🟡2 清偿)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    // exa and perplexity unconfigured: the visible order is tavily, firecrawl, deepseek, anysearch.
+    for (const ref of ['TAVILY_API_KEY', 'FIRECRAWL_API_KEY', 'DEEPSEEK_API_KEY', 'ANYSEARCH_API_KEY']) {
+      remote.creds.set(ref, { configured: true, source: 'file', writable: true })
+    }
+    await controller.init()
+
+    // Moving firecrawl UP skips unconfigured perplexity AND exa, landing next to tavily.
+    const result = await controller.moveSearchChainEntry('dshws-firecrawl', -1)
+    expect(result.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      {
+        ns: 'dsh-websearch',
+        patch: {
+          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-perplexity', 'dshws-tavily', 'dshws-deepseek', 'dshws-anysearch'],
+        },
+        expectedRevision: 0,
+      },
+    ])
+    // Unconfigured members keep their absolute slots; the visible order swapped.
+    expect(controller.snapshot().searchChain).toEqual([
+      'dshws-firecrawl',
+      'dshws-exa',
+      'dshws-perplexity',
+      'dshws-tavily',
+      'dshws-deepseek',
+      'dshws-anysearch',
+    ])
+
+    // Moving the last configured member down hits the boundary: not-ok, no remote
+    // call (the GUI disables the button; the controller stays the backstop).
+    const boundary = await controller.moveSearchChainEntry('dshws-anysearch', 1)
+    expect(boundary.ok).toBe(false)
+    expect(remote.updateCalls).toHaveLength(1)
+  })
+
   it('a boundary move reports not-ok without calling the remote', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))
