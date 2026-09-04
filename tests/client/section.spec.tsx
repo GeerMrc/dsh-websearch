@@ -224,10 +224,19 @@ describe('WebSearchSettingsSection', () => {
     expect(exaSwitch.disabled).toBe(false)
   })
 
-  it('the key field renders the ! helper note (keyFieldNote 渲染)', () => {
+  it('the key field shows the format note via a focusable info tooltip (反馈① ℹ️ hover)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const card = screen.getByTestId('dshws-member-tavily')
-    expect(card.textContent).toContain(en.keyFieldNote)
+    // The permanent inline note is gone; the copy lives in the hover/focus bubble.
+    expect(within(card).queryByText(en.keyFieldNote)).toBeNull()
+    const anchor = within(card).getByRole('button', { name: en.keyFieldNote })
+    // Focus leg shows the bubble immediately (hover walks the delayMs timer).
+    fireEvent.focus(anchor)
+    const bubble = screen.getByRole('tooltip')
+    expect(bubble.textContent).toContain(en.keyFieldNote)
+    expect(bubble.textContent).toContain(en.keyFieldNoteExample)
+    fireEvent.blur(anchor)
+    expect(screen.queryByRole('tooltip')).toBeNull()
   })
 
   it('unconfigured members are hidden from the priority list (过滤未配置)', () => {

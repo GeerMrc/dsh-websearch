@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useState, useSyncExternalStore } from 'react'
-import { Button, Input, StateDot } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconQuestionOutline14, Input, StateDot, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
 import type { DshWsLocaleKey } from './locales.ts'
@@ -172,6 +172,18 @@ const moveButtonStyle = {
   background: 'var(--dsw-alias-bg-base)',
 } as const
 
+/** Transparent focusable anchor for the key-format tooltip (copy lives in the bubble). */
+const infoButtonStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  color: 'inherit',
+  opacity: 0.6,
+  cursor: 'help',
+} as const
+
 /** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1). */
 function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => string }) {
   return (
@@ -237,7 +249,13 @@ function MemberCard(props: {
           onChange={(event) => setDraft(event.target.value)}
           style={{ flex: 1 }}
         />
-        <span style={{ fontSize: 11, opacity: 0.6 }}>{t('keyFieldNote')}</span>
+        {/* Format note lives in a hover/focus bubble; the focusable button is the
+        Tooltip anchor (a bare svg would drop the injected handlers/ref). */}
+        <Tooltip label={`${t('keyFieldNote')} ${t('keyFieldNoteExample')}`} side="bottom" delayMs={400} maxWidth={320}>
+          <button type="button" aria-label={t('keyFieldNote')} style={infoButtonStyle}>
+            <IconQuestionOutline14 />
+          </button>
+        </Tooltip>
         <Button
           variant="primary"
           size="sm"
