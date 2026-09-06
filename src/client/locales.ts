@@ -60,7 +60,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const en: Record<DshWsLocaleKey, string> = {
   nav: 'Web Search',
   title: 'Web Search',
-  description: 'Manage search provider priority, API keys, and member toggles. Configured members are tried in chain order and the next one takes over on failure.',
+  description: 'Manage search provider priority, API keys, and member toggles. Configured members are tried in chain order and the next one takes over on failure. Installing this plugin takes over web_search (removing it restores the host default); switching web_fetch to the plugin chain stays a manual option.',
   apiKey: 'API Key',
   save: 'Save',
   clear: 'Clear',
@@ -98,7 +98,7 @@ export const en: Record<DshWsLocaleKey, string> = {
 export const zh: Record<DshWsLocaleKey, string> = {
   nav: '网页搜索',
   title: '网页搜索',
-  description: '管理搜索引擎优先级、API key 与成员启停。已配置成员按链序依次尝试，失败自动降级到下一个。',
+  description: '管理搜索引擎优先级、API key 与成员启停。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search（卸载自动复原宿主默认）；把 web_fetch 切到本插件链为手动可选项。',
   apiKey: 'API Key',
   save: '保存',
   clear: '清除',

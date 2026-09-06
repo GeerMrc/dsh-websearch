@@ -15,15 +15,15 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | ✅ 2026-09-06（S09-S14 全收官；S14 证据 = session-14 + stage45 PASS/COMPLETE + 徽标浏览器亲见） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010）+ 装即接管（ADR-0013 插行增补） | ✅ 2026-09-06（S09-S14 全收官 + S14a 插行收官；证据 = session-14/14a + 各自 stage45 PASS/COMPLETE + 徽标浏览器亲见 + 装卸三态 dump） |
 
 ## 进行中
 
-- 无（S14 收官 2026-09-06）
+- 无（S14a 收官 2026-09-06）
 
 ## 待启动
 
-- S15 README+迁移+升级手册（M5 文档腿；正素材：ADR-0012 语义表 + ADR-0010 溯源维护点 + fetch 调研注记 + s12b 两级调用逻辑）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排）
+- S15 README+迁移+升级手册（M5 文档腿；正素材：ADR-0012 语义表 + ADR-0010 溯源维护点 + ADR-0013 装即接管/anysearch 博弈 + fetch 调研注记 + s12b 两级调用逻辑）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排；S14a 为 2026-09-06 插行）
 
 ## 已完成
 
@@ -54,6 +54,7 @@ session 记录双落）。
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
+| S14a | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 273 passed \| 9 skipped (282)**（270→273：+3 = patch.test 结构断言；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（50 files，96 rules）**④`pnpm build` → **增量披露：client.js 41.81→42.09 kB**（intro 扩句）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node/src 逻辑零变更）⑤`npm pack --dry-run` → 五件（含新 cordis.patch.yml 双条目）⑥`pnpm check:i18n` → exit 0（34 keys parity + 18 files 零 CJK）⑦`git status --short` 前后置 clean | S14a T4 提交态亲跑（3d09b59，node v22.23.2 / pnpm 11.7.0） |
 | S14 | ①`pnpm test` → **28 files（27 passed + 1 skipped），Tests 270 passed \| 9 skipped (279)**（261→270：+9 = keys 1〔T2 钉牌〕+ toolview 8〔T3〕；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（49 files，96 rules）**④`pnpm build` → **增量披露：client.js 29.98→41.81 kB**（自绘卡+图标通路+7 键）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**34 keys** parity + 18 files 零 CJK；计划估 33，+inspect 键披露）⑦`git status --short` 前后置 clean | S14 T4 提交态亲跑（4958fc0，node v22.23.2 / pnpm 11.7.0） |
 | S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
 | S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**（T9 勘误：T8 原记 45）④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
@@ -164,6 +165,25 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
+
+### S14a 装即接管批（2026-09-06，分支 feat/s14a-install-takeover）
+
+阶段 0 独立审核 S14 **PASS**（🔴×0；🟡×1 = session-14 接力指令债务实况句漏列 L-2 →
+T0 勘注处置〔时点快照不回改先例〕；🟢×2 注记；正本
+docs/sessions/audit-logs/2026-09-06-s14a-stage0-review-of-s14.md）→ 方向裁定 =
+用户 AskUserQuestion 获答**方案 B**（装即接管 search；A 现状/C 双接管/D GUI 均否决，
+调研双 Agent 报告在案）→ 计划包 ExitPlanMode **批准** → plan 014a → 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 014a + 阶段 0 audit-log 入库 + ADR-0013 + 三 ADR 注记（0001/0004/0009）+ roadmap S14a 插行 + 🟡-1 勘注（session-14 接力指令 L-2）+ 启动全状态区 + session-14a 骨架（三★节占位） | 完成（本提交） |
+| T1 | patch 变更（TDD）：cordis.patch.yml 双条目 + 内容测试 | 完成（`9884466`；红〔web 行断言 1 failed\|2 passed〕→ 绿 patch.test **3 passed**〔insert 行 / web 两键重述 + 无 name 守卫 / 不钉 fetch 链〕；src 逻辑零变更） |
+| T2 | e2e 装卸载（3423 查占空闲）：翻转 / remove 单命令 diff 零输出 / 用户层终裁 | 完成（四 dump 留档 /tmp/dshws-s14a/：**装即翻转**〔add 后 searchProvider: dshws-chain + fetchProvider: http，零用户层 patch〕→ **remove 单命令 diff 基线零输出**〔DIFF_ZERO_RESTORED，优于现状手删两行〕→ **用户层终裁**〔写一行钉 dshws-deepseek → dump 用户层赢；用户层整段替换丢 fetchProvider 键时由「无配置+http 恒可用」路径兜住，README 教重述两键〕→ 清理态复原 FINAL_CLEAN_RESTORED） |
+| T3 | 设置页 intro 文案 + locales + README/runbook 最小更新 | 完成（`3d09b59`；description 键扩句〔装即接管/卸载复原/fetch 可选〕，34 keys parity 维持 + 零 CJK；section.spec 字典值断言自动同步 30 passed；s05b runbook ADR-0013 增补；roadmap S15 迁移口径适配〔anysearch 卸装即切换〕；README 本体归 S15 全新撰写） |
+| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见门墙表 S14a 行；提交态 3d09b59；Note docs/notes/2026-09-06-s14a-install-takeover.md〔机制锚/实测语义表/维护点——S15 正素材〕） |
+| T5 | 浏览器实测棒（3423/3432 查占空闲；复用 S14 stub 配方）：零用户层接线 boot → 徽标亲见 → 复原 | 完成（**R6 装即接管端到端实证**：用户层 patch 仅含 dsh-websearch 行 baseURL 测试脚手架，**web 行零手动**——boot 后一轮即闭合〔SSE 配方直通〕，工具行 `Web search \| loopback proof query \| · DeepSeek` 徽标亲见〔aria Served by DeepSeek〕；wire 三段 stub-log 在案〔chat/completions → /messages → 终答，auth 全 sk-fake-s14a〕；截图归档 screenshot-install-takeover-badge.png；kill 3423/3432 精确、3416/3080/61518/3421/3422 零接触；**宿主仓 clean @3281e04b59（R4）**；workspace 播种坑复发一次〔storages/ 目录 dump-only 不创建，mkdir 后重播——配方记忆已有该形状〕） |
+| T6 | 阶段 4/5 独立验证（R1-R6 对峙 + 三问 + 探针） | **PASS / COMPLETE**（门墙七命令零偏差 + R1-R6 全 PASS〔**独立重演 e2e 三态**：新 scratch /tmp/dshws-s14a-verify + tarball 抽包核 + 用户层 [] 同样翻转双证〕+ 三问全过 + 探针红签名〔fetch 改钉 → 双断言红 2 failed → 还原复绿 3 passed + clean 亲证〕；🟡×0；🟢×3 新观察〔①AMBIGUOUS 语义精化 ②发版清单实体待 S15-S16 ③stub-log 探测残留行注记〕；audit-log 正本 docs/sessions/audit-logs/2026-09-06-s14a-stage45-verification.md） |
+| T7 | 收尾（session-14a 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令〔全量债务口径含 L-2〕） | 完成（本序列；实物 ls 清单核过） |
 
 ### S13 优先级策略批（2026-09-04，分支 feat/s13-priority-strategy）
 
@@ -286,6 +306,8 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | ~~S14/S15 顺手补一条~~ **已翻账（2026-09-04 登记 → S14 T2 清偿 `05f230c`）**：「消费后下一抽不重发同把」具名断言双策略在档（keys.test；探针红×2 还原绿 13 passed） |
 | firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排）——**已复核（2026-09-06 stage45）**：search face 双 it 在档（firecrawl.test.ts:115-127），fetch face 无独立 402/429 it（仅 requestFailed/badResponse）——描述准确，维持观察 |
 | 溯源徽标 badge 超长 id 撑宽折叠行（flexShrink:0 无截断，与 summary ellipsis 不对称；纯视觉，React 转义无安全面） | 🟢 观察 | S14 阶段 4/5 登记（2026-09-06）；宿主 WebRow 对齐维护点顺手候选 |
+| 一行否决（用户层仅钉 searchProvider）在有 firecrawl key 场景 → http 与 dshws-chain-fetch 双 usable → WEB_PROVIDER_AMBIGUOUS 硬错（响亮失败非静默） | 🟢 观察 | S14a 阶段 4/5 登记（2026-09-06）；S15 手册按「否决/自定义亦重述两键」口径写 |
+| 发版清单「追平重述 web config」条目实体待建 | 🟢 观察 | S14a 阶段 4/5 登记；S15/S16 创建清单时从 s14a Note §5.1 搬运，勿凭记忆重写 |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |

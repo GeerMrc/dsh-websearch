@@ -12,6 +12,8 @@ origin: 方案 v3 用户批准（2026-09-02）；取代早期 v1 仓库内改造
 
 accepted（2026-09-02，bootstrap 规划批准）
 
+> **注记（2026-09-06，ADR-0013）**：Decision 的组合面「用户层 patch 两行」改判——search 侧接管由插件随包 patch 钉扎承担（装即接管），fetch 接线保留为用户层手动可选项；用户层终裁与卸载复原语义不变。正本见 ADR-0013。
+
 ## Context
 
 上游 dsh 出厂把 web 搜索钉死在付费的 `deepseek-official`（`packages/bundle/base/cordis.patch.yml:450-468`），第三方 provider key 配置不对称（exa/perplexity 仅 env、需重启、无 GUI），且无优先级/降级面。可选路线：v1 在 fork 仓库内改 seam/统一包/重定 base；v2 做成外挂式标准插件。用户约束：不破坏原 DSH、符合标准插件规范、上游升级可持续；验证通过后基于上游全新重建。

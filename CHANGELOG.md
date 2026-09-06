@@ -12,6 +12,35 @@
 
 ---
 
+## 2026-09-06 — 装即接管 web_search（插行棒）：ADR-0013（Session 14a，M7 插行增补 ✅）
+
+**新增**
+- **装即接管（ADR-0013）**：随包 cordis.patch.yml 增 `- id: web` 钉扎 `searchProvider: dshws-chain` + `fetchProvider: http` **显式重述**（fetch 链单成员 firecrawl，无 key 即坏——fetch 接管保留为手动可选；不写 name 守卫防静默跳过）——**安装即接管 web_search、remove 单命令 diff 基线零输出完整复原、用户层终裁保留**；零宿主源码改动、仍单 tarball 独立安装（`9884466`）
+- ADR-0013 amend 三决策：ADR-0001 组合面 / ADR-0004 D2 接线形态（**D3 链中立性实质不变**：DeepSeek 仍末位兜底）/ ADR-0009 D5 博弈规则（bundle 层延伸：安装序后写者赢）；漂移防线 = peer 域 + 发版清单检查项（`bf3719f`）
+- 实测：e2e 装卸三态 dump（翻转 / diff 零输出 / 用户层赢）+ **浏览器端到端**（web 行零手动接线 boot 一轮闭合，工具行徽标 `· DeepSeek` 亲见）——阶段 4/5 另行独立重演复现
+- 设置页 intro 扩句（装即接管/卸载复原/fetch 可选）；s05b runbook ADR-0013 增补；roadmap S15 迁移口径适配（anysearch 卸装即切换）
+- 测试基线 270→**273**（273 passed | 9 skipped (282)；+3 = patch.test 结构断言）；i18n 34 keys 维持；client.js 41.81→**42.09 kB**（index.js/index.d.ts 零漂移）
+- Agent Note `docs/notes/2026-09-06-s14a-install-takeover.md`（机制锚 6 条 + 实测语义表 + S15 口径）；audit-logs 2 份
+
+**清偿（1 笔）**
+- 🟡 S14 接力指令 L-2 缺项：session-14 勘注（时点快照不回改；新接力指令全量口径，`bf3719f`）
+
+**治理**
+- 阶段 0 审 S14 **PASS**（增量采信 + 冒烟 21 passed）→ 方向裁定 = **用户 AskUserQuestion 获答方案 B**（A 现状/C 双接管/D GUI 状态显示均否决；双 Agent 只读调研）→ 计划包 ExitPlanMode **用户批准**（2.5 真实批准）→ 阶段 4/5 **PASS / COMPLETE**（门墙零偏差 + R1-R6 全过 + **独立重演 e2e** + 探针红签名〔fetch 改钉 → 双断言红〕）
+
+**诚实标注（遗留项）**
+- 用户预期偏差已在三处披露（设置页 intro / runbook 增补 / ADR Consequences）；「禁用官方 websearch」真相 = 选择翻转（deepseek-official 闲置无害，DeepSeek 能力经链末位成员保留）
+- 🟢 新登记：一行否决在有 firecrawl key 场景 → WEB_PROVIDER_AMBIGUOUS 硬错（S15 手册按重述两键口径）；发版清单实体待 S15/S16 从 Note §5.1 搬运
+- 维持项：🟢×4 + L-2 + 观察项 + v2 backlog（不排期）
+
+**跟踪（观察期）**
+- 测试基线链：270\|9(279) → **273\|9(282)**；typecheck 双面 exit 0；lint 0w0e 50 files；check:i18n 34 keys + 18 files 零 CJK
+- 里程碑计数：M7 ✅（S09-S14 + S14a 插行）；M5 文档腿 S15；M3 余用户 with-key 回填；M6 ⏳
+- dont-do 新增：0 条（workspace storages/ 目录坑并入既有配方记忆）
+- 下一棒：S15 = README + anysearch 迁移（新口径）+ 升级手册（M5 文档腿收官）
+
+---
+
 ## 2026-09-06 — 溯源徽标接管 + v2 调研首棒：M7 收官（Session 14，M7 ✅）
 
 **新增**

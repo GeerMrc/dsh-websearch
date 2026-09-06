@@ -12,6 +12,8 @@ origin: 方案 v3 用户批准（用户选「完全中立」+「v1 全局优先�
 
 accepted（2026-09-02，bootstrap 规划批准）
 
+> **注记（2026-09-06，ADR-0013）**：D2 的接线形态改判——「由用户层两行 patch 覆盖」改为插件随包 patch 装即接管（用户层终裁保留）；**D3 链中立性实质不变**（内置默认序 DeepSeek 末位兜底、不付费优先）。正本见 ADR-0013。
+
 ## Context
 
 用户问「不同 DSH 模式（profile）下单独勾选」如何落地；同时要求开箱（零配置）不默认帮用户调付费官方搜索。架构事实：web seam 是 host 级单例（跨会话共享），`settings.yaml` 同一 `$DSH_HOME` 下全 profile 共享；profile 级差异的现成机制是 cordis.patch.yml 分层覆盖。
