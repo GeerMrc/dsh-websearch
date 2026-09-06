@@ -42,6 +42,13 @@ export type DshWsLocaleKey =
   | 'keySelectionHint'
   | 'sharedWithModels'
   | 'sharedWithModelsDetail'
+  | 'toolTitle'
+  | 'servedBy'
+  | 'toolSources'
+  | 'toolTruncated'
+  | 'toolRaw'
+  | 'toolInspect'
+  | 'toolError'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -78,6 +85,13 @@ export const en: Record<DshWsLocaleKey, string> = {
   keySelectionHint: 'Multiple keys are drawn by "{policy}"; a failing key is not retried — the next chain member takes over.',
   sharedWithModels: 'Shared with Models',
   sharedWithModelsDetail: 'Uses the same DEEPSEEK_API_KEY credential as the Models settings page; the last save wins.',
+  toolTitle: 'Web search',
+  servedBy: 'Served by',
+  toolSources: 'Sources',
+  toolTruncated: 'Results truncated',
+  toolRaw: 'Raw request / response',
+  toolInspect: 'Inspect',
+  toolError: 'Call failed',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -109,4 +123,11 @@ export const zh: Record<DshWsLocaleKey, string> = {
   keySelectionHint: '多把 key 按「{policy}」选取；单把失败不换把，直接降级下一成员。',
   sharedWithModels: '共用模型 Key',
   sharedWithModelsDetail: '与模型设置页共用同一把 DEEPSEEK_API_KEY；两处修改后写覆盖先写。',
+  toolTitle: '网页搜索',
+  servedBy: '服务成员',
+  toolSources: '来源',
+  toolTruncated: '结果已截断',
+  toolRaw: '原始请求 / 响应',
+  toolInspect: '检查',
+  toolError: '调用失败',
 }

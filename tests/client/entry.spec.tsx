@@ -80,10 +80,12 @@ describe('client entry', () => {
   it('apply injects the settings.section slot with the registration contract', () => {
     const { ctx, raw, registered } = makeCtx()
     apply(ctx)
-    expect(raw.slots.inject).toHaveBeenCalledTimes(1)
-    expect(raw.slots.inject.mock.calls[0]?.[0]).toBe('settings.section')
+    // S14: the toolview takeover adds a second slot injection (ADR-0010).
+    expect(raw.slots.inject).toHaveBeenCalledTimes(2)
+    const settingsCall = raw.slots.inject.mock.calls.find((call) => call[0] === 'settings.section')
+    expect(settingsCall).toBeDefined()
 
-    const registerCallback = raw.slots.inject.mock.calls[0]?.[1] as () => unknown
+    const registerCallback = settingsCall![1] as () => unknown
     registerCallback()
     expect(registered.length).toBe(1)
     const props = registered[0]!.props
