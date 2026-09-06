@@ -20,6 +20,14 @@ const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecr
 function expand(memberKey: string): void {
   fireEvent.click(screen.getByTestId(`dshws-member-toggle-${memberKey}`))
 }
+
+/** S14d: a configured card shows the masked value until focused — open a fresh
+ * entry (focus) before typing into the key field. */
+function focusKey(label: string): HTMLInputElement {
+  const input = screen.getByLabelText(label) as HTMLInputElement
+  fireEvent.focus(input)
+  return input
+}
 const BRANDS = ['Tavily', 'Exa', 'Perplexity', 'Firecrawl', 'DeepSeek', 'AnySearch']
 
 function member(key: string, label: string, overrides: Partial<MemberSnapshot> = {}): MemberSnapshot {
@@ -111,7 +119,7 @@ describe('WebSearchSettingsSection', () => {
     const onSaveKey = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSaveKey })} t={t} />)
     expand('tavily')
-    const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
+    const input = focusKey('Tavily API Key')
     expect(input.getAttribute('type')).toBe('password')
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))
@@ -124,7 +132,7 @@ describe('WebSearchSettingsSection', () => {
     const onSaveKey = vi.fn(async () => ({ ok: false }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSaveKey })} t={t} />)
     expand('tavily')
-    const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
+    const input = focusKey('Tavily API Key')
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))
     await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').textContent).toBe(en.failed))
@@ -257,17 +265,13 @@ describe('WebSearchSettingsSection', () => {
     const exa = screen.getByRole('switch', { name: 'Exa Enabled' }) as HTMLButtonElement
     expect(exa.getAttribute('aria-checked')).toBe('false')
     expect(exa.style.background).toBe('var(--dsw-alias-border-l3)')
-    // S14b: DeepSeek renders as the fallback row — its switch carries the
-    // paid-fallback label but keeps the same configured-tracks-color contract.
-    const deepseek = screen.getByRole('switch', { name: `DeepSeek ${en.fallbackSwitch}` }) as HTMLButtonElement
-    expect(deepseek.style.background).toBe('var(--dsw-alias-state-success-primary)')
+    // S14d: the fallback row is a two-way choice; the configured state is
+    // carried by the choice buttons being enabled (unconfigured rows disable).
     // Action feedback is a polite live region (host savedNotice convention);
     // verified on the save leg — toggling has never rendered member feedback.
     // The save leg runs on a full member card (deepseek has no key surface).
     expand('perplexity')
-    const input = within(screen.getByTestId('dshws-member-perplexity')).getByLabelText(
-      'Perplexity API Key',
-    ) as HTMLInputElement
+    const input = focusKey('Perplexity API Key')
     fireEvent.change(input, { target: { value: 'sk-fake-px' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-perplexity')).getByRole('button', { name: 'Perplexity Save' }))
     await waitFor(() =>
@@ -277,13 +281,14 @@ describe('WebSearchSettingsSection', () => {
 
   it('the key format note lives behind a single page-header icon (12b 反馈①)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    // Per-card hint paragraphs are gone — the note is stated once, page-level.
+    // Per-card hint paragraphs are gone — the note is stated once per card as
+    // the input placeholder (S14d), never as rendered text.
     expect(within(screen.getByTestId('dshws-members')).queryByText(en.keyFieldNote)).toBeNull()
-    // One icon anchor after the heading; focus shows the formatted note.
-    const anchor = screen.getByRole('button', { name: en.keyFieldNote })
-    fireEvent.focus(anchor)
-    expect(screen.getByRole('tooltip').textContent).toBe(en.keyFieldNote)
-    fireEvent.blur(anchor)
+    // One icon anchor after the heading; S14d: it carries the description.
+    const anchorBtn = screen.getByRole('button', { name: en.description })
+    fireEvent.focus(anchorBtn)
+    expect(screen.getByRole('tooltip').textContent).toBe(en.description)
+    fireEvent.blur(anchorBtn)
     expect(screen.queryByRole('tooltip')).toBeNull()
     // The member-card subtrees stay tooltip-free (the icon is page-level only).
     expect(within(screen.getByTestId('dshws-members')).queryByRole('tooltip')).toBeNull()
@@ -301,7 +306,9 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.queryByRole('tooltip')).toBeNull()
     // No key input, no pool controls, no save/clear on the fallback row.
     expect(within(row).queryByLabelText(`DeepSeek ${en.apiKey}`)).toBeNull()
-    expect(within(row).queryByRole('group')).toBeNull()
+    // No KEY-configuration group; the S14d fallback-choice group is the only group.
+    expect(within(row).queryByRole('group', { name: en.keySelection })).toBeNull()
+    expect(within(row).getByRole('group', { name: en.fallbackChoiceGroup })).toBeTruthy()
     expect(within(row).queryByRole('button', { name: `DeepSeek ${en.save}` })).toBeNull()
     expect(within(row).queryByRole('button', { name: `DeepSeek ${en.clear}` })).toBeNull()
     expect(within(row).queryByTestId('dshws-keysel-hint-deepseek')).toBeNull()
@@ -333,21 +340,29 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
   })
 
-  it('the fallback switch toggles the paid fallback and stays disabled until the shared key exists (S14b D1)', async () => {
+  it('the fallback is a two-way choice defaulting to none; paid is opt-in (S14d D2, 用户裁定)', async () => {
     const onToggleEnabled = vi.fn(async () => ({ ok: true }) as ActionResult)
     const members = defaultMembers()
-    members[4] = member('deepseek', 'DeepSeek', { configured: false })
+    members[4] = member('deepseek', 'DeepSeek', { configured: false, enabled: false })
     const { unmount } = render(
       <WebSearchSettingsSection {...makeProps({ onToggleEnabled, snapshot: makeSnapshot(members) })} t={t} />,
     )
-    const off = screen.getByRole('switch', { name: `DeepSeek ${en.fallbackSwitch}` }) as HTMLButtonElement
-    expect(off.disabled).toBe(true)
+    const offRow = screen.getByTestId('dshws-fallback-deepseek')
+    // Unconfigured: both choices disabled.
+    expect((within(offRow).getByRole('button', { name: en.fallbackChoiceNone }) as HTMLButtonElement).disabled).toBe(true)
     unmount()
-    render(<WebSearchSettingsSection {...makeProps({ onToggleEnabled })} t={t} />)
-    const on = screen.getByRole('switch', { name: `DeepSeek ${en.fallbackSwitch}` }) as HTMLButtonElement
-    expect(on.getAttribute('aria-checked')).toBe('true')
-    fireEvent.click(on)
-    await waitFor(() => expect(onToggleEnabled).toHaveBeenCalledWith('deepseek', false))
+    // Configured, fallback off (the new default): 无兜底 pressed, paid available.
+    const offMembers = defaultMembers()
+    offMembers[4] = member('deepseek', 'DeepSeek', { enabled: false })
+    const configuredOff = makeSnapshot(offMembers)
+    render(<WebSearchSettingsSection {...makeProps({ onToggleEnabled, snapshot: { ...configuredOff } })} t={t} />)
+    const row = screen.getByTestId('dshws-fallback-deepseek')
+    const noneBtn = within(row).getByRole('button', { name: en.fallbackChoiceNone }) as HTMLButtonElement
+    const paidBtn = within(row).getByRole('button', { name: en.fallbackChoicePaid }) as HTMLButtonElement
+    expect(noneBtn.getAttribute('aria-pressed')).toBe('true')
+    expect(paidBtn.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(paidBtn)
+    await waitFor(() => expect(onToggleEnabled).toHaveBeenCalledWith('deepseek', true))
   })
 
   it('only the DeepSeek card carries the shared-with-models badge (12b 反馈②)', () => {
@@ -487,8 +502,8 @@ describe('WebSearchSettingsSection', () => {
     const members = container.querySelector('[data-testid="dshws-members"]')!
     // DOM order: global card first, tools after.
     expect(chains.compareDocumentPosition(members) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    // Host-parity label verbatim + current default value 5.
-    expect(screen.getByLabelText(en.maxUsesLabel).getAttribute('value')).toBe('5')
+    // Host-parity label verbatim; S14d default is 10 (user ruling).
+    expect(screen.getByLabelText(en.maxUsesLabel).getAttribute('value')).toBe('10')
     expect(chains.textContent).toContain(en.maxUsesLabel)
   })
 
