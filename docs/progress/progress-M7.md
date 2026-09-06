@@ -54,6 +54,7 @@ session 记录双落）。
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
+| S14 | ①`pnpm test` → **28 files（27 passed + 1 skipped），Tests 270 passed \| 9 skipped (279)**（261→270：+9 = keys 1〔T2 钉牌〕+ toolview 8〔T3〕；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（49 files，96 rules）**④`pnpm build` → **增量披露：client.js 29.98→41.81 kB**（自绘卡+图标通路+7 键）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**34 keys** parity + 18 files 零 CJK；计划估 33，+inspect 键披露）⑦`git status --short` 前后置 clean | S14 T4 提交态亲跑（4958fc0，node v22.23.2 / pnpm 11.7.0） |
 | S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
 | S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**（T9 勘误：T8 原记 45）④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
 
@@ -144,10 +145,10 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | 任务 | 内容 | 结果 |
 |---|---|---|
 | T0 | 治理批：plan 014 + 阶段 0/2 audit-log 入库（参数头审核库 v2）+ roadmap S14 行 WBS/验收指针细化 + 🟢① dont-do webview 输入派发族入册（家族第 2 次跨棒定谳）+ 启动全状态区（STATUS 台账/位置块/M7 总览行 + progress-M7 三处，含 M7 里程碑行「余 S13 策略」收官漏刷顺手勘正）+ session-14 骨架（三★节占位） | 完成（本提交） |
-| T1 | 调研注记：docs/notes/2026-09-06-s14-fetch-fallback-research.md（fetch 缝隙判定 + 余额看板地基 + 版本态；锚点可复核） | 待执行 |
-| T2 | 🟢 钉牌断言清偿（探针式红绿） | 待执行 |
-| T3 | toolview 组件 + 注册（TDD 核心：websearch-row + locales +6 键 + 注册 priority -1 + toolview.spec 七用例） | 待执行 |
-| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 待执行 |
+| T1 | 调研注记：docs/notes/2026-09-06-s14-fetch-fallback-research.md（fetch 缝隙判定 + 余额看板地基 + 版本态；锚点可复核） | 完成（`440c90e`；双 Agent 调研 + 阶段 2 复核 25 锚 + T1 三锚亲验〔src/index.ts:163 registerFetchProvider / 宿主 resolveProvider :172-194 四路抛错 / base patch :452-454 钉死〕） |
+| T2 | 🟢 钉牌断言清偿（探针式红绿） | 完成（`05f230c`；「消费后下一抽不重发同把」具名断言 双策略；探针 A random deckPos 不推进 4 failed / 探针 B rr 游标不推进 3 failed〔均含本断言〕→ 还原绿 **13 passed**；src 零变更） |
+| T3 | toolview 组件 + 注册（TDD 核心：websearch-row + locales +7 键〔34〕+ 注册 priority -1 + toolview.spec 八用例） | 完成（`4958fc0`；红=模块缺失 → 绿 toolview **8 passed** + client **64 passed**；typecheck 双面 0；lint 0w0e 49 files；i18n 34 keys + 18 files 零 CJK〔计划估 33，+inspect 键披露〕；**D4 回退触发**：ui-tool 发布类型 block 静默 any〔垃圾对象探针实证〕→ 本地结构镜像 + SlotMap 自 declare；WebBlock 原语弃用〔chrome labels 键面翻倍〕；entry.spec 双注册面适配 times 1→2） |
+| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见门墙表 S14 行；提交态 4958fc0；Note docs/notes/2026-09-06-s14-toolview-attribution.md） |
 | T5 | 浏览器实测棒（3422/3430/3431 查占；LLM stub + loopback 成员 → 徽标亲见 + 直连/外来无徽标 + 复原） | 待执行 |
 | T6 | 阶段 4/5 独立验证（R1-R7 对峙 + 三问 + firecrawl 402/429 观察项复核） | 待执行 |
 | T7 | 收尾（session-14 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令） | 待执行 |
@@ -270,7 +271,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
 | 设置页 CSS module 化（内联 style 收敛） | 🟢 | 维持不排期（12a 登记；S15 顺手候选——**本行为 S13 T0 补镜像**，原登记 plan 012a） |
 | anysearch fetch 面（fetch 链成员 v1 不做） | 🟢 | 维持不排期（S10 登记——**本行为 S13 T0 补镜像**） |
-| 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | S14/S15 顺手补一条（S13 阶段 4/5 登记） |
+| 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | ~~S14/S15 顺手补一条~~ **已翻账（2026-09-04 登记 → S14 T2 清偿 `05f230c`）**：「消费后下一抽不重发同把」具名断言双策略在档（keys.test；探针红×2 还原绿 13 passed） |
 | firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排） |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
