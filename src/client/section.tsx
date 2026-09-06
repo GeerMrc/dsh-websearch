@@ -260,11 +260,6 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           ),
         )}
       </div>
-      {/* The fallback rule, stated once below the grid (S14b D1): DeepSeek is
-      not configured here — it rides the Models-page key as the chain floor. */}
-      <p data-testid="dshws-fallback-footnote" style={{ ...hintStyle, margin: 0 }}>
-        {t('fallbackFootnote')}
-      </p>
       {showChains ? (
         <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

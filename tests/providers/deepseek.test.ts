@@ -6,7 +6,7 @@ import {
   DEEPSEEK_DEFAULT_BASE_URL,
   DEEPSEEK_DEFAULT_MAX_TOKENS,
   DEEPSEEK_DEFAULT_MODEL,
-  DEEPSEEK_MAX_USES,
+  DEEPSEEK_DEFAULT_MAX_USES,
   DEEPSEEK_MEMBER_ID,
   DeepSeekSearchProvider,
   mapDeepSeekResponse,
@@ -89,7 +89,7 @@ describe('dshws-deepseek request mapping', () => {
         role: 'user',
         content: [{ type: 'text', text: 'Perform a web search for the query: hello' }],
       }],
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: DEEPSEEK_MAX_USES }],
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: DEEPSEEK_DEFAULT_MAX_USES }],
     })
   })
 })
@@ -197,5 +197,21 @@ describe('dshws-deepseek failure modes (mock HTTP)', () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse('not json at all')))
     const caught = await new DeepSeekSearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.badResponse })
+  })
+})
+
+
+describe('maxUses configuration (S14c, host parity)', () => {
+  it('defaults to 5 and flows a configured value into the wire max_uses', async () => {
+    const base = resolveDeepSeekMemberOptions(
+      { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' },
+      async () => 'sk-test',
+    )
+    expect(base.maxUses).toBe(5)
+    const custom = resolveDeepSeekMemberOptions(
+      { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY', maxUses: 2 },
+      async () => 'sk-test',
+    )
+    expect(custom.maxUses).toBe(2)
   })
 })

@@ -58,6 +58,11 @@ export interface DeepSeekSettings {
   model?: string
   /** Response token cap; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   maxTokens?: number
+  /**
+   * Server-tool search budget per request (S14c, host parity — the host
+   * `web-search-deepseek` knob of the same name/semantic/default). Launch-static.
+   */
+  maxUses?: number
   /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -163,6 +168,7 @@ export const Config: z<Config> = z.object({
     baseURL: z.string(),
     model: z.string(),
     maxTokens: z.number().step(1).min(1),
+    maxUses: z.number().step(1).min(1),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   tavily: z.object({
@@ -206,6 +212,8 @@ export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'e
   baseURL?: string
   model?: string
   maxTokens?: number
+  /** Server-tool search budget per request (S14c, host parity). */
+  maxUses?: number
   /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
   keySelection?: KeySelection
 }
@@ -289,6 +297,7 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       baseURL: config.deepseek?.baseURL,
       model: config.deepseek?.model,
       maxTokens: config.deepseek?.maxTokens,
+      maxUses: config.deepseek?.maxUses,
     },
     tavily: {
       enabled: config.tavily?.enabled ?? true,

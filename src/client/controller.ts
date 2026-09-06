@@ -47,7 +47,10 @@ export const MEMBERS = [
 ] as const
 
 /** Built-in member order applied when the section omits a chain (ADR-0004). */
-const BUILT_IN_MEMBER_ORDER: readonly string[] = MEMBERS.map((member) => member.memberId)
+/** Orderable domain (S14c): the five tool members; deepseek is the fixed tail
+ * fallback and never appears in the reorderable chain rows. */
+const ORDERABLE_MEMBER_IDS: readonly string[] = MEMBERS.filter((member) => member.key !== 'deepseek').map((member) => member.memberId)
+const DEEPSEEK_MEMBER_ID = 'dshws-deepseek'
 
 /** Per-member timeout budget applied when the section omits one (ADR-0002). */
 const DEFAULT_PER_MEMBER_TIMEOUT_MS = 30000
@@ -58,6 +61,8 @@ interface MemberSectionValue {
   apiKeyEnv?: string
   /** Pool selection policy; client default mirrors the node half's `resolveConfig` (S13 D4). */
   keySelection?: 'order' | 'round-robin' | 'random'
+  /** DeepSeek-only (S14c): server-tool search budget per request, host parity. */
+  maxUses?: number
 }
 
 interface SectionValue {
@@ -97,6 +102,8 @@ export interface SectionSnapshot {
   /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
   readonly fetchChainPinned: boolean
   readonly timeoutMs: number
+  /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
+  readonly deepseekMaxUses: number | undefined
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -132,11 +139,14 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
   })
   return {
     members,
-    searchChain: value.searchChain?.length ? [...value.searchChain] : BUILT_IN_MEMBER_ORDER,
-    fetchChain: value.fetchChain?.length ? [...value.fetchChain] : BUILT_IN_MEMBER_ORDER,
+    searchChain: value.searchChain?.length
+      ? value.searchChain.filter((id) => id !== DEEPSEEK_MEMBER_ID)
+      : [...ORDERABLE_MEMBER_IDS],
+    fetchChain: value.fetchChain?.length ? [...value.fetchChain] : [...ORDERABLE_MEMBER_IDS],
     searchChainPinned: (value.searchChain?.length ?? 0) > 0,
     fetchChainPinned: (value.fetchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
+    deepseekMaxUses: value.deepseek?.maxUses,
     revision,
     writable,
   }
@@ -227,6 +237,21 @@ export class WebSearchSettingsController {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { keySelection } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    this.#value = (result.value.value ?? {}) as SectionValue
+    this.#revision = result.value.revision
+    this.#recompute()
+    return { ok: true }
+  }
+
+  /**
+   * Set the DeepSeek fallback `maxUses` (S14c, host-parity knob). Patched under
+   * the deepseek member key — deep-merge keeps sibling fields; the provider
+   * reads it launch-static (D2 discipline note).
+   */
+  async setDeepseekMaxUses(maxUses: number): Promise<ActionResult> {
+    if (!Number.isInteger(maxUses) || maxUses < 1) return { ok: false }
+    const result = await this.#ports.updateSettings(NS, { deepseek: { maxUses } }, this.#revision)
     if (!result.ok) return { ok: false }
     this.#value = (result.value.value ?? {}) as SectionValue
     this.#revision = result.value.revision

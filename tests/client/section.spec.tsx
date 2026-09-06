@@ -50,6 +50,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     searchChainPinned: false,
     fetchChainPinned: false,
     timeoutMs: 30000,
+    deepseekMaxUses: undefined,
     revision: 0,
     writable: true,
   }
@@ -283,8 +284,9 @@ describe('WebSearchSettingsSection', () => {
     expect(within(row).queryByRole('button', { name: `DeepSeek ${en.save}` })).toBeNull()
     expect(within(row).queryByRole('button', { name: `DeepSeek ${en.clear}` })).toBeNull()
     expect(within(row).queryByTestId('dshws-keysel-hint-deepseek')).toBeNull()
-    // The bottom footnote states the fallback rule once, page-level.
-    expect(screen.getByTestId('dshws-fallback-footnote').textContent).toBe(en.fallbackFootnote)
+    // S14c: the standalone bottom footnote is gone — the ⓘ note is the single
+    // explanation surface (user ruling on the S14b duplication).
+    expect(screen.queryByTestId('dshws-fallback-footnote')).toBeNull()
   })
 
   it('chain rows visually mark disabled members while they stay listed (S14b D2)', () => {
