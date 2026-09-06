@@ -184,8 +184,8 @@ README「已知行为」节；④S14a 入账超报（🟢×3 vs 台账两行）�
 | T2 | 链块两修复（disabled 视觉 + 零可用预警，TDD） | 完成（`2294e7c`；置灰 0.45 +（已停用）标注 + 零可用红色预警行；+2 键〔40〕；红 2 → 绿 29 passed） |
 | T3 | 错误文案纠偏（chain/core.ts + 测试同步，TDD） | 完成（`a3cf96b`；(chain order: …) + 设置页指引句；红 1 → 绿 chain+keys+apply 63 passed + e2e 11 passed 回归） |
 | T4 | 文档批（architecture §6/§9 + 台账勘注） | 完成（本提交：§6 ADR-0013 注记 + 旧口径历史化 + 卸载半句/disabled 建议勘注 + §9 索引补 0008-0013 + 入账超报勘注 + 新债两笔入册） |
-| T5 | 门墙七命令（提交态）+ 台账/门墙表 | 待执行 |
-| T6 | 浏览器验证（重装 tarball 重启 3423） | 待执行 |
+| T5 | 门墙七命令（提交态）+ 台账/门墙表 | 完成（提交态 5eea160〔含 typecheck 红修复 cast〕：**277 passed \| 9 skipped (286)**（+4 = fallback 2 + 链块 2）/ typecheck 双面 0 / lint 0w0e 50 files / index.js 59.42→**59.78**（错误文案）+ index.d.ts 27.04 零漂移 + client.js 42.09→**47.47** / 五件 / **40 keys** parity + 18 files 零 CJK / clean） |
+| T6 | 浏览器验证（remove→add 换新 tarball 避同版本跳过坑 + 重启 3423） | 完成（设置页亲见：五完整卡 + **DeepSeek 兜底行**〔已配置绿点 + 共用 badge + 「DeepSeek 兜底说明」ⓘ + 「DeepSeek 付费兜底」switch checked 可用；无 key 输入/策略组/保存清除〕+ 底部 fallbackFootnote + 链卡无预警；截图归档 screenshot-s14b-fallback-row.png；界面语言随浏览器切中文——zh 文案首度实机亲见；实例保留运行供用户检验〔后续收口〕） |
 | T7 | 阶段 4/5 独立验证 + 收尾 + merge + 接力 | 待执行 |
 
 ### S14a 装即接管批（2026-09-06，分支 feat/s14a-install-takeover）
