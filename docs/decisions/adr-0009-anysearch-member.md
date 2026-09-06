@@ -12,6 +12,8 @@ origin: 用户需求扩展（2026-09-03 批准的功能扩展计划；anysearch 
 
 accepted（2026-09-03，功能扩展计划用户批准）
 
+> **注记（2026-09-06，ADR-0013）**：D5 的博弈规则延伸至 bundle 层——本插件亦随包钉扎 searchProvider（与 anysearch 的 bundle 钉扎同为后写覆盖域：安装序后写者赢，用户层终裁）；共存/退役语义不变。正本见 ADR-0013。
+
 ## Context
 
 用户需求：把 anysearch 纳入 dsh-websearch 插件成为链成员（用户持有 anysearch APIKEY；3080 实例目前单独安装 anysearch 插件作为 `web.searchProvider` 在用）。

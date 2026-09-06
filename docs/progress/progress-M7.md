@@ -19,11 +19,11 @@
 
 ## 进行中
 
-- 无（S14 收官 2026-09-06）
+- S14a 装即接管 web_search（插行棒，ADR-0013）——用户方向裁定 B + 计划包批准；阶段 0 审 S14 PASS（🟡×1 接力指令 L-2 缺项 → T0 勘注）；plan 正本 docs/plans/2026-09-06-014a-s14a-install-takeover-plan.md
 
 ## 待启动
 
-- S15 README+迁移+升级手册（M5 文档腿；正素材：ADR-0012 语义表 + ADR-0010 溯源维护点 + fetch 调研注记 + s12b 两级调用逻辑）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排）
+- S15 README+迁移+升级手册（M5 文档腿；正素材：ADR-0012 语义表 + ADR-0010 溯源维护点 + ADR-0013 装即接管/anysearch 博弈 + fetch 调研注记 + s12b 两级调用逻辑）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排；S14a 为 2026-09-06 插行）
 
 ## 已完成
 
@@ -164,6 +164,25 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
+
+### S14a 装即接管批（2026-09-06，分支 feat/s14a-install-takeover）
+
+阶段 0 独立审核 S14 **PASS**（🔴×0；🟡×1 = session-14 接力指令债务实况句漏列 L-2 →
+T0 勘注处置〔时点快照不回改先例〕；🟢×2 注记；正本
+docs/sessions/audit-logs/2026-09-06-s14a-stage0-review-of-s14.md）→ 方向裁定 =
+用户 AskUserQuestion 获答**方案 B**（装即接管 search；A 现状/C 双接管/D GUI 均否决，
+调研双 Agent 报告在案）→ 计划包 ExitPlanMode **批准** → plan 014a → 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 014a + 阶段 0 audit-log 入库 + ADR-0013 + 三 ADR 注记（0001/0004/0009）+ roadmap S14a 插行 + 🟡-1 勘注（session-14 接力指令 L-2）+ 启动全状态区 + session-14a 骨架（三★节占位） | 完成（本提交） |
+| T1 | patch 变更（TDD）：cordis.patch.yml 双条目 + 内容测试 | 待执行 |
+| T2 | e2e 装卸载（3423 查占）：翻转 / remove 单命令 diff 零输出 / 用户层终裁 | 待执行 |
+| T3 | 设置页 intro 文案 + locales + README/runbook 最小更新 | 待执行 |
+| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 待执行 |
+| T5 | 浏览器实测棒（3423/3432 查占；复用 S14 stub 配方）：零用户层接线 boot → 徽标亲见 → 复原 | 待执行 |
+| T6 | 阶段 4/5 独立验证（R1-R6 对峙 + 三问 + 探针） | 待执行 |
+| T7 | 收尾（session-14a 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令〔全量债务口径含 L-2〕） | 待执行 |
 
 ### S13 优先级策略批（2026-09-04，分支 feat/s13-priority-strategy）
 
