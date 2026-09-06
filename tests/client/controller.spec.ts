@@ -355,6 +355,24 @@ describe('WebSearchSettingsController', () => {
     expect(remote.updateCalls).toHaveLength(1)
   })
 
+  it('setDeepseekMaxUses patches the deepseek member key with validation (S14c T4, stage45 🟡-2 清偿)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    // Invalid budgets are rejected client-side without touching the remote.
+    expect((await controller.setDeepseekMaxUses(0)).ok).toBe(false)
+    expect((await controller.setDeepseekMaxUses(1.5)).ok).toBe(false)
+    expect(remote.updateCalls).toEqual([])
+
+    const ok = await controller.setDeepseekMaxUses(3)
+    expect(ok.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      { ns: 'dsh-websearch', patch: { deepseek: { maxUses: 3 } }, expectedRevision: 0 },
+    ])
+    expect(controller.snapshot().deepseekMaxUses).toBe(3)
+  })
+
   it('a boundary move reports not-ok without calling the remote', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))
