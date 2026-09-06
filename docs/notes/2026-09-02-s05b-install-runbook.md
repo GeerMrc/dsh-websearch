@@ -2,6 +2,12 @@
 
 > S09 手册（README/迁移/升级）的正素材：以下命令全部在本棒 scratch 环境实测（D1 配方），
 > 含一处 manifest 缺陷的发现与修复（§2——S09/升级手册必须沿嵌套形态表述）。
+>
+> **增补（2026-09-06，ADR-0013 装即接管）**：本 runbook §1 的「用户层接线两行」已不再是
+> 接管 web_search 的必需步骤——S14a 起插件随包 patch 钉扎 `searchProvider: dshws-chain`
+> （`fetchProvider: http` 显式重述），**安装即接管、remove 单命令完整复原**（S14a T2 四 dump
+> 实测）。用户层两行的当代用途收敛为：①否决/自定义（用户层终裁）②fetch 链手动可选
+> （`fetchProvider: dshws-chain-fetch`，注意整段替换需重述两键）。S15 手册按此口径重写。
 
 ## 1. 安装端到端精确命令（scratch 隔离配方，D1）
 
