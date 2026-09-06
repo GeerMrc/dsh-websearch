@@ -105,6 +105,20 @@ describe('KeyPool single-slot comma value (ADR-0011)', () => {
     expect(await pool.resolveApiKey()).toBe('k2')
   })
 
+  it('a consumed draw is not re-offered to the next attempt (失败不回牌钉牌——S13 🟢 S14 T2 清偿)', async () => {
+    // Contract pin (src/keys.ts #select): a failed request consumes its draw —
+    // no same-member retry, the chain degrades instead. The pool has no
+    // failure-feedback channel by design, so the observable is: the resolve
+    // right after a (failed) attempt never re-serves the same card while
+    // others remain, under both rotating policies.
+    const rr = makePool({ value: 'k1,k2', selection: 'round-robin' })
+    await rr.pool.resolveApiKey() // k1 — fails upstream, chain degrades
+    await expect(rr.pool.resolveApiKey()).resolves.toBe('k2')
+    const random = makePool({ value: 'k1,k2', selection: 'random', rng: () => 0 })
+    await random.pool.resolveApiKey() // k1 — fails upstream
+    await expect(random.pool.resolveApiKey()).resolves.toBe('k2')
+  })
+
   it('fails loud naming the ref when the value is missing (主值未存)', async () => {
     const { pool } = makePool({ value: undefined })
     const thrown = await pool.resolveApiKey().then(() => null, (error: unknown) => error as Error)

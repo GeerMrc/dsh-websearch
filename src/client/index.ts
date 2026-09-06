@@ -21,15 +21,21 @@ import { WebSearchSettingsController } from './controller.ts'
 import type { WebSearchSettingsPorts } from './controller.ts'
 import { en, NS, zh } from './locales.ts'
 import { bindWebSearchSettingsSection } from './section.tsx'
+import { WebSearchToolviewRow } from './websearch-row.tsx'
 
 /** Client services this bundle binds; `remote.*` faces are individually gated. */
 export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.credentials']
 
 /**
- * Register the locale dictionaries and the `settings.section` slot. The
- * controller lives inside the injection effect so uninjecting the slot also
- * detaches its event subscription; `init()` fills the first snapshot in the
- * background and every refresh re-derives it (controller contract).
+ * Register the locale dictionaries, the `settings.section` slot, and the
+ * `web_search` toolview takeover (ADR-0010). The settings controller lives
+ * inside the injection effect so uninjecting the slot also detaches its event
+ * subscription; `init()` fills the first snapshot in the background and every
+ * refresh re-derives it (controller contract). The toolview entry registers at
+ * priority -1: a keyed cell renders the lowest priority and the shipped WebRow
+ * sits at the default 0 — the same key at the same priority throws — so the
+ * takeover must carry an explicit lower value, and unregistering restores the
+ * host row with no extra state.
  */
 export function apply(ctx: Context): void {
   const t = ctx.locale.bind(NS)
@@ -52,6 +58,12 @@ export function apply(ctx: Context): void {
       unregister()
     }
   })
+  ctx.slots.inject('tool.call.toolview', () =>
+    ctx.slots.register(
+      { name: 'tool.call.toolview', key: 'web_search', priority: -1, locale: NS },
+      WebSearchToolviewRow,
+    ),
+  )
 }
 
 /** Adapt the injected `ctx.remote` namespaces onto the controller's port face. */
