@@ -15,15 +15,15 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09/S10/S11/S12/12a/12b ✅；余 S13 策略、S14 fetch 调研+溯源） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09-S13 ✅；S14 fetch 调研+溯源 🚧——T0 顺手勘正：本行原残留「余 S13 策略」为 S13 收官漏刷，dont-do 收官序列家族口径） |
 
 ## 进行中
 
-- 无（S13 收官）
+- S14 fetch 兜底调研 + session 溯源徽标（ADR-0010 落地）——阶段 0 PASS / 阶段 2 APPROVED / 2.5 默认批准披露；plan 正本 docs/plans/2026-09-06-014-s14-toolview-attribution-plan.md
 
 ## 待启动
 
-- S14 fetch 兜底开关调研 + session 溯源徽标（ADR-0010）→ S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：用户 2026-09-04 重排 + roadmap（12b 插行后）
+- S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排）
 
 ## 已完成
 
@@ -129,6 +129,28 @@ AskUserQuestion 获答「批准，自主推进」）→ 逐一执行中。
 | T4 | 浏览器实测棒（3419，起前 lsof 查占=空闲）：computed style 断言 + 双态截图 + 复原 | 完成（卡 padding 12/14+radius 12；输入 wrapper 高 32/r8/layer-1——**实测发现 Input 原语 wrapper 自带全部字段视觉，height:32 冗余已撤**；hint 12/18；thumb translateX(16px)；状态点 role=img aria "Not configured"；未配置态链区块不存在=0；已配置态链卡 1+品牌名行+绿开关+顺序 hint；**grid 行 5 元素占位 span 残留致 ↓ 换行——删除后 4 元素同线 rowH 40**；截图×3 与 /tmp/dshws-s12a/ 实物；Clear 复原凭据零残留；**同版本 tarball 重复 add 被 pnpm 跳过——rm node_modules 强制重装**；3416/3080/61518 零接触）——**勘误（T5 🟡-2）**：本行「height:32 冗余已撤」转写失真，d561598 实删的是 `boxSizing:'border-box'`（height:32 从未入过任何提交）；截图实物初未归档（Browser Use 截图仅入会话 artifacts），T6 已补归档双态 PNG 至 /tmp/dshws-s12a/ |
 | T5 | 阶段 4/5 独立验证 | **PASS / COMPLETE**（R1-R6/R7 全 PASS + 门墙本审零偏差亲证〔client.js 终态 **24.68 kB** 落账〕+ 三问全过 + 冒烟 12a 用例 7 passed；🟡×2 记录类随 T6 清偿：截图腿补落盘 + d561598 勘误注记；audit-log 正本 …/2026-09-04-s12a-stage45-verification.md） |
 | T6 | 收尾：🟡-1 截图补落盘（重启 3419 归档双态 PNG×2 至 /tmp/dshws-s12a/）+ 🟡-2 勘误注记 + session-12a 补全 + Agent Note 补坑 + STATUS/roadmap/CHANGELOG 原子收官 + merge + 接力指令 | 完成（本序列） |
+
+### S14 溯源徽标 + fetch 调研批（2026-09-06，分支 feat/s14-toolview-attribution）
+
+阶段 0 独立审核 S13 **PASS**（🔴×0 🟡×0 🟢×4；正本
+docs/sessions/audit-logs/2026-09-06-s14-stage0-review-of-s13.md）→ plan 014（双轨：
+ADR-0010 溯源接管〔priority -1 shadow + 自绘同构卡 + 两级回退 + MEMBERS 映射〕+
+v2 调研〔fetch 兜底缝隙 + 余额看板地基，结论落注记〕；D1-D7）→ 阶段 2 独立计划审核
+单轮 **APPROVED**（无必改；随批吸收建议×5 已折入 plan；锚点抽查 25 处亲核；正本
+docs/sessions/audit-logs/2026-09-06-s14-stage2-plan-review.md）→ 阶段 2.5
+AskUserQuestion 未获答，按接力序取默认批准项自主推进（S09/S10/S13 先例，披露双落
+session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan 014 + 阶段 0/2 audit-log 入库（参数头审核库 v2）+ roadmap S14 行 WBS/验收指针细化 + 🟢① dont-do webview 输入派发族入册（家族第 2 次跨棒定谳）+ 启动全状态区（STATUS 台账/位置块/M7 总览行 + progress-M7 三处，含 M7 里程碑行「余 S13 策略」收官漏刷顺手勘正）+ session-14 骨架（三★节占位） | 完成（本提交） |
+| T1 | 调研注记：docs/notes/2026-09-06-s14-fetch-fallback-research.md（fetch 缝隙判定 + 余额看板地基 + 版本态；锚点可复核） | 待执行 |
+| T2 | 🟢 钉牌断言清偿（探针式红绿） | 待执行 |
+| T3 | toolview 组件 + 注册（TDD 核心：websearch-row + locales +6 键 + 注册 priority -1 + toolview.spec 七用例） | 待执行 |
+| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 待执行 |
+| T5 | 浏览器实测棒（3422/3430/3431 查占；LLM stub + loopback 成员 → 徽标亲见 + 直连/外来无徽标 + 复原） | 待执行 |
+| T6 | 阶段 4/5 独立验证（R1-R7 对峙 + 三问 + firecrawl 402/429 观察项复核） | 待执行 |
+| T7 | 收尾（session-14 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令） | 待执行 |
 
 ### S13 优先级策略批（2026-09-04，分支 feat/s13-priority-strategy）
 
