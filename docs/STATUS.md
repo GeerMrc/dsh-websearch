@@ -26,7 +26,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳（准备棒 = S16，2026-09-04 重排编号） |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012） | ✅ 2026-09-06（S09-S14 全收官；S14 证据 = 徽标浏览器亲见 + 宿主零 diff + stage45 PASS/COMPLETE） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012）+ 装即接管（ADR-0013） | ✅ 2026-09-06（S09-S14 + S14a 插行全收官；证据 = 徽标浏览器亲见 + 宿主零 diff + 装卸三态 dump + 各自 stage45 PASS/COMPLETE） |
 
 ## Session 台账（一行一棒）
 
@@ -49,13 +49,13 @@
 | 12b | 2026-09-04 | 设置页信息收敛 + DeepSeek 双配置澄清（用户三轮反馈） | ✅ | docs/sessions/2026-09-04-session-12b.md（页头单图标/DeepSeek 澄清 badge/两级调用逻辑文档化 + S13 移交；阶段 2 两轮 APPROVED + 2.5 第 6 次 + 阶段 4/5 PASS/COMPLETE） | 三轮反馈 🟡×2 全清偿；T5 抓获 🟡×1 T6 补守卫 |
 | 13 | 2026-09-04 | 优先级策略棒：ADR-0012 定谳 + keySelection GUI 控件 + 两级调用顺序说明 UI | ✅ | docs/sessions/2026-09-04-session-13.md（ADR-0012 变体 B 不放回随机〔升序 Fisher-Yates〕+ 成员卡三段控件 + 两级语义 hint；阶段 2 两轮 APPROVED + 2.5 默认批准披露 + 阶段 4/5 PASS/COMPLETE + 🟡×1 清偿复验 CONFIRMED） | 承接 🟡×1（记录缺节）T0 清偿；T6 抓获 🟡×1（sameMultiset）当场清偿复验 CONFIRMED；🟢+1（钉牌断言缺口→S14/S15） |
 | 14 | 2026-09-06 | fetch 兜底调研 + session 溯源徽标（ADR-0010 落地） | ✅ | docs/sessions/2026-09-06-session-14.md（toolview 接管 priority -1 + 自绘同构卡两级回退 + fetch/余额 v2 调研注记 + 钉牌断言清偿；阶段 2 单轮 APPROVED + 2.5 默认批准披露 + 阶段 4/5 PASS/COMPLETE；**M7 收官棒**） | 🟢 清偿×2（dont-do webview 家族入册 T0 / 钉牌断言 T2）；🟢 新登记×1（badge 超长 id 观察） |
-| 14a | 2026-09-06 | 装即接管 web_search（插行棒，ADR-0013） | 🚧 | docs/plans/2026-09-06-014a-s14a-install-takeover-plan.md（用户方向裁定 B + 计划包批准；阶段 0 审 S14 PASS〔🟡×1 接力指令 L-2 缺项 → T0 勘注〕；执行中） | 🟡 清偿中×1（L-2 缺项勘注 T0） |
+| 14a | 2026-09-06 | 装即接管 web_search（插行棒，ADR-0013） | ✅ | docs/sessions/2026-09-06-session-14a.md（随包 patch 钉 search / fetch 留 http / remove 单命令复原 / 用户层终裁；方向 = 用户裁定 B + ExitPlanMode 批准 + 阶段 4/5 PASS/COMPLETE 含独立重演） | 🟡 清偿×1（L-2 缺项勘注 T0）；🟢 新登记×2 观察（AMBIGUOUS 语义精化/发版清单实体） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 14a 🚧（2026-09-06 启动插行棒：装即接管 web_search，ADR-0013；用户方向裁定 B + 计划包批准；阶段 0 PASS，T0 起执行）
-- **所处里程碑**: M7 ✅ 2026-09-06（S14a 为插行补充棒，收官时在 M7 行加注记）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
-- **上一棒**: Session 14（溯源接管 + v2 调研 + 钉牌断言清偿）— 记录：docs/sessions/2026-09-06-session-14.md
-- **下一棒**: S14a 收官后 → S15 README + 迁移 + 升级手册（M5 文档腿收官）→ S16 上游验收准备
-- **活跃债务**: 🔴×0 🟡×1（session-14 接力指令 L-2 缺项 → S14a T0 勘注清偿中）🟢×4 维持（fetch 排序/恢复默认/anysearch fetch 面/CSS module 化→S15 顺手候选）+ L-2 + 观察（badge 超长 id/firecrawl 已复核/i18n CI→S15/tsdown→S15）+ v2 backlog（调研已落档不排期）——正本：progress-M7 台账 + plan 014a 债务映射节
-- **更新时间**: 2026-09-06（14a 启动刷新）
+- **当前 session**: 无进行中（Session 14a ✅ 2026-09-06 收官——装即接管 web_search，ADR-0013）
+- **所处里程碑**: **M7 ✅ 2026-09-06**（S09-S14 + S14a 插行全收官）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
+- **上一棒**: Session 14a（装即接管 ADR-0013）— 记录：docs/sessions/2026-09-06-session-14a.md
+- **下一棒**: S15 README + 迁移 + 升级手册（M5 文档腿收官）→ S16 上游验收准备
+- **活跃债务**: 🔴×0 🟡×0（阶段 4/5 审定）🟢×4 维持（fetch 排序/恢复默认/anysearch fetch 面/CSS module 化→S15 顺手候选）+ L-2（per-profile GUI 二期）+ 观察（badge 超长 id/AMBIGUOUS 语义精化→S15 手册/发版清单实体待建→S15-S16/firecrawl 已复核/i18n CI→S15/tsdown→S15/vitest sourcemap）+ v2 backlog（调研已落档不排期）——正本：progress-M7 台账 + plan 014a 债务映射节
+- **更新时间**: 2026-09-06（14a 阶段 6 收尾）
