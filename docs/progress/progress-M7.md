@@ -176,8 +176,8 @@ docs/sessions/audit-logs/2026-09-06-s14a-stage0-review-of-s14.md）→ 方向裁
 | 任务 | 内容 | 结果 |
 |---|---|---|
 | T0 | 治理批：plan 014a + 阶段 0 audit-log 入库 + ADR-0013 + 三 ADR 注记（0001/0004/0009）+ roadmap S14a 插行 + 🟡-1 勘注（session-14 接力指令 L-2）+ 启动全状态区 + session-14a 骨架（三★节占位） | 完成（本提交） |
-| T1 | patch 变更（TDD）：cordis.patch.yml 双条目 + 内容测试 | 待执行 |
-| T2 | e2e 装卸载（3423 查占）：翻转 / remove 单命令 diff 零输出 / 用户层终裁 | 待执行 |
+| T1 | patch 变更（TDD）：cordis.patch.yml 双条目 + 内容测试 | 完成（`9884466`；红〔web 行断言 1 failed\|2 passed〕→ 绿 patch.test **3 passed**〔insert 行 / web 两键重述 + 无 name 守卫 / 不钉 fetch 链〕；src 逻辑零变更） |
+| T2 | e2e 装卸载（3423 查占空闲）：翻转 / remove 单命令 diff 零输出 / 用户层终裁 | 完成（四 dump 留档 /tmp/dshws-s14a/：**装即翻转**〔add 后 searchProvider: dshws-chain + fetchProvider: http，零用户层 patch〕→ **remove 单命令 diff 基线零输出**〔DIFF_ZERO_RESTORED，优于现状手删两行〕→ **用户层终裁**〔写一行钉 dshws-deepseek → dump 用户层赢；用户层整段替换丢 fetchProvider 键时由「无配置+http 恒可用」路径兜住，README 教重述两键〕→ 清理态复原 FINAL_CLEAN_RESTORED） |
 | T3 | 设置页 intro 文案 + locales + README/runbook 最小更新 | 待执行 |
 | T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 待执行 |
 | T5 | 浏览器实测棒（3423/3432 查占；复用 S14 stub 配方）：零用户层接线 boot → 徽标亲见 → 复原 | 待执行 |
