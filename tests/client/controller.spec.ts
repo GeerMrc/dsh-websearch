@@ -128,12 +128,13 @@ describe('WebSearchSettingsController', () => {
     }
     expect(snapshot.members.find((member) => member.key === 'tavily')?.refName).toBe(DEFAULT_REF)
     expect(snapshot.members.find((member) => member.key === 'anysearch')?.refName).toBe('ANYSEARCH_API_KEY')
+    // S14c: the client chain domain mirrors the node half — five orderable
+    // members; the DeepSeek fallback is the fixed tail, never a chain row.
     expect(snapshot.searchChain).toEqual([
       'dshws-tavily',
       'dshws-exa',
       'dshws-perplexity',
       'dshws-firecrawl',
-      'dshws-deepseek',
       'dshws-anysearch',
     ])
     expect(snapshot.fetchChain).toEqual(snapshot.searchChain)
@@ -281,7 +282,7 @@ describe('WebSearchSettingsController', () => {
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'],
+          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -333,7 +334,7 @@ describe('WebSearchSettingsController', () => {
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-perplexity', 'dshws-tavily', 'dshws-deepseek', 'dshws-anysearch'],
+          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-perplexity', 'dshws-tavily', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -344,7 +345,6 @@ describe('WebSearchSettingsController', () => {
       'dshws-exa',
       'dshws-perplexity',
       'dshws-tavily',
-      'dshws-deepseek',
       'dshws-anysearch',
     ])
 
@@ -388,7 +388,6 @@ describe('WebSearchSettingsController', () => {
       'dshws-exa',
       'dshws-perplexity',
       'dshws-firecrawl',
-      'dshws-deepseek',
       'dshws-anysearch',
     ])
     expect(controller.snapshot().searchChainPinned).toBe(false)

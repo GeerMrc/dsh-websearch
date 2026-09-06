@@ -55,6 +55,7 @@ export type DshWsLocaleKey =
   | 'maxUsesLabel'
   | 'maxUsesHint'
   | 'chainTailHint'
+  | 'configure'
   | 'chainDisabledNote'
   | 'chainNoUsableWarning'
 
@@ -108,6 +109,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   maxUsesLabel: 'Max searches per request',
   maxUsesHint: 'How many times one request may search before it must answer (DeepSeek fallback backend).',
   chainTailHint: 'DeepSeek stays the chain-tail fallback and is not orderable.',
+  configure: 'Configure',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -154,4 +156,5 @@ export const zh: Record<DshWsLocaleKey, string> = {
   maxUsesLabel: '单次请求最多搜索次数',
   maxUsesHint: '一次请求在必须作答前最多可以搜索多少次（作用于 DeepSeek 兜底后端）。',
   chainTailHint: 'DeepSeek 恒为链尾兜底，不参与排序。',
+  configure: '配置',
 }

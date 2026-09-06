@@ -14,6 +14,20 @@ import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 const t: TranslateNS<'dsh-websearch'> = (key) => en[key as DshWsLocaleKey] ?? key
 
 const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch']
+
+const BRANDS_BY_KEY: Record<string, string> = {
+  tavily: 'Tavily',
+  exa: 'Exa',
+  perplexity: 'Perplexity',
+  firecrawl: 'Firecrawl',
+  anysearch: 'AnySearch',
+  deepseek: 'DeepSeek',
+}
+
+/** S14c: cards default collapsed — expand before driving the key surface. */
+function expand(memberKey: string): void {
+  fireEvent.click(screen.getByTestId(`dshws-member-toggle-${memberKey}`))
+}
 const BRANDS = ['Tavily', 'Exa', 'Perplexity', 'Firecrawl', 'DeepSeek', 'AnySearch']
 
 function member(key: string, label: string, overrides: Partial<MemberSnapshot> = {}): MemberSnapshot {
@@ -43,10 +57,11 @@ function defaultMembers(): MemberSnapshot[] {
 }
 
 function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnapshot {
+  const ORDERABLE = BUILT_IN.filter((id) => id !== 'dshws-deepseek')
   return {
     members,
-    searchChain: BUILT_IN,
-    fetchChain: BUILT_IN,
+    searchChain: ORDERABLE,
+    fetchChain: ORDERABLE,
     searchChainPinned: false,
     fetchChainPinned: false,
     timeoutMs: 30000,
@@ -64,6 +79,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onToggleEnabled: vi.fn(async () => ({ ok: true }) as ActionResult),
     onMoveSearch: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -102,6 +118,7 @@ describe('WebSearchSettingsSection', () => {
   it('save forwards the typed key, clears the draft, and shows saved feedback', async () => {
     const onSaveKey = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSaveKey })} t={t} />)
+    expand('tavily')
     const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
     expect(input.getAttribute('type')).toBe('password')
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
@@ -114,6 +131,7 @@ describe('WebSearchSettingsSection', () => {
   it('save failure shows failed feedback and keeps the draft', async () => {
     const onSaveKey = vi.fn(async () => ({ ok: false }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSaveKey })} t={t} />)
+    expand('tavily')
     const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))
@@ -127,6 +145,8 @@ describe('WebSearchSettingsSection', () => {
     members[0] = member('tavily', 'Tavily', { configured: true })
     members[1] = member('exa', 'Exa', { configured: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members), onClearKey })} t={t} />)
+    expand('tavily')
+    expand('exa')
     const tavilyClear = within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Clear' })
     expect((tavilyClear as HTMLButtonElement).disabled).toBe(false)
     fireEvent.click(tavilyClear)
@@ -142,15 +162,20 @@ describe('WebSearchSettingsSection', () => {
     expect(chains.querySelectorAll('ol').length).toBe(1)
     expect(container.querySelector('[data-testid="dshws-fetch-chain"]')).toBeNull()
     const rows = Array.from(chains.querySelectorAll('[data-dshws-chain-label]')).map((span) => span.textContent)
-    expect(rows).toEqual(BRANDS)
+    // S14c: five orderable rows only — DeepSeek is the fixed tail, not a row.
+    expect(rows).toEqual(BRANDS.filter((brand) => brand !== 'DeepSeek'))
     // The timeout folded into the card hint line.
     expect(chains.textContent).toContain('30000')
   })
 
-  it('the chain section is hidden entirely while no member is configured (12a 反馈④)', () => {
+  it('the reorder rows stay hidden while no member is configured; the global card remains (S14c 改判 12a 反馈④)', () => {
     const members = defaultMembers().map((m) => member(m.key, m.label, { configured: false }))
     const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
-    expect(container.querySelector('[data-testid="dshws-chains"]')).toBeNull()
+    // The global card (chain + timeout + maxUses) is always visible now…
+    expect(container.querySelector('[data-testid="dshws-chains"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="dshws-max-uses"]')).not.toBeNull()
+    // …but the reorder rows only earn their place once a member is configured.
+    expect(container.querySelector('[data-testid="dshws-search-chain"]')).toBeNull()
   })
 
   it('the search chain is reorderable and the fetch chain stays read-only', () => {
@@ -158,8 +183,9 @@ describe('WebSearchSettingsSection', () => {
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
     const upButtons = searchList.querySelectorAll('button[aria-label$="Move up"]')
     const downButtons = searchList.querySelectorAll('button[aria-label$="Move down"]')
-    expect(upButtons.length).toBe(6)
-    expect(downButtons.length).toBe(6)
+    // S14c: five orderable rows.
+    expect(upButtons.length).toBe(5)
+    expect(downButtons.length).toBe(5)
     expect(screen.getByRole('button', { name: 'Tavily Move up' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Exa Move down' })).toBeTruthy()
   })
@@ -210,7 +236,9 @@ describe('WebSearchSettingsSection', () => {
     expect(within(chains as HTMLElement).queryByRole('button', { name: en.chainDefault })).toBeNull()
     // The hint line spells the semantics and derives the order from MEMBERS.
     expect(chains.textContent).toContain(en.chainDefaultHint)
-    expect(chains.textContent).toContain(BRANDS.join(' → '))
+    expect(chains.textContent).toContain(BRANDS.filter((brand) => brand !== 'DeepSeek').join(' → '))
+    // S14c: the tail rule is stated alongside the orderable span.
+    expect(chains.textContent).toContain(en.chainTailHint)
   })
 
   it("an unconfigured member's switch is disabled (置灰断言)", () => {
@@ -244,6 +272,7 @@ describe('WebSearchSettingsSection', () => {
     // Action feedback is a polite live region (host savedNotice convention);
     // verified on the save leg — toggling has never rendered member feedback.
     // The save leg runs on a full member card (deepseek has no key surface).
+    expand('perplexity')
     const input = within(screen.getByTestId('dshws-member-perplexity')).getByLabelText(
       'Perplexity API Key',
     ) as HTMLInputElement
@@ -289,15 +318,15 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.queryByTestId('dshws-fallback-footnote')).toBeNull()
   })
 
-  it('chain rows visually mark disabled members while they stay listed (S14b D2)', () => {
+  it('chain rows visually mark disabled members while they stay listed (S14b D2, S14c 移至可排序成员)', () => {
     const members = defaultMembers()
-    members[4] = member('deepseek', 'DeepSeek', { enabled: false })
+    members[1] = member('exa', 'Exa', { enabled: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
-    const row = screen.getByTestId('dshws-chain-item-dshws-deepseek')
+    const row = screen.getByTestId('dshws-chain-item-dshws-exa')
     expect(row.textContent).toContain(en.chainDisabledNote.trim())
     expect(row.style.opacity).toBe('0.45')
     // Still listed and still movable — position matters once re-enabled.
-    expect((within(row).getByRole('button', { name: `DeepSeek ${en.moveUp}` }) as HTMLButtonElement).disabled).toBe(false)
+    expect((within(row).getByRole('button', { name: `Exa ${en.moveUp}` }) as HTMLButtonElement).disabled).toBe(false)
     // Another enabled member keeps the chain usable — no warning.
     expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
   })
@@ -351,6 +380,7 @@ describe('WebSearchSettingsSection', () => {
 
   it('the key input owns its line and the actions live in a separate footer row (12a 反馈③)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expand('tavily')
     const card = screen.getByTestId('dshws-member-tavily')
     const input = within(card).getByLabelText('Tavily API Key')
     // The Input primitive wraps the field in a span; that wrapper must be a
@@ -383,13 +413,14 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
     const visible = [...searchList.querySelectorAll('[data-dshws-chain-label]')].map((span) => span.textContent)
-    expect(visible).toEqual(['Tavily', 'Perplexity', 'Firecrawl', 'DeepSeek'])
+    // S14c: DeepSeek is not a row — the visible span ends at Firecrawl.
+    expect(visible).toEqual(['Tavily', 'Perplexity', 'Firecrawl'])
     // The disabled boundary must follow the FILTERED list: the last visible
     // item's down button is disabled (previously computed against the full
     // chain length, so it stayed clickable and reported a bogus failure).
     const firstUp = searchList.querySelector('button[aria-label="Tavily Move up"]') as HTMLButtonElement
-    const lastDown = searchList.querySelector('button[aria-label="DeepSeek Move down"]') as HTMLButtonElement
-    const lastUp = searchList.querySelector('button[aria-label="DeepSeek Move up"]') as HTMLButtonElement
+    const lastDown = searchList.querySelector('button[aria-label="Firecrawl Move down"]') as HTMLButtonElement
+    const lastUp = searchList.querySelector('button[aria-label="Firecrawl Move up"]') as HTMLButtonElement
     expect(firstUp.disabled).toBe(true)
     expect(lastDown.disabled).toBe(true)
     expect(lastUp.disabled).toBe(false)
@@ -425,6 +456,7 @@ describe('WebSearchSettingsSection', () => {
       ['anysearch', 'AnySearch'],
     ] as const
     for (const [key, brand] of keyed) {
+      expand(key)
       const card = screen.getByTestId(`dshws-member-${key}`)
       const group = within(card).getByRole('group', { name: `${brand} ${en.keySelection}` })
       const buttons = within(group).getAllByRole('button')
@@ -442,6 +474,7 @@ describe('WebSearchSettingsSection', () => {
   it('clicking a strategy reports the member and policy, and the pressed state follows the snapshot (S13 D2/D4)', async () => {
     const onSetKeySelection = vi.fn(async () => ({ ok: true }) as ActionResult)
     const first = render(<WebSearchSettingsSection {...makeProps({ onSetKeySelection })} t={t} />)
+    expand('tavily')
     fireEvent.click(
       within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.keySelRandom}` }),
     )
@@ -455,10 +488,56 @@ describe('WebSearchSettingsSection', () => {
     expect((within(card).getByRole('button', { name: `Tavily ${en.keySelOrder}` }).getAttribute('aria-pressed'))).toBe('false')
   })
 
+
+  it('the global card sits above the tools and carries the maxUses knob (S14c T1)', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const chains = container.querySelector('[data-testid="dshws-chains"]')!
+    const members = container.querySelector('[data-testid="dshws-members"]')!
+    // DOM order: global card first, tools after.
+    expect(chains.compareDocumentPosition(members) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // Host-parity label verbatim + current default value 5.
+    expect(screen.getByLabelText(en.maxUsesLabel).getAttribute('value')).toBe('5')
+    expect(chains.textContent).toContain(en.maxUsesLabel)
+  })
+
+  it('cards default collapsed; expanding reveals the key surface without losing it (S14c T3)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    // Collapsed by default: no key input, no pool group, no footer actions.
+    expect(within(card).queryByLabelText(`Tavily ${en.apiKey}`)).toBeNull()
+    expect(within(card).queryByRole('group')).toBeNull()
+    expect(within(card).queryByRole('button', { name: `Tavily ${en.save}` })).toBeNull()
+    // Header stays interactive in the collapsed state.
+    expect(within(card).getByRole('switch', { name: `Tavily ${en.enabled}` })).toBeTruthy()
+    // Expand: the multi-key surface is intact.
+    expand('tavily')
+    expect(within(card).getByLabelText(`Tavily ${en.apiKey}`)).toBeTruthy()
+    expect(within(card).getByRole('group', { name: `Tavily ${en.keySelection}` })).toBeTruthy()
+    expect(within(card).getByRole('button', { name: `Tavily ${en.save}` })).toBeTruthy()
+  })
+
+  it('the fallback row is the last member element (S14c T1)', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const members = container.querySelector('[data-testid="dshws-members"]')!
+    const children = Array.from(members.children)
+    expect(children.length).toBe(6)
+    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fallback-deepseek')
+  })
+
+  it('maxUses save patches the deepseek member key (S14c T4)', async () => {
+    const onSetMaxUses = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMaxUses })} t={t} />)
+    const input = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
+    fireEvent.change(input, { target: { value: '3' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.maxUsesLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMaxUses).toHaveBeenCalledWith(3))
+  })
+
   it('an unconfigured member disables the control, and the hint states the two-level semantics (S13 D3)', () => {
     const members = defaultMembers()
     members[0] = member('tavily', 'Tavily', { configured: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    expand('tavily')
     const card = screen.getByTestId('dshws-member-tavily')
     for (const strategy of [en.keySelOrder, en.keySelRoundRobin, en.keySelRandom]) {
       expect(((within(card).getByRole('button', { name: `Tavily ${strategy}` })) as HTMLButtonElement).disabled).toBe(true)

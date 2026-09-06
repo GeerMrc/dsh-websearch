@@ -28,6 +28,8 @@ export interface SectionProps {
   onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
   onMoveSearch: (id: string, delta: -1 | 1) => Promise<ActionResult>
   onSetKeySelection: (memberKey: string, selection: 'order' | 'round-robin' | 'random') => Promise<ActionResult>
+  /** DeepSeek fallback maxUses (S14c, host parity). */
+  onSetMaxUses: (maxUses: number) => Promise<ActionResult>
 }
 
 /**
@@ -51,6 +53,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onToggleEnabled={(key, enabled) => controller.setEnabled(key, enabled)}
         onMoveSearch={(id, delta) => controller.moveSearchChainEntry(id, delta)}
         onSetKeySelection={(key, selection) => controller.setKeySelection(key, selection)}
+        onSetMaxUses={(maxUses) => controller.setDeepseekMaxUses(maxUses)}
       />
     )
   }
@@ -213,7 +216,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -243,32 +246,20 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         </h3>
         <p style={{ margin: 0, marginTop: 4, fontSize: 14, lineHeight: '22px', color: 'var(--dsw-alias-label-tertiary)' }}>{t('description')}</p>
       </div>
-      <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {snapshot.members.map((member) =>
-          member.key === 'deepseek' ? (
-            <DeepSeekFallbackRow key={member.key} member={member} t={t} onToggleEnabled={onToggleEnabled} />
-          ) : (
-            <MemberCard
-              key={member.key}
-              member={member}
-              t={t}
-              onSaveKey={onSaveKey}
-              onClearKey={onClearKey}
-              onToggleEnabled={onToggleEnabled}
-              onSetKeySelection={onSetKeySelection}
-            />
-          ),
-        )}
-      </div>
-      {showChains ? (
-        <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
+      {/* Global area (S14c, user ruling): the chain card sits ABOVE the tools,
+      always visible; the reorder rows only earn their place once a member is
+      configured (S12a rationale), while the tail note, timeout, and the
+      host-parity maxUses knob are meaningful in every state. */}
+      <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('searchChain')}</h4>
             <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
           </div>
           <p style={hintStyle}>
-            {t('chainDefaultHint')} {MEMBERS.map((m) => m.label).join(' → ')}
+            {t('chainDefaultHint')} {ORDERABLE_LABELS.join(' → ')}
           </p>
+          <p style={{ ...hintStyle, marginTop: -4 }}>{t('chainTailHint')}</p>
+          {showChains ? (
           <ol
             data-testid="dshws-search-chain"
             style={{ margin: 0, paddingLeft: 0, listStyle: 'none', maxHeight: 280, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}
@@ -313,7 +304,8 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
               )
             })}
           </ol>
-          {snapshot.members.every((m) => !(m.configured && m.enabled)) ? (
+          ) : null}
+          {snapshot.members.every((m) => !(m.configured && m.enabled)) && showChains ? (
             <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
               {t('chainNoUsableWarning')}
             </p>
@@ -321,8 +313,87 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <p style={hintStyle}>
             {t('timeout')}: {snapshot.timeoutMs} ms
           </p>
+          <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
         </section>
+      <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* S14c: five orderable tool cards, then the DeepSeek fallback row last. */}
+        {snapshot.members.filter((member) => member.key !== 'deepseek').map((member) => (
+          <MemberCard
+            key={member.key}
+            member={member}
+            t={t}
+            onSaveKey={onSaveKey}
+            onClearKey={onClearKey}
+            onToggleEnabled={onToggleEnabled}
+            onSetKeySelection={onSetKeySelection}
+          />
+        ))}
+        {snapshot.members
+          .filter((member) => member.key === 'deepseek')
+          .map((member) => (
+            <DeepSeekFallbackRow key={member.key} member={member} t={t} onToggleEnabled={onToggleEnabled} />
+          ))}
+      </div>
+    </div>
+  )
+}
+
+/** The orderable span's display labels, in built-in order (S14c: five tools). */
+const ORDERABLE_LABELS: readonly string[] = MEMBERS.filter((m) => m.key !== 'deepseek').map((m) => m.label)
+
+/**
+ * Host-parity maxUses knob (S14c): staged numeric input in the global area —
+ * the label and semantics match the host `web-search-deepseek` card verbatim.
+ */
+function MaxUsesRow(props: {
+  t: (key: DshWsLocaleKey) => string
+  value: number | undefined
+  onSet: (maxUses: number) => Promise<ActionResult>
+}) {
+  const { t, value, onSet } = props
+  const [draft, setDraft] = useState('')
+  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  const current = value ?? 5
+  const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
+  const valid = Number.isInteger(parsed) && parsed >= 1
+  const save = async (): Promise<void> => {
+    const result = await onSet(parsed as number)
+    setFeedback(result.ok ? 'saved' : 'failed')
+    if (result.ok) setDraft('')
+  }
+  return (
+    <div data-testid="dshws-max-uses" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+        {t('maxUsesLabel')}
+        <Tooltip label={t('maxUsesHint')} side="bottom" delayMs={400} maxWidth={320}>
+          <button type="button" aria-label={t('maxUsesHint')} style={{ ...infoButtonStyle, marginLeft: 4 }}>
+            <IconQuestionOutline14 />
+          </button>
+        </Tooltip>
+      </span>
+      <span style={{ flex: 1 }} />
+      <input
+        type="number"
+        min={1}
+        step={1}
+        aria-label={t('maxUsesLabel')}
+        data-testid="dshws-max-uses-input"
+        style={{ ...inputStyle, width: 90 }}
+        value={draft === '' ? String(current) : draft}
+        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        aria-label={`${t('maxUsesLabel')} ${t('save')}`}
+        disabled={!valid || draft.trim() === ''}
+        onClick={() => void save()}
+      >
+        {t('save')}
+      </Button>
+      {feedback ? (
+        <span role="status" data-testid="dshws-max-uses-feedback" style={feedbackStyle}>{t(feedback)}</span>
       ) : null}
     </div>
   )
@@ -443,16 +514,26 @@ function MemberCard(props: {
 
 
   const statusText = member.configured ? t('configured') : t('notConfigured')
+  // S14c (user ruling): cards default COLLAPSED — the header row (status, name,
+  // switch) is the steady state; the key/pool surface opens on demand.
+  const [open, setOpen] = useState(false)
 
   return (
     <div data-testid={`dshws-member-${member.key}`} style={cardStyle}>
       <div style={cardHeadStyle}>
         <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
         <strong style={nameStyle}>{member.label}</strong>
-        {member.key === 'deepseek' ? (
-          <span title={t('sharedWithModelsDetail')} style={sharedBadgeStyle}>{t('sharedWithModels')}</span>
-        ) : null}
         <span style={{ flex: 1 }} />
+        <button
+          type="button"
+          data-testid={`dshws-member-toggle-${member.key}`}
+          aria-expanded={open}
+          aria-label={`${member.label} ${t('configure')}`}
+          onClick={() => { setOpen((value) => !value) }}
+          style={infoButtonStyle}
+        >
+          {open ? '▴' : '▾'}
+        </button>
         <button
           type="button"
           role="switch"
@@ -465,6 +546,8 @@ function MemberCard(props: {
           <span style={thumbStyle(member.enabled)} />
         </button>
       </div>
+      {open ? (
+      <>
       <Input
         type="password"
         aria-label={`${member.label} ${t('apiKey')}`}
@@ -521,6 +604,8 @@ function MemberCard(props: {
           {t('save')}
         </Button>
       </div>
+      </>
+      ) : null}
     </div>
   )
 }
