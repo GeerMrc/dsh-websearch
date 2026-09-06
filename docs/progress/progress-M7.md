@@ -15,15 +15,15 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | 🚧（S09-S13 ✅；S14 fetch 调研+溯源 🚧——T0 顺手勘正：本行原残留「余 S13 策略」为 S13 收官漏刷，dont-do 收官序列家族口径） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010） | ✅ 2026-09-06（S09-S14 全收官；S14 证据 = session-14 + stage45 PASS/COMPLETE + 徽标浏览器亲见） |
 
 ## 进行中
 
-- S14 fetch 兜底调研 + session 溯源徽标（ADR-0010 落地）——阶段 0 PASS / 阶段 2 APPROVED / 2.5 默认批准披露；plan 正本 docs/plans/2026-09-06-014-s14-toolview-attribution-plan.md
+- 无（S14 收官 2026-09-06）
 
 ## 待启动
 
-- S15 README+迁移+升级手册（M5 文档腿）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排）
+- S15 README+迁移+升级手册（M5 文档腿；正素材：ADR-0012 语义表 + ADR-0010 溯源维护点 + fetch 调研注记 + s12b 两级调用逻辑）→ S16 上游重建验收准备（M6）——编排正本：roadmap（2026-09-04 用户重排）
 
 ## 已完成
 
@@ -150,8 +150,20 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | T3 | toolview 组件 + 注册（TDD 核心：websearch-row + locales +7 键〔34〕+ 注册 priority -1 + toolview.spec 八用例） | 完成（`4958fc0`；红=模块缺失 → 绿 toolview **8 passed** + client **64 passed**；typecheck 双面 0；lint 0w0e 49 files；i18n 34 keys + 18 files 零 CJK〔计划估 33，+inspect 键披露〕；**D4 回退触发**：ui-tool 发布类型 block 静默 any〔垃圾对象探针实证〕→ 本地结构镜像 + SlotMap 自 declare；WebBlock 原语弃用〔chrome labels 键面翻倍〕；entry.spec 双注册面适配 times 1→2） |
 | T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见门墙表 S14 行；提交态 4958fc0；Note docs/notes/2026-09-06-s14-toolview-attribution.md） |
 | T5 | 浏览器实测棒（3422 查占空闲；stub 3430 单口三形状：LLM SSE + 插件 deepseek 成员 + 宿主内置的 /messages；**3431 未用——拓扑简化披露**） | 完成（三轮亲见：①链路〔searchProvider: dshws-chain + 成员 baseURL 行 config 指向 stub〕→ 工具行 **`Web search | loopback proof query | · DeepSeek`** + aria "Served by DeepSeek"〔cua 坐标点击展开，locator click 假成功复发〕②直连〔dshws-deepseek 成员直服务〕同卡**无徽标** ③外来〔deepseek-official 内置 + DEEPSEEK_SEARCH_BASE_URL〕同卡**无徽标**；wire 证据 stub-log.jsonl 三段〔chat/completions tool_calls → /messages x-api-key → 终答〕；**SSE 形状坑**：宿主 chat 流式，普通 JSON 报 STREAM_CLOSED → stub 改 SSE+DONE；**workspace 播种**：storages/workspace.json 直写 canonical `/private/tmp/...`（12m 配方坑 2 复用，用户中途纠偏指向该配方）；同会话历史含 tool 消息会污染 stub 分支 → 每轮新会话；截图×3 + dump 双态 + boot log 归档 /tmp/dshws-s14/；kill 3422/3430 精确、3416/3080/61518 零接触〔3421=89220 非本棒进程注记〕；**deepseek-harness 仓 git status 亲证 clean @3281e04b59（R4）**） |
-| T6 | 阶段 4/5 独立验证（R1-R7 对峙 + 三问 + firecrawl 402/429 观察项复核） | 待执行 |
-| T7 | 收尾（session-14 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令） | 待执行 |
+| T6 | 阶段 4/5 独立验证（R1-R7 对峙 + 三问 + firecrawl 402/429 观察项复核） | **PASS / COMPLETE**（全量门墙亲跑零偏差 + R1-R7 全 PASS〔R1 调研锚 7/7 实证 / R6 三截图内容级亲读〕+ 三问全过〔XSS 零面 + 凭据零残留 + 双 declare 论证成立 + firecrawl 观察项现状核对：search face 双 it 在档、fetch face 无——维持观察〕+ 探针有牙实证〔priority 改 0 → 注册载荷断言红 → 还原 shasum 一致 + 复跑绿 + clean 亲证〕；🟡×0；**🟢 新观察候选×1：badge 超长 id 撑宽折叠行**〔纯视觉，React 转义无安全面〕→ 入台账；audit-log 正本 docs/sessions/audit-logs/2026-09-06-s14-stage45-verification.md） |
+| T7 | 收尾（session-14 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令） | 完成（本序列；实物 ls 清单核过） |
+
+### S14 验收（阶段 4/5 独立 Agent 逐条对峙 2026-09-06，正本 audit-log stage45）
+
+| 条目 | 内容 | 结论 | 证据 |
+|---|---|---|---|
+| R1 | fetch 调研结论在档且锚可复核 | PASS | 注记 7/7 锚亲验（resolveProvider 四路/无 settings namespace/patch 钉死/current() 对照缝/插件在产注册/watchUserPatches/构造器捕获） |
+| R2 | 直连/外来/形状不符回退态 TDD | PASS | toolview.spec 八用例具 DOM 断言亲跑 8 passed |
+| R3 | 接管接线有牙 | PASS | index.ts:61-66 priority -1 ↔ 安装包 d.ts:398-400 契约对峙；装拆对称断言；探针红实证 |
+| R4 | 宿主源码零 diff | PASS | 宿主仓 clean @3281e04b59 亲跑；T3 五文件 imports 逐核零宿主引用 |
+| R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
+| R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
+| R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
 
 ### S13 优先级策略批（2026-09-04，分支 feat/s13-priority-strategy）
 
@@ -272,11 +284,13 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 设置页 CSS module 化（内联 style 收敛） | 🟢 | 维持不排期（12a 登记；S15 顺手候选——**本行为 S13 T0 补镜像**，原登记 plan 012a） |
 | anysearch fetch 面（fetch 链成员 v1 不做） | 🟢 | 维持不排期（S10 登记——**本行为 S13 T0 补镜像**） |
 | 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | ~~S14/S15 顺手补一条~~ **已翻账（2026-09-04 登记 → S14 T2 清偿 `05f230c`）**：「消费后下一抽不重发同把」具名断言双策略在档（keys.test；探针红×2 还原绿 13 passed） |
-| firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排） |
+| firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排）——**已复核（2026-09-06 stage45）**：search face 双 it 在档（firecrawl.test.ts:115-127），fetch face 无独立 402/429 it（仅 requestFailed/badResponse）——描述准确，维持观察 |
+| 溯源徽标 badge 超长 id 撑宽折叠行（flexShrink:0 无截断，与 summary ellipsis 不对称；纯视觉，React 转义无安全面） | 🟢 观察 | S14 阶段 4/5 登记（2026-09-06）；宿主 WebRow 对齐维护点顺手候选 |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
-| v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期（需 provider 余额 API 调研 + 看板 slot 选型，届时另立 ADR） |
+| v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期——**S14 T1 地基调研已落档**（docs/notes/2026-09-06-s14-fetch-fallback-research.md §2：宿主 client 零 usage/balance slot，可借面 settings.section/sidebar.footer.action；provider 余额 API 调研属 v2 正式立项内容） |
+| v2 backlog：fetch 兜底开关 | 🟢 v2 | 未排期——**S14 T1 缝隙判定已落档**（同注记 §1：宿主单赢家无降级 + fetch 无 settings namespace + 唯一外挂缝 = registerFetchProvider 新 id + patch 钉 fetchProvider + 内部回落 HttpFetchProvider；热切上限 = patch live reload，GUI 热开关需上游） |
 
 ## 已验锚点（台账）
 

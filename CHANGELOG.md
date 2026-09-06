@@ -12,6 +12,35 @@
 
 ---
 
+## 2026-09-06 — 溯源徽标接管 + v2 调研首棒：M7 收官（Session 14，M7 ✅）
+
+**新增**
+- **session 搜索溯源接管（ADR-0010 落地）**：client half 以 **priority -1** 注册 `tool.call.toolview` 的 `web_search` key（升序最低者渲染，同 key 同 priority 抛错——契约锚安装包 dsh-client-ui-slots d.ts:399-400），shadow 宿主 WebRow 渲染整个工具调用块：折叠行 carried **served-by 服务徽标**（`· Tavily` 品牌名，aria-label 走 locales，未知 id 原样），展开体自绘同构（answer + sources + truncated + raw + inspect）；**两级回退**：无署名行（直连/外来）不渲染徽标、meta 形状不符退化 generic 工具卡（`4958fc0`）
+- **v2 backlog 首棒调研注记**（`docs/notes/2026-09-06-s14-fetch-fallback-research.md`）：fetch 兜底开关缝隙判定——宿主单赢家无降级（resolveProvider 四路抛错）+ fetch 无 settings namespace（search 的 re-point 缝不存在）+ **唯一外挂缝** = registerFetchProvider 新 id + patch 钉 fetchProvider + 内部回落 HttpFetchProvider（公开导出）；热切上限 = patch live reload，GUI 热开关需上游。余额看板地基：宿主 client 零 usage/balance slot（`440c90e`）
+- 类型面 D4 回退定谳：ui-tool 发布类型 block 经未装包静默 any（垃圾探针实证）→ 本地结构镜像 + SlotMap 自 declare（双 declare 永不相遇论证成立）；WebBlock 原语因 chrome labels 键面翻倍弃用（Agent Note §2-3）
+- 测试基线 261→**270**（270 passed | 9 skipped (279)；+9 = keys 1〔钉牌〕+ toolview 8）；i18n 27→**34 keys**（+7，计划估 33 +toolInspect 披露）；client.js 29.98→**41.81 kB**（index.js 59.42 / index.d.ts 27.04 零漂移）
+- Agent Notes ×2（溯源实现 `2026-09-06-s14-toolview-attribution.md` + 调研 `2026-09-06-s14-fetch-fallback-research.md`）；audit-logs 3 份
+
+**清偿（2 笔）**
+- 🟢「失败不回牌」钉牌断言：具名断言双策略在档（探针红×2 还原绿，`05f230c`）
+- 🟢 阶段 0 新报「webview 输入派发族该入册未入册」：dont-do 三要素条目入册（家族第 2 次跨棒定谳，`a312805`）
+
+**治理**
+- 阶段 0 独立审核 S13 **PASS**（增量采信 + 子集实跑 57 全绿 + 交付物逐项 + v1.2 增查两过）→ 阶段 2 单轮 **APPROVED**（无必改；随批建议×5 全折入；锚点抽查 25 处含 npm registry 实查）→ 阶段 2.5 AskUserQuestion 未获答 → **按接力序取默认批准项自主推进**（S09/S10/S13 先例，双落披露）→ 阶段 4/5 **PASS / COMPLETE**（全量门墙亲跑零偏差 + R1-R7 全 PASS + 三问全过 + 探针有牙实证〔priority 改 0 → 红 → 还原复绿〕）
+
+**诚实标注（遗留项）**
+- 浏览器棒拓扑简化：单 stub 口三形状（3431 未用）；T5 首轮 STREAM_CLOSED（stub 非 SSE）与 workspace UI 摸索弯路如实入踩坑节——用户中途纠偏指向 workspace 注册表播种既有配方后一次通过
+- 🟢 新登记：badge 超长 id 撑宽折叠行（纯视觉观察，React 转义无安全面）
+- 维持项：fetch 排序 UI / 恢复默认按钮 / anysearch fetch 面 / CSS module 化（→S15 顺手候选）/ L-2 / 观察项 / v2 backlog（调研已落档，仍不排期）
+
+**跟踪（观察期）**
+- 测试基线链：261\|9(270) → **270\|9(279)**；typecheck 双面 exit 0；lint 0w0e 49 files；check:i18n 34 keys + 18 files 零 CJK
+- 里程碑计数：**M7 ✅ 2026-09-06**（S09-S14 全收官）；M5 文档腿 S15；M3 余用户 with-key 回填；M6 ⏳
+- dont-do 新增：1 条（webview 输入派发族「以调用成功判定动作」）
+- 下一棒：S15 = README + anysearch 迁移 + 升级手册（M5 文档腿收官）
+
+---
+
 ## 2026-09-04 — 优先级策略棒：ADR-0012 变体 B + keySelection 控件（Session 13，M7）
 
 **新增**
