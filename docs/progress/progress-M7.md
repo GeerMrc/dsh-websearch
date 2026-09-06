@@ -54,6 +54,7 @@ session 记录双落）。
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
+| S14a | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 273 passed \| 9 skipped (282)**（270→273：+3 = patch.test 结构断言；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（50 files，96 rules）**④`pnpm build` → **增量披露：client.js 41.81→42.09 kB**（intro 扩句）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node/src 逻辑零变更）⑤`npm pack --dry-run` → 五件（含新 cordis.patch.yml 双条目）⑥`pnpm check:i18n` → exit 0（34 keys parity + 18 files 零 CJK）⑦`git status --short` 前后置 clean | S14a T4 提交态亲跑（3d09b59，node v22.23.2 / pnpm 11.7.0） |
 | S14 | ①`pnpm test` → **28 files（27 passed + 1 skipped），Tests 270 passed \| 9 skipped (279)**（261→270：+9 = keys 1〔T2 钉牌〕+ toolview 8〔T3〕；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（49 files，96 rules）**④`pnpm build` → **增量披露：client.js 29.98→41.81 kB**（自绘卡+图标通路+7 键）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**34 keys** parity + 18 files 零 CJK；计划估 33，+inspect 键披露）⑦`git status --short` 前后置 clean | S14 T4 提交态亲跑（4958fc0，node v22.23.2 / pnpm 11.7.0） |
 | S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
 | S10 | ①`pnpm test` → **27 files（26 passed + 1 skipped），Tests 257 passed \| 9 skipped (266)**（245→266：+21 anysearch 单测 13/接线与池 3/拓扑与语法 2/信封场景 1/smoke 2；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（47 files，96 rules）**（T9 勘误：T8 原记 45）④`pnpm build` → **增量披露（D7）：index.js 52.61→58.09 kB / index.d.ts 25.19→28.70 kB / client.js 27.17→27.30 kB**（providers 新文件 + config 节）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（23 keys parity + 17 files 零 CJK）⑦`git status --short` 前后置 clean | S10 T8 提交态亲跑 |
@@ -178,8 +179,8 @@ docs/sessions/audit-logs/2026-09-06-s14a-stage0-review-of-s14.md）→ 方向裁
 | T0 | 治理批：plan 014a + 阶段 0 audit-log 入库 + ADR-0013 + 三 ADR 注记（0001/0004/0009）+ roadmap S14a 插行 + 🟡-1 勘注（session-14 接力指令 L-2）+ 启动全状态区 + session-14a 骨架（三★节占位） | 完成（本提交） |
 | T1 | patch 变更（TDD）：cordis.patch.yml 双条目 + 内容测试 | 完成（`9884466`；红〔web 行断言 1 failed\|2 passed〕→ 绿 patch.test **3 passed**〔insert 行 / web 两键重述 + 无 name 守卫 / 不钉 fetch 链〕；src 逻辑零变更） |
 | T2 | e2e 装卸载（3423 查占空闲）：翻转 / remove 单命令 diff 零输出 / 用户层终裁 | 完成（四 dump 留档 /tmp/dshws-s14a/：**装即翻转**〔add 后 searchProvider: dshws-chain + fetchProvider: http，零用户层 patch〕→ **remove 单命令 diff 基线零输出**〔DIFF_ZERO_RESTORED，优于现状手删两行〕→ **用户层终裁**〔写一行钉 dshws-deepseek → dump 用户层赢；用户层整段替换丢 fetchProvider 键时由「无配置+http 恒可用」路径兜住，README 教重述两键〕→ 清理态复原 FINAL_CLEAN_RESTORED） |
-| T3 | 设置页 intro 文案 + locales + README/runbook 最小更新 | 待执行 |
-| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 待执行 |
+| T3 | 设置页 intro 文案 + locales + README/runbook 最小更新 | 完成（`3d09b59`；description 键扩句〔装即接管/卸载复原/fetch 可选〕，34 keys parity 维持 + 零 CJK；section.spec 字典值断言自动同步 30 passed；s05b runbook ADR-0013 增补；roadmap S15 迁移口径适配〔anysearch 卸装即切换〕；README 本体归 S15 全新撰写） |
+| T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见门墙表 S14a 行；提交态 3d09b59；Note docs/notes/2026-09-06-s14a-install-takeover.md〔机制锚/实测语义表/维护点——S15 正素材〕） |
 | T5 | 浏览器实测棒（3423/3432 查占；复用 S14 stub 配方）：零用户层接线 boot → 徽标亲见 → 复原 | 待执行 |
 | T6 | 阶段 4/5 独立验证（R1-R6 对峙 + 三问 + 探针） | 待执行 |
 | T7 | 收尾（session-14a 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令〔全量债务口径含 L-2〕） | 待执行 |
