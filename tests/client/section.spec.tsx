@@ -287,6 +287,29 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByTestId('dshws-fallback-footnote').textContent).toBe(en.fallbackFootnote)
   })
 
+  it('chain rows visually mark disabled members while they stay listed (S14b D2)', () => {
+    const members = defaultMembers()
+    members[4] = member('deepseek', 'DeepSeek', { enabled: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const row = screen.getByTestId('dshws-chain-item-dshws-deepseek')
+    expect(row.textContent).toContain(en.chainDisabledNote.trim())
+    expect(row.style.opacity).toBe('0.45')
+    // Still listed and still movable — position matters once re-enabled.
+    expect(within(row).getByRole('button', { name: `DeepSeek ${en.moveUp}` }).disabled).toBe(false)
+    // Another enabled member keeps the chain usable — no warning.
+    expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
+  })
+
+  it('zero enabled configured members renders the no-usable warning (S14b D2)', () => {
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: index === 4 })
+    }
+    members[4] = member('deepseek', 'DeepSeek', { enabled: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
+  })
+
   it('the fallback switch toggles the paid fallback and stays disabled until the shared key exists (S14b D1)', async () => {
     const onToggleEnabled = vi.fn(async () => ({ ok: true }) as ActionResult)
     const members = defaultMembers()

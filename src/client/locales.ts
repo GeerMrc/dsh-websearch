@@ -53,6 +53,8 @@ export type DshWsLocaleKey =
   | 'fallbackInfo'
   | 'fallbackNote'
   | 'fallbackFootnote'
+  | 'chainDisabledNote'
+  | 'chainNoUsableWarning'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -100,6 +102,8 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackInfo: 'DeepSeek fallback details',
   fallbackNote: 'Installing this plugin serves web_search through its chain; the host built-in DeepSeek entry stays idle. This row is the chain-internal DeepSeek fallback (5th in the built-in order): it shares the DEEPSEEK_API_KEY with the Models settings page — edits on either side overwrite the other — and serves whenever no earlier member is usable. Turn it off to opt out of paid DeepSeek search entirely.',
   fallbackFootnote: 'DeepSeek needs no key here: it falls back through the Models-page DEEPSEEK_API_KEY. Configure other members to take precedence over it.',
+  chainDisabledNote: ' (disabled)',
+  chainNoUsableWarning: 'No configured member is enabled — the next web_search will fail. Enable a member or the DeepSeek fallback.',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -142,4 +146,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackInfo: 'DeepSeek 兜底说明',
   fallbackNote: '安装本插件后 web_search 由插件链接管，宿主内置的 DeepSeek 搜索入口保持闲置。此行即链内 DeepSeek 兜底（内置序第 5 位）：与模型设置页共用同一把 DEEPSEEK_API_KEY，两处修改后写覆盖；前序成员均不可用时由此兜底。关闭开关即完全停用付费 DeepSeek 搜索。',
   fallbackFootnote: 'DeepSeek 无需在此配置 key：经模型设置页的 DEEPSEEK_API_KEY 兜底。配置其他成员后优先于 DeepSeek 服务。',
+  chainDisabledNote: '（已停用）',
+  chainNoUsableWarning: '没有已启用的已配置成员——下一次 web_search 将失败。请启用某成员或 DeepSeek 兜底。',
 }
