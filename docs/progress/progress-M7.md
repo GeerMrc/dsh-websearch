@@ -181,7 +181,7 @@ docs/sessions/audit-logs/2026-09-06-s14a-stage0-review-of-s14.md）→ 方向裁
 | T2 | e2e 装卸载（3423 查占空闲）：翻转 / remove 单命令 diff 零输出 / 用户层终裁 | 完成（四 dump 留档 /tmp/dshws-s14a/：**装即翻转**〔add 后 searchProvider: dshws-chain + fetchProvider: http，零用户层 patch〕→ **remove 单命令 diff 基线零输出**〔DIFF_ZERO_RESTORED，优于现状手删两行〕→ **用户层终裁**〔写一行钉 dshws-deepseek → dump 用户层赢；用户层整段替换丢 fetchProvider 键时由「无配置+http 恒可用」路径兜住，README 教重述两键〕→ 清理态复原 FINAL_CLEAN_RESTORED） |
 | T3 | 设置页 intro 文案 + locales + README/runbook 最小更新 | 完成（`3d09b59`；description 键扩句〔装即接管/卸载复原/fetch 可选〕，34 keys parity 维持 + 零 CJK；section.spec 字典值断言自动同步 30 passed；s05b runbook ADR-0013 增补；roadmap S15 迁移口径适配〔anysearch 卸装即切换〕；README 本体归 S15 全新撰写） |
 | T4 | 门墙七命令（提交态）+ 台账/门墙表 + Agent Note | 完成（数字见门墙表 S14a 行；提交态 3d09b59；Note docs/notes/2026-09-06-s14a-install-takeover.md〔机制锚/实测语义表/维护点——S15 正素材〕） |
-| T5 | 浏览器实测棒（3423/3432 查占；复用 S14 stub 配方）：零用户层接线 boot → 徽标亲见 → 复原 | 待执行 |
+| T5 | 浏览器实测棒（3423/3432 查占空闲；复用 S14 stub 配方）：零用户层接线 boot → 徽标亲见 → 复原 | 完成（**R6 装即接管端到端实证**：用户层 patch 仅含 dsh-websearch 行 baseURL 测试脚手架，**web 行零手动**——boot 后一轮即闭合〔SSE 配方直通〕，工具行 `Web search \| loopback proof query \| · DeepSeek` 徽标亲见〔aria Served by DeepSeek〕；wire 三段 stub-log 在案〔chat/completions → /messages → 终答，auth 全 sk-fake-s14a〕；截图归档 screenshot-install-takeover-badge.png；kill 3423/3432 精确、3416/3080/61518/3421/3422 零接触；**宿主仓 clean @3281e04b59（R4）**；workspace 播种坑复发一次〔storages/ 目录 dump-only 不创建，mkdir 后重播——配方记忆已有该形状〕） |
 | T6 | 阶段 4/5 独立验证（R1-R6 对峙 + 三问 + 探针） | 待执行 |
 | T7 | 收尾（session-14a 补全 + 原子收官 + STATUS/roadmap/CHANGELOG + merge `--no-ff` + 接力指令〔全量债务口径含 L-2〕） | 待执行 |
 
