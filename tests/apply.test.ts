@@ -7,14 +7,14 @@ import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 describe('apply assembly', () => {
   it('registers the chains and all six members with ctx.web (double registration topology)', () => {
     const { ctx, search, fetch } = fakeCtx()
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
     expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
   })
 
   it('exposes the chain as unavailable while no credentials are configured', () => {
     const { ctx, providers } = fakeCtx()
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     expect(chain.available()).toBe(false)
   })
@@ -28,7 +28,7 @@ describe('apply assembly', () => {
 describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', () => {
   it('chain availability flips when a ref is configured, and flips back when removed', async () => {
     const { ctx, providers, configured, emitUpdated } = fakeCtx()
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
 
     await flushGate()
@@ -46,7 +46,7 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
   it('a configured key makes the member ready after the initial prime (no event needed)', async () => {
     const { ctx, providers, configured } = fakeCtx()
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await vi.waitFor(() => expect(chain.available()).toBe(true))
   })
@@ -129,7 +129,7 @@ describe('apply key-pool hot path (ADR-0011 单槽逗号值)', () => {
 
   it('storing a value by a settings commit flips readiness without an event (gate prime)', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx({ values: { TAVILY_API_KEY: 'late-key' } })
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     expect(chain.available()).toBe(false)
@@ -157,7 +157,7 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
 
@@ -176,7 +176,7 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     // (pre-S14c shape) is filtered and re-appended as the fixed tail, so the
     // walk order stays tavily → deepseek. Reordering the orderable span still
     // hot-applies on the next search.
-    commitSettings({ searchChain: ['dshws-deepseek', 'dshws-tavily'] })
+    commitSettings({ searchChain: ['dshws-deepseek', 'dshws-tavily'], deepseek: { enabled: true } })
     const second = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
     expect(second).toBeDefined()
     expect(second!.message.indexOf(tavilyLine)).toBeGreaterThan(-1)
@@ -187,7 +187,7 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, { perMemberTimeoutMs: 30 })
+    apply(ctx as unknown as Context, { perMemberTimeoutMs: 30, deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
 
@@ -230,7 +230,7 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
   it('hot-applies a member disable: the disabled member stops contributing readiness', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
-    apply(ctx as unknown as Context, {})
+    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await vi.waitFor(() => expect(chain.available()).toBe(true))
 

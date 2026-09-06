@@ -238,8 +238,10 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           {t('title')}
           {/* Page-level key-format note (12b): stated once behind this icon instead
           of repeated as a hint paragraph on every member card. */}
-          <Tooltip label={t('keyFieldNote')} side="bottom" delayMs={400} maxWidth={320}>
-            <button type="button" aria-label={t('keyFieldNote')} style={infoButtonStyle}>
+          {/* S14d (user ruling): the page ⓘ carries the description; the
+          multi-key format moved into each card's input placeholder. */}
+          <Tooltip label={t('description')} side="bottom" delayMs={400} maxWidth={360}>
+            <button type="button" aria-label={t('description')} style={infoButtonStyle}>
               <IconQuestionOutline14 />
             </button>
           </Tooltip>
@@ -354,7 +356,7 @@ function MaxUsesRow(props: {
   const { t, value, onSet } = props
   const [draft, setDraft] = useState('')
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  const current = value ?? 5
+  const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
   const valid = Number.isInteger(parsed) && parsed >= 1
   const save = async (): Promise<void> => {
@@ -362,12 +364,15 @@ function MaxUsesRow(props: {
     setFeedback(result.ok ? 'saved' : 'failed')
     if (result.ok) setDraft('')
   }
+  // S14d: the hint interpolates the live {N} — it always names the value in
+  // the box, not a stale default (user ruling).
+  const hint = t('maxUsesHint').replace('{N}', String(parsed))
   return (
     <div data-testid="dshws-max-uses" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
         {t('maxUsesLabel')}
-        <Tooltip label={t('maxUsesHint')} side="bottom" delayMs={400} maxWidth={320}>
-          <button type="button" aria-label={t('maxUsesHint')} style={{ ...infoButtonStyle, marginLeft: 4 }}>
+        <Tooltip label={hint} side="bottom" delayMs={400} maxWidth={320}>
+          <button type="button" aria-label={hint} style={infoButtonStyle}>
             <IconQuestionOutline14 />
           </button>
         </Tooltip>
@@ -471,17 +476,30 @@ function DeepSeekFallbackRow(props: {
         </button>
       </Tooltip>
       <span style={{ flex: 1 }} />
-      <button
-        type="button"
-        role="switch"
-        aria-checked={member.enabled}
-        aria-label={`${member.label} ${t('fallbackSwitch')}`}
-        disabled={!member.configured}
-        onClick={() => void onToggleEnabled(member.key, !member.enabled)}
-        style={{ ...switchStyle(member.configured, member.enabled), cursor: member.configured ? 'pointer' : 'not-allowed', opacity: member.configured ? 1 : 0.4 }}
-      >
-        <span style={thumbStyle(member.enabled)} />
-      </button>
+      {/* S14d (user ruling): the fallback is a two-way choice — none (fail
+      loud, default) vs the paid DeepSeek backend — not a bare on/off switch. */}
+      <div role="group" aria-label={t('fallbackChoiceGroup')} style={{ display: 'flex', gap: 4 }}>
+        <button
+          type="button"
+          aria-pressed={!member.enabled}
+          aria-label={t('fallbackChoiceNone')}
+          disabled={!member.configured}
+          onClick={() => void onToggleEnabled(member.key, false)}
+          style={{ ...keySelButtonStyle(!member.enabled, member.configured), fontSize: 11, padding: '0 8px' }}
+        >
+          {t('fallbackChoiceNone')}
+        </button>
+        <button
+          type="button"
+          aria-pressed={member.enabled}
+          aria-label={t('fallbackChoicePaid')}
+          disabled={!member.configured}
+          onClick={() => void onToggleEnabled(member.key, true)}
+          style={{ ...keySelButtonStyle(member.enabled, member.configured), fontSize: 11, padding: '0 8px' }}
+        >
+          {t('fallbackChoicePaid')}
+        </button>
+      </div>
     </div>
   )
 }
@@ -496,6 +514,8 @@ function MemberCard(props: {
 }) {
   const { member, t, onSaveKey, onClearKey, onToggleEnabled, onSetKeySelection } = props
   const [draft, setDraft] = useState('')
+  // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
+  const [editing, setEditing] = useState(false)
   const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
   const save = async (): Promise<void> => {
     const result = await onSaveKey(member.key, draft)
@@ -551,8 +571,10 @@ function MemberCard(props: {
       <Input
         type="password"
         aria-label={`${member.label} ${t('apiKey')}`}
-        placeholder={member.refName}
-        value={draft}
+        placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
+        value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
+        onFocus={() => { if (draft === '') setEditing(true) }}
+        onBlur={() => setEditing(false)}
         onChange={(event) => setDraft(event.target.value)}
         style={inputStyle}
       />

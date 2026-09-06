@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- 无（S14c 收官 2026-09-06）
+- 无（S14d 收官 2026-09-07）
 
 ## 待启动
 
@@ -54,6 +54,7 @@ session 记录双落）。
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
+| S14d | ①`pnpm test` → **284 passed \| 9 skipped (293)**（净 0：+语义适配与 choice 用例互抵）②typecheck 0 ③lint 0w0e 50f ④build client.js 52.07→**53.48**（index 零漂移）⑤五件 ⑥**48 keys** parity ⑦clean | S14d T4 亲跑 |
 | S14c | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 284 passed \| 9 skipped (293)**（277→284：+7 = section 4 + patch 守卫 1 + provider maxUses 1 + controller maxUses 1；既有零破坏含 settings/config/apply 语义适配）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0w0e（50 files）**④`pnpm build` → index.js 60.95 / index.d.ts 27.57 / **client.js 47.47→52.07 kB** ⑤pack 五件（tarball 内 patch 三条目亲读）⑥check:i18n → **43 keys** parity + 18 files 零 CJK ⑦clean | S14c T5 提交态亲跑 + stage45 零偏差 + 🟡×2 清偿后 284\|9(293) 双亲见 |
 | S14a | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 273 passed \| 9 skipped (282)**（270→273：+3 = patch.test 结构断言；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（50 files，96 rules）**④`pnpm build` → **增量披露：client.js 41.81→42.09 kB**（intro 扩句）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node/src 逻辑零变更）⑤`npm pack --dry-run` → 五件（含新 cordis.patch.yml 双条目）⑥`pnpm check:i18n` → exit 0（34 keys parity + 18 files 零 CJK）⑦`git status --short` 前后置 clean | S14a T4 提交态亲跑（3d09b59，node v22.23.2 / pnpm 11.7.0） |
 | S14 | ①`pnpm test` → **28 files（27 passed + 1 skipped），Tests 270 passed \| 9 skipped (279)**（261→270：+9 = keys 1〔T2 钉牌〕+ toolview 8〔T3〕；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（49 files，96 rules）**④`pnpm build` → **增量披露：client.js 29.98→41.81 kB**（自绘卡+图标通路+7 键）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**34 keys** parity + 18 files 零 CJK；计划估 33，+inspect 键披露）⑦`git status --short` 前后置 clean | S14 T4 提交态亲跑（4958fc0，node v22.23.2 / pnpm 11.7.0） |
@@ -166,6 +167,16 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
+
+### S14d 兜底二选一批（2026-09-07，分支 feat/s14d-fallback-choice）
+
+用户三项反馈 + 免费侧裁定（无兜底 fail-loud）。a560381(T0)→46aeec5(T2 amend)→f460668(T1/T3/GUI amend)→收官。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0-T5 | 见 session-14d 记录 | 完成（门墙 284\|9(293)/48 keys/53.48；浏览器全要素亲见含兼容子句实证；红线一次带红当场 amend） |
+| T6 | 阶段 4/5 独立验证 | 见 audit-log s14d-stage45 |
+| T7 | 收尾 merge + 接力 | 完成（本序列） |
 
 ### S14c 全局置顶批（2026-09-06，分支 feat/s14c-chain-top-fallback-tail）
 

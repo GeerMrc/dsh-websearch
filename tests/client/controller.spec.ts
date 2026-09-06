@@ -124,7 +124,8 @@ describe('WebSearchSettingsController', () => {
       'anysearch',
     ])
     for (const member of snapshot.members) {
-      expect(member.enabled).toBe(true)
+      // S14d: only the deepseek paid fallback defaults off.
+      expect(member.enabled).toBe(member.key === 'deepseek' ? false : true)
     }
     expect(snapshot.members.find((member) => member.key === 'tavily')?.refName).toBe(DEFAULT_REF)
     expect(snapshot.members.find((member) => member.key === 'anysearch')?.refName).toBe('ANYSEARCH_API_KEY')

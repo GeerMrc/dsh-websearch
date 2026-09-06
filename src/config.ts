@@ -291,7 +291,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],
     perMemberTimeoutMs: config.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseek: {
-      enabled: config.deepseek?.enabled ?? true,
+      // S14d (user ruling): the paid fallback is OPT-IN — default off keeps the
+      // install at zero paid reach until the user chooses it in the settings.
+      enabled: config.deepseek?.enabled ?? false,
       apiKeyEnv: config.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY',
       keySelection: config.deepseek?.keySelection ?? 'order',
       baseURL: config.deepseek?.baseURL,

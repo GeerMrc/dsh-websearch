@@ -56,7 +56,7 @@ export const DEEPSEEK_DEFAULT_MAX_TOKENS = 4096
  * default to the host `web-search-deepseek` knob (S14c made it configurable;
  * the value itself is the host parity default).
  */
-export const DEEPSEEK_DEFAULT_MAX_USES = 5
+export const DEEPSEEK_DEFAULT_MAX_USES = 10
 
 const codes = MEMBER_ERROR_CODES.deepseek
 
