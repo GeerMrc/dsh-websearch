@@ -8,15 +8,37 @@
  */
 import z from '@deepseek-ai/schemastery'
 
-/** Built-in member order applied when a chain is empty or omitted (ADR-0004 中立开箱默认序). */
-export const BUILT_IN_MEMBER_ORDER: readonly string[] = [
+/**
+ * Orderable search members (S14c, user ruling): the five tool members users may
+ * reorder; DeepSeek is NOT orderable — it is the paid fallback pinned to the
+ * chain tail (see {@link DEEPSEEK_FALLBACK_MEMBER_ID}).
+ */
+export const ORDERABLE_SEARCH_MEMBER_ORDER: readonly string[] = [
   'dshws-tavily',
   'dshws-exa',
   'dshws-perplexity',
   'dshws-firecrawl',
-  'dshws-deepseek',
   'dshws-anysearch',
 ]
+
+/**
+ * The DeepSeek member id, pinned to the search-chain tail regardless of any
+ * pinned order (S14c/ADR-0004 D3 注记：固定链尾兜底，不参与排序). A pinned
+ * chain that still names it (pre-S14c settings) is filtered and re-appended.
+ */
+export const DEEPSEEK_FALLBACK_MEMBER_ID = 'dshws-deepseek'
+
+/**
+ * Effective built-in search order: the orderable five, then the DeepSeek
+ * fallback tail (ADR-0004 中立开箱默认序, S14c 形态). Fetch chains use the
+ * orderable five only — DeepSeek is not a fetch member.
+ */
+export const BUILT_IN_MEMBER_ORDER: readonly string[] = [...ORDERABLE_SEARCH_MEMBER_ORDER, DEEPSEEK_FALLBACK_MEMBER_ID]
+
+/** Drop DeepSeek from a chain's orderable span and re-append it as the fixed tail. */
+function withFallbackTail(chain: readonly string[]): string[] {
+  return [...chain.filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID), DEEPSEEK_FALLBACK_MEMBER_ID]
+}
 
 /** Per-member timeout budget applied when the config omits one (ADR-0002). */
 export const DEFAULT_PER_MEMBER_TIMEOUT_MS = 30000
@@ -253,8 +275,12 @@ export interface ResolvedWebSearchConfig {
  */
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
   return {
-    searchChain: config.searchChain?.length ? [...config.searchChain] : BUILT_IN_MEMBER_ORDER,
-    fetchChain: config.fetchChain?.length ? [...config.fetchChain] : BUILT_IN_MEMBER_ORDER,
+    searchChain: withFallbackTail(
+      config.searchChain?.length ? [...config.searchChain] : ORDERABLE_SEARCH_MEMBER_ORDER,
+    ),
+    fetchChain: config.fetchChain?.length
+      ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
+      : [...ORDERABLE_SEARCH_MEMBER_ORDER],
     perMemberTimeoutMs: config.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseek: {
       enabled: config.deepseek?.enabled ?? true,

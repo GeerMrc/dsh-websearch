@@ -172,11 +172,15 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     expect(first!.message.indexOf(tavilyLine)).toBeGreaterThan(-1)
     expect(first!.message.indexOf(tavilyLine)).toBeLessThan(first!.message.indexOf(deepseekLine))
 
+    // S14c: deepseek left the orderable domain — a pinned chain naming it first
+    // (pre-S14c shape) is filtered and re-appended as the fixed tail, so the
+    // walk order stays tavily → deepseek. Reordering the orderable span still
+    // hot-applies on the next search.
     commitSettings({ searchChain: ['dshws-deepseek', 'dshws-tavily'] })
     const second = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
     expect(second).toBeDefined()
-    expect(second!.message.indexOf(deepseekLine)).toBeGreaterThan(-1)
-    expect(second!.message.indexOf(deepseekLine)).toBeLessThan(second!.message.indexOf(tavilyLine))
+    expect(second!.message.indexOf(tavilyLine)).toBeGreaterThan(-1)
+    expect(second!.message.indexOf(tavilyLine)).toBeLessThan(second!.message.indexOf(deepseekLine))
   })
 
   it('hot-applies the timeout budget: a raised budget lets a slow member win the next search', async () => {
