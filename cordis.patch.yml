@@ -1,3 +1,7 @@
 - insert:
     - id: dsh-websearch
       name: dsh-websearch
+- id: web
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: http
