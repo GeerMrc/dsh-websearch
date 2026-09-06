@@ -52,13 +52,14 @@
 | 14a | 2026-09-06 | 装即接管 web_search（插行棒，ADR-0013） | ✅ | docs/sessions/2026-09-06-session-14a.md（随包 patch 钉 search / fetch 留 http / remove 单命令复原 / 用户层终裁；方向 = 用户裁定 B + ExitPlanMode 批准 + 阶段 4/5 PASS/COMPLETE 含独立重演） | 🟡 清偿×1（L-2 缺项勘注 T0）；🟢 新登记×2 观察（AMBIGUOUS 语义精化/发版清单实体） |
 | 14b | 2026-09-06 | DeepSeek 兜底行重构 + 审计修复（插行棒，用户产品裁定） | ✅ | docs/sessions/2026-09-06-session-14b.md（兜底行 ⓘ+付费开关+无 key 面 + 链块两修复 + 错误文案纠偏 + architecture 注记 + 台账勘注；阶段 4/5 PASS/COMPLETE + 探针 + 滚动截图补拍） | 🟡 清偿×4（阶段 0 审计发现全收口）；🟢 新登记×1（badge 死分支→S15） |
 | 14c | 2026-09-06 | 全局置顶+折叠区+恒链尾+maxUses+官方退役（插行棒，用户五决策点确认） | ✅ | docs/sessions/2026-09-06-session-14c.md（全局卡置顶含 maxUses 宿主同款/五卡折叠/恒链尾语义/官方 web-search-deepseek 随包退役；阶段 4/5 PASS/COMPLETE + 🟡×2 当场清偿 + 浏览器全要素亲见含官方卡消失） | 🟡 清偿×2（阶段 4/5 抓获）；🟢×3 注记 |
+| 14d | 2026-09-07 | 兜底二选一（默认无兜底）+ maxUses 修正 + ⓘ/脱敏（插行棒，用户三项反馈） | ✅ | docs/sessions/2026-09-07-session-14d.md（deepseek.enabled 默认 false 付费 opt-in + maxUses 默认 10 {N} 同步 + 兜底行两段 choice + 标题 ⓘ=description + placeholder 多 key + 脱敏） | 红线一次当场 amend |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 14c ✅ 2026-09-06 收官——全局置顶+折叠+恒链尾+maxUses+官方退役）
+- **当前 session**: 无进行中（Session 14d ✅ 2026-09-07 收官——兜底二选一默认无兜底）
 - **所处里程碑**: **M7 ✅ 2026-09-06**（S09-S14 + S14a 插行全收官）。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
-- **上一棒**: Session 14c — 记录：docs/sessions/2026-09-06-session-14c.md
+- **上一棒**: Session 14d — 记录：docs/sessions/2026-09-07-session-14d.md
 - **下一棒**: S15 README + 迁移 + 升级手册（M5 文档腿收官）→ S16 上游验收准备
 - **下一棒**: S15 README + 迁移 + 升级手册（M5 文档腿收官）→ S16 上游验收准备
 - **活跃债务**: 🔴×0 🟡×0（阶段 4/5 审定+清偿）🟢×4 维持 + L-2 + 观察（badge 超长 id/fetchChain 显式不过滤对称注记/architecture D7 面→S15/AMBIGUOUS→S15 手册/发版清单→S15-S16/宿主闲置卡措辞〔已退役〕→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15）+ v2 backlog——正本：progress-M7 台账
-- **更新时间**: 2026-09-06（14a 阶段 6 收尾）
+- **更新时间**: 2026-09-07（14d 阶段 6 收尾）
