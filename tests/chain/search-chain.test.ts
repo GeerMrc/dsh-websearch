@@ -147,13 +147,17 @@ describe('selection-level skips (必测②③)', () => {
     })
   })
 
-  it('names the configured chain in the no-member error message', async () => {
+  it('names the chain order and points to the settings page in the no-member error message (S14b T3 纠偏)', async () => {
     const chain = new ChainSearchProvider({
       members: resolver({}),
       order: ['dshws-ghost-a', 'dshws-ghost-b'],
       perMemberTimeoutMs: 1000,
     })
-    await expect(chain.search({ query: 'q' })).rejects.toThrow(/dshws-ghost-a, dshws-ghost-b/)
+    // S14b: the old label `(configured: ...)` mislabeled unconfigured members;
+    // the chain order stays named, and the message now carries remediation.
+    await expect(chain.search({ query: 'q' })).rejects.toThrow(
+      /chain order: dshws-ghost-a, dshws-ghost-b\); enable or configure a member/,
+    )
   })
 })
 
