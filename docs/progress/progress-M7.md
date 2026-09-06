@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- 无（S14a 收官 2026-09-06）
+- S14b DeepSeek 兜底行重构 + 双审计修复（插行棒）——方向双裁定 + ExitPlanMode 批准；阶段 0 审 S14a PASS（🟡×4 → 本节入册）；plan 正本 docs/plans/2026-09-06-014b-s14b-deepseek-fallback-row.md
 
 ## 待启动
 
@@ -165,6 +165,28 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
+
+### S14b 兜底行重构批（2026-09-06，分支 feat/s14b-deepseek-fallback-row）
+
+阶段 0 独立审核 S14a **PASS**（🔴×0；🟡×4 = 双 Agent 审计发现未入册 → 本节入册
+为放行条件；正本 docs/sessions/audit-logs/2026-09-06-s14b-stage0-review-of-s14a.md
+含计划模式权限限制的替代证据披露）→ 方向双裁定（对话：删卡改 ⓘ/底部说明；
+AskUserQuestion：内嵌开关）→ 计划包 ExitPlanMode 批准 → 逐一执行中。
+
+**🟡×4 入册（阶段 0 放行条件，本提交落实）**：①00-architecture §6 旧口径 → T4
+注记；②noMemberConfigured 文案误标 → T3 纠偏；③宿主闲置设置卡披露 → 登记 S15
+README「已知行为」节；④S14a 入账超报（🟢×3 vs 台账两行）→ T4 勘注。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：分支 + plan 014b + 阶段 0 audit-log 入库 + roadmap S14b 插行 + 🟡×4 台账入册 + 启动全状态区 + session-14b 骨架（三★节占位） | 完成（本提交） |
+| T1 | DeepSeek 兜底行重构（TDD：locales 新键 + section.tsx 分流 + spec 更新） | 待执行 |
+| T2 | 链块两修复（disabled 视觉 + 零可用预警，TDD） | 待执行 |
+| T3 | 错误文案纠偏（chain/core.ts + 测试同步，TDD） | 待执行 |
+| T4 | 文档批（architecture §6/§9 + 台账勘注） | 待执行 |
+| T5 | 门墙七命令（提交态）+ 台账/门墙表 | 待执行 |
+| T6 | 浏览器验证（重装 tarball 重启 3423） | 待执行 |
+| T7 | 阶段 4/5 独立验证 + 收尾 + merge + 接力 | 待执行 |
 
 ### S14a 装即接管批（2026-09-06，分支 feat/s14a-install-takeover）
 
