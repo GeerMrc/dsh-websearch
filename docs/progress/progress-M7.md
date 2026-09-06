@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- 无（S14b 收官 2026-09-06）
+- S14c 全局置顶+折叠区+恒链尾+maxUses+官方退役（插行棒）——五决策点确认 + ExitPlanMode 批准；阶段 0 审 S14b PASS；plan 正本 docs/plans/2026-09-06-014c-s14c-global-top-tools-collapse.md
 
 ## 待启动
 
@@ -165,6 +165,25 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
+
+### S14c 全局置顶批（2026-09-06，分支 feat/s14c-chain-top-fallback-tail）
+
+阶段 0 独立审核 S14b **PASS**（🔴×0 🟡×0；计划模式限制替代证据链+翻案条款；正本
+docs/sessions/audit-logs/2026-09-06-s14c-stage0-review-of-s14b.md）→ 用户四轮反馈
+五决策点 AskUserQuestion 获答（顶部恒显/折叠仅五卡默认收起/语义层恒链尾/仅 maxUses/
+官方 web-search-deepseek 随包退役）→ 计划包 ExitPlanMode 批准 → 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：分支 + plan 014c + 阶段 0 audit-log 入库 + ADR-0013 Decision 7 增补 + roadmap S14c 插行 + 启动全状态区 + session-14c 骨架 | 完成（本提交） |
+| T1 | 布局重排（GUI：链卡置顶+超时随迁+maxUses 入顶+兜底行移末+删 footnote） | 待执行 |
+| T2 | 排序域语义（node：ORDERABLE 五家+恒尾拼接+老序过滤+ADR 注记+测试） | 待执行 |
+| T3 | 折叠区（GUI：默认收起+头部展开+spec 改先展开+折叠态断言） | 待执行 |
+| T4 | maxUses（node+GUI：config 化+常量替换+wire 断言+顶部输入） | 待执行 |
+| T4b | 官方退役（patch 第三条目+patch.test 守卫+e2e dump 装卸断言） | 待执行 |
+| T5 | 门墙七命令（提交态） | 待执行 |
+| T6 | 浏览器验证（remove→add 换包重启 3423） | 待执行 |
+| T7 | 阶段 4/5 独立验证 + 收尾 + merge + 接力 | 待执行 |
 
 ### S14b 兜底行重构批（2026-09-06，分支 feat/s14b-deepseek-fallback-row）
 
