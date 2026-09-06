@@ -5,3 +5,5 @@
   config:
     searchProvider: dshws-chain
     fetchProvider: http
+- id: web-search-deepseek
+  disabled: true
