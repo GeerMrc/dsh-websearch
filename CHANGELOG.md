@@ -12,6 +12,31 @@
 
 ---
 
+## 2026-09-06 — 全局置顶 + 折叠区 + 恒链尾 + maxUses + 官方入口退役（Session 14c，用户四轮反馈五决策点）
+
+**新增**
+- **全局区置顶恒显**：搜索链五家排序（Tavily/Exa/Perplexity/Firecrawl/AnySearch）+「DeepSeek 恒为链尾兜底，不参与排序」+ 单成员超时 + **单次请求最多搜索次数**（maxUses 宿主同款同名同义同默认 5，`fe31b94`）
+- **DeepSeek 恒链尾语义**（node）：排序域收窄五家 + 固定尾拼接 + 老钉死序过滤迁移 + fetch 链排除 deepseek；ADR-0004 D3/0013 D6 注记（`f5376ae`）
+- **maxUses 配置化**：DeepSeekSettings/MemberConfig/schema/resolveConfig 全链 + provider 常量改默认注入 + wire max_uses 透传 + GUI staged 输入（`b031bf2`）
+- **官方 web-search-deepseek 随包退役**（ADR-0013 Decision 7，用户裁定）：patch 第三条目行级 disabled:true——安装即官方搜索卡消失 + provider 注销 + 其 DEEPSEEK_API_KEY 单写点消失；卸载自动复原；web-fetch-http 不触碰（`69e32c5`）
+- 五卡折叠默认收起（头部恒显，展开区多 key 零损失）；删 fallbackFootnote（ⓘ 唯一说明入口）
+- 测试基线 277→**284**（284 passed | 9 skipped (293)）；i18n 40→**43 keys**；client.js 47.47→**52.07 kB**
+
+**清偿（2 笔）**
+- 阶段 4/5 🟡×2 当场清偿（`0b32a37`）：fallbackNote 位置句纠偏 + setDeepseekMaxUses 专测
+- 顺手清偿 S14b 🟢：MemberCard 死 badge 分支
+
+**治理**
+- 阶段 0 审 S14b **PASS**（替代证据+翻案条款）→ 用户四轮反馈五决策点（AskUserQuestion×3 + 修订确认）→ 计划包 ExitPlanMode 批准 → 阶段 4/5 **PASS / COMPLETE**（门墙零偏差 + R1-R7 全过 + 探针闭环〔withFallbackTail 反改红〕）
+- 诚实标注：执行期提交态红三次（typecheck/entry/controller 红，均当场 amend 修复+亲见绿）——红线纪律防复发重点
+
+**跟踪（观察期）**
+- 基线链：277\|9(282) → **284\|9(293)**；typecheck 双面 0；lint 0w0e 50 files；43 keys + 18 files
+- 里程碑：M7 ✅（S09-S14c 插行四连）；M5 文档腿 S15；M6 ⏳
+- 下一棒：S15 = README + anysearch 迁移 + 升级手册（含官方退役说明与手动复原法）
+
+---
+
 ## 2026-09-06 — DeepSeek 兜底行重构 + 双审计修复（Session 14b，用户产品裁定插行棒）
 
 **新增**

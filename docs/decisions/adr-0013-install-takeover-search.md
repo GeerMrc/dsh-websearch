@@ -62,7 +62,12 @@ accepted（2026-09-06；用户方向裁定〔AskUserQuestion 获答方案 B〕+ 
    后写覆盖 bundle 层」规则的 bundle 层延伸）；用户层终裁。
 6. **中立性实质不变**（ADR-0004 D3 未动）：链内置默认序仍
    tavily→exa→perplexity→firecrawl→deepseek（DeepSeek 末位兜底），不付费优先——
-   变更的只是「接线动作」从用户显式两行变为安装即生效。
+   变更的只是「接线动作」从用户显式两行变为安装即生效。〔注记 2026-09-06 S14c：D3
+   表述随 S14c 改判为「五家排序域 + DeepSeek 固定链尾兜底」，付费优先实质不变〕
+7. **官方入口随包退役**（S14c 增补，用户裁定）：随包 patch 第三条目
+   `- id: web-search-deepseek` + `disabled: true`——安装即官方 DeepSearch 入口完整
+   退役（provider 注销 + 宿主设置卡消失 + 其 DEEPSEEK_API_KEY 单值写入点消失）；
+   卸载自动复原（同派生态机制）；本插件链不依赖官方 provider（重实现成员）。
 
 ## Rationale
 
@@ -103,3 +108,6 @@ accepted（2026-09-06；用户方向裁定〔AskUserQuestion 获答方案 B〕+ 
 - **安装即隐式行为变化**（ADR-0004 D2 原显式用户意志的反转）：README 首屏声明 +
   设置页 intro 一句披露（纯静态文案，不做接线状态显示——无数据源）。
 - **既有用户层两行者迁移**：同值不冲突可保留；卸载时需删（文档化）。
+- **官方入口退役的边界**（Decision 7）：行级 disabled 禁用宿主 shipped 行——若用户
+  层另行钉 `searchProvider: deepseek-official` 会 CONFIGURED_MISSING 硬错（文档化）；
+  `web-fetch-http` 行不受影响（fetch 仍走内置 http）。

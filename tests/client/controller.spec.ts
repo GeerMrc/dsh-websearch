@@ -128,12 +128,13 @@ describe('WebSearchSettingsController', () => {
     }
     expect(snapshot.members.find((member) => member.key === 'tavily')?.refName).toBe(DEFAULT_REF)
     expect(snapshot.members.find((member) => member.key === 'anysearch')?.refName).toBe('ANYSEARCH_API_KEY')
+    // S14c: the client chain domain mirrors the node half — five orderable
+    // members; the DeepSeek fallback is the fixed tail, never a chain row.
     expect(snapshot.searchChain).toEqual([
       'dshws-tavily',
       'dshws-exa',
       'dshws-perplexity',
       'dshws-firecrawl',
-      'dshws-deepseek',
       'dshws-anysearch',
     ])
     expect(snapshot.fetchChain).toEqual(snapshot.searchChain)
@@ -281,7 +282,7 @@ describe('WebSearchSettingsController', () => {
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'],
+          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -333,7 +334,7 @@ describe('WebSearchSettingsController', () => {
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-perplexity', 'dshws-tavily', 'dshws-deepseek', 'dshws-anysearch'],
+          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-perplexity', 'dshws-tavily', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -344,7 +345,6 @@ describe('WebSearchSettingsController', () => {
       'dshws-exa',
       'dshws-perplexity',
       'dshws-tavily',
-      'dshws-deepseek',
       'dshws-anysearch',
     ])
 
@@ -353,6 +353,24 @@ describe('WebSearchSettingsController', () => {
     const boundary = await controller.moveSearchChainEntry('dshws-anysearch', 1)
     expect(boundary.ok).toBe(false)
     expect(remote.updateCalls).toHaveLength(1)
+  })
+
+  it('setDeepseekMaxUses patches the deepseek member key with validation (S14c T4, stage45 🟡-2 清偿)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    // Invalid budgets are rejected client-side without touching the remote.
+    expect((await controller.setDeepseekMaxUses(0)).ok).toBe(false)
+    expect((await controller.setDeepseekMaxUses(1.5)).ok).toBe(false)
+    expect(remote.updateCalls).toEqual([])
+
+    const ok = await controller.setDeepseekMaxUses(3)
+    expect(ok.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      { ns: 'dsh-websearch', patch: { deepseek: { maxUses: 3 } }, expectedRevision: 0 },
+    ])
+    expect(controller.snapshot().deepseekMaxUses).toBe(3)
   })
 
   it('a boundary move reports not-ok without calling the remote', async () => {
@@ -388,7 +406,6 @@ describe('WebSearchSettingsController', () => {
       'dshws-exa',
       'dshws-perplexity',
       'dshws-firecrawl',
-      'dshws-deepseek',
       'dshws-anysearch',
     ])
     expect(controller.snapshot().searchChainPinned).toBe(false)

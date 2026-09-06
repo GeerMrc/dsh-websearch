@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- 无（S14b 收官 2026-09-06）
+- 无（S14c 收官 2026-09-06）
 
 ## 待启动
 
@@ -54,6 +54,7 @@ session 记录双落）。
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
+| S14c | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 284 passed \| 9 skipped (293)**（277→284：+7 = section 4 + patch 守卫 1 + provider maxUses 1 + controller maxUses 1；既有零破坏含 settings/config/apply 语义适配）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0w0e（50 files）**④`pnpm build` → index.js 60.95 / index.d.ts 27.57 / **client.js 47.47→52.07 kB** ⑤pack 五件（tarball 内 patch 三条目亲读）⑥check:i18n → **43 keys** parity + 18 files 零 CJK ⑦clean | S14c T5 提交态亲跑 + stage45 零偏差 + 🟡×2 清偿后 284\|9(293) 双亲见 |
 | S14a | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 273 passed \| 9 skipped (282)**（270→273：+3 = patch.test 结构断言；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（50 files，96 rules）**④`pnpm build` → **增量披露：client.js 41.81→42.09 kB**（intro 扩句）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node/src 逻辑零变更）⑤`npm pack --dry-run` → 五件（含新 cordis.patch.yml 双条目）⑥`pnpm check:i18n` → exit 0（34 keys parity + 18 files 零 CJK）⑦`git status --short` 前后置 clean | S14a T4 提交态亲跑（3d09b59，node v22.23.2 / pnpm 11.7.0） |
 | S14 | ①`pnpm test` → **28 files（27 passed + 1 skipped），Tests 270 passed \| 9 skipped (279)**（261→270：+9 = keys 1〔T2 钉牌〕+ toolview 8〔T3〕；既有零破坏）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0 warnings 0 errors（49 files，96 rules）**④`pnpm build` → **增量披露：client.js 29.98→41.81 kB**（自绘卡+图标通路+7 键）；index.js 59.42 / index.d.ts 27.04 **零漂移**（node 侧零变更兑现）⑤`npm pack --dry-run` → 五件 ⑥`pnpm check:i18n` → exit 0（**34 keys** parity + 18 files 零 CJK；计划估 33，+inspect 键披露）⑦`git status --short` 前后置 clean | S14 T4 提交态亲跑（4958fc0，node v22.23.2 / pnpm 11.7.0） |
 | S06-S09 | （历史） | 正本 progress-M4/M5 门墙表 + progress-M7 S09 行 |
@@ -165,6 +166,25 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R5 | 门墙全绿 | PASS | 七命令亲跑零偏差（270\|9(279)/0/0w0e 49f/59.42+27.04+41.81/五件/34 keys/clean） |
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
+
+### S14c 全局置顶批（2026-09-06，分支 feat/s14c-chain-top-fallback-tail）
+
+阶段 0 独立审核 S14b **PASS**（🔴×0 🟡×0；计划模式限制替代证据链+翻案条款；正本
+docs/sessions/audit-logs/2026-09-06-s14c-stage0-review-of-s14b.md）→ 用户四轮反馈
+五决策点 AskUserQuestion 获答（顶部恒显/折叠仅五卡默认收起/语义层恒链尾/仅 maxUses/
+官方 web-search-deepseek 随包退役）→ 计划包 ExitPlanMode 批准 → 逐一执行中。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：分支 + plan 014c + 阶段 0 audit-log 入库 + ADR-0013 Decision 7 增补 + roadmap S14c 插行 + 启动全状态区 + session-14c 骨架 | 完成（本提交） |
+| T1 布局+T3 折叠+T4-GUI（合并 TDD 周期 `fe31b94`+amend） | 完成：全局卡置顶恒显〔五家排序+chainTailHint+超时+maxUses 宿主同款 staged〕+ 五卡默认收起（多 key 零损失）+ 兜底行最末 + footnote 删；controller 镜像 orderable 域+deepseekMaxUses+setDeepseekMaxUses；顺手清 MemberCard 死 badge 分支（S14b 🟢 债）；locales 43 keys；client 72 passed；**执行期两次提交态红（typecheck/entry 红）当场 amend 修复——红线三犯防复发重点** |
+| T2 | 排序域语义（node） | 完成（`f5376ae`；ORDERABLE 五家+DEEPSEEK_FALLBACK_MEMBER_ID 恒尾 withFallbackTail+老钉死序过滤迁移+fetch 链排除 deepseek；红 2→绿 64；apply 热改序断言改写新不变量〔deepseek 不可前置〕） |
+| T3 |（并入 T1 合并周期） | 完成（见上） |
+| T4 | maxUses（node+GUI） | 完成（node `b031bf2`〔amend〕：DeepSeekSettings/MemberConfig/schema/resolveConfig+DEEPSEEK_DEFAULT_MAX_USES 替换常量+wire max_uses 透传+provider test；GUI 见 T1） |
+| T4b | 官方退役 | 完成（`69e32c5`；patch 第三条目 disabled:true+守卫断言〔含不触碰 web-fetch-http〕红→绿 4 passed；e2e 三态 /tmp/dshws-s14c/：装后官方行 disabled+remove diff 基线零输出） |
+| T5 | 门墙七命令 | 完成（`3903bf1` 终态亲跑：**283 passed \| 9 skipped (292)**〔+6 = settings 适配+patch 守卫 1+provider 1+section 4-3 改写〕/ typecheck 0 / lint 0w0e 50f / index.js 60.95+index.d.ts 27.57+**client.js 52.07** / 五件 / 43 keys+18f / clean） |
+| T6 | 浏览器验证 | 完成（remove→add 换包重启；**全要素亲见**：全局卡置顶〔五家排序+恒尾 hint+超时+maxUses spinbutton=5+ⓘ〕/五卡折叠▾默认收起/兜底行最末/无 footnote/**插件列表官方「网页搜索」卡消失〔R7，对照用户截图原第 4 位〕**；双截图归档 screenshot-s14c-{global-top,official-retired}.png；实例保留供用户检验） |
+| T7 | 阶段 4/5 独立验证 + 收尾 | 待执行 |
 
 ### S14b 兜底行重构批（2026-09-06，分支 feat/s14b-deepseek-fallback-row）
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, resolveConfig } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
 
 describe('resolveConfig', () => {
   it('applies the built-in member order to empty chains (ADR-0004)', () => {
@@ -9,21 +9,23 @@ describe('resolveConfig', () => {
       'dshws-exa',
       'dshws-perplexity',
       'dshws-firecrawl',
-      'dshws-deepseek',
       'dshws-anysearch',
+      'dshws-deepseek',
     ])
-    expect(resolved.searchChain).toEqual(BUILT_IN_MEMBER_ORDER)
-    expect(resolved.fetchChain).toEqual(BUILT_IN_MEMBER_ORDER)
+    expect(resolved.searchChain).toEqual([...ORDERABLE_SEARCH_MEMBER_ORDER, DEEPSEEK_FALLBACK_MEMBER_ID])
+    expect(resolved.fetchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
   })
 
   it('keeps an explicit chain verbatim, tolerating member ids that are not registered yet', () => {
     const resolved = resolveConfig({ searchChain: ['dshws-deepseek', 'dshws-not-registered-yet'] })
-    expect(resolved.searchChain).toEqual(['dshws-deepseek', 'dshws-not-registered-yet'])
+    // S14c: deepseek leaves the orderable domain — a pinned chain keeps its
+    // orderable ids but deepseek is filtered and re-appended as the fixed tail.
+    expect(resolved.searchChain).toEqual(['dshws-not-registered-yet', 'dshws-deepseek'])
   })
 
   it('resolves search and fetch chains independently', () => {
     const resolved = resolveConfig({ searchChain: ['dshws-exa'], fetchChain: ['dshws-firecrawl'] })
-    expect(resolved.searchChain).toEqual(['dshws-exa'])
+    expect(resolved.searchChain).toEqual(['dshws-exa', DEEPSEEK_FALLBACK_MEMBER_ID])
     expect(resolved.fetchChain).toEqual(['dshws-firecrawl'])
   })
 

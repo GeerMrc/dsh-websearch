@@ -30,4 +30,14 @@ describe('bundle patch content (ADR-0013 装即接管)', () => {
   it('does not pin the fetch chain (fetch 接线保持手动可选)', () => {
     expect(patch).not.toContain('fetchProvider: dshws-chain-fetch')
   })
+
+  it('retires the official DeepSearch entry via row-level disable (ADR-0013 Decision 7, S14c)', () => {
+    // Install = the host web-search-deepseek row is disabled: its provider
+    // unregisters and its settings card disappears; removing the plugin
+    // restores it (derived-state patch layers). The fetch row stays enabled.
+    expect(patch).toContain('- id: web-search-deepseek')
+    expect(patch).toMatch(/- id: web-search-deepseek\n\s+disabled: true/)
+    // The always-available http fetch row must NOT be touched.
+    expect(patch).not.toMatch(/- id: web-fetch-http/)
+  })
 })

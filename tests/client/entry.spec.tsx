@@ -130,6 +130,8 @@ describe('client entry', () => {
 
     render(<Component t={t} />)
     await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(6))
+    // S14c: cards default collapsed — expand before driving the key surface.
+    fireEvent.click(screen.getByTestId('dshws-member-toggle-tavily'))
     const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
     fireEvent.change(input, { target: { value: 'sk-fake-entry' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))

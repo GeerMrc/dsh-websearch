@@ -51,8 +51,12 @@ export const DEEPSEEK_API_VERSION = '2023-06-01'
 /** Default upper bound on generated tokens for the Messages request. */
 export const DEEPSEEK_DEFAULT_MAX_TOKENS = 4096
 
-/** Maximum `web_search` server-tool uses per request; request-shape constant, not a deployment tunable. */
-export const DEEPSEEK_MAX_USES = 5
+/**
+ * Default server-tool search budget per request — identical name, semantic and
+ * default to the host `web-search-deepseek` knob (S14c made it configurable;
+ * the value itself is the host parity default).
+ */
+export const DEEPSEEK_DEFAULT_MAX_USES = 5
 
 const codes = MEMBER_ERROR_CODES.deepseek
 
@@ -104,6 +108,8 @@ export interface DeepSeekMemberOptions {
   readonly model: string
   /** Upper bound on generated tokens. */
   readonly maxTokens: number
+  /** Server-tool search budget per request (S14c, host parity; was the `DEEPSEEK_MAX_USES` constant). */
+  readonly maxUses: number
 }
 
 /**
@@ -120,6 +126,7 @@ export function resolveDeepSeekMemberOptions(
     baseURL: config.baseURL ?? DEEPSEEK_DEFAULT_BASE_URL,
     model: config.model ?? DEEPSEEK_DEFAULT_MODEL,
     maxTokens: config.maxTokens ?? DEEPSEEK_DEFAULT_MAX_TOKENS,
+    maxUses: config.maxUses ?? DEEPSEEK_DEFAULT_MAX_USES,
   }
 }
 
@@ -208,7 +215,7 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
         role: 'user',
         content: [{ type: 'text', text: `Perform a web search for the query: ${request.query}` }],
       }],
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: DEEPSEEK_MAX_USES }],
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: this.options.maxUses }],
     }
     let response: Response
     try {
