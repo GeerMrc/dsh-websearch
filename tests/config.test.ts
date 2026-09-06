@@ -36,7 +36,7 @@ describe('resolveConfig', () => {
 
   it('defaults every provider section to enabled with its credential-ref env name', () => {
     const resolved = resolveConfig({})
-    expect(resolved.deepseek).toEqual({ enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'order' })
+    expect(resolved.deepseek).toEqual({ enabled: false, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'order' })
     expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'order' })
     expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'order' })
     expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'order' })

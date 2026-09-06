@@ -130,7 +130,8 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       label: member.label,
       memberId: member.memberId,
       refName,
-      enabled: section?.enabled ?? true,
+      // S14d: the deepseek fallback is opt-in (mirrors node resolveConfig).
+      enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'order',
       source: fact?.source,

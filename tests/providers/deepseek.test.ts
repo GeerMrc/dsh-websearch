@@ -207,7 +207,7 @@ describe('maxUses configuration (S14c, host parity)', () => {
       { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' },
       async () => 'sk-test',
     )
-    expect(base.maxUses).toBe(5)
+    expect(base.maxUses).toBe(10)
     const custom = resolveDeepSeekMemberOptions(
       { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY', maxUses: 2 },
       async () => 'sk-test',
