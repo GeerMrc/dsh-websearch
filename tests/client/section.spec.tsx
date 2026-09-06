@@ -236,17 +236,20 @@ describe('WebSearchSettingsSection', () => {
     const exa = screen.getByRole('switch', { name: 'Exa Enabled' }) as HTMLButtonElement
     expect(exa.getAttribute('aria-checked')).toBe('false')
     expect(exa.style.background).toBe('var(--dsw-alias-border-l3)')
-    const deepseek = screen.getByRole('switch', { name: 'DeepSeek Enabled' }) as HTMLButtonElement
+    // S14b: DeepSeek renders as the fallback row — its switch carries the
+    // paid-fallback label but keeps the same configured-tracks-color contract.
+    const deepseek = screen.getByRole('switch', { name: `DeepSeek ${en.fallbackSwitch}` }) as HTMLButtonElement
     expect(deepseek.style.background).toBe('var(--dsw-alias-state-success-primary)')
     // Action feedback is a polite live region (host savedNotice convention);
     // verified on the save leg — toggling has never rendered member feedback.
-    const input = within(screen.getByTestId('dshws-member-deepseek')).getByLabelText(
-      'DeepSeek API Key',
+    // The save leg runs on a full member card (deepseek has no key surface).
+    const input = within(screen.getByTestId('dshws-member-perplexity')).getByLabelText(
+      'Perplexity API Key',
     ) as HTMLInputElement
-    fireEvent.change(input, { target: { value: 'sk-fake-ds' } })
-    fireEvent.click(within(screen.getByTestId('dshws-member-deepseek')).getByRole('button', { name: 'DeepSeek Save' }))
+    fireEvent.change(input, { target: { value: 'sk-fake-px' } })
+    fireEvent.click(within(screen.getByTestId('dshws-member-perplexity')).getByRole('button', { name: 'Perplexity Save' }))
     await waitFor(() =>
-      expect(screen.getByTestId('dshws-feedback-deepseek').getAttribute('role')).toBe('status'),
+      expect(screen.getByTestId('dshws-feedback-perplexity').getAttribute('role')).toBe('status'),
     )
   })
 
@@ -264,9 +267,46 @@ describe('WebSearchSettingsSection', () => {
     expect(within(screen.getByTestId('dshws-members')).queryByRole('tooltip')).toBeNull()
   })
 
+  it('DeepSeek renders as the fallback row without any key configuration surface (S14b D1)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const row = screen.getByTestId('dshws-fallback-deepseek')
+    expect(within(row).getByText('DeepSeek')).toBeTruthy()
+    expect(within(row).getByText(en.sharedWithModels)).toBeTruthy()
+    const info = within(row).getByRole('button', { name: en.fallbackInfo })
+    fireEvent.focus(info)
+    expect(screen.getByRole('tooltip').textContent).toBe(en.fallbackNote)
+    fireEvent.blur(info)
+    expect(screen.queryByRole('tooltip')).toBeNull()
+    // No key input, no pool controls, no save/clear on the fallback row.
+    expect(within(row).queryByLabelText(`DeepSeek ${en.apiKey}`)).toBeNull()
+    expect(within(row).queryByRole('group')).toBeNull()
+    expect(within(row).queryByRole('button', { name: `DeepSeek ${en.save}` })).toBeNull()
+    expect(within(row).queryByRole('button', { name: `DeepSeek ${en.clear}` })).toBeNull()
+    expect(within(row).queryByTestId('dshws-keysel-hint-deepseek')).toBeNull()
+    // The bottom footnote states the fallback rule once, page-level.
+    expect(screen.getByTestId('dshws-fallback-footnote').textContent).toBe(en.fallbackFootnote)
+  })
+
+  it('the fallback switch toggles the paid fallback and stays disabled until the shared key exists (S14b D1)', async () => {
+    const onToggleEnabled = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const members = defaultMembers()
+    members[4] = member('deepseek', 'DeepSeek', { configured: false })
+    const { unmount } = render(
+      <WebSearchSettingsSection {...makeProps({ onToggleEnabled, snapshot: makeSnapshot(members) })} t={t} />,
+    )
+    const off = screen.getByRole('switch', { name: `DeepSeek ${en.fallbackSwitch}` }) as HTMLButtonElement
+    expect(off.disabled).toBe(true)
+    unmount()
+    render(<WebSearchSettingsSection {...makeProps({ onToggleEnabled })} t={t} />)
+    const on = screen.getByRole('switch', { name: `DeepSeek ${en.fallbackSwitch}` }) as HTMLButtonElement
+    expect(on.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(on)
+    await waitFor(() => expect(onToggleEnabled).toHaveBeenCalledWith('deepseek', false))
+  })
+
   it('only the DeepSeek card carries the shared-with-models badge (12b 反馈②)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const badge = within(screen.getByTestId('dshws-member-deepseek')).getByText(en.sharedWithModels)
+    const badge = within(screen.getByTestId('dshws-fallback-deepseek')).getByText(en.sharedWithModels)
     expect(badge.getAttribute('title')).toBe(en.sharedWithModelsDetail)
     // The other five cards have no such badge.
     for (const key of ['tavily', 'exa', 'perplexity', 'firecrawl', 'anysearch']) {
@@ -351,17 +391,25 @@ describe('WebSearchSettingsSection', () => {
 
   it('renders a key-selection group on every card with the order policy pressed by default (S13 D2)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    for (const [index, key] of ['tavily', 'exa', 'perplexity', 'firecrawl', 'deepseek', 'anysearch'].entries()) {
+    // S14b: the fallback row carries no key-selection group — five cards only.
+    const keyed = [
+      ['tavily', 'Tavily'],
+      ['exa', 'Exa'],
+      ['perplexity', 'Perplexity'],
+      ['firecrawl', 'Firecrawl'],
+      ['anysearch', 'AnySearch'],
+    ] as const
+    for (const [key, brand] of keyed) {
       const card = screen.getByTestId(`dshws-member-${key}`)
-      const group = within(card).getByRole('group', { name: `${BRANDS[index]} ${en.keySelection}` })
+      const group = within(card).getByRole('group', { name: `${brand} ${en.keySelection}` })
       const buttons = within(group).getAllByRole('button')
       expect(buttons.length).toBe(3)
       // The live policy is pressed and carries the pressed field visual.
-      const pressed = within(group).getByRole('button', { name: `${BRANDS[index]} ${en.keySelOrder}` }) as HTMLButtonElement
+      const pressed = within(group).getByRole('button', { name: `${brand} ${en.keySelOrder}` }) as HTMLButtonElement
       expect(pressed.getAttribute('aria-pressed')).toBe('true')
       expect(pressed.style.background).toBe('var(--dsw-alias-bg-layer-1)')
       for (const other of [en.keySelRoundRobin, en.keySelRandom]) {
-        expect((within(group).getByRole('button', { name: `${BRANDS[index]} ${other}` }).getAttribute('aria-pressed'))).toBe('false')
+        expect((within(group).getByRole('button', { name: `${brand} ${other}` }).getAttribute('aria-pressed'))).toBe('false')
       }
     }
   })
