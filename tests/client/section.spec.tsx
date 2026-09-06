@@ -340,6 +340,26 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
   })
 
+  it('key field placeholders, masking, and the {N} hint interpolate live values (S14d D3/T1, stage45 🟡-B 清偿)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expand('tavily')
+    // Placeholder carries the ref name and the multi-key format.
+    const input = screen.getByLabelText(`Tavily ${en.apiKey}`) as HTMLInputElement
+    expect(input.getAttribute('placeholder')).toBe(en.keyPlaceholder.replace('{ref}', 'TAVILY_API_KEY'))
+    // A configured, not-editing field shows the mask; focus opens a fresh entry.
+    expect(input.value).toBe(en.maskedKey)
+    fireEvent.focus(input)
+    expect(input.value).toBe('')
+    fireEvent.blur(input)
+    expect(input.value).toBe(en.maskedKey)
+    // The maxUses hint names the value in the box (default 10; typing 3 → 3).
+    const maxInput = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
+    const hintBtn = screen.getByRole('button', { name: en.maxUsesHint.replace('{N}', '10') })
+    expect(hintBtn).toBeTruthy()
+    fireEvent.change(maxInput, { target: { value: '3' } })
+    expect(screen.getByRole('button', { name: en.maxUsesHint.replace('{N}', '3') })).toBeTruthy()
+  })
+
   it('the fallback is a two-way choice defaulting to none; paid is opt-in (S14d D2, 用户裁定)', async () => {
     const onToggleEnabled = vi.fn(async () => ({ ok: true }) as ActionResult)
     const members = defaultMembers()

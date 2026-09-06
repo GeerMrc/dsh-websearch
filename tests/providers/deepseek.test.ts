@@ -202,7 +202,7 @@ describe('dshws-deepseek failure modes (mock HTTP)', () => {
 
 
 describe('maxUses configuration (S14c, host parity)', () => {
-  it('defaults to 5 and flows a configured value into the wire max_uses', async () => {
+  it('defaults to 10 and flows a configured value into the wire max_uses', async () => {
     const base = resolveDeepSeekMemberOptions(
       { enabled: true, apiKeyEnv: 'DEEPSEEK_API_KEY' },
       async () => 'sk-test',

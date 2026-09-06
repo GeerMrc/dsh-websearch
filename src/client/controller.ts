@@ -7,7 +7,7 @@
  * entry wires the real `ctx.remote` namespaces in one adapter.
  *
  * Client-side defaulting mirrors the node half's `resolveConfig` (built-in
- * member order, 30s timeout, per-member default refs, `enabled: true`) because
+ * member order, 30s timeout, per-member default refs, `enabled: true` except the opt-in deepseek fallback) because
  * the described section value only carries user-set fields. Member ids and
  * default ref names are spelled here rather than imported: a client bundle
  * must not depend on host packages at value level (upstream WebSearchCard NS
