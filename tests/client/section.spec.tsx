@@ -295,7 +295,7 @@ describe('WebSearchSettingsSection', () => {
     expect(row.textContent).toContain(en.chainDisabledNote.trim())
     expect(row.style.opacity).toBe('0.45')
     // Still listed and still movable — position matters once re-enabled.
-    expect(within(row).getByRole('button', { name: `DeepSeek ${en.moveUp}` }).disabled).toBe(false)
+    expect((within(row).getByRole('button', { name: `DeepSeek ${en.moveUp}` }) as HTMLButtonElement).disabled).toBe(false)
     // Another enabled member keeps the chain usable — no warning.
     expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
   })
