@@ -37,7 +37,8 @@ class MemorySettings extends SettingsProvider {
 describe('LiveResolvedConfig', () => {
   it('starts as the resolved loader config', () => {
     const live = new LiveResolvedConfig({ searchChain: ['dshws-tavily'], perMemberTimeoutMs: 5000 })
-    expect(live.current().searchChain).toEqual(['dshws-tavily'])
+    // S14c: the resolver appends the fixed DeepSeek tail to any chain.
+    expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek'])
     expect(live.current().perMemberTimeoutMs).toBe(5000)
     // Explicit defaulting applies to anything the config omits.
     expect(live.current().tavily.enabled).toBe(true)
@@ -46,7 +47,9 @@ describe('LiveResolvedConfig', () => {
   it('setSource swaps the authoritative source and recomputes (settings attach semantics)', () => {
     const live = new LiveResolvedConfig({})
     live.setSource(() => ({ searchChain: ['dshws-deepseek', 'dshws-tavily'], perMemberTimeoutMs: 1234 }))
-    expect(live.current().searchChain).toEqual(['dshws-deepseek', 'dshws-tavily'])
+    // S14c: deepseek is filtered from the orderable span and re-appended tail.
+    expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek'])
+    expect(live.current().perMemberTimeoutMs).toBe(1234)
     expect(live.current().perMemberTimeoutMs).toBe(1234)
   })
 
@@ -54,13 +57,14 @@ describe('LiveResolvedConfig', () => {
     let section: Record<string, unknown> = { searchChain: ['dshws-tavily'] }
     const live = new LiveResolvedConfig({})
     live.setSource(() => section as never)
-    expect(live.current().searchChain).toEqual(['dshws-tavily'])
+    // S14c: the resolver appends the fixed DeepSeek tail to any chain.
+    expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek'])
 
     // The settings service's scope.get() thunk re-reads the committed section;
     // a committed change re-runs onChange with the SAME source thunk.
     section = { searchChain: ['dshws-deepseek', 'dshws-tavily'] }
     live.refresh()
-    expect(live.current().searchChain).toEqual(['dshws-deepseek', 'dshws-tavily'])
+    expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek'])
   })
 
   it('applies explicit defaulting to settings-sourced sections too', () => {
@@ -68,7 +72,8 @@ describe('LiveResolvedConfig', () => {
     live.setSource(() => ({}))
     expect(live.current().perMemberTimeoutMs).toBe(30000)
     expect(live.current().perplexity.enabled).toBe(true)
-    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
+    // S14c: fetch chains exclude the DeepSeek fallback entirely.
+    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'])
   })
 })
 
@@ -126,17 +131,19 @@ describe('attachSettingsSection against the real settings service (S-1 真实 se
     attachSettingsSection(ctx, Config, entry, live)
 
     // No settings service mounted: nothing ran, the entry stays authoritative.
-    expect(live.current().searchChain).toEqual(['dshws-tavily'])
+    // S14c: the resolver appends the fixed DeepSeek tail to any chain.
+    expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek'])
 
     const fiber = ctx.plugin(MemorySettings, { doc: { 'dsh-websearch': { searchChain: ['dshws-deepseek', 'dshws-tavily'] } } })
     await fiber
-    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-deepseek', 'dshws-tavily']))
+    // S14c: filter + tail — the committed pre-S14c shape becomes tavily → deepseek.
+    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek']))
 
     await ctx.settings.update('dsh-websearch', { searchChain: ['dshws-exa'] })
-    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-exa']))
+    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-exa', 'dshws-deepseek']))
 
     // Provider detach falls back to the entry config.
     await fiber.dispose()
-    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-tavily']))
+    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-tavily', 'dshws-deepseek']))
   })
 })

@@ -15,14 +15,6 @@ const t: TranslateNS<'dsh-websearch'> = (key) => en[key as DshWsLocaleKey] ?? ke
 
 const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch']
 
-const BRANDS_BY_KEY: Record<string, string> = {
-  tavily: 'Tavily',
-  exa: 'Exa',
-  perplexity: 'Perplexity',
-  firecrawl: 'Firecrawl',
-  anysearch: 'AnySearch',
-  deepseek: 'DeepSeek',
-}
 
 /** S14c: cards default collapsed — expand before driving the key surface. */
 function expand(memberKey: string): void {
