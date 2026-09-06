@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- S14b DeepSeek 兜底行重构 + 双审计修复（插行棒）——方向双裁定 + ExitPlanMode 批准；阶段 0 审 S14a PASS（🟡×4 → 本节入册）；plan 正本 docs/plans/2026-09-06-014b-s14b-deepseek-fallback-row.md
+- 无（S14b 收官 2026-09-06）
 
 ## 待启动
 
@@ -186,7 +186,7 @@ README「已知行为」节；④S14a 入账超报（🟢×3 vs 台账两行）�
 | T4 | 文档批（architecture §6/§9 + 台账勘注） | 完成（本提交：§6 ADR-0013 注记 + 旧口径历史化 + 卸载半句/disabled 建议勘注 + §9 索引补 0008-0013 + 入账超报勘注 + 新债两笔入册） |
 | T5 | 门墙七命令（提交态）+ 台账/门墙表 | 完成（提交态 5eea160〔含 typecheck 红修复 cast〕：**277 passed \| 9 skipped (286)**（+4 = fallback 2 + 链块 2）/ typecheck 双面 0 / lint 0w0e 50 files / index.js 59.42→**59.78**（错误文案）+ index.d.ts 27.04 零漂移 + client.js 42.09→**47.47** / 五件 / **40 keys** parity + 18 files 零 CJK / clean） |
 | T6 | 浏览器验证（remove→add 换新 tarball 避同版本跳过坑 + 重启 3423） | 完成（设置页亲见：五完整卡 + **DeepSeek 兜底行**〔已配置绿点 + 共用 badge + 「DeepSeek 兜底说明」ⓘ + 「DeepSeek 付费兜底」switch checked 可用；无 key 输入/策略组/保存清除〕+ 底部 fallbackFootnote + 链卡无预警；截图归档 screenshot-s14b-fallback-row.png；界面语言随浏览器切中文——zh 文案首度实机亲见；实例保留运行供用户检验〔后续收口〕） |
-| T7 | 阶段 4/5 独立验证 + 收尾 + merge + 接力 | 待执行 |
+| T7 | 阶段 4/5 独立验证 + 收尾 + merge + 接力 | **PASS / COMPLETE**（门墙七项零偏差 + R1-R6 全过 + 探针红签名〔分流改 false → 2 failed 精确签名 → 还原复绿 clean〕+ 安装副本 client.js 与 HEAD 构建 md5 一致；🟡×1 归档截图视口截断 → **T7 补拍滚动截图清偿**〔AI 视觉亲读：绿点/badge/ⓘ/开启开关 + 五重无输入面 + footnote〕；🟢×4：badge 死分支→入台账 S15 / setKey 编程 API 可达〔符合 GUI 面口径〕/ tsdown 上游 / 任务书笔误；audit-log 正本 s14b-stage45）+ 收尾（本序列） |
 
 ### S14a 装即接管批（2026-09-06，分支 feat/s14a-install-takeover）
 
@@ -332,6 +332,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 发版清单「追平重述 web config」条目实体待建 | 🟢 观察 | S14a 阶段 4/5 登记；S15/S16 创建清单时从 s14a Note §5.1 搬运，勿凭记忆重写 |
 | 宿主设置页闲置的 web-search-deepseek 配置卡（接管后不生效仍在；其 key 保存为对 DEEPSEEK_API_KEY 的单值写入点） | 🟢 | S14b 阶段 0 入册（2026-09-06，双审计发现）；披露正文归 S15 README「已知行为」节 |
 | 00-architecture.md 其余陈旧（§1 五 provider 缺 anysearch / §3 模块树 / §5 config 模型 / 悬空附录指针） | 🟢 | S14b 阶段 0 入册；S15 文档腿全面刷新（§6/§9 已由 S14b T4 注记） |
+| section.tsx MemberCard 残留不可达 deepseek badge 死分支（分流后永不可达，纯清理） | 🟢 | S14b 阶段 4/5 登记；S15 顺手清理 |
 | 〔勘注 2026-09-06，S14b T4〕S14a 收官 commit 4d8f921 称「🟢×3 新观察入台账」，实物为两行（第三项 stub-log 探测残留行留 session 记录注记未登台账）——记录性超报，时点快照不回改，本行即为对齐 | 勘注 | S14a 阶段 0 复核抓获 |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
