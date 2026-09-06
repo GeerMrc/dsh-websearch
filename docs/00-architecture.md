@@ -97,7 +97,13 @@ dsh-websearch:
 
 ## 6. 组合与安装模型（零内核侵入的落点）
 
-安装 = `dsh plugin --profile web add <本插件包>` + 用户层 patch（`~/.dsh/profiles/web/cordis.patch.yml`）两行：
+> **注记（2026-09-06，ADR-0013 装即接管——本节旧口径已改判）**：安装接管自 S14a 起由
+> 插件**随包 cordis.patch.yml** 承担（钉 `searchProvider: dshws-chain` + `fetchProvider:
+> http` 显式重述）——**`dsh plugin add` 单命令即接管，`remove` 单命令完整复原（dump diff
+> 零输出，实测）**。下方旧口径保留为历史形态；用户层两行的当代用途收敛为：否决/自定义
+> （用户层终裁，整段替换须重述两键）与 fetch 链手动可选。正本见 ADR-0013。
+
+安装（旧口径，2026-09-06 前的形态）= `dsh plugin --profile web add <本插件包>` + 用户层 patch（`~/.dsh/profiles/web/cordis.patch.yml`）两行：
 
 ```yaml
 - insert:
@@ -109,13 +115,13 @@ dsh-websearch:
     fetchProvider: dshws-chain-fetch
 ```
 
-卸载 = 移除插件 + 删两行 patch → 完全复原上游行为。上游 `web-search-deepseek` 行保持原样（README 建议 patch `disabled: true` 停用，避免双搜索入口混淆；文档化用法，非代码侵入）。
+卸载 = 移除插件 + 删两行 patch → 完全复原上游行为。上游 `web-search-deepseek` 行保持原样（README 建议 patch `disabled: true` 停用，避免双搜索入口混淆；文档化用法，非代码侵入）。〔注记：卸载半句已过时——新口径 remove 单命令即复原，残留用户层翻转让需删否则 CONFIGURED_MISSING；「patch disabled: true」建议随 S15 README 重审（上游该行 Config 无 disabled 字段）〕
 
 ## 7. 兼容性与升级
 
 - id 全前缀 `dshws-`：与上游（`deepseek-official`/`exa`/`perplexity`/`http`）及第三方（`anysearch`）零撞名。
 - 对上游唯一假设：seam 公开接口形状（provider 接口三方法 + 注册 API + 服务名注入）。升级演练 = 每 alpha 升级后按 `docs/upgrade.md`（S15 交付——2026-09-04 用户重排编号）跑安装→配置→搜索→降级→GUI 冒烟。
-- 本插件内重实现 deepseek 搜索（链成员需可直接调用的实例；上游注册表私有不可枚举）；与上游官方 provider 共用 `DEEPSEEK_API_KEY` ref，二者二选一启用。
+- 本插件内重实现 deepseek 搜索（链成员需可直接调用的实例；上游注册表私有不可枚举）；与上游官方 provider 共用 `DEEPSEEK_API_KEY` ref。〔注记 2026-09-06：接管后官方 provider 闲置不选中，「二选一启用」表述过时；DeepSeek 配置面自 S14b 起为设置页兜底行（ⓘ 说明 + 付费兜底开关），不再提供 key 输入〕
 
 ## 8. 开放问题（S02 spike 定谳，ADR-0006/0007 承接——2026-09-02 全部定谳：1→ADR-0006 GO；2/5→ADR-0007；3/4 实测成立，证据见 session-02 记录 H3/H4）
 
@@ -136,3 +142,9 @@ dsh-websearch:
 | ADR-0005 | GUI 形态 spike-first（GO/NO-GO 由 ADR-0006 承接） |
 | ADR-0006 | GUI 外置 client half GO（fallback 不启用；S02 spike 定谳） |
 | ADR-0007 | 包名 `dsh-websearch` + 独立 0.1.0 版本线 + 路径/tarball 交付、npm publish 延后（S02 定谳） |
+| ADR-0008 | 多 APIKEY 池（superseded by ADR-0011） |
+| ADR-0009 | anysearch 第六成员（共存/退役语义；D5 博弈规则经 ADR-0013 延伸至 bundle 层） |
+| ADR-0010 | session 搜索溯源呈现（toolview 接管 + served-by 徽标 + 两级回退） |
+| ADR-0011 | 单槽逗号值多 key（supersedes ADR-0008） |
+| ADR-0012 | key 级 random 不放回随机（升序 Fisher-Yates 牌堆） |
+| ADR-0013 | 装即接管 web_search（随包 patch 钉 search / fetch 留 http / 卸载单命令复原） |

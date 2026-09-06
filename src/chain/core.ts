@@ -187,11 +187,17 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
 /** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
 const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
 
-/** Build the fail-loud error for a chain whose members were all selection-skipped. */
+/**
+ * Build the fail-loud error for a chain whose members were all selection-skipped.
+ * The list is the chain ORDER — skipped members are typically unconfigured, so
+ * labeling them "configured" read as a lie; the message names the order and
+ * points at the remediation (settings page, or the shared-key DeepSeek floor).
+ */
 function noMemberConfigured(order: readonly string[]): DshwsError {
   return new DshwsError(
     CHAIN_ERROR_CODES.noMemberConfigured,
-    `${CHAIN_ERROR_CODES.noMemberConfigured}: no usable member on the chain (configured: ${order.join(', ')})`,
+    `${CHAIN_ERROR_CODES.noMemberConfigured}: no usable member on the chain (chain order: ${order.join(', ')});`
+    + ' enable or configure a member on the dsh-websearch settings page (DeepSeek falls back through the Models-page key)',
   )
 }
 

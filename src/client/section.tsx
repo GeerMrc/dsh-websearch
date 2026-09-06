@@ -244,18 +244,27 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         <p style={{ margin: 0, marginTop: 4, fontSize: 14, lineHeight: '22px', color: 'var(--dsw-alias-label-tertiary)' }}>{t('description')}</p>
       </div>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {snapshot.members.map((member) => (
-          <MemberCard
-            key={member.key}
-            member={member}
-            t={t}
-            onSaveKey={onSaveKey}
-            onClearKey={onClearKey}
-            onToggleEnabled={onToggleEnabled}
-            onSetKeySelection={onSetKeySelection}
-          />
-        ))}
+        {snapshot.members.map((member) =>
+          member.key === 'deepseek' ? (
+            <DeepSeekFallbackRow key={member.key} member={member} t={t} onToggleEnabled={onToggleEnabled} />
+          ) : (
+            <MemberCard
+              key={member.key}
+              member={member}
+              t={t}
+              onSaveKey={onSaveKey}
+              onClearKey={onClearKey}
+              onToggleEnabled={onToggleEnabled}
+              onSetKeySelection={onSetKeySelection}
+            />
+          ),
+        )}
       </div>
+      {/* The fallback rule, stated once below the grid (S14b D1): DeepSeek is
+      not configured here — it rides the Models-page key as the chain floor. */}
+      <p data-testid="dshws-fallback-footnote" style={{ ...hintStyle, margin: 0 }}>
+        {t('fallbackFootnote')}
+      </p>
       {showChains ? (
         <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -271,10 +280,21 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           >
             {/* Disabled boundaries follow the FILTERED (visible) list: computing them
             against the full chain left the last visible ↓ clickable and failing. */}
-            {visibleSearch.map((id, index) => (
-              <li key={id} data-testid={`dshws-chain-item-${id}`} style={chainRowStyle}>
+            {visibleSearch.map((id, index) => {
+              // S14b D2: the visible list is the live serving order — a configured
+              // but disabled member stays listed (position matters once re-enabled)
+              // yet must read as inert, not as servable.
+              const memberDisabled = snapshot.members.some((m) => m.memberId === id && !m.enabled)
+              return (
+              <li
+                key={id}
+                data-testid={`dshws-chain-item-${id}`}
+                style={{ ...chainRowStyle, ...(memberDisabled ? { opacity: 0.45 } : {}) }}
+                title={memberDisabled ? t('chainDisabledNote').trim() : undefined}
+              >
                 <span style={chainIndexStyle}>{index + 1}</span>
                 <span data-dshws-chain-label="">{labelOf(id)}</span>
+                {memberDisabled ? <span style={hintStyle}>{t('chainDisabledNote')}</span> : null}
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"
@@ -295,8 +315,14 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                   ↓
                 </button>
               </li>
-            ))}
+              )
+            })}
           </ol>
+          {snapshot.members.every((m) => !(m.configured && m.enabled)) ? (
+            <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
+              {t('chainNoUsableWarning')}
+            </p>
+          ) : null}
           <p style={hintStyle}>
             {t('timeout')}: {snapshot.timeoutMs} ms
           </p>
@@ -350,6 +376,47 @@ function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => s
     >
       {props.pinned ? props.t('chainPinned') : props.t('chainDefault')}
     </span>
+  )
+}
+
+/**
+ * The DeepSeek fallback row (S14b D1, user ruling): DeepSeek is not a
+ * symmetric config card — it shares DEEPSEEK_API_KEY with the Models page, so
+ * a key input (and a comma pool on that shared ref) would poison chat auth.
+ * The row carries the live readiness dot, the shared-key badge, the takeover
+ * semantics behind an ⓘ tooltip, and the paid-fallback off-switch (the
+ * ADR-0004 neutrality opt-out).
+ */
+function DeepSeekFallbackRow(props: {
+  member: MemberSnapshot
+  t: (key: DshWsLocaleKey) => string
+  onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
+}) {
+  const { member, t, onToggleEnabled } = props
+  const statusText = member.configured ? t('configured') : t('notConfigured')
+  return (
+    <div data-testid="dshws-fallback-deepseek" style={{ ...cardStyle, flexDirection: 'row', alignItems: 'center', gap: 8, padding: '10px 14px' }}>
+      <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
+      <strong style={nameStyle}>{member.label}</strong>
+      <span title={t('sharedWithModelsDetail')} style={sharedBadgeStyle}>{t('sharedWithModels')}</span>
+      <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
+        <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
+          <IconQuestionOutline14 />
+        </button>
+      </Tooltip>
+      <span style={{ flex: 1 }} />
+      <button
+        type="button"
+        role="switch"
+        aria-checked={member.enabled}
+        aria-label={`${member.label} ${t('fallbackSwitch')}`}
+        disabled={!member.configured}
+        onClick={() => void onToggleEnabled(member.key, !member.enabled)}
+        style={{ ...switchStyle(member.configured, member.enabled), cursor: member.configured ? 'pointer' : 'not-allowed', opacity: member.configured ? 1 : 0.4 }}
+      >
+        <span style={thumbStyle(member.enabled)} />
+      </button>
+    </div>
   )
 }
 

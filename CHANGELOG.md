@@ -12,6 +12,36 @@
 
 ---
 
+## 2026-09-06 — DeepSeek 兜底行重构 + 双审计修复（Session 14b，用户产品裁定插行棒）
+
+**新增**
+- **DeepSeek 配置卡 → 兜底说明行**（用户双裁定）：ⓘ Tooltip 四点语义（接管后官方入口闲置/链内第 5 位兜底/共用模型 key 后写覆盖/付费 opt-out）+ **内嵌付费兜底开关**（绑既有 setEnabled，未就绪禁用）+ 动态状态 + 共用 badge 保留 + 底部 fallbackFootnote；**删除** key 输入/keySelection/Clear/Save——共享 ref `DEEPSEEK_API_KEY` 上逗号池会毒化模型页聊天鉴权，写/清路径语义错误（`bc5871b`）
+- 链块两修复：可见链行 disabled 成员视觉区分（置灰 +（已停用）标注，仍列示可排序）+ configured&&enabled 归零红色预警行（`2294e7c`）
+- 链全败错误文案纠偏：`(configured: 全序)` 误标 → `(chain order: …)` + 「设置页启用/配置成员（DeepSeek 经模型页 key 兜底）」指引句（`a3cf96b`）
+- 文档横面：00-architecture §6 ADR-0013 注记（旧两行口径历史化 + 卸载半句/disabled 建议勘注）+ §7 勘注 + §9 决策索引补 0008-0013；台账勘注（S14a 入账超报）+ 新债两笔入册（`a747d59`）
+- 测试基线 273→**277**（277 passed | 9 skipped (286)；+4 = fallback 2 + 链块 2）；i18n 34→**40 keys**；client.js 42.09→**47.47 kB**（index.d.ts 零漂移；index.js 59.78 文案变更）
+- Agent Note 无新增（正素材 = 本记录 + s14a/s14b 台账）；audit-logs 2 份（stage0/stage45）
+
+**清偿（4 笔 + 1 现抓）**
+- 阶段 0 🟡×4 全收口：architecture 旧口径（T4）/错误文案误标（T3）/宿主闲置卡披露（入册→S15）/入账超报勘注（T4）
+- 设置页审计 🟡×5 全收口（badge 语境/description 等式/链 disabled/零可用预警/文案纠偏）
+- 阶段 4/5 🟡×1（归档截图视口截断）→ T7 补拍滚动截图清偿（AI 视觉亲读）
+
+**治理**
+- 阶段 0 审 S14a **PASS**（🟡×4 入册为放行条件；计划模式权限限制替代证据披露）→ 方向双裁定（对话 + AskUserQuestion「说明行+内嵌开关」）→ 计划包 ExitPlanMode **用户批准** → 阶段 4/5 **PASS / COMPLETE**（门墙零偏差 + R1-R6 全过 + 探针红签名〔分流改 false → 2 failed 精确签名〕+ 安装副本 md5 一致）
+
+**诚实标注（遗留项）**
+- 🟢 新登记：MemberCard 残留不可达 deepseek badge 死分支（S15 清理）
+- 维持项：🟢×4 + L-2 + 观察（+宿主闲置卡披露→S15 / architecture 其余陈旧→S15）+ v2 backlog
+
+**跟踪（观察期）**
+- 测试基线链：273\|9(282) → **277\|9(286)**；typecheck 双面 0；lint 0w0e 50 files；check:i18n 40 keys + 18 files 零 CJK
+- 里程碑计数：M7 ✅（S09-S14b 插行三连）；M5 文档腿 S15；M3 余用户 with-key 回填；M6 ⏳
+- dont-do 新增：0 条（无超 15 分钟系统性新坑）
+- 下一棒：S15 = README + anysearch 迁移（新口径）+ 升级手册（M5 文档腿收官）
+
+---
+
 ## 2026-09-06 — 装即接管 web_search（插行棒）：ADR-0013（Session 14a，M7 插行增补 ✅）
 
 **新增**

@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- 无（S14a 收官 2026-09-06）
+- 无（S14b 收官 2026-09-06）
 
 ## 待启动
 
@@ -166,6 +166,28 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 | R6 | 浏览器徽标亲见 + 隔离 | PASS | 三截图内容级亲读 + stub-log 16 段 wire + dump 双态 + 精确收口 |
 | R7 | 钉牌断言顺手清偿 | PASS | keys.test:108-120 在档 + 探针红×2 留痕 + 亲跑 13 passed |
 
+### S14b 兜底行重构批（2026-09-06，分支 feat/s14b-deepseek-fallback-row）
+
+阶段 0 独立审核 S14a **PASS**（🔴×0；🟡×4 = 双 Agent 审计发现未入册 → 本节入册
+为放行条件；正本 docs/sessions/audit-logs/2026-09-06-s14b-stage0-review-of-s14a.md
+含计划模式权限限制的替代证据披露）→ 方向双裁定（对话：删卡改 ⓘ/底部说明；
+AskUserQuestion：内嵌开关）→ 计划包 ExitPlanMode 批准 → 逐一执行中。
+
+**🟡×4 入册（阶段 0 放行条件，本提交落实）**：①00-architecture §6 旧口径 → T4
+注记；②noMemberConfigured 文案误标 → T3 纠偏；③宿主闲置设置卡披露 → 登记 S15
+README「已知行为」节；④S14a 入账超报（🟢×3 vs 台账两行）→ T4 勘注。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：分支 + plan 014b + 阶段 0 audit-log 入库 + roadmap S14b 插行 + 🟡×4 台账入册 + 启动全状态区 + session-14b 骨架（三★节占位） | 完成（本提交） |
+| T1 | DeepSeek 兜底行重构（TDD：locales 新键 + section.tsx 分流 + spec 更新） | 完成（`bc5871b`；ⓘ 四点语义 + 内嵌付费兜底开关 + 动态状态 + badge + 底部 footnote；删 key 输入/keySelection/Clear/Save；+4 键〔38〕；红 5 failed → 绿 section+entry **33 passed**；typecheck 0） |
+| T2 | 链块两修复（disabled 视觉 + 零可用预警，TDD） | 完成（`2294e7c`；置灰 0.45 +（已停用）标注 + 零可用红色预警行；+2 键〔40〕；红 2 → 绿 29 passed） |
+| T3 | 错误文案纠偏（chain/core.ts + 测试同步，TDD） | 完成（`a3cf96b`；(chain order: …) + 设置页指引句；红 1 → 绿 chain+keys+apply 63 passed + e2e 11 passed 回归） |
+| T4 | 文档批（architecture §6/§9 + 台账勘注） | 完成（本提交：§6 ADR-0013 注记 + 旧口径历史化 + 卸载半句/disabled 建议勘注 + §9 索引补 0008-0013 + 入账超报勘注 + 新债两笔入册） |
+| T5 | 门墙七命令（提交态）+ 台账/门墙表 | 完成（提交态 5eea160〔含 typecheck 红修复 cast〕：**277 passed \| 9 skipped (286)**（+4 = fallback 2 + 链块 2）/ typecheck 双面 0 / lint 0w0e 50 files / index.js 59.42→**59.78**（错误文案）+ index.d.ts 27.04 零漂移 + client.js 42.09→**47.47** / 五件 / **40 keys** parity + 18 files 零 CJK / clean） |
+| T6 | 浏览器验证（remove→add 换新 tarball 避同版本跳过坑 + 重启 3423） | 完成（设置页亲见：五完整卡 + **DeepSeek 兜底行**〔已配置绿点 + 共用 badge + 「DeepSeek 兜底说明」ⓘ + 「DeepSeek 付费兜底」switch checked 可用；无 key 输入/策略组/保存清除〕+ 底部 fallbackFootnote + 链卡无预警；截图归档 screenshot-s14b-fallback-row.png；界面语言随浏览器切中文——zh 文案首度实机亲见；实例保留运行供用户检验〔后续收口〕） |
+| T7 | 阶段 4/5 独立验证 + 收尾 + merge + 接力 | **PASS / COMPLETE**（门墙七项零偏差 + R1-R6 全过 + 探针红签名〔分流改 false → 2 failed 精确签名 → 还原复绿 clean〕+ 安装副本 client.js 与 HEAD 构建 md5 一致；🟡×1 归档截图视口截断 → **T7 补拍滚动截图清偿**〔AI 视觉亲读：绿点/badge/ⓘ/开启开关 + 五重无输入面 + footnote〕；🟢×4：badge 死分支→入台账 S15 / setKey 编程 API 可达〔符合 GUI 面口径〕/ tsdown 上游 / 任务书笔误；audit-log 正本 s14b-stage45）+ 收尾（本序列） |
+
 ### S14a 装即接管批（2026-09-06，分支 feat/s14a-install-takeover）
 
 阶段 0 独立审核 S14 **PASS**（🔴×0；🟡×1 = session-14 接力指令债务实况句漏列 L-2 →
@@ -308,6 +330,10 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 溯源徽标 badge 超长 id 撑宽折叠行（flexShrink:0 无截断，与 summary ellipsis 不对称；纯视觉，React 转义无安全面） | 🟢 观察 | S14 阶段 4/5 登记（2026-09-06）；宿主 WebRow 对齐维护点顺手候选 |
 | 一行否决（用户层仅钉 searchProvider）在有 firecrawl key 场景 → http 与 dshws-chain-fetch 双 usable → WEB_PROVIDER_AMBIGUOUS 硬错（响亮失败非静默） | 🟢 观察 | S14a 阶段 4/5 登记（2026-09-06）；S15 手册按「否决/自定义亦重述两键」口径写 |
 | 发版清单「追平重述 web config」条目实体待建 | 🟢 观察 | S14a 阶段 4/5 登记；S15/S16 创建清单时从 s14a Note §5.1 搬运，勿凭记忆重写 |
+| 宿主设置页闲置的 web-search-deepseek 配置卡（接管后不生效仍在；其 key 保存为对 DEEPSEEK_API_KEY 的单值写入点） | 🟢 | S14b 阶段 0 入册（2026-09-06，双审计发现）；披露正文归 S15 README「已知行为」节 |
+| 00-architecture.md 其余陈旧（§1 五 provider 缺 anysearch / §3 模块树 / §5 config 模型 / 悬空附录指针） | 🟢 | S14b 阶段 0 入册；S15 文档腿全面刷新（§6/§9 已由 S14b T4 注记） |
+| section.tsx MemberCard 残留不可达 deepseek badge 死分支（分流后永不可达，纯清理） | 🟢 | S14b 阶段 4/5 登记；S15 顺手清理 |
+| 〔勘注 2026-09-06，S14b T4〕S14a 收官 commit 4d8f921 称「🟢×3 新观察入台账」，实物为两行（第三项 stub-log 探测残留行留 session 记录注记未登台账）——记录性超报，时点快照不回改，本行即为对齐 | 勘注 | S14a 阶段 0 复核抓获 |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
