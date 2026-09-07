@@ -611,7 +611,7 @@ function MemberEndpointField(props: {
       <input
         aria-label={`${member.label} ${t('endpointLabel')}`}
         data-testid={`dshws-endpoint-${member.key}`}
-        placeholder="https://…"
+        placeholder={MEMBERS.find((entry) => entry.key === member.key)?.defaultBaseURL ?? 'https://…'}
         value={value}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
         style={fieldInputStyle}

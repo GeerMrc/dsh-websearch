@@ -36,14 +36,16 @@ export interface WebSearchSettingsPorts {
   onReferenceUpdated(handler: (ref: string) => void): () => void
 }
 
-/** Bundled member display metadata; ids and default refs mirror the node half (exported for the S11 attribution card's label mapping). */
+/** Bundled member display metadata; ids, default refs, and the documented
+ * default endpoints mirror the node-half provider constants (the endpoint is
+ * the GUI placeholder for the「接口地址」field, S14p). */
 export const MEMBERS = [
-  { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY' },
-  { key: 'exa', label: 'Exa', memberId: 'dshws-exa', defaultRef: 'EXA_API_KEY' },
-  { key: 'perplexity', label: 'Perplexity', memberId: 'dshws-perplexity', defaultRef: 'PERPLEXITY_API_KEY' },
-  { key: 'firecrawl', label: 'Firecrawl', memberId: 'dshws-firecrawl', defaultRef: 'FIRECRAWL_API_KEY' },
-  { key: 'deepseek', label: 'DeepSeek', memberId: 'dshws-deepseek', defaultRef: 'DEEPSEEK_API_KEY' },
-  { key: 'anysearch', label: 'AnySearch', memberId: 'dshws-anysearch', defaultRef: 'ANYSEARCH_API_KEY' },
+  { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY', defaultBaseURL: 'https://api.tavily.com' },
+  { key: 'exa', label: 'Exa', memberId: 'dshws-exa', defaultRef: 'EXA_API_KEY', defaultBaseURL: 'https://api.exa.ai' },
+  { key: 'perplexity', label: 'Perplexity', memberId: 'dshws-perplexity', defaultRef: 'PERPLEXITY_API_KEY', defaultBaseURL: 'https://api.perplexity.ai' },
+  { key: 'firecrawl', label: 'Firecrawl', memberId: 'dshws-firecrawl', defaultRef: 'FIRECRAWL_API_KEY', defaultBaseURL: 'https://api.firecrawl.dev' },
+  { key: 'deepseek', label: 'DeepSeek', memberId: 'dshws-deepseek', defaultRef: 'DEEPSEEK_API_KEY', defaultBaseURL: 'https://api.deepseek.com/anthropic/v1' },
+  { key: 'anysearch', label: 'AnySearch', memberId: 'dshws-anysearch', defaultRef: 'ANYSEARCH_API_KEY', defaultBaseURL: 'https://api.anysearch.com' },
 ] as const
 
 /** Built-in member order applied when the section omits a chain (ADR-0004). */
