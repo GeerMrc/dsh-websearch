@@ -5,16 +5,23 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 describe('apply assembly', () => {
-  it('registers the chains and all six members with ctx.web (double registration topology)', () => {
+  it('registers the chains and all seven members with ctx.web (double registration topology, S14e +fetch-search)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
-    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
+    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch', 'dshws-fetch-search'])
     expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
   })
 
-  it('exposes the chain as unavailable while no credentials are configured', () => {
+  it('the chain is AVAILABLE with no credentials — the free fetch floor (S14e 语义变更，用户设计)', () => {
     const { ctx, providers } = fakeCtx()
-    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    expect(chain.available()).toBe(true)
+  })
+
+  it('an explicit PAID fallback choice with no model key keeps the chain unavailable (S14e: paid is honest)', () => {
+    const { ctx, providers } = fakeCtx()
+    apply(ctx as unknown as Context, { fallbackProvider: 'deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     expect(chain.available()).toBe(false)
   })
@@ -31,8 +38,10 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
 
+    // S14e: with the free floor the chain stays available throughout; the
+    // flip is now observable via the explicit paid choice below instead.
     await flushGate()
-    expect(chain.available()).toBe(false)
+    expect(chain.available()).toBe(true)
 
     configured.add('TAVILY_API_KEY')
     emitUpdated('TAVILY_API_KEY')
@@ -40,7 +49,7 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
 
     configured.delete('TAVILY_API_KEY')
     emitUpdated('TAVILY_API_KEY')
-    await vi.waitFor(() => expect(chain.available()).toBe(false))
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
   })
 
   it('a configured key makes the member ready after the initial prime (no event needed)', async () => {
@@ -51,12 +60,13 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
     await vi.waitFor(() => expect(chain.available()).toBe(true))
   })
 
-  it('a disabled member never contributes readiness even with its key configured', async () => {
+  it('a disabled member never contributes readiness even with its key configured (S14e: 断言移到付费选择面)', async () => {
     const { ctx, providers, configured } = fakeCtx()
     configured.add('TAVILY_API_KEY')
-    apply(ctx as unknown as Context, { tavily: { enabled: false } })
+    apply(ctx as unknown as Context, { tavily: { enabled: false }, fallbackProvider: 'deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
+    // Paid floor chosen, no model key: tavily's disable must keep it unusable.
     expect(chain.available()).toBe(false)
   })
 
@@ -129,7 +139,7 @@ describe('apply key-pool hot path (ADR-0011 单槽逗号值)', () => {
 
   it('storing a value by a settings commit flips readiness without an event (gate prime)', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx({ values: { TAVILY_API_KEY: 'late-key' } })
-    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, { deepseek: { enabled: true }, fallbackProvider: 'deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     expect(chain.available()).toBe(false)
@@ -142,12 +152,12 @@ describe('apply key-pool hot path (ADR-0011 单槽逗号值)', () => {
   it('a committed member disable stops contributing readiness', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
-    apply(ctx as unknown as Context, { tavily: { keySelection: 'order' } })
+    apply(ctx as unknown as Context, { tavily: { keySelection: 'order' }, fallbackProvider: 'deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     expect(chain.available()).toBe(true)
 
-    commitSettings({ tavily: { enabled: false } })
+    commitSettings({ tavily: { enabled: false }, fallbackProvider: 'deepseek' })
     await vi.waitFor(() => expect(chain.available()).toBe(false))
   })
 })
@@ -230,11 +240,11 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
   it('hot-applies a member disable: the disabled member stops contributing readiness', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
-    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, { deepseek: { enabled: true }, fallbackProvider: 'deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await vi.waitFor(() => expect(chain.available()).toBe(true))
 
-    commitSettings({ tavily: { enabled: false } })
+    commitSettings({ tavily: { enabled: false }, fallbackProvider: 'deepseek' })
     expect(chain.available()).toBe(false)
     const caught = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: 'DSHWS_NO_MEMBER_CONFIGURED' })
