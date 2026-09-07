@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button, IconQuestionOutline14, Input, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconQuestionOutline14, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
@@ -93,24 +93,40 @@ const hintStyle = {
   color: 'var(--dsw-alias-label-tertiary)',
 } as const
 
-/** S14l: every expanded field row shares one grid — a fixed label column
- * (110px, right-aligned labels) and a flexing control column — so the API
- * key, policy, and endpoint rows all align on the same vertical rhythm. */
-const fieldRowStyle = {
-  display: 'grid',
-  gridTemplateColumns: '110px minmax(0, 1fr)',
-  alignItems: 'center',
-  columnGap: 10,
+/**
+ * S14m: expanded fields mirror the host Models editor verbatim
+ * (ModelsSection.module.css .field/.fieldLabel/.input) — a vertical stack per
+ * field: 12px/500 label ABOVE a full-width 32px bordered input. Same pattern
+ * the Models page and every host settings card uses.
+ */
+const fieldStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
 } as const
 
 const fieldLabelStyle = {
-  fontSize: 12,
-  color: 'var(--dsw-alias-label-secondary)',
-  textAlign: 'right',
   display: 'inline-flex',
   alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: 4,
+  gap: 6,
+  fontSize: 12,
+  lineHeight: '18px',
+  fontWeight: 500,
+  color: 'var(--dsw-alias-label-secondary)',
+} as const
+
+const fieldInputStyle = {
+  boxSizing: 'border-box',
+  width: '100%',
+  height: 32,
+  padding: '0 10px',
+  border: '1px solid var(--dsw-alias-border-l2)',
+  borderRadius: 8,
+  font: 'inherit',
+  fontSize: 14,
+  lineHeight: '22px',
+  background: 'var(--dsw-alias-bg-layer-1)',
+  color: 'var(--dsw-alias-label-primary)',
 } as const
 
 const footerStyle = {
@@ -202,10 +218,6 @@ const statusDotStyle = (configured: boolean) =>
 
 // The Input primitive's own wrapper carries the full field visual (32px, r8,
 // bg-layer-1, border) — only the width needs asserting here.
-const inputStyle = {
-  width: '100%',
-} as const
-
 /** Chain rows render the brand label; ids stay the test/action payload (D3). */
 const labelOf = (id: string): string => MEMBERS.find((member) => member.memberId === id)?.label ?? id
 
@@ -587,7 +599,7 @@ function MemberEndpointField(props: {
   }, [feedback])
   const value = draft ?? member.baseURL ?? ''
   return (
-    <div style={fieldRowStyle}>
+    <div style={fieldStyle}>
       <span style={fieldLabelStyle}>
         {t('endpointLabel')}
         <Tooltip label={t('endpointNote')} side="bottom" delayMs={400} maxWidth={320}>
@@ -596,15 +608,18 @@ function MemberEndpointField(props: {
           </button>
         </Tooltip>
       </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <Input
-          aria-label={`${member.label} ${t('endpointLabel')}`}
-          data-testid={`dshws-endpoint-${member.key}`}
-          placeholder="https://…"
-          value={value}
-          onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
-          style={inputStyle}
-        />
+      <input
+        aria-label={`${member.label} ${t('endpointLabel')}`}
+        data-testid={`dshws-endpoint-${member.key}`}
+        placeholder="https://…"
+        value={value}
+        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
+        style={fieldInputStyle}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+        {feedback ? (
+          <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={{ ...feedbackStyle, flex: undefined }}>{t(feedback)}</span>
+        ) : null}
         <Button
           variant="outline"
           size="sm"
@@ -619,9 +634,6 @@ function MemberEndpointField(props: {
         >
           {t('save')}
         </Button>
-        {feedback ? (
-          <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
-        ) : null}
       </div>
     </div>
   )
@@ -696,23 +708,24 @@ function MemberCard(props: {
       </div>
       {open ? (
       <>
-      <div style={fieldRowStyle}>
+      <div style={fieldStyle}>
         <span style={fieldLabelStyle}>{t('apiKey')}</span>
-        <Input
+        <input
           type="password"
+          autoComplete="off"
           aria-label={`${member.label} ${t('apiKey')}`}
           placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
-        value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
-        onFocus={() => { if (draft === '') setEditing(true) }}
-        onBlur={() => setEditing(false)}
-        onChange={(event) => setDraft(event.target.value)}
-        style={inputStyle}
+          value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
+          onFocus={() => { if (draft === '') setEditing(true) }}
+          onBlur={() => setEditing(false)}
+          onChange={(event) => setDraft(event.target.value)}
+          style={fieldInputStyle}
         />
       </div>
       {/* Key-selection control (S13 D2/D3): the pool policy plus the two-level
       call-semantics note — per-button member-prefixed names avoid the
       identical-buttons ambiguity (S06 lesson). */}
-      <div role="group" aria-label={`${member.label} ${t('keySelection')}`} style={fieldRowStyle}>
+      <div role="group" aria-label={`${member.label} ${t('keySelection')}`} style={fieldStyle}>
         <span style={fieldLabelStyle}>{t('keySelection')}</span>
         {KEY_SELECTIONS.map((entry) => (
           <button
@@ -729,7 +742,7 @@ function MemberCard(props: {
           </button>
         ))}
       </div>
-      <p data-testid={`dshws-keysel-hint-${member.key}`} style={{ ...hintStyle, marginTop: -6, gridColumn: '2' }}>
+      <p data-testid={`dshws-keysel-hint-${member.key}`} style={hintStyle}>
         {t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
       </p>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —
