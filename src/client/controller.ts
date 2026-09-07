@@ -63,6 +63,8 @@ interface MemberSectionValue {
   keySelection?: 'order' | 'round-robin' | 'random'
   /** DeepSeek-only (S14c): server-tool search budget per request, host parity. */
   maxUses?: number
+  /** Endpoint override (S14k, host-parity「接口地址」); empty = provider default. Launch-static. */
+  baseURL?: string
 }
 
 interface SectionValue {
@@ -89,6 +91,8 @@ export interface MemberSnapshot {
   readonly configured: boolean
   /** Pool selection policy, defaulted to `order` in deriveSnapshot (ADR-0008; S13 D4). */
   readonly keySelection: 'order' | 'round-robin' | 'random'
+  /** Endpoint override; `undefined` = provider default (launch-static, S14k). */
+  readonly baseURL: string | undefined
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -140,6 +144,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'order',
+      baseURL: section?.baseURL,
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -255,6 +260,20 @@ export class WebSearchSettingsController {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { keySelection } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /**
+   * Set a member's endpoint override (S14k, host-parity「接口地址」). Empty
+   * string clears the override (back to provider default). Launch-static:
+   * applies at next launch — the GUI states this next to the field.
+   */
+  async setBaseURL(memberKey: string, baseURL: string): Promise<ActionResult> {
+    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
+    if (!member) return { ok: false }
+    const result = await this.#ports.updateSettings(NS, { [member.key]: { baseURL: baseURL.trim() } }, this.#revision)
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }
