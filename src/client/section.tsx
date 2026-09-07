@@ -93,6 +93,26 @@ const hintStyle = {
   color: 'var(--dsw-alias-label-tertiary)',
 } as const
 
+/** S14l: every expanded field row shares one grid — a fixed label column
+ * (110px, right-aligned labels) and a flexing control column — so the API
+ * key, policy, and endpoint rows all align on the same vertical rhythm. */
+const fieldRowStyle = {
+  display: 'grid',
+  gridTemplateColumns: '110px minmax(0, 1fr)',
+  alignItems: 'center',
+  columnGap: 10,
+} as const
+
+const fieldLabelStyle = {
+  fontSize: 12,
+  color: 'var(--dsw-alias-label-secondary)',
+  textAlign: 'right',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  gap: 4,
+} as const
+
 const footerStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -114,17 +134,6 @@ const infoButtonStyle = {
 
 /** Key-selection row (S13 D2): label + three segments; the pressed segment
  * carries the field visual (bg-layer-1/border-l3 — Input wrapper precedent). */
-const keySelRowStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-} as const
-
-const keySelLabelStyle = {
-  fontSize: 12,
-  color: 'var(--dsw-alias-label-secondary)',
-} as const
-
 const keySelButtonStyle = (pressed: boolean, configured: boolean) =>
   ({
     fontSize: 12,
@@ -578,8 +587,8 @@ function MemberEndpointField(props: {
   }, [feedback])
   const value = draft ?? member.baseURL ?? ''
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ fontSize: 12, color: 'var(--dsw-alias-label-secondary)', flexShrink: 0 }}>
+    <div style={fieldRowStyle}>
+      <span style={fieldLabelStyle}>
         {t('endpointLabel')}
         <Tooltip label={t('endpointNote')} side="bottom" delayMs={400} maxWidth={320}>
           <button type="button" aria-label={t('endpointNote')} style={infoButtonStyle}>
@@ -587,31 +596,33 @@ function MemberEndpointField(props: {
           </button>
         </Tooltip>
       </span>
-      <Input
-        aria-label={`${member.label} ${t('endpointLabel')}`}
-        data-testid={`dshws-endpoint-${member.key}`}
-        placeholder="https://…"
-        value={value}
-        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
-        style={{ ...inputStyle, height: 30 }}
-      />
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={draft === null || draft === (member.baseURL ?? '')}
-        aria-label={`${member.label} ${t('endpointLabel')} ${t('save')}`}
-        onClick={() => {
-          void onSet(member.key, draft ?? '').then((result) => {
-            setFeedback(result.ok ? 'saved' : 'failed')
-            if (result.ok) setDraft(null)
-          })
-        }}
-      >
-        {t('save')}
-      </Button>
-      {feedback ? (
-        <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
-      ) : null}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <Input
+          aria-label={`${member.label} ${t('endpointLabel')}`}
+          data-testid={`dshws-endpoint-${member.key}`}
+          placeholder="https://…"
+          value={value}
+          onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
+          style={inputStyle}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={draft === null || draft === (member.baseURL ?? '')}
+          aria-label={`${member.label} ${t('endpointLabel')} ${t('save')}`}
+          onClick={() => {
+            void onSet(member.key, draft ?? '').then((result) => {
+              setFeedback(result.ok ? 'saved' : 'failed')
+              if (result.ok) setDraft(null)
+            })
+          }}
+        >
+          {t('save')}
+        </Button>
+        {feedback ? (
+          <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -685,21 +696,24 @@ function MemberCard(props: {
       </div>
       {open ? (
       <>
-      <Input
-        type="password"
-        aria-label={`${member.label} ${t('apiKey')}`}
-        placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
+      <div style={fieldRowStyle}>
+        <span style={fieldLabelStyle}>{t('apiKey')}</span>
+        <Input
+          type="password"
+          aria-label={`${member.label} ${t('apiKey')}`}
+          placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
         value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
         onFocus={() => { if (draft === '') setEditing(true) }}
         onBlur={() => setEditing(false)}
         onChange={(event) => setDraft(event.target.value)}
         style={inputStyle}
-      />
+        />
+      </div>
       {/* Key-selection control (S13 D2/D3): the pool policy plus the two-level
       call-semantics note — per-button member-prefixed names avoid the
       identical-buttons ambiguity (S06 lesson). */}
-      <div role="group" aria-label={`${member.label} ${t('keySelection')}`} style={keySelRowStyle}>
-        <span style={keySelLabelStyle}>{t('keySelection')}</span>
+      <div role="group" aria-label={`${member.label} ${t('keySelection')}`} style={fieldRowStyle}>
+        <span style={fieldLabelStyle}>{t('keySelection')}</span>
         {KEY_SELECTIONS.map((entry) => (
           <button
             key={entry.value}
@@ -715,7 +729,7 @@ function MemberCard(props: {
           </button>
         ))}
       </div>
-      <p data-testid={`dshws-keysel-hint-${member.key}`} style={{ ...hintStyle, marginTop: -6 }}>
+      <p data-testid={`dshws-keysel-hint-${member.key}`} style={{ ...hintStyle, marginTop: -6, gridColumn: '2' }}>
         {t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
       </p>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —

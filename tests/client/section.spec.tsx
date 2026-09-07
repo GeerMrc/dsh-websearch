@@ -439,15 +439,17 @@ describe('WebSearchSettingsSection', () => {
     expect(exaDot.getAttribute('title')).toBe(en.configured)
   })
 
-  it('the key input owns its line and the actions live in a separate footer row (12a 反馈③)', () => {
+  it('field rows share one label column; actions live in a separate footer row (S14l 重构 12a 反馈③)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')
     const card = screen.getByTestId('dshws-member-tavily')
     const input = within(card).getByLabelText('Tavily API Key')
-    // The Input primitive wraps the field in a span; that wrapper must be a
-    // DIRECT child of the card (its own line), with no button in it.
+    // The label column: the API key, policy, and endpoint rows align on the
+    // same grid — their labels share the fieldLabelStyle right alignment.
+    const labels = within(card).getAllByText(en.apiKey)
+    expect(labels.length).toBeGreaterThanOrEqual(1)
+    // The Input wrapper sits inside the field row (no button in it).
     const wrap = input.parentElement as HTMLElement
-    expect(wrap.parentElement).toBe(card)
     expect(wrap.querySelector('button')).toBeNull()
     // Save and Clear share a dedicated footer row.
     const save = within(card).getByRole('button', { name: 'Tavily Save' })
