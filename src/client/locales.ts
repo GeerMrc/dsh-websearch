@@ -52,6 +52,7 @@ export type DshWsLocaleKey =
   | 'fallbackSwitch'
   | 'fallbackInfo'
   | 'fallbackNote'
+  | 'fallbackRowLabel'
   | 'maxUsesLabel'
   | 'maxUsesHint'
   | 'chainTailHint'
@@ -109,7 +110,8 @@ export const en: Record<DshWsLocaleKey, string> = {
   toolError: 'Call failed',
   fallbackSwitch: 'paid fallback',
   fallbackInfo: 'DeepSeek fallback details',
-  fallbackNote: 'Installing this plugin serves web_search through its chain; the host built-in DeepSeek entry stays idle. This row is the chain-internal DeepSeek fallback (pinned to the chain tail, never orderable): it shares the DEEPSEEK_API_KEY with the Models settings page — edits on either side overwrite the other — and serves whenever no earlier member is usable. Off by default: web_search fails loud when no member is usable unless you opt into the paid fallback here.',
+  fallbackRowLabel: 'Fallback search',
+  fallbackNote: 'The chain-tail fallback: when no orderable member is usable, the ACTIVE choice below serves the search. Paid = DeepSeek websearch through the Models-page DEEPSEEK_API_KEY (shared with chat; edits on either side overwrite the other; needs the key configured, budget via Max searches per request). Free = keyless DuckDuckGo scrape (always ready; reachability depends on the network). The default is automatic: model key present → paid, otherwise free; switch any time, effective on the next search.',
   chainDisabledNote: ' (disabled)',
   chainNoUsableWarning: 'No configured member is enabled — the next web_search will fail. Enable a member or the DeepSeek fallback.',
   maxUsesLabel: 'Max searches per request',
@@ -162,7 +164,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   toolError: '调用失败',
   fallbackSwitch: '付费兜底',
   fallbackInfo: 'DeepSeek 兜底说明',
-  fallbackNote: '安装本插件后 web_search 由插件链接管，宿主内置的 DeepSeek 搜索入口保持闲置。此行即链内 DeepSeek 兜底（恒为链尾，不参与排序）：与模型设置页共用同一把 DEEPSEEK_API_KEY，两处修改后写覆盖；前序成员均不可用时由此兜底。默认关闭：无成员可用时 web_search 直接报错指引，选付费后才经此兜底。',
+  fallbackRowLabel: '兜底搜索',
+  fallbackNote: '链尾兜底：前序成员均不可用时，由下方当前激活的选项承接搜索。付费 = 经模型设置页 DEEPSEEK_API_KEY 的 DeepSeek websearch（与聊天共用同一把 key，两处修改后写覆盖；需已配置该 key；预算见「单次请求最多搜索次数」）。免费 = 免 key 的 DuckDuckGo 抓取（恒就绪；可达性取决于网络）。默认自动：有模型 key → 付费，否则免费；可随时切换，下一次搜索生效。',
   chainDisabledNote: '（已停用）',
   chainNoUsableWarning: '没有已启用的已配置成员——下一次 web_search 将失败。请启用某成员或 DeepSeek 兜底。',
   maxUsesLabel: '单次请求最多搜索次数',

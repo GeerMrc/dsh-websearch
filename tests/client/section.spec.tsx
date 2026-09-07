@@ -301,28 +301,25 @@ describe('WebSearchSettingsSection', () => {
     expect(within(screen.getByTestId('dshws-members')).queryByRole('tooltip')).toBeNull()
   })
 
-  it('DeepSeek renders as the fallback row without any key configuration surface (S14b D1)', () => {
+  it('the fallback row carries no key surface; the ACTIVE choice owns the green dot (S14b D1 + S14i 审核)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const row = screen.getByTestId('dshws-fallback-deepseek')
-    expect(within(row).getByText('DeepSeek')).toBeTruthy()
-    expect(within(row).getByText(en.sharedWithModels)).toBeTruthy()
+    expect(within(row).getByText(en.fallbackRowLabel)).toBeTruthy()
     const info = within(row).getByRole('button', { name: en.fallbackInfo })
     fireEvent.focus(info)
     expect(screen.getByRole('tooltip').textContent).toBe(en.fallbackNote)
     fireEvent.blur(info)
     expect(screen.queryByRole('tooltip')).toBeNull()
-    // No key input, no pool controls, no save/clear on the fallback row.
+    // No key input, no pool controls, no save/clear — and no leftover
+    // DeepSeek-specific label/badge (S14i: those live in the ⓘ note only).
     expect(within(row).queryByLabelText(`DeepSeek ${en.apiKey}`)).toBeNull()
-    // No KEY-configuration group; the S14d fallback-choice group is the only group.
     expect(within(row).queryByRole('group', { name: en.keySelection })).toBeNull()
-    expect(within(row).getByRole('group', { name: en.fallbackChoiceGroup })).toBeTruthy()
     expect(within(row).queryByRole('button', { name: `DeepSeek ${en.save}` })).toBeNull()
-    expect(within(row).queryByRole('button', { name: `DeepSeek ${en.clear}` })).toBeNull()
     expect(within(row).queryByTestId('dshws-keysel-hint-deepseek')).toBeNull()
-    // S14c: the standalone bottom footnote is gone — the ⓘ note is the single
-    // explanation surface (user ruling on the S14b duplication).
-    expect(screen.queryByTestId('dshws-fallback-footnote')).toBeNull()
+    expect(within(row).queryByText(en.sharedWithModels)).toBeNull()
+    expect(within(row).getByRole('group', { name: en.fallbackChoiceGroup })).toBeTruthy()
   })
+
 
   it('chain rows visually mark disabled members while they stay listed (S14b D2, S14c 移至可排序成员)', () => {
     const members = defaultMembers()
@@ -383,15 +380,29 @@ describe('WebSearchSettingsSection', () => {
   })
 
 
-  it('only the DeepSeek card carries the shared-with-models badge (12b 反馈②)', () => {
-    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const badge = within(screen.getByTestId('dshws-fallback-deepseek')).getByText(en.sharedWithModels)
-    expect(badge.getAttribute('title')).toBe(en.sharedWithModelsDetail)
-    // The other five cards have no such badge.
-    for (const key of ['tavily', 'exa', 'perplexity', 'firecrawl', 'anysearch']) {
-      expect(within(screen.getByTestId(`dshws-member-${key}`)).queryByText(en.sharedWithModels)).toBeNull()
-    }
+  it('the choice dots follow the ACTIVE tool: paid needs its key, free is always ready (S14i)', () => {
+    // Default fixture: choice=fetch (auto, no key) → fetch dot green, paid gray.
+    const first = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const paidDot1 = screen.getByTestId('dshws-fallback-dot-paid')
+    const fetchDot1 = screen.getByTestId('dshws-fallback-dot-fetch')
+    expect(paidDot1.style.background).toBe('var(--dsw-alias-state-warn-label)')
+    expect(fetchDot1.style.background).toBe('var(--dsw-alias-state-success-primary)')
+    first.unmount()
+
+    // choice=deepseek with the key configured → paid dot green, fetch gray.
+    const second = render(<WebSearchSettingsSection {...makeProps({ snapshot: { ...makeSnapshot(), fallbackProvider: 'deepseek' } })} t={t} />)
+    expect(screen.getByTestId('dshws-fallback-dot-paid').style.background).toBe('var(--dsw-alias-state-success-primary)')
+    expect(screen.getByTestId('dshws-fallback-dot-fetch').style.background).toBe('var(--dsw-alias-state-warn-label)')
+    second.unmount()
+
+    // choice=deepseek WITHOUT the key → both gray (paid not armed; honest).
+    const dryMembers = defaultMembers()
+    dryMembers[4] = member('deepseek', 'DeepSeek', { configured: false })
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: { ...makeSnapshot(dryMembers), fallbackProvider: 'deepseek' } })} t={t} />)
+    expect(screen.getByTestId('dshws-fallback-dot-paid').style.background).toBe('var(--dsw-alias-state-warn-label)')
+    expect(screen.getByTestId('dshws-fallback-dot-fetch').style.background).toBe('var(--dsw-alias-state-warn-label)')
   })
+
 
   it('the card head row pairs a semantic status dot with the brand name and the switch (12a D1)', () => {
     const members = defaultMembers()

@@ -180,6 +180,17 @@ export class WebSearchSettingsController {
   /** Load the section and credential facts, then subscribe to key updates. */
   async init(): Promise<void> {
     this.#unsubscribe = this.#ports.onReferenceUpdated(() => void this.#refreshCredentials())
+    await this.#refreshSection()
+    await this.#refreshCredentials()
+  }
+
+  /**
+   * Re-describe the settings document and recompute from it. S14i audit fix:
+   * every successful settings write re-describes — trusting the update
+   * response's embedded view left the snapshot on stale values against the
+   * real host (the page needed a reload to see the new state).
+   */
+  async #refreshSection(): Promise<void> {
     const described = await this.#ports.describeSettings()
     if (described.ok) {
       const view = described.value.namespaces.find((candidate) => candidate.ns === NS)
@@ -188,7 +199,6 @@ export class WebSearchSettingsController {
       this.#writable = described.value.writable
       this.#recompute()
     }
-    await this.#refreshCredentials()
   }
 
   /** Detach the reference-updated subscription (the entry's disposer calls this). */
@@ -236,9 +246,7 @@ export class WebSearchSettingsController {
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { enabled } }, this.#revision)
     if (!result.ok) return { ok: false }
-    this.#value = (result.value.value ?? {}) as SectionValue
-    this.#revision = result.value.revision
-    this.#recompute()
+    await this.#refreshSection()
     return { ok: true }
   }
 
@@ -248,9 +256,7 @@ export class WebSearchSettingsController {
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { keySelection } }, this.#revision)
     if (!result.ok) return { ok: false }
-    this.#value = (result.value.value ?? {}) as SectionValue
-    this.#revision = result.value.revision
-    this.#recompute()
+    await this.#refreshSection()
     return { ok: true }
   }
 
@@ -258,9 +264,7 @@ export class WebSearchSettingsController {
   async setFallbackProvider(choice: 'deepseek' | 'fetch'): Promise<ActionResult> {
     const result = await this.#ports.updateSettings(NS, { fallbackProvider: choice }, this.#revision)
     if (!result.ok) return { ok: false }
-    this.#value = (result.value.value ?? {}) as SectionValue
-    this.#revision = result.value.revision
-    this.#recompute()
+    await this.#refreshSection()
     return { ok: true }
   }
 
@@ -274,9 +278,7 @@ export class WebSearchSettingsController {
     if (!Number.isInteger(maxUses) || maxUses < 5 || maxUses > 100) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { deepseek: { maxUses } }, this.#revision)
     if (!result.ok) return { ok: false }
-    this.#value = (result.value.value ?? {}) as SectionValue
-    this.#revision = result.value.revision
-    this.#recompute()
+    await this.#refreshSection()
     return { ok: true }
   }
 
@@ -300,9 +302,7 @@ export class WebSearchSettingsController {
     ;[chain[from], chain[to]] = [chain[to], chain[from]]
     const result = await this.#ports.updateSettings(NS, { searchChain: chain }, this.#revision)
     if (!result.ok) return { ok: false }
-    this.#value = (result.value.value ?? {}) as SectionValue
-    this.#revision = result.value.revision
-    this.#recompute()
+    await this.#refreshSection()
     return { ok: true }
   }
 
