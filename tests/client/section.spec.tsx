@@ -38,7 +38,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     refName: `${key.toUpperCase()}_API_KEY`,
     enabled: true,
     configured: true,
-    keySelection: 'order',
+    keySelection: 'round-robin',
     baseURL: undefined,
     source: undefined,
     writable: true,
@@ -439,24 +439,19 @@ describe('WebSearchSettingsSection', () => {
     expect(exaDot.getAttribute('title')).toBe(en.configured)
   })
 
-  it('field rows share one label column; actions live in a separate footer row (S14l 重构 12a 反馈③)', () => {
+  it('fields stack label-above-input; actions live in a separate footer row (S14m/S14n)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')
     const card = screen.getByTestId('dshws-member-tavily')
     const input = within(card).getByLabelText('Tavily API Key')
-    // The label column: the API key, policy, and endpoint rows align on the
-    // same grid — their labels share the fieldLabelStyle right alignment.
-    const labels = within(card).getAllByText(en.apiKey)
-    expect(labels.length).toBeGreaterThanOrEqual(1)
-    // The Input wrapper sits inside the field row (no button in it).
     const wrap = input.parentElement as HTMLElement
-    expect(wrap.querySelector('button')).toBeNull()
-    // Save and Clear share a dedicated footer row.
+    expect(wrap.querySelector('button')).toBeTruthy() // the policy chip shares the input row
     const save = within(card).getByRole('button', { name: 'Tavily Save' })
     const footer = save.parentElement as HTMLElement
     expect(within(footer).getByRole('button', { name: 'Tavily Clear' })).toBeTruthy()
     expect(footer).not.toBe(wrap)
   })
+
 
   it('the switch track carries a 16px thumb span that follows the enabled state (12a D1)', () => {
     const members = defaultMembers()
@@ -508,9 +503,8 @@ describe('WebSearchSettingsSection', () => {
     expect(rerendered.container.querySelector('[data-testid="dshws-chain-feedback"]')).toBeNull()
   })
 
-  it('renders a key-selection group on every card with the order policy pressed by default (S13 D2)', () => {
+  it('every card carries one cycling policy chip beside the key input, defaulting to round-robin (S14n 用户方案)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    // S14b: the fallback row carries no key-selection group — five cards only.
     const keyed = [
       ['tavily', 'Tavily'],
       ['exa', 'Exa'],
@@ -521,35 +515,37 @@ describe('WebSearchSettingsSection', () => {
     for (const [key, brand] of keyed) {
       expand(key)
       const card = screen.getByTestId(`dshws-member-${key}`)
-      const group = within(card).getByRole('group', { name: `${brand} ${en.keySelection}` })
-      const buttons = within(group).getAllByRole('button')
-      expect(buttons.length).toBe(3)
-      // The live policy is pressed and carries the pressed field visual.
-      const pressed = within(group).getByRole('button', { name: `${brand} ${en.keySelOrder}` }) as HTMLButtonElement
-      expect(pressed.getAttribute('aria-pressed')).toBe('true')
-      expect(pressed.style.background).toBe('var(--dsw-alias-bg-layer-1)')
-      for (const other of [en.keySelRoundRobin, en.keySelRandom]) {
-        expect((within(group).getByRole('button', { name: `${brand} ${other}` }).getAttribute('aria-pressed'))).toBe('false')
-      }
+      const chip = within(card).getByTestId(`dshws-keysel-chip-${key}`) as HTMLButtonElement
+      // The chip sits in the same row as the key input and names the live policy.
+      expect(chip.textContent).toContain(en.keySelRoundRobin)
+      expect(chip.getAttribute('aria-label')).toBe(`${brand} ${en.keySelection} ${en.keySelRoundRobin}`)
+      // The old three-segment group is gone.
+      expect(within(card).queryByRole('group', { name: `${brand} ${en.keySelection}` })).toBeNull()
     }
   })
 
-  it('clicking a strategy reports the member and policy, and the pressed state follows the snapshot (S13 D2/D4)', async () => {
+
+  it('each chip click advances the policy 轮询→顺序→随机→轮询 and persists via the setter (S14n)', async () => {
     const onSetKeySelection = vi.fn(async () => ({ ok: true }) as ActionResult)
     const first = render(<WebSearchSettingsSection {...makeProps({ onSetKeySelection })} t={t} />)
     expand('tavily')
-    fireEvent.click(
-      within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.keySelRandom}` }),
-    )
-    await waitFor(() => expect(onSetKeySelection).toHaveBeenCalledWith('tavily', 'random'))
-
+    const chip = () => screen.getByTestId('dshws-keysel-chip-tavily') as HTMLButtonElement
+    expect(chip().textContent).toContain(en.keySelRoundRobin)
+    fireEvent.click(chip())
+    await waitFor(() => expect(onSetKeySelection).toHaveBeenCalledWith('tavily', 'order'))
     const members = defaultMembers()
-    members[0] = member('tavily', 'Tavily', { keySelection: 'random' })
+    members[0] = member('tavily', 'Tavily', { keySelection: 'order' })
     first.rerender(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members), onSetKeySelection })} t={t} />)
-    const card = screen.getByTestId('dshws-member-tavily')
-    expect((within(card).getByRole('button', { name: `Tavily ${en.keySelRandom}` }).getAttribute('aria-pressed'))).toBe('true')
-    expect((within(card).getByRole('button', { name: `Tavily ${en.keySelOrder}` }).getAttribute('aria-pressed'))).toBe('false')
+    expect(chip().textContent).toContain(en.keySelOrder)
+    fireEvent.click(chip())
+    await waitFor(() => expect(onSetKeySelection).toHaveBeenLastCalledWith('tavily', 'random'))
+    const members2 = defaultMembers()
+    members2[0] = member('tavily', 'Tavily', { keySelection: 'random' })
+    first.rerender(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members2), onSetKeySelection })} t={t} />)
+    fireEvent.click(chip())
+    await waitFor(() => expect(onSetKeySelection).toHaveBeenLastCalledWith('tavily', 'round-robin'))
   })
+
 
 
   it('the global card sits above the tools and carries the maxUses knob (S14c T1)', () => {
@@ -575,7 +571,7 @@ describe('WebSearchSettingsSection', () => {
     // Expand: the multi-key surface is intact.
     expand('tavily')
     expect(within(card).getByLabelText(`Tavily ${en.apiKey}`)).toBeTruthy()
-    expect(within(card).getByRole('group', { name: `Tavily ${en.keySelection}` })).toBeTruthy()
+    expect(within(card).getByTestId('dshws-keysel-chip-tavily')).toBeTruthy()
     expect(within(card).getByRole('button', { name: `Tavily ${en.save}` })).toBeTruthy()
   })
 
@@ -621,17 +617,15 @@ describe('WebSearchSettingsSection', () => {
     expect(input.value).toBe('100')
   })
 
-  it('an unconfigured member disables the control, and the hint states the two-level semantics (S13 D3)', () => {
+  it('an unconfigured member disables the policy chip; the hint states the live semantics (S14n)', () => {
     const members = defaultMembers()
     members[0] = member('tavily', 'Tavily', { configured: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     expand('tavily')
-    const card = screen.getByTestId('dshws-member-tavily')
-    for (const strategy of [en.keySelOrder, en.keySelRoundRobin, en.keySelRandom]) {
-      expect(((within(card).getByRole('button', { name: `Tavily ${strategy}` })) as HTMLButtonElement).disabled).toBe(true)
-    }
-    // The hint interpolates the live policy name and states no-swap degrade.
-    const hint = within(card).getByTestId('dshws-keysel-hint-tavily')
-    expect(hint.textContent).toBe(en.keySelectionHint.replace('{policy}', en.keySelOrder))
+    const chip = screen.getByTestId('dshws-keysel-chip-tavily') as HTMLButtonElement
+    expect(chip.disabled).toBe(true)
+    const hint = screen.getByTestId('dshws-keysel-hint-tavily')
+    expect(hint.textContent).toBe(en.keySelectionHint.replace('{policy}', en.keySelRoundRobin))
   })
+
 })

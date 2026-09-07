@@ -710,6 +710,7 @@ function MemberCard(props: {
       <>
       <div style={fieldStyle}>
         <span style={fieldLabelStyle}>{t('apiKey')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         <input
           type="password"
           autoComplete="off"
@@ -719,30 +720,36 @@ function MemberCard(props: {
           onFocus={() => { if (draft === '') setEditing(true) }}
           onBlur={() => setEditing(false)}
           onChange={(event) => setDraft(event.target.value)}
-          style={fieldInputStyle}
+          style={{ ...fieldInputStyle, flex: 1, minWidth: 0 }}
         />
-      </div>
-      {/* Key-selection control (S13 D2/D3): the pool policy plus the two-level
-      call-semantics note — per-button member-prefixed names avoid the
-      identical-buttons ambiguity (S06 lesson). */}
-      <div role="group" aria-label={`${member.label} ${t('keySelection')}`} style={fieldStyle}>
-        <span style={fieldLabelStyle}>{t('keySelection')}</span>
-        {KEY_SELECTIONS.map((entry) => (
-          <button
-            key={entry.value}
-            type="button"
-            aria-pressed={member.keySelection === entry.value}
-            aria-label={`${member.label} ${t(entry.labelKey)}`}
-            data-testid={`dshws-keysel-${member.key}-${entry.value}`}
-            disabled={!member.configured}
-            onClick={() => void onSetKeySelection(member.key, entry.value)}
-            style={keySelButtonStyle(member.keySelection === entry.value, member.configured)}
+          {/* S14n (user ruling): the pool policy is ONE cycling chip beside the
+          key input — each click advances 轮询 → 顺序 → 随机 → 轮询; hover
+          states the live semantics. Replaces the three-segment group. */}
+          <Tooltip
+            label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
+            side="bottom"
+            delayMs={300}
+            maxWidth={320}
           >
-            {t(entry.labelKey)}
-          </button>
-        ))}
+            <button
+              type="button"
+              data-testid={`dshws-keysel-chip-${member.key}`}
+              aria-label={`${member.label} ${t('keySelection')} ${t(keySelectionLabelKey(member.keySelection))}`}
+              disabled={!member.configured}
+              onClick={() => {
+                const order: readonly ('order' | 'round-robin' | 'random')[] = ['round-robin', 'order', 'random']
+                const next = order[(order.indexOf(member.keySelection) + 1) % order.length]!
+                void onSetKeySelection(member.key, next)
+              }}
+              style={{ ...keySelButtonStyle(true, member.configured), display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, lineHeight: '18px', padding: '6px 10px' }}
+            >
+              <span aria-hidden="true" style={{ fontSize: 12 }}>⇄</span>
+              {t(keySelectionLabelKey(member.keySelection))}
+            </button>
+          </Tooltip>
+        </div>
       </div>
-      <p data-testid={`dshws-keysel-hint-${member.key}`} style={hintStyle}>
+      <p data-testid={`dshws-keysel-hint-${member.key}`} style={{ ...hintStyle, marginTop: -2 }}>
         {t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
       </p>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —

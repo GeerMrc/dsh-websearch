@@ -232,7 +232,7 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.enabled).toBe(true)
   })
 
-  it('init derives the order selection default and honors described values (S13 D4)', async () => {
+  it('init derives the round-robin selection default and honors described values (S14n 默认改判)', async () => {
     const remote = new FakeRemote()
     remote.nsValue = { tavily: { keySelection: 'round-robin' } }
     const controller = new WebSearchSettingsController(makePorts(remote))
@@ -240,7 +240,7 @@ describe('WebSearchSettingsController', () => {
 
     const snapshot = controller.snapshot()
     expect(snapshot.members.find((member) => member.key === 'tavily')?.keySelection).toBe('round-robin')
-    expect(snapshot.members.find((member) => member.key === 'exa')?.keySelection).toBe('order')
+    expect(snapshot.members.find((member) => member.key === 'exa')?.keySelection).toBe('round-robin')
   })
 
   it('setKeySelection patches the member selection with the current revision (S13 D4)', async () => {
