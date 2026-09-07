@@ -124,7 +124,8 @@ describe('WebSearchSettingsSection', () => {
     render(<WebSearchSettingsSection {...makeProps({ onSaveKey })} t={t} />)
     expand('tavily')
     const input = focusKey('Tavily API Key')
-    expect(input.getAttribute('type')).toBe('password')
+    // S14q: typing is plaintext (the mask is a re-expand display state).
+    expect(input.getAttribute('type')).toBe('text')
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))
     await waitFor(() => expect(onSaveKey).toHaveBeenCalledWith('tavily', 'sk-fake-tavily'))
