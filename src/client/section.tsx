@@ -258,16 +258,36 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
       <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('searchChain')}</h4>
-            <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
             <span style={{ flex: 1 }} />
-            {/* S14e (user ruling): the order note lives behind a bordered ⓘ
-            badge on the corner — no dead prose lines under the heading. */}
-            <Tooltip label={t('chainOrderHint')} side="bottom" delayMs={200} maxWidth={360}>
+            {/* S14f (user ruling): the ! badge fully replaces the old
+            "内置默认序" pill — the note (and the pinned/default state it now
+            also carries) lives in its hover tooltip alone. */}
+            <Tooltip
+              label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
+              side="bottom"
+              delayMs={200}
+              maxWidth={360}
+            >
               <button
                 type="button"
-                aria-label={t('chainOrderHint')}
+                aria-label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
                 data-testid="dshws-chain-order-info"
-                style={{ ...infoButtonStyle, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, width: 22, height: 22, fontSize: 11 }}
+                data-dshws-chain-state={snapshot.searchChainPinned ? 'pinned' : 'default'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 22,
+                  height: 22,
+                  padding: 0,
+                  border: '1px solid var(--dsw-alias-border-l2)',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: 'var(--dsw-alias-label-secondary)',
+                  fontSize: 12,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                }}
               >
                 !
               </button>
@@ -440,25 +460,6 @@ const moveButtonStyle = {
   background: 'transparent',
   color: 'var(--dsw-alias-label-secondary)',
 } as const
-
-/** The pinned-override marker: data attribute for tests, copy for humans (plan 007 D1);
- * a plain 11px badge — the default-order explanation lives in the card hint line. */
-function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => string }) {
-  return (
-    <span
-      data-dshws-chain-state={props.pinned ? 'pinned' : 'default'}
-      style={{
-        fontSize: 11,
-        padding: '1px 6px',
-        borderRadius: 999,
-        border: '1px solid var(--dsw-alias-border-l2)',
-        color: 'var(--dsw-alias-label-tertiary)',
-      }}
-    >
-      {props.pinned ? props.t('chainPinned') : props.t('chainDefault')}
-    </span>
-  )
-}
 
 /**
  * The DeepSeek fallback row (S14b D1, user ruling): DeepSeek is not a

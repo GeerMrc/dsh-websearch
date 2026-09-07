@@ -217,17 +217,20 @@ describe('WebSearchSettingsSection', () => {
     await waitFor(() => expect(onMoveSearch).toHaveBeenCalledWith('dshws-tavily', 1))
   })
 
-  it('the chain badge reflects the pinned flag on the search chain', () => {
+  it('the ! badge carries the pinned/default state and its tooltip prefixes the pinned note (S14f)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const badges = container.querySelectorAll('[data-dshws-chain-state]')
-    expect(badges.length).toBe(1)
-    expect(badges[0].getAttribute('data-dshws-chain-state')).toBe('default')
+    const badge = container.querySelector('[data-dshws-chain-state]') as HTMLElement
+    expect(badge.getAttribute('data-dshws-chain-state')).toBe('default')
+    fireEvent.focus(badge)
+    expect(screen.getByRole('tooltip').textContent).toBe(en.chainOrderHint)
+    fireEvent.blur(badge)
     cleanup()
     const pinnedSnapshot: SectionSnapshot = { ...makeSnapshot(), searchChainPinned: true }
     const pinned = render(<WebSearchSettingsSection {...makeProps({ snapshot: pinnedSnapshot })} t={t} />)
-    const pinnedBadges = pinned.container.querySelectorAll('[data-dshws-chain-state]')
-    expect(pinnedBadges.length).toBe(1)
-    expect(pinnedBadges[0].getAttribute('data-dshws-chain-state')).toBe('pinned')
+    const pinnedBadge = pinned.container.querySelector('[data-dshws-chain-state]') as HTMLElement
+    expect(pinnedBadge.getAttribute('data-dshws-chain-state')).toBe('pinned')
+    fireEvent.focus(pinnedBadge)
+    expect(screen.getByRole('tooltip').textContent).toBe(`${en.chainPinned}: ${en.chainOrderHint}`)
   })
 
   it('the order note lives behind the bordered ! badge, not dead prose (S14e D4, 用户裁定)', () => {
