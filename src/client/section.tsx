@@ -653,6 +653,14 @@ function MemberCard(props: {
   // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
   const [editing, setEditing] = useState(false)
   const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
+  // S14o: the saved/cleared note auto-clears (2.5s) like the maxUses and
+  // endpoint rows — a sticky 已清除/已保存 that only a page reload dismisses
+  // reads as a stuck state (user report).
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 2500)
+    return () => clearTimeout(timer)
+  }, [feedback])
   const save = async (): Promise<void> => {
     const result = await onSaveKey(member.key, draft)
     if (result.ok) {

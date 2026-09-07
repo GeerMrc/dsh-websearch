@@ -143,6 +143,24 @@ describe('WebSearchSettingsSection', () => {
     expect(input.value).toBe('sk-fake-tavily')
   })
 
+  it('the cleared note auto-dismisses instead of sticking until reload (S14o, 用户报告)', async () => {
+    vi.useFakeTimers()
+    try {
+      const onClearKey = vi.fn(async () => ({ ok: true }) as ActionResult)
+      render(<WebSearchSettingsSection {...makeProps({ onClearKey })} t={t} />)
+      expand('tavily')
+      fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.clear}` }))
+      // The note appears (await the async action's microtask flush)…
+      await vi.advanceTimersByTimeAsync(0)
+      expect(screen.getByTestId('dshws-feedback-tavily').textContent).toBe(en.cleared)
+      // …and leaves on its own after 2.5s — no reload needed.
+      await vi.advanceTimersByTimeAsync(2600)
+      expect(screen.queryByTestId('dshws-feedback-tavily')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('clear is gated on configured and forwards the member key', async () => {
     const onClearKey = vi.fn(async () => ({ ok: true }) as ActionResult)
     const members = defaultMembers()
