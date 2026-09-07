@@ -29,15 +29,37 @@ export const ORDERABLE_SEARCH_MEMBER_ORDER: readonly string[] = [
 export const DEEPSEEK_FALLBACK_MEMBER_ID = 'dshws-deepseek'
 
 /**
+ * The keyless DuckDuckGo scrape member (S14e): the FREE side of the fallback
+ * choice — no credential ref, its gate is always ready.
+ */
+export const FETCH_FALLBACK_MEMBER_ID = 'dshws-fetch-search'
+
+/** The fallback choice (S14e): which member serves as the chain-tail floor. */
+export type FallbackProvider = 'deepseek' | 'fetch' | 'auto'
+
+/**
  * Effective built-in search order: the orderable five, then the DeepSeek
  * fallback tail (ADR-0004 中立开箱默认序, S14c 形态). Fetch chains use the
  * orderable five only — DeepSeek is not a fetch member.
  */
 export const BUILT_IN_MEMBER_ORDER: readonly string[] = [...ORDERABLE_SEARCH_MEMBER_ORDER, DEEPSEEK_FALLBACK_MEMBER_ID]
 
-/** Drop DeepSeek from a chain's orderable span and re-append it as the fixed tail. */
-function withFallbackTail(chain: readonly string[]): string[] {
-  return [...chain.filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID), DEEPSEEK_FALLBACK_MEMBER_ID]
+/**
+ * S14e: the chain tail is the CHOSEN fallback member. `auto` resolves at the
+ * chain-consumption seam (the key gate is runtime state, not config); here we
+ * keep `auto` symbolic so the live getter can decide per request.
+ */
+export function fallbackMemberId(choice: FallbackProvider | undefined): string {
+  if (choice === 'fetch') return FETCH_FALLBACK_MEMBER_ID
+  // 'deepseek' and the unset default both name the paid floor; 'auto' is
+  // resolved by the caller (live getter) before the chain sees it.
+  return DEEPSEEK_FALLBACK_MEMBER_ID
+}
+
+/** Strip both fallback ids from the orderable span and append the chosen tail. */
+export function withFallbackTail(chain: readonly string[], choice: FallbackProvider | undefined): string[] {
+  const span = chain.filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID && id !== FETCH_FALLBACK_MEMBER_ID)
+  return [...span, fallbackMemberId(choice)]
 }
 
 /** Per-member timeout budget applied when the config omits one (ADR-0002). */
@@ -143,6 +165,12 @@ export interface Config {
   fetchChain?: string[]
   /** Timeout budget per chain member per call, in milliseconds. Defaults to {@link DEFAULT_PER_MEMBER_TIMEOUT_MS}. Hot: settings changes apply to the next search. */
   perMemberTimeoutMs?: number
+  /**
+   * The chain-tail fallback choice (S14e): `'deepseek'` (paid, needs the
+   * Models-page key), `'fetch'` (free DuckDuckGo scrape), or `'auto'` (default —
+   * deepseek when its key is configured, else fetch). Hot.
+   */
+  fallbackProvider?: FallbackProvider
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -160,6 +188,7 @@ export interface Config {
 /** Validation schema the cordis loader applies to the `dsh-websearch` config section. */
 export const Config: z<Config> = z.object({
   searchChain: z.array(z.string()),
+  fallbackProvider: z.union(['deepseek', 'fetch', 'auto']),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -261,6 +290,7 @@ export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings
 /** Fully defaulted plugin configuration; the chain providers consume this, not the raw `Config`. */
 export interface ResolvedWebSearchConfig {
   /** Search priority chain; never empty after resolution. */
+  readonly fallbackProvider: FallbackProvider
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
   readonly fetchChain: readonly string[]
@@ -285,7 +315,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
   return {
     searchChain: withFallbackTail(
       config.searchChain?.length ? [...config.searchChain] : ORDERABLE_SEARCH_MEMBER_ORDER,
+      config.fallbackProvider,
     ),
+    fallbackProvider: config.fallbackProvider ?? 'auto',
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],

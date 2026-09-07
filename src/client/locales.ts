@@ -61,6 +61,9 @@ export type DshWsLocaleKey =
   | 'fallbackChoicePaid'
   | 'keyPlaceholder'
   | 'maskedKey'
+  | 'fallbackChoiceFree'
+  | 'chainOrderBadge'
+  | 'chainOrderHint'
   | 'chainDisabledNote'
   | 'chainNoUsableWarning'
 
@@ -118,7 +121,10 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackChoiceGroup: 'Fallback',
   fallbackChoiceNone: 'None (fail loud)',
   fallbackChoicePaid: 'DeepSeek paid',
+  fallbackChoiceFree: 'Fetch (free)',
   keyPlaceholder: '{ref} — multiple keys: APIKEY1,APIKEY2,… (max 10)',
+  chainOrderBadge: 'Built-in default order',
+  chainOrderHint: 'Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch (fallback search tool: paid DeepSeek APIKEY or free Fetch websearch)',
   maskedKey: '••••••••',
 }
 
@@ -170,6 +176,9 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackChoiceGroup: '兜底',
   fallbackChoiceNone: '无兜底',
   fallbackChoicePaid: 'DeepSeek 付费',
+  fallbackChoiceFree: 'Fetch 免费',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',
+  chainOrderBadge: '内置默认序',
+  chainOrderHint: '内置默认序：Tavily → Exa → Perplexity → Firecrawl → AnySearch（兜底搜索工具：付费 DeepSeek APIKEY 或 免费 Fetch websearch）',
   maskedKey: '••••••••',
 }

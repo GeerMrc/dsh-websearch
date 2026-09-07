@@ -25,6 +25,8 @@ import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
 import { AnysearchSearchProvider, resolveAnysearchMemberOptions } from './providers/anysearch.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
+import { FetchSearchProvider, FETCH_FALLBACK_MEMBER_ID } from './providers/fetchsearch.ts'
+import { DEEPSEEK_FALLBACK_MEMBER_ID, fallbackMemberId } from './config.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
 import { PerplexitySearchProvider, resolvePerplexityMemberOptions } from './providers/perplexity.ts'
@@ -153,7 +155,15 @@ export function apply(ctx: Context, config: Config): void {
   ctx.web.registerSearchProvider(new ChainSearchProvider({
     members: searchMembers.toResolver(),
     get order() {
-      return live.current().searchChain
+      const current = live.current()
+      // S14e: 'auto' picks the paid floor only when its key gate is armed;
+      // otherwise the free fetch scrape serves as the chain tail.
+      const chain = [...current.searchChain]
+      const tail = current.fallbackProvider === 'auto'
+        ? (pools.deepseek.ready() ? DEEPSEEK_FALLBACK_MEMBER_ID : FETCH_FALLBACK_MEMBER_ID)
+        : fallbackMemberId(current.fallbackProvider)
+      chain[chain.length - 1] = tail
+      return chain
     },
     get perMemberTimeoutMs() {
       return live.current().perMemberTimeoutMs
@@ -226,6 +236,14 @@ export function apply(ctx: Context, config: Config): void {
     ctx.web.registerSearchProvider(provider)
     searchMembers.register(provider, gates(memberKey, pool))
   }
+  // S14e: the free fetch floor carries no credential ref — its gate is always
+  // ready, enabled with the chain (the choice itself lives in fallbackProvider).
+  const fetchSearch = new FetchSearchProvider()
+  ctx.web.registerSearchProvider(fetchSearch)
+  searchMembers.register(fetchSearch, {
+    enabled: () => true,
+    credentialsReady: () => true,
+  })
   // The scrape face shares the firecrawl instance, key pool, and gate.
   ctx.web.registerFetchProvider(firecrawl)
   fetchMembers.register(firecrawl, gates('firecrawl', pools.firecrawl))
