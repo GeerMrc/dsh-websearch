@@ -66,6 +66,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     fetchChainPinned: false,
     timeoutMs: 30000,
     deepseekMaxUses: undefined,
+    fallbackProvider: 'fetch',
     revision: 0,
     writable: true,
   }
@@ -80,6 +81,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onMoveSearch: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetFallbackProvider: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -228,17 +230,19 @@ describe('WebSearchSettingsSection', () => {
     expect(pinnedBadges[0].getAttribute('data-dshws-chain-state')).toBe('pinned')
   })
 
-  it('the chain card hint explains the built-in order with no info icon (12a 反馈④)', () => {
+  it('the order note lives behind the bordered ! badge, not dead prose (S14e D4, 用户裁定)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
-    // The ⓘ/tooltip pattern is gone from the whole section.
-    expect(within(chains as HTMLElement).queryByRole('tooltip')).toBeNull()
-    expect(within(chains as HTMLElement).queryByRole('button', { name: en.chainDefault })).toBeNull()
-    // The hint line spells the semantics and derives the order from MEMBERS.
-    expect(chains.textContent).toContain(en.chainDefaultHint)
-    expect(chains.textContent).toContain(BRANDS.filter((brand) => brand !== 'DeepSeek').join(' → '))
-    // S14c: the tail rule is stated alongside the orderable span.
-    expect(chains.textContent).toContain(en.chainTailHint)
+    // No dead prose lines: neither the old default-order hint nor the tail note.
+    expect(chains.textContent).not.toContain(en.chainDefaultHint)
+    expect(chains.textContent).not.toContain(en.chainTailHint)
+    // The bordered badge exists; focusing it opens the full order note.
+    const badge = screen.getByTestId('dshws-chain-order-info')
+    expect(badge.textContent).toBe('!')
+    fireEvent.focus(badge)
+    expect(screen.getByRole('tooltip').textContent).toBe(en.chainOrderHint)
+    fireEvent.blur(badge)
+    expect(screen.queryByRole('tooltip')).toBeNull()
   })
 
   it("an unconfigured member's switch is disabled (置灰断言)", () => {
@@ -360,30 +364,21 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByRole('button', { name: en.maxUsesHint.replace('{N}', '3') })).toBeTruthy()
   })
 
-  it('the fallback is a two-way choice defaulting to none; paid is opt-in (S14d D2, 用户裁定)', async () => {
-    const onToggleEnabled = vi.fn(async () => ({ ok: true }) as ActionResult)
-    const members = defaultMembers()
-    members[4] = member('deepseek', 'DeepSeek', { configured: false, enabled: false })
-    const { unmount } = render(
-      <WebSearchSettingsSection {...makeProps({ onToggleEnabled, snapshot: makeSnapshot(members) })} t={t} />,
-    )
-    const offRow = screen.getByTestId('dshws-fallback-deepseek')
-    // Unconfigured: both choices disabled.
-    expect((within(offRow).getByRole('button', { name: en.fallbackChoiceNone }) as HTMLButtonElement).disabled).toBe(true)
-    unmount()
-    // Configured, fallback off (the new default): 无兜底 pressed, paid available.
-    const offMembers = defaultMembers()
-    offMembers[4] = member('deepseek', 'DeepSeek', { enabled: false })
-    const configuredOff = makeSnapshot(offMembers)
-    render(<WebSearchSettingsSection {...makeProps({ onToggleEnabled, snapshot: { ...configuredOff } })} t={t} />)
+  it('the fallback is a paid-vs-free choice; pressing writes the explicit field (S14e D3, 用户方向修正)', async () => {
+    const onSetFallbackProvider = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetFallbackProvider })} t={t} />)
     const row = screen.getByTestId('dshws-fallback-deepseek')
-    const noneBtn = within(row).getByRole('button', { name: en.fallbackChoiceNone }) as HTMLButtonElement
-    const paidBtn = within(row).getByRole('button', { name: en.fallbackChoicePaid }) as HTMLButtonElement
-    expect(noneBtn.getAttribute('aria-pressed')).toBe('true')
-    expect(paidBtn.getAttribute('aria-pressed')).toBe('false')
-    fireEvent.click(paidBtn)
-    await waitFor(() => expect(onToggleEnabled).toHaveBeenCalledWith('deepseek', true))
+    // Fixture default: fetch (free) — the auto default with no model key.
+    const paid = within(row).getByRole('button', { name: en.fallbackChoicePaid }) as HTMLButtonElement
+    const free = within(row).getByRole('button', { name: en.fallbackChoiceFree }) as HTMLButtonElement
+    expect(free.getAttribute('aria-pressed')).toBe('true')
+    expect(paid.getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(paid)
+    await waitFor(() => expect(onSetFallbackProvider).toHaveBeenCalledWith('deepseek'))
+    fireEvent.click(free)
+    await waitFor(() => expect(onSetFallbackProvider).toHaveBeenCalledWith('fetch'))
   })
+
 
   it('only the DeepSeek card carries the shared-with-models badge (12b 反馈②)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)

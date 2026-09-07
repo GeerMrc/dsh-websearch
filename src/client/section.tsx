@@ -30,6 +30,8 @@ export interface SectionProps {
   onSetKeySelection: (memberKey: string, selection: 'order' | 'round-robin' | 'random') => Promise<ActionResult>
   /** DeepSeek fallback maxUses (S14c, host parity). */
   onSetMaxUses: (maxUses: number) => Promise<ActionResult>
+  /** Fallback choice (S14e): paid DeepSeek vs free fetch scrape. */
+  onSetFallbackProvider: (choice: 'deepseek' | 'fetch') => Promise<ActionResult>
 }
 
 /**
@@ -54,6 +56,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onMoveSearch={(id, delta) => controller.moveSearchChainEntry(id, delta)}
         onSetKeySelection={(key, selection) => controller.setKeySelection(key, selection)}
         onSetMaxUses={(maxUses) => controller.setDeepseekMaxUses(maxUses)}
+        onSetFallbackProvider={(choice) => controller.setFallbackProvider(choice)}
       />
     )
   }
@@ -216,7 +219,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackProvider } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -256,11 +259,20 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('searchChain')}</h4>
             <ChainStateBadge pinned={snapshot.searchChainPinned} t={t} />
+            <span style={{ flex: 1 }} />
+            {/* S14e (user ruling): the order note lives behind a bordered ⓘ
+            badge on the corner — no dead prose lines under the heading. */}
+            <Tooltip label={t('chainOrderHint')} side="bottom" delayMs={200} maxWidth={360}>
+              <button
+                type="button"
+                aria-label={t('chainOrderHint')}
+                data-testid="dshws-chain-order-info"
+                style={{ ...infoButtonStyle, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, width: 22, height: 22, fontSize: 11 }}
+              >
+                !
+              </button>
+            </Tooltip>
           </div>
-          <p style={hintStyle}>
-            {t('chainDefaultHint')} {ORDERABLE_LABELS.join(' → ')}
-          </p>
-          <p style={{ ...hintStyle, marginTop: -4 }}>{t('chainTailHint')}</p>
           {showChains ? (
           <ol
             data-testid="dshws-search-chain"
@@ -334,15 +346,13 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         {snapshot.members
           .filter((member) => member.key === 'deepseek')
           .map((member) => (
-            <DeepSeekFallbackRow key={member.key} member={member} t={t} onToggleEnabled={onToggleEnabled} />
+            <DeepSeekFallbackRow key={member.key} member={member} t={t} choice={snapshot.fallbackProvider} onChoose={onSetFallbackProvider} />
           ))}
       </div>
     </div>
   )
 }
 
-/** The orderable span's display labels, in built-in order (S14c: five tools). */
-const ORDERABLE_LABELS: readonly string[] = MEMBERS.filter((m) => m.key !== 'deepseek').map((m) => m.label)
 
 /**
  * Host-parity maxUses knob (S14c): staged numeric input in the global area —
@@ -461,9 +471,10 @@ function ChainStateBadge(props: { pinned: boolean; t: (key: DshWsLocaleKey) => s
 function DeepSeekFallbackRow(props: {
   member: MemberSnapshot
   t: (key: DshWsLocaleKey) => string
-  onToggleEnabled: (memberKey: string, enabled: boolean) => Promise<ActionResult>
+  choice: 'deepseek' | 'fetch'
+  onChoose: (choice: 'deepseek' | 'fetch') => Promise<ActionResult>
 }) {
-  const { member, t, onToggleEnabled } = props
+  const { member, t, choice, onChoose } = props
   const statusText = member.configured ? t('configured') : t('notConfigured')
   return (
     <div data-testid="dshws-fallback-deepseek" style={{ ...cardStyle, flexDirection: 'row', alignItems: 'center', gap: 8, padding: '10px 14px' }}>
@@ -476,28 +487,27 @@ function DeepSeekFallbackRow(props: {
         </button>
       </Tooltip>
       <span style={{ flex: 1 }} />
-      {/* S14d (user ruling): the fallback is a two-way choice — none (fail
-      loud, default) vs the paid DeepSeek backend — not a bare on/off switch. */}
+      {/* S14e (user ruling correction): the fallback floor is a choice between
+      the PAID DeepSeek backend (needs the Models-page key) and the FREE
+      DuckDuckGo fetch scrape — default auto: key → paid, none → free. */}
       <div role="group" aria-label={t('fallbackChoiceGroup')} style={{ display: 'flex', gap: 4 }}>
         <button
           type="button"
-          aria-pressed={!member.enabled}
-          aria-label={t('fallbackChoiceNone')}
-          disabled={!member.configured}
-          onClick={() => void onToggleEnabled(member.key, false)}
-          style={{ ...keySelButtonStyle(!member.enabled, member.configured), fontSize: 11, padding: '0 8px' }}
+          aria-pressed={choice === 'deepseek'}
+          aria-label={t('fallbackChoicePaid')}
+          onClick={() => void onChoose('deepseek')}
+          style={{ ...keySelButtonStyle(choice === 'deepseek', true), fontSize: 11, padding: '0 8px' }}
         >
-          {t('fallbackChoiceNone')}
+          {t('fallbackChoicePaid')}
         </button>
         <button
           type="button"
-          aria-pressed={member.enabled}
-          aria-label={t('fallbackChoicePaid')}
-          disabled={!member.configured}
-          onClick={() => void onToggleEnabled(member.key, true)}
-          style={{ ...keySelButtonStyle(member.enabled, member.configured), fontSize: 11, padding: '0 8px' }}
+          aria-pressed={choice === 'fetch'}
+          aria-label={t('fallbackChoiceFree')}
+          onClick={() => void onChoose('fetch')}
+          style={{ ...keySelButtonStyle(choice === 'fetch', true), fontSize: 11, padding: '0 8px' }}
         >
-          {t('fallbackChoicePaid')}
+          {t('fallbackChoiceFree')}
         </button>
       </div>
     </div>

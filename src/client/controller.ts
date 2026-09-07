@@ -66,6 +66,7 @@ interface MemberSectionValue {
 }
 
 interface SectionValue {
+  fallbackProvider?: 'deepseek' | 'fetch' | 'auto'
   searchChain?: string[]
   fetchChain?: string[]
   perMemberTimeoutMs?: number
@@ -104,6 +105,11 @@ export interface SectionSnapshot {
   readonly timeoutMs: number
   /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
   readonly deepseekMaxUses: number | undefined
+  /**
+   * The fallback choice (S14e): the explicit section value, or the AUTO
+   * default derived from the DeepSeek key readiness (key → paid, none → free).
+   */
+  readonly fallbackProvider: 'deepseek' | 'fetch'
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -148,6 +154,9 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     fetchChainPinned: (value.fetchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseekMaxUses: value.deepseek?.maxUses,
+    fallbackProvider: value.fallbackProvider === 'deepseek' || value.fallbackProvider === 'fetch'
+      ? value.fallbackProvider
+      : (facts.get('DEEPSEEK_API_KEY')?.configured === true ? 'deepseek' : 'fetch'),
     revision,
     writable,
   }
@@ -238,6 +247,16 @@ export class WebSearchSettingsController {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { keySelection } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    this.#value = (result.value.value ?? {}) as SectionValue
+    this.#revision = result.value.revision
+    this.#recompute()
+    return { ok: true }
+  }
+
+  /** Set the fallback choice (S14e): top-level field, hot on the next search. */
+  async setFallbackProvider(choice: 'deepseek' | 'fetch'): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { fallbackProvider: choice }, this.#revision)
     if (!result.ok) return { ok: false }
     this.#value = (result.value.value ?? {}) as SectionValue
     this.#revision = result.value.revision
