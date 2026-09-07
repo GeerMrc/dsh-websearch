@@ -12,6 +12,24 @@
 
 ---
 
+## 2026-09-07 — 免费 fetch 搜索兜底（DDG）+ 二选一自动默认 + 链徽标（Session 14e，用户方向修正）
+
+**新增**
+- **`dshws-fetch-search` 免费成员**：DuckDuckGo HTML 端点抓取+解析（uddg 解码/非 http 丢弃/零结果 fail-loud），免 key 恒 ready——"免费 fetch websearch"的落地形态（web_fetch 只能取 URL，免费侧由插件实现抓取型搜索）（`e91c246`）
+- **fallbackProvider 二选一**（'deepseek'|'fetch'|'auto' 默认 auto）：安装自动默认——模型 key 在→付费 DeepSeek，无→免费 fetch；GUI 兜底行 [DeepSeek 付费 | Fetch 免费] 切换热生效；链尾只拼选中者（auto 在 order getter 现场解析）
+- **语义变更**：无凭据时链恒 AVAILABLE（免费地板）——"不可用"断言移至显式付费选择面（paid+无 key→不可用，诚实失败）
+- 链卡 hint 收进带边框 **! 徽标** Tooltip（删两行写死 prose；内容=五家序+兜底二选一说明）；locales 48→**51 keys**（`cc15d4c`）
+- 测试 285→**292**（292 passed | 9 skipped (301)；+8）；client.js 53.48→**54.91 kB**；index.js 65.89（新成员）
+
+**诚实标注**
+- DDG 可达性=网络依赖：不可达→成员失败→链尽 fail-loud（无更低层）；README 披露归 S15
+- 14d 的"无兜底"选项被本轮方向修正取代（用户澄清本意）
+
+**跟踪**
+- 下一棒：S15 = README + anysearch 迁移 + 升级手册（M5 文档腿收官）
+
+---
+
 ## 2026-09-07 — 兜底二选一（默认无兜底）+ maxUses 修正 + ⓘ/脱敏（Session 14d，用户三项反馈）
 
 **新增**
