@@ -57,6 +57,8 @@ export class KeyPool {
   readonly #ports: KeyPoolPorts
   /** Round-robin cursor over the key sequence; modulo-applied per call. */
   #cursor = 0
+  /** Keys in the pool as of the LAST resolve (S14r retry gate; 0 = never drawn). */
+  #lastKeyCount = 0
   /** Without-replacement deck for `random` (ADR-0012); a permutation of the last seen split. */
   #deck: string[] = []
   /** Next deck index to draw; `>= deck.length` means the cycle is exhausted. */
@@ -64,6 +66,16 @@ export class KeyPool {
 
   constructor(ports: KeyPoolPorts) {
     this.#ports = ports
+  }
+
+  /**
+   * Whether the last draw saw more than one usable key (S14r): a multi-key
+   * pool can redraw a DIFFERENT key on retry; a single key cannot. Before
+   * the first draw this reports false — the gate warms up after the first
+   * request, so the very first request degrades on single-key members.
+   */
+  hasMultiKeyPool(): boolean {
+    return this.#lastKeyCount > 1
   }
 
   /** The live ref name (gate priming and diagnostics). */
@@ -96,6 +108,7 @@ export class KeyPool {
       throw new DshwsError(codes.requestFailed, `${label} credential resolution failed: ${String(error)}`, { cause: error })
     }
     const keys = splitKeys(value ?? '')
+    this.#lastKeyCount = keys.length
     if (keys.length === 0) {
       throw new DshwsError(
         codes.credentialMissing,

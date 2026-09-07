@@ -22,6 +22,13 @@ export interface ChainMember<P = unknown> {
   readonly enabled: boolean
   /** True when the member's credential ref resolves (S04: credentials describe + refresh). */
   readonly credentialsReady: boolean
+  /**
+   * True when the member's key pool can yield a DIFFERENT key on the next
+   * draw (S14r same-member retry). Default false: single-key members and
+   * gate-less test stubs degrade immediately — redrawing the same key would
+   * be a blind retry, not recovery.
+   */
+  readonly multiKeyPool?: boolean
 }
 
 /** Port that turns configured member ids into runnable members; `undefined` = unregistered. */
@@ -50,6 +57,8 @@ export interface MemberGates {
   readonly enabled?: () => boolean
   /** True when the member's credential ref currently resolves (credential gate, `src/credentials.ts`). */
   readonly credentialsReady?: () => boolean
+  /** True when the member's key pool holds more than one usable key (S14r retry gate). */
+  readonly multiKeyPool?: () => boolean
 }
 
 /**
@@ -92,6 +101,7 @@ export class MemberRegistry<P extends { readonly id: string } = WebSearchProvide
           provider,
           enabled: gates?.enabled?.() ?? true,
           credentialsReady: gates?.credentialsReady?.() ?? true,
+          multiKeyPool: gates?.multiKeyPool?.() ?? false,
         }
       },
     }
@@ -129,7 +139,21 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
     return member.provider.available()
   }
 
-  /** Try members in configured order; runtime failures and timeouts degrade to the next member. */
+  /**
+   * Per-member key-redraw budget (S14r, user ruling): a failing key may be
+   * network/quota noise specific to THAT key, so the chain redraws another
+   * key from the member's pool (a fresh `invoke` re-reads the pool policy)
+   * before degrading to the next member. Three draws per member cap the
+   * added latency; the per-member timeout budget still applies per draw.
+   */
+  static readonly MEMBER_DRAWS = 3
+
+  /** Draws for members with a multi-key pool; single-key members get 1. */
+  #drawsFor(member: ChainMember<P>): number {
+    return member.multiKeyPool === true ? ChainCore.MEMBER_DRAWS : 1
+  }
+
+  /** Try members in configured order; per member up to MEMBER_DRAWS key redraws, then degrade. */
   async run(
     request: Req,
     signal: AbortSignal | undefined,
@@ -139,6 +163,8 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
     for (const id of this.#options.order) {
       const member = this.#options.members.resolve(id)
       if (!this.#isUsable(member)) continue
+      const draws = this.#drawsFor(member)
+      for (let draw = 1; draw <= draws; draw += 1) {
       try {
         const controller = new AbortController()
         const abortFromOuter = () => controller.abort(signal?.reason)
@@ -176,7 +202,11 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
             ? error.message
             : String(error)
         failures.push({ memberId: id, reason, error: isTimeout ? undefined : error })
-        this.#options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
+        const drawNote = draw < draws ? `; redrawing key (${draw + 1}/${draws})` : '; degrading to next member'
+        this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
+        if (draw >= draws) break // budget spent → degrade to the next member
+        continue // redraw another key within the same member
+      }
       }
     }
     if (failures.length === 0) throw noMemberConfigured(this.#options.order)

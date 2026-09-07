@@ -129,7 +129,9 @@ describe('WebSearchSettingsSection', () => {
     fireEvent.change(input, { target: { value: 'sk-fake-tavily' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: 'Tavily Save' }))
     await waitFor(() => expect(onSaveKey).toHaveBeenCalledWith('tavily', 'sk-fake-tavily'))
-    await waitFor(() => expect(input.value).toBe(''))
+    // S14r: save returns the field to the MASKED display state immediately
+    // (configured + not editing) — plaintext until blur was the reported bug.
+    await waitFor(() => expect(input.value).toBe(en.maskedKey))
     expect(screen.getByTestId('dshws-feedback-tavily').textContent).toBe(en.saved)
   })
 
@@ -342,18 +344,17 @@ describe('WebSearchSettingsSection', () => {
   })
 
 
-  it('chain rows visually mark disabled members while they stay listed (S14b D2, S14c 移至可排序成员)', () => {
+  it('disabling a member removes it from the chain rows (S14r 用户裁定：仅就绪成员入链)', () => {
     const members = defaultMembers()
     members[1] = member('exa', 'Exa', { enabled: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
-    const row = screen.getByTestId('dshws-chain-item-dshws-exa')
-    expect(row.textContent).toContain(en.chainDisabledNote.trim())
-    expect(row.style.opacity).toBe('0.45')
-    // Still listed and still movable — position matters once re-enabled.
-    expect((within(row).getByRole('button', { name: `Exa ${en.moveUp}` }) as HTMLButtonElement).disabled).toBe(false)
+    // exa is configured but disabled → NOT a row; other enabled members stay.
+    expect(screen.queryByTestId('dshws-chain-item-dshws-exa')).toBeNull()
+    expect(screen.getByTestId('dshws-chain-item-dshws-tavily')).toBeTruthy()
     // Another enabled member keeps the chain usable — no warning.
     expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
   })
+
 
   it('zero enabled configured members renders the no-usable warning (S14b D2)', () => {
     const members = defaultMembers()
@@ -652,15 +653,19 @@ describe('WebSearchSettingsSection', () => {
     expect(input.value).toBe('100')
   })
 
-  it('an unconfigured member disables the policy chip; the hint states the live semantics (S14n)', () => {
+  it('an unconfigured member disables the policy chip; the ! badge carries the live semantics (S14n/S14r)', () => {
     const members = defaultMembers()
     members[0] = member('tavily', 'Tavily', { configured: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     expand('tavily')
     const chip = screen.getByTestId('dshws-keysel-chip-tavily') as HTMLButtonElement
     expect(chip.disabled).toBe(true)
-    const hint = screen.getByTestId('dshws-keysel-hint-tavily')
-    expect(hint.textContent).toBe(en.keySelectionHint.replace('{policy}', en.keySelRoundRobin))
+    // The hint line is gone; the ! badge tooltip states the live policy.
+    const info = screen.getByTestId('dshws-keysel-info-tavily')
+    fireEvent.focus(info)
+    expect(screen.getByRole('tooltip').textContent)
+      .toBe(en.keySelectionHint.replace('{policy}', en.keySelRoundRobin))
   })
+
 
 })

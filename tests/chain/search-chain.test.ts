@@ -21,6 +21,7 @@ function trackingProvider(id: string, calls: string[]): WebSearchProvider {
 interface FakeMember {
   enabled?: boolean
   credentialsReady?: boolean
+  multiKeyPool?: boolean
   provider: WebSearchProvider
 }
 
@@ -32,6 +33,7 @@ function resolver(members: Record<string, FakeMember>): ChainMemberResolver<WebS
       return {
         id,
         provider: member.provider,
+        multiKeyPool: member.multiKeyPool ?? false,
         enabled: member.enabled ?? true,
         credentialsReady: member.credentialsReady ?? true,
       }
@@ -131,6 +133,74 @@ describe('selection-level skips (必测②③)', () => {
     })
     await chain.search({ query: 'q' })
     expect(calls).toEqual(['dshws-up'])
+  })
+
+  it('redraws another key within the same member before degrading (S14r 同工具重试)', async () => {
+    // Two failing keys then a working third key in ONE member: the chain must
+    // stay on that member (3 draws) and succeed — not degrade past it.
+    let draws = 0
+    const flaky = {
+      id: 'dshws-flaky',
+      available: () => true,
+      async search(_request: { query: string }) {
+        draws += 1
+        if (draws < 3) throw new Error(`key ${draws} quota exhausted`)
+        return { sources: [{ url: 'https://ok.example', title: 'OK' }], truncated: false }
+      },
+    }
+    const chain = new ChainSearchProvider({
+      members: resolver({ 'dshws-flaky': { provider: flaky, enabled: true, multiKeyPool: true } }),
+      order: ['dshws-flaky'],
+      perMemberTimeoutMs: 1000,
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(draws).toBe(3)
+    expect(result.sources[0]!.url).toBe('https://ok.example')
+  })
+
+  it('degrades to the next member after the third failed draw (S14r 上限后降级)', async () => {
+    let flakyDraws = 0
+    const alwaysFails = {
+      id: 'dshws-flaky',
+      available: () => true,
+      async search() {
+        flakyDraws += 1
+        throw new Error('quota exhausted')
+      },
+    }
+    const backup = trackingProvider('dshws-backup', [])
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-flaky': { provider: alwaysFails as unknown as WebSearchProvider, enabled: true, multiKeyPool: true },
+        'dshws-backup': { provider: backup, enabled: true },
+      }),
+      order: ['dshws-flaky', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+    })
+    // backup returns an empty result — a SUCCESS, ending the chain there.
+    await chain.search({ query: 'q' })
+    expect(flakyDraws).toBe(3)
+  })
+
+  it('a single-key member degrades immediately — no blind same-key retry (S14r 反盲试)', async () => {
+    let draws = 0
+    const single = {
+      id: 'dshws-single',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new Error('quota exhausted')
+      },
+    }
+    const backup = trackingProvider('dshws-backup', [])
+    const chain = new ChainSearchProvider({
+      // gate-less member: multiKeyPool defaults false → exactly ONE draw.
+      members: resolver({ 'dshws-single': { provider: single as unknown as WebSearchProvider, enabled: true }, 'dshws-backup': { provider: backup, enabled: true } }),
+      order: ['dshws-single', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+    })
+    await chain.search({ query: 'q' })
+    expect(draws).toBe(1)
   })
 
   it('fails loud with DSHWS_NO_MEMBER_CONFIGURED when every member is selection-skipped', async () => {

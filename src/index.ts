@@ -144,6 +144,8 @@ export function apply(ctx: Context, config: Config): void {
   const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({
     enabled: () => live.current()[memberKey].enabled,
     credentialsReady: () => pool.ready(),
+    // S14r: same-member key redraw only helps when the pool holds >1 key.
+    multiKeyPool: () => pool.hasMultiKeyPool(),
   })
 
   const searchMembers = new MemberRegistry()
