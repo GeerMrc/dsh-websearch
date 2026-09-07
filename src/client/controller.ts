@@ -270,7 +270,8 @@ export class WebSearchSettingsController {
    * reads it launch-static (D2 discipline note).
    */
   async setDeepseekMaxUses(maxUses: number): Promise<ActionResult> {
-    if (!Number.isInteger(maxUses) || maxUses < 1) return { ok: false }
+    // S14g: mirror the GUI bounds [5, 100].
+    if (!Number.isInteger(maxUses) || maxUses < 5 || maxUses > 100) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { deepseek: { maxUses } }, this.#revision)
     if (!result.ok) return { ok: false }
     this.#value = (result.value.value ?? {}) as SectionValue

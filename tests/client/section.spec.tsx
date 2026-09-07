@@ -553,9 +553,34 @@ describe('WebSearchSettingsSection', () => {
     const onSetMaxUses = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMaxUses })} t={t} />)
     const input = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
+    // S14g: bounds are [5, 100] — 3 is out of range and must NOT save.
     fireEvent.change(input, { target: { value: '3' } })
     fireEvent.click(screen.getByRole('button', { name: `${en.maxUsesLabel} ${en.save}` }))
-    await waitFor(() => expect(onSetMaxUses).toHaveBeenCalledWith(3))
+    expect(onSetMaxUses).not.toHaveBeenCalled()
+    // An in-range typed value saves verbatim.
+    fireEvent.change(input, { target: { value: '12' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.maxUsesLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMaxUses).toHaveBeenCalledWith(12))
+  })
+
+  it('the maxUses steppers snap in steps of 5 within [5, 100] (S14g)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const input = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
+    expect(input.value).toBe('10')
+    fireEvent.click(screen.getByTestId('dshws-max-uses-up'))
+    expect(input.value).toBe('15')
+    fireEvent.click(screen.getByTestId('dshws-max-uses-up'))
+    expect(input.value).toBe('20')
+    fireEvent.click(screen.getByTestId('dshws-max-uses-down'))
+    expect(input.value).toBe('15')
+    // Snapping floors into range: type 7 → step up lands on 10.
+    fireEvent.change(input, { target: { value: '7' } })
+    fireEvent.click(screen.getByTestId('dshws-max-uses-up'))
+    expect(input.value).toBe('10')
+    // The ceiling: from 100 stepping up stays at 100.
+    fireEvent.change(input, { target: { value: '100' } })
+    fireEvent.click(screen.getByTestId('dshws-max-uses-up'))
+    expect(input.value).toBe('100')
   })
 
   it('an unconfigured member disables the control, and the hint states the two-level semantics (S13 D3)', () => {

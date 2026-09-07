@@ -396,16 +396,20 @@ describe('WebSearchSettingsController', () => {
     await controller.init()
 
     // Invalid budgets are rejected client-side without touching the remote.
+    // S14g bounds [5, 100]: 0/1.5/4 under, 101 over.
     expect((await controller.setDeepseekMaxUses(0)).ok).toBe(false)
     expect((await controller.setDeepseekMaxUses(1.5)).ok).toBe(false)
+    expect((await controller.setDeepseekMaxUses(4)).ok).toBe(false)
+    expect((await controller.setDeepseekMaxUses(101)).ok).toBe(false)
     expect(remote.updateCalls).toEqual([])
 
-    const ok = await controller.setDeepseekMaxUses(3)
+    // S14g: 3 is now out of bounds — an in-range value (12) saves.
+    const ok = await controller.setDeepseekMaxUses(12)
     expect(ok.ok).toBe(true)
     expect(remote.updateCalls).toEqual([
-      { ns: 'dsh-websearch', patch: { deepseek: { maxUses: 3 } }, expectedRevision: 0 },
+      { ns: 'dsh-websearch', patch: { deepseek: { maxUses: 12 } }, expectedRevision: 0 },
     ])
-    expect(controller.snapshot().deepseekMaxUses).toBe(3)
+    expect(controller.snapshot().deepseekMaxUses).toBe(12)
   })
 
   it('a boundary move reports not-ok without calling the remote', async () => {

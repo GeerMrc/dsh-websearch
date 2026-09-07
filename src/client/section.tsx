@@ -388,7 +388,6 @@ function MaxUsesRow(props: {
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
-  const valid = Number.isInteger(parsed) && parsed >= 1
   const save = async (): Promise<void> => {
     const result = await onSet(parsed as number)
     setFeedback(result.ok ? 'saved' : 'failed')
@@ -397,6 +396,15 @@ function MaxUsesRow(props: {
   // S14d: the hint interpolates the live {N} — it always names the value in
   // the box, not a stale default (user ruling).
   const hint = t('maxUsesHint').replace('{N}', String(parsed))
+  // S14g (user ruling): budget bounds [5, 100]; the native stepper also snaps
+  // to steps of 5 (10 → 15 → 20), typing any integer in range still works.
+  const MIN_USES = 5
+  const MAX_USES = 100
+  const STEP_USES = 5
+  const valid = Number.isInteger(parsed) && parsed >= MIN_USES && parsed <= MAX_USES
+  const snap = (raw: number): number => Math.min(MAX_USES, Math.max(MIN_USES, raw - (raw % STEP_USES)))
+  const stepUp = (): void => setDraft(String(snap((draft.trim() === '' ? current : parsed) + STEP_USES)))
+  const stepDown = (): void => setDraft(String(snap((draft.trim() === '' ? current : parsed) - STEP_USES)))
   return (
     <div data-testid="dshws-max-uses" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
@@ -408,16 +416,41 @@ function MaxUsesRow(props: {
         </Tooltip>
       </span>
       <span style={{ flex: 1 }} />
-      <input
-        type="number"
-        min={1}
-        step={1}
-        aria-label={t('maxUsesLabel')}
-        data-testid="dshws-max-uses-input"
-        style={{ ...inputStyle, width: 90 }}
-        value={draft === '' ? String(current) : draft}
-        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
-      />
+      {/* S14g: fixed compact width (the 100%-flex inputStyle made the border
+      stretch across the row) + custom steppers snapping to steps of 5. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <button
+          type="button"
+          aria-label={`${t('maxUsesLabel')} −`}
+          data-testid="dshws-max-uses-down"
+          onClick={stepDown}
+          disabled={!valid}
+          style={{ ...moveButtonStyle, width: 22, height: 22 }}
+        >
+          −
+        </button>
+        <input
+          type="number"
+          min={5}
+          max={100}
+          step={5}
+          aria-label={t('maxUsesLabel')}
+          data-testid="dshws-max-uses-input"
+          style={{ width: 76, height: 30, padding: '0 8px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
+          value={draft === '' ? String(current) : draft}
+          onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
+        />
+        <button
+          type="button"
+          aria-label={`${t('maxUsesLabel')} +`}
+          data-testid="dshws-max-uses-up"
+          onClick={stepUp}
+          disabled={!valid}
+          style={{ ...moveButtonStyle, width: 22, height: 22 }}
+        >
+          +
+        </button>
+      </div>
       <Button
         variant="outline"
         size="sm"
