@@ -55,6 +55,7 @@
 | 14d | 2026-09-07 | 兜底二选一（默认无兜底）+ maxUses 修正 + ⓘ/脱敏（插行棒，用户三项反馈） | ✅ | docs/sessions/2026-09-07-session-14d.md（deepseek.enabled 默认 false 付费 opt-in + maxUses 默认 10 {N} 同步 + 兜底行两段 choice + 标题 ⓘ=description + placeholder 多 key + 脱敏） | 红线一次当场 amend |
 | 14e | 2026-09-07 | 免费 fetch 搜索兜底（DDG）+ 二选一自动默认 + ! 徽标（插行棒，方向修正） | ✅ | docs/sessions/2026-09-07-session-14e.md（dshws-fetch-search 免 key 成员+fallbackProvider auto+链 hint 徽标化） | — |
 | 14f | 2026-09-07 | 徽标化微批（pill 删除+居中） | ✅ | commit 79eeda3（浏览器 pillGone+flex center 亲证） | — |
+| 14g | 2026-09-07 | maxUses 输入框收窄+步进钮微批 | ✅ | commit 408dc12（浏览器 94px/±点击 10→15 亲证） | — |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
