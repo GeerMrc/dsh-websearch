@@ -225,9 +225,11 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(exaAt).toBeGreaterThan(tavilyAt)
       expect(perplexityAt).toBeGreaterThan(exaAt)
       expect(message).toContain('HTTP 429')
-      expect(message).toContain('all 3 configured chain members failed')
+      expect(message).toContain('all 4 configured chain members failed')
       // The last member's thrown error rides as cause (ADR-0002 Decision 3).
-      expect(failure.cause?.code).toBe('DSHWS_PERPLEXITY_HTTP_ERROR')
+      // S14e: the chain now ends at the free fetch floor, so the deepest
+      // cause is the fetch-search failure (no loopback member for it).
+      expect(failure.cause?.code).toBe('DSHWS_FIRECRAWL_BAD_RESPONSE')
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
