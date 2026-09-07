@@ -54,6 +54,7 @@
 | 14c | 2026-09-06 | 全局置顶+折叠区+恒链尾+maxUses+官方退役（插行棒，用户五决策点确认） | ✅ | docs/sessions/2026-09-06-session-14c.md（全局卡置顶含 maxUses 宿主同款/五卡折叠/恒链尾语义/官方 web-search-deepseek 随包退役；阶段 4/5 PASS/COMPLETE + 🟡×2 当场清偿 + 浏览器全要素亲见含官方卡消失） | 🟡 清偿×2（阶段 4/5 抓获）；🟢×3 注记 |
 | 14d | 2026-09-07 | 兜底二选一（默认无兜底）+ maxUses 修正 + ⓘ/脱敏（插行棒，用户三项反馈） | ✅ | docs/sessions/2026-09-07-session-14d.md（deepseek.enabled 默认 false 付费 opt-in + maxUses 默认 10 {N} 同步 + 兜底行两段 choice + 标题 ⓘ=description + placeholder 多 key + 脱敏） | 红线一次当场 amend |
 | 14e | 2026-09-07 | 免费 fetch 搜索兜底（DDG）+ 二选一自动默认 + ! 徽标（插行棒，方向修正） | ✅ | docs/sessions/2026-09-07-session-14e.md（dshws-fetch-search 免 key 成员+fallbackProvider auto+链 hint 徽标化） | — |
+| 14f | 2026-09-07 | 徽标化微批（pill 删除+居中） | ✅ | commit 79eeda3（浏览器 pillGone+flex center 亲证） | — |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
