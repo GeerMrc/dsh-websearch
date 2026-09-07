@@ -257,11 +257,9 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
       host-parity maxUses knob are meaningful in every state. */}
       <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('searchChain')}</h4>
-            <span style={{ flex: 1 }} />
-            {/* S14f (user ruling): the ! badge fully replaces the old
-            "内置默认序" pill — the note (and the pinned/default state it now
-            also carries) lives in its hover tooltip alone. */}
+            {/* S14h (user ruling): the ! badge sits right after the title
+            (not pushed to the row end) and matches the page's ⓘ icon size
+            (IconQuestionOutline14 = 14px box) instead of the old 22px pill. */}
             <Tooltip
               label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
               side="bottom"
@@ -274,24 +272,26 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 data-testid="dshws-chain-order-info"
                 data-dshws-chain-state={snapshot.searchChainPinned ? 'pinned' : 'default'}
                 style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  width: 22,
-                  height: 22,
+                  width: 16,
+                  height: 16,
                   padding: 0,
                   border: '1px solid var(--dsw-alias-border-l2)',
                   borderRadius: 999,
                   background: 'transparent',
                   color: 'var(--dsw-alias-label-secondary)',
-                  fontSize: 12,
+                  fontSize: 11,
                   lineHeight: 1,
-                  cursor: 'pointer',
+                  cursor: 'help',
+                  opacity: 0.6,
                 }}
               >
                 !
               </button>
             </Tooltip>
+            <span style={{ flex: 1 }} />
           </div>
           {showChains ? (
           <ol
