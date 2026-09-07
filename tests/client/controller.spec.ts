@@ -356,6 +356,40 @@ describe('WebSearchSettingsController', () => {
     expect(remote.updateCalls).toHaveLength(1)
   })
 
+  it('derives the auto fallback from the DeepSeek key readiness and honors the explicit choice (S14e, stage45 🟡-A 清偿)', async () => {
+    // Auto default, no model key fact → the free fetch floor.
+    const bare = new FakeRemote()
+    const bareController = new WebSearchSettingsController(makePorts(bare))
+    await bareController.init()
+    expect(bareController.snapshot().fallbackProvider).toBe('fetch')
+
+    // Auto default, model key configured → the paid floor.
+    const keyed = new FakeRemote()
+    keyed.creds.set('DEEPSEEK_API_KEY', { configured: true, source: 'file', writable: true })
+    const keyedController = new WebSearchSettingsController(makePorts(keyed))
+    await keyedController.init()
+    expect(keyedController.snapshot().fallbackProvider).toBe('deepseek')
+
+    // An explicit section value overrides auto derivation.
+    const explicit = new FakeRemote()
+    explicit.nsValue = { fallbackProvider: 'fetch' }
+    explicit.creds.set('DEEPSEEK_API_KEY', { configured: true, source: 'file', writable: true })
+    const explicitController = new WebSearchSettingsController(makePorts(explicit))
+    await explicitController.init()
+    expect(explicitController.snapshot().fallbackProvider).toBe('fetch')
+  })
+
+  it('setFallbackProvider writes the top-level field with the current revision (S14e, stage45 🟡-A 清偿)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const ok = await controller.setFallbackProvider('fetch')
+    expect(ok.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      { ns: 'dsh-websearch', patch: { fallbackProvider: 'fetch' }, expectedRevision: 0 },
+    ])
+  })
+
   it('setDeepseekMaxUses patches the deepseek member key with validation (S14c T4, stage45 🟡-2 清偿)', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))

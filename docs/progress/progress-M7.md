@@ -177,7 +177,7 @@ session 记录与 plan 014「2.5 默认项披露」节）→ 逐一执行中。
 |---|---|---|
 | T0-T4 | 见 session-14e 记录 | 完成（门墙 **292\|9(301)**/51 keys/54.91；浏览器亲见 ! 徽标+choice 组+auto 默认实证） |
 | T5 | 阶段 4/5 独立验证 | 见 audit-log s14e-stage45 |
-| T6 | 收尾 merge + 接力 | 完成（本序列） |
+| T6 | 收尾 merge + 接力 | 完成（merge `355fede`）+ **阶段 4/5 🟡-A/🟢×2 当场清偿**：客户端推导+action 两用例（auto 无 key→fetch/key→deepseek/显式覆盖 + setFallbackProvider patch 携 revision）+ 死键清理（fallbackChoiceNone/chainOrderBadge）+ lint 文件数勘正（50→52）；controller 23 passed 亲见 |
 
 ### S14d 兜底二选一批（2026-09-07，分支 feat/s14d-fallback-choice）
 
