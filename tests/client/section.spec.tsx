@@ -396,6 +396,22 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.queryByLabelText(`Tavily ${en.apiKey}`)).toBeNull()
   })
 
+  it('the endpoint placeholder names the member DEFAULT URL, not a generic hint (S14p, 用户建议)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const defaults: Record<string, string> = {
+      tavily: 'https://api.tavily.com',
+      exa: 'https://api.exa.ai',
+      perplexity: 'https://api.perplexity.ai',
+      firecrawl: 'https://api.firecrawl.dev',
+      anysearch: 'https://api.anysearch.com',
+    }
+    for (const [key, url] of Object.entries(defaults)) {
+      expand(key)
+      const field = screen.getByTestId(`dshws-endpoint-${key}`) as HTMLInputElement
+      expect(field.getAttribute('placeholder')).toBe(url)
+    }
+  })
+
   it('each card exposes the endpoint override field with staged save (S14k, host-parity 接口地址)', async () => {
     const onSetBaseURL = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetBaseURL })} t={t} />)
