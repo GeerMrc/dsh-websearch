@@ -39,6 +39,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     enabled: true,
     configured: true,
     keySelection: 'order',
+    baseURL: undefined,
     source: undefined,
     writable: true,
     ...overrides,
@@ -82,6 +83,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetFallbackProvider: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetBaseURL: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -362,6 +364,29 @@ describe('WebSearchSettingsSection', () => {
     expect(hintBtn).toBeTruthy()
     fireEvent.change(maxInput, { target: { value: '3' } })
     expect(screen.getByRole('button', { name: en.maxUsesHint.replace('{N}', '3') })).toBeTruthy()
+  })
+
+  it('the whole card header expands/collapses on click (official PluginCard parity, S14k)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const header = screen.getByRole('button', { name: `Tavily ${en.configure}` })
+    expect(header.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(header)
+    expect(header.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByLabelText(`Tavily ${en.apiKey}`)).toBeTruthy()
+    fireEvent.click(header)
+    expect(header.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByLabelText(`Tavily ${en.apiKey}`)).toBeNull()
+  })
+
+  it('each card exposes the endpoint override field with staged save (S14k, host-parity 接口地址)', async () => {
+    const onSetBaseURL = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetBaseURL })} t={t} />)
+    expand('tavily')
+    const field = screen.getByLabelText(`Tavily ${en.endpointLabel}`) as HTMLInputElement
+    expect(field.getAttribute('value') ?? field.value).toBe('')
+    fireEvent.change(field, { target: { value: 'https://proxy.example/api' } })
+    fireEvent.click(screen.getByRole('button', { name: `Tavily ${en.endpointLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetBaseURL).toHaveBeenCalledWith('tavily', 'https://proxy.example/api'))
   })
 
   it('the fallback is a paid-vs-free choice; pressing writes the explicit field (S14e D3, 用户方向修正)', async () => {

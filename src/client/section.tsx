@@ -30,6 +30,8 @@ export interface SectionProps {
   onSetKeySelection: (memberKey: string, selection: 'order' | 'round-robin' | 'random') => Promise<ActionResult>
   /** DeepSeek fallback maxUses (S14c, host parity). */
   onSetMaxUses: (maxUses: number) => Promise<ActionResult>
+  /** Per-member endpoint override (S14k, host-parity「接口地址」). */
+  onSetBaseURL: (memberKey: string, baseURL: string) => Promise<ActionResult>
   /** Fallback choice (S14e): paid DeepSeek vs free fetch scrape. */
   onSetFallbackProvider: (choice: 'deepseek' | 'fetch') => Promise<ActionResult>
 }
@@ -57,6 +59,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetKeySelection={(key, selection) => controller.setKeySelection(key, selection)}
         onSetMaxUses={(maxUses) => controller.setDeepseekMaxUses(maxUses)}
         onSetFallbackProvider={(choice) => controller.setFallbackProvider(choice)}
+        onSetBaseURL={(key, url) => controller.setBaseURL(key, url)}
       />
     )
   }
@@ -210,7 +213,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackProvider } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackProvider, onSetBaseURL } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -355,6 +358,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             onClearKey={onClearKey}
             onToggleEnabled={onToggleEnabled}
             onSetKeySelection={onSetKeySelection}
+            onSetBaseURL={onSetBaseURL}
           />
         ))}
         {snapshot.members
@@ -556,6 +560,62 @@ function DeepSeekFallbackRow(props: {
   )
 }
 
+/** Per-member endpoint override (S14k): staged text input mirroring the
+ * official「接口地址」field — empty means the provider default, saved value
+ * applies at next launch (launch-static discipline, noted beside the field). */
+function MemberEndpointField(props: {
+  member: MemberSnapshot
+  t: (key: DshWsLocaleKey) => string
+  onSet: (memberKey: string, baseURL: string) => Promise<ActionResult>
+}) {
+  const { member, t, onSet } = props
+  const [draft, setDraft] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 2500)
+    return () => clearTimeout(timer)
+  }, [feedback])
+  const value = draft ?? member.baseURL ?? ''
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ fontSize: 12, color: 'var(--dsw-alias-label-secondary)', flexShrink: 0 }}>
+        {t('endpointLabel')}
+        <Tooltip label={t('endpointNote')} side="bottom" delayMs={400} maxWidth={320}>
+          <button type="button" aria-label={t('endpointNote')} style={infoButtonStyle}>
+            <IconQuestionOutline14 />
+          </button>
+        </Tooltip>
+      </span>
+      <Input
+        aria-label={`${member.label} ${t('endpointLabel')}`}
+        data-testid={`dshws-endpoint-${member.key}`}
+        placeholder="https://…"
+        value={value}
+        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
+        style={{ ...inputStyle, height: 30 }}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={draft === null || draft === (member.baseURL ?? '')}
+        aria-label={`${member.label} ${t('endpointLabel')} ${t('save')}`}
+        onClick={() => {
+          void onSet(member.key, draft ?? '').then((result) => {
+            setFeedback(result.ok ? 'saved' : 'failed')
+            if (result.ok) setDraft(null)
+          })
+        }}
+      >
+        {t('save')}
+      </Button>
+      {feedback ? (
+        <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
+      ) : null}
+    </div>
+  )
+}
+
 function MemberCard(props: {
   member: MemberSnapshot
   t: (key: DshWsLocaleKey) => string
@@ -563,8 +623,9 @@ function MemberCard(props: {
   onClearKey: SectionProps['onClearKey']
   onToggleEnabled: SectionProps['onToggleEnabled']
   onSetKeySelection: SectionProps['onSetKeySelection']
+  onSetBaseURL: SectionProps['onSetBaseURL']
 }) {
-  const { member, t, onSaveKey, onClearKey, onToggleEnabled, onSetKeySelection } = props
+  const { member, t, onSaveKey, onClearKey, onToggleEnabled, onSetKeySelection, onSetBaseURL } = props
   const [draft, setDraft] = useState('')
   // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
   const [editing, setEditing] = useState(false)
@@ -592,19 +653,23 @@ function MemberCard(props: {
 
   return (
     <div data-testid={`dshws-member-${member.key}`} style={cardStyle}>
+      {/* S14k (user report): the WHOLE header is the disclosure button — the
+      official PluginCard pattern (click anywhere on the head row to expand /
+      collapse, chevron rotates). The enable switch stays a separate sibling
+      button (buttons cannot nest); clicking it must not toggle the card. */}
       <div style={cardHeadStyle}>
-        <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
-        <strong style={nameStyle}>{member.label}</strong>
-        <span style={{ flex: 1 }} />
         <button
           type="button"
           data-testid={`dshws-member-toggle-${member.key}`}
           aria-expanded={open}
           aria-label={`${member.label} ${t('configure')}`}
           onClick={() => { setOpen((value) => !value) }}
-          style={infoButtonStyle}
+          style={{ ...cardHeadStyle, flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', padding: 0 }}
         >
-          {open ? '▴' : '▾'}
+          <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
+          <strong style={nameStyle}>{member.label}</strong>
+          <span style={{ flex: 1 }} />
+          <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
         </button>
         <button
           type="button"
@@ -653,6 +718,9 @@ function MemberCard(props: {
       <p data-testid={`dshws-keysel-hint-${member.key}`} style={{ ...hintStyle, marginTop: -6 }}>
         {t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
       </p>
+      {/* S14k (user report): the official DeepSeek card exposes Endpoint —
+      parity here. Empty = provider default; launch-static (note inline). */}
+      <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} />
       <div style={footerStyle}>
         {feedback ? (
           <span role="status" data-testid={`dshws-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
