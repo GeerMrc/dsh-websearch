@@ -719,14 +719,18 @@ function MemberCard(props: {
       <div style={fieldStyle}>
         <span style={fieldLabelStyle}>{t('apiKey')}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        {/* S14q (user ruling): typing is PLAINTEXT; the •••• mask shows only
+        while a configured card sits re-expanded and untouched — focusing the
+        field reveals an empty plaintext field for a fresh entry. Masking the
+        user's own keystrokes read as broken input, not protection. */}
         <input
-          type="password"
+          type="text"
           autoComplete="off"
           aria-label={`${member.label} ${t('apiKey')}`}
           placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
           value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
           onFocus={() => { if (draft === '') setEditing(true) }}
-          onBlur={() => setEditing(false)}
+          onBlur={() => { if (draft === '') setEditing(false) }}
           onChange={(event) => setDraft(event.target.value)}
           style={{ ...fieldInputStyle, flex: 1, minWidth: 0 }}
         />
