@@ -56,6 +56,7 @@
 | 14e | 2026-09-07 | 免费 fetch 搜索兜底（DDG）+ 二选一自动默认 + ! 徽标（插行棒，方向修正） | ✅ | docs/sessions/2026-09-07-session-14e.md（dshws-fetch-search 免 key 成员+fallbackProvider auto+链 hint 徽标化） | — |
 | 14f | 2026-09-07 | 徽标化微批（pill 删除+居中） | ✅ | commit 79eeda3（浏览器 pillGone+flex center 亲证） | — |
 | 14g | 2026-09-07 | maxUses 输入框收窄+步进钮微批 | ✅ | commit 408dc12（浏览器 94px/±点击 10→15 亲证） | — |
+| 14h | 2026-09-07 | ! 徽标位置+尺寸微批 | ✅ | commit e2d274c（16px 对齐 ⓘ14px + 标题紧随亲证） | — |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
