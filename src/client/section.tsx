@@ -13,7 +13,7 @@
  *
  * @module dsh-websearch/client/section
  */
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Button, IconQuestionOutline14, Input, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
@@ -107,15 +107,6 @@ const infoButtonStyle = {
   color: 'inherit',
   opacity: 0.6,
   cursor: 'help',
-} as const
-
-/** 11px pill (host badge convention) marking the DeepSeek card's shared credential. */
-const sharedBadgeStyle = {
-  fontSize: 11,
-  padding: '1px 6px',
-  borderRadius: 999,
-  border: '1px solid var(--dsw-alias-border-l2)',
-  color: 'var(--dsw-alias-label-tertiary)',
 } as const
 
 /** Key-selection row (S13 D2): label + three segments; the pressed segment
@@ -388,6 +379,13 @@ function MaxUsesRow(props: {
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
+  // S14i: the saved note auto-clears (2.5s) so the row never looks stuck;
+  // with the controller re-describe fix the value itself updates live too.
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 2500)
+    return () => clearTimeout(timer)
+  }, [feedback])
   const save = async (): Promise<void> => {
     const result = await onSet(parsed as number)
     setFeedback(result.ok ? 'saved' : 'failed')
@@ -509,29 +507,35 @@ function DeepSeekFallbackRow(props: {
   onChoose: (choice: 'deepseek' | 'fetch') => Promise<ActionResult>
 }) {
   const { member, t, choice, onChoose } = props
-  const statusText = member.configured ? t('configured') : t('notConfigured')
+  // S14i (user audit): the ACTIVE choice carries the green dot — paid is
+  // green only when chosen AND its shared key is configured; free is green
+  // when chosen (keyless, always ready). The old row dot keyed off the
+  // DeepSeek key alone and misled under either choice.
+  const paidActive = choice === 'deepseek' && member.configured
+  const fetchActive = choice === 'fetch'
+  const paidDotTitle = choice === 'deepseek'
+    ? (member.configured ? t('configured') : t('notConfigured'))
+    : undefined
   return (
     <div data-testid="dshws-fallback-deepseek" style={{ ...cardStyle, flexDirection: 'row', alignItems: 'center', gap: 8, padding: '10px 14px' }}>
-      <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
-      <strong style={nameStyle}>{member.label}</strong>
-      <span title={t('sharedWithModelsDetail')} style={sharedBadgeStyle}>{t('sharedWithModels')}</span>
+      <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
       <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
         <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
           <IconQuestionOutline14 />
         </button>
       </Tooltip>
       <span style={{ flex: 1 }} />
-      {/* S14e (user ruling correction): the fallback floor is a choice between
-      the PAID DeepSeek backend (needs the Models-page key) and the FREE
-      DuckDuckGo fetch scrape — default auto: key → paid, none → free. */}
+      {/* S14e/S14i: paid DeepSeek vs free DuckDuckGo scrape; the active tool
+      shows its own status dot inside the choice button. */}
       <div role="group" aria-label={t('fallbackChoiceGroup')} style={{ display: 'flex', gap: 4 }}>
         <button
           type="button"
           aria-pressed={choice === 'deepseek'}
           aria-label={t('fallbackChoicePaid')}
           onClick={() => void onChoose('deepseek')}
-          style={{ ...keySelButtonStyle(choice === 'deepseek', true), fontSize: 11, padding: '0 8px' }}
+          style={{ ...keySelButtonStyle(choice === 'deepseek', true), fontSize: 11, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5 }}
         >
+          <span role="img" aria-label={paidDotTitle} title={paidDotTitle} data-testid="dshws-fallback-dot-paid" style={statusDotStyle(paidActive)} />
           {t('fallbackChoicePaid')}
         </button>
         <button
@@ -539,8 +543,9 @@ function DeepSeekFallbackRow(props: {
           aria-pressed={choice === 'fetch'}
           aria-label={t('fallbackChoiceFree')}
           onClick={() => void onChoose('fetch')}
-          style={{ ...keySelButtonStyle(choice === 'fetch', true), fontSize: 11, padding: '0 8px' }}
+          style={{ ...keySelButtonStyle(choice === 'fetch', true), fontSize: 11, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5 }}
         >
+          <span role="img" aria-label={fetchActive ? t('configured') : undefined} title={fetchActive ? t('configured') : undefined} data-testid="dshws-fallback-dot-fetch" style={statusDotStyle(fetchActive)} />
           {t('fallbackChoiceFree')}
         </button>
       </div>
