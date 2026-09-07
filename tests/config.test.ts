@@ -36,11 +36,11 @@ describe('resolveConfig', () => {
 
   it('defaults every provider section to enabled with its credential-ref env name', () => {
     const resolved = resolveConfig({})
-    expect(resolved.deepseek).toEqual({ enabled: false, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'order' })
-    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'order' })
-    expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'order' })
-    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'order' })
-    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'order' })
+    expect(resolved.deepseek).toEqual({ enabled: false, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'round-robin' })
+    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'round-robin' })
+    expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'round-robin' })
+    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin' })
+    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'round-robin' })
   })
 
   it('passes through configured extra refs and key selection per member', () => {
@@ -50,7 +50,7 @@ describe('resolveConfig', () => {
     })
     expect(resolved.tavily.keySelection).toBe('round-robin')
     expect(resolved.deepseek.keySelection).toBe('random')
-    expect(resolved.exa.keySelection).toBe('order')
+    expect(resolved.exa.keySelection).toBe('round-robin')
   })
 
   it('defaults the anysearch section like the other members (ADR-0009)', () => {
@@ -58,7 +58,7 @@ describe('resolveConfig', () => {
     expect(resolved.anysearch).toEqual({
       enabled: true,
       apiKeyEnv: 'ANYSEARCH_API_KEY',
-      keySelection: 'order',
+      keySelection: 'round-robin',
     })
   })
 
@@ -71,7 +71,7 @@ describe('resolveConfig', () => {
       apiKeyEnv: 'MY_ANYSEARCH_KEY',
       baseURL: 'https://anysearch.example',
       zone: 'cn',
-      keySelection: 'order',
+      keySelection: 'round-robin',
     })
   })
 
@@ -86,7 +86,7 @@ describe('resolveConfig', () => {
       apiKeyEnv: 'MY_EXA_KEY',
       baseURL: 'https://exa.example',
       numResults: 7,
-      keySelection: 'order',
+      keySelection: 'round-robin',
     })
   })
 })

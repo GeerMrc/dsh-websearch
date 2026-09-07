@@ -327,7 +327,7 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       // install at zero paid reach until the user chooses it in the settings.
       enabled: config.deepseek?.enabled ?? false,
       apiKeyEnv: config.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY',
-      keySelection: config.deepseek?.keySelection ?? 'order',
+      keySelection: config.deepseek?.keySelection ?? 'round-robin',
       baseURL: config.deepseek?.baseURL?.trim() === '' ? undefined : config.deepseek?.baseURL,
       model: config.deepseek?.model,
       maxTokens: config.deepseek?.maxTokens,
@@ -336,27 +336,27 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     tavily: {
       enabled: config.tavily?.enabled ?? true,
       apiKeyEnv: config.tavily?.apiKeyEnv ?? 'TAVILY_API_KEY',
-      keySelection: config.tavily?.keySelection ?? 'order',
+      keySelection: config.tavily?.keySelection ?? 'round-robin',
       baseURL: config.tavily?.baseURL?.trim() === '' ? undefined : config.tavily?.baseURL,
       maxResults: config.tavily?.maxResults,
     },
     firecrawl: {
       enabled: config.firecrawl?.enabled ?? true,
       apiKeyEnv: config.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
-      keySelection: config.firecrawl?.keySelection ?? 'order',
+      keySelection: config.firecrawl?.keySelection ?? 'round-robin',
       baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
     },
     exa: {
       enabled: config.exa?.enabled ?? true,
       apiKeyEnv: config.exa?.apiKeyEnv ?? 'EXA_API_KEY',
-      keySelection: config.exa?.keySelection ?? 'order',
+      keySelection: config.exa?.keySelection ?? 'round-robin',
       baseURL: config.exa?.baseURL?.trim() === '' ? undefined : config.exa?.baseURL,
       numResults: config.exa?.numResults,
     },
     perplexity: {
       enabled: config.perplexity?.enabled ?? true,
       apiKeyEnv: config.perplexity?.apiKeyEnv ?? 'PERPLEXITY_API_KEY',
-      keySelection: config.perplexity?.keySelection ?? 'order',
+      keySelection: config.perplexity?.keySelection ?? 'round-robin',
       baseURL: config.perplexity?.baseURL?.trim() === '' ? undefined : config.perplexity?.baseURL,
       model: config.perplexity?.model,
     },
@@ -365,7 +365,7 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       apiKeyEnv: config.anysearch?.apiKeyEnv ?? 'ANYSEARCH_API_KEY',
       baseURL: config.anysearch?.baseURL?.trim() === '' ? undefined : config.anysearch?.baseURL,
       zone: config.anysearch?.zone,
-      keySelection: config.anysearch?.keySelection ?? 'order',
+      keySelection: config.anysearch?.keySelection ?? 'round-robin',
     },
   }
 }

@@ -89,7 +89,7 @@ export interface MemberSnapshot {
   readonly refName: string
   readonly enabled: boolean
   readonly configured: boolean
-  /** Pool selection policy, defaulted to `order` in deriveSnapshot (ADR-0008; S13 D4). */
+  /** Pool selection policy, defaulted to `round-robin` (S14n user ruling; ADR-0008). */
   readonly keySelection: 'order' | 'round-robin' | 'random'
   /** Endpoint override; `undefined` = provider default (launch-static, S14k). */
   readonly baseURL: string | undefined
@@ -143,7 +143,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       // S14d: the deepseek fallback is opt-in (mirrors node resolveConfig).
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
-      keySelection: section?.keySelection ?? 'order',
+      keySelection: section?.keySelection ?? 'round-robin',
       baseURL: section?.baseURL,
       source: fact?.source,
       writable: fact?.writable === true,
