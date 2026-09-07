@@ -248,9 +248,12 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
       host-parity maxUses knob are meaningful in every state. */}
       <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {/* S14h (user ruling): the ! badge sits right after the title
-            (not pushed to the row end) and matches the page's ⓘ icon size
-            (IconQuestionOutline14 = 14px box) instead of the old 22px pill. */}
+            {/* S14j (user report fix): the S14h edit accidentally dropped the
+            「搜索链」 title itself — this row IS the reorder surface for the
+            configured websearch tools, so the heading must stay. */}
+            <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('searchChain')}</h4>
+            {/* S14h: the ! badge sits right after the title and matches the
+            page's ⓘ icon size (14px box). */}
             <Tooltip
               label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
               side="bottom"
@@ -434,7 +437,7 @@ function MaxUsesRow(props: {
           step={5}
           aria-label={t('maxUsesLabel')}
           data-testid="dshws-max-uses-input"
-          style={{ width: 76, height: 30, padding: '0 8px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
+          style={{ width: 52, height: 28, padding: '0 6px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
           value={draft === '' ? String(current) : draft}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
         />
