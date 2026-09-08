@@ -1,6 +1,7 @@
 ---
 title: "ADR-0004: v1 全局优先级（settings 落点）与开箱完全中立"
 status: accepted
+superseded-partial: 2026-09-09 ADR-0014 supersedes the「DeepSeek 末位固定链尾兜底」half of D3 (paid floor is now opt-in and condition-guarded; the neutrality principle stands)
 date: 2026-09-02
 type: feat
 origin: 方案 v3 用户批准（用户选「完全中立」+「v1 全局优先级」）
