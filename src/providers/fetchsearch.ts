@@ -21,7 +21,7 @@ export const FETCH_SEARCH_MEMBER_ID = 'dshws-fetch-search'
 const DDG_HTML_ENDPOINT = 'https://html.duckduckgo.com/html/'
 
 /** Member error family (fetch face of the generic bucket). */
-const codes = MEMBER_ERROR_CODES.firecrawl
+const codes = MEMBER_ERROR_CODES.fetchsearch
 
 /**
  * Decode a DDG redirect hop (`//duckduckgo.com/l/?uddg=<encoded>`) into the

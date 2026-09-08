@@ -136,8 +136,8 @@ describe('dshws-exa failure modes (mock HTTP)', () => {
   it('unfolds a JSON error body into the HTTP error message when present', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ error: 'quota exceeded' }, 429)))
     const caught = await new ExaSearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
-    expect(caught).toMatchObject({ code: codes.httpError })
-    expect((caught as Error).message).toContain('quota exceeded')
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 429 })
+    expect((caught as Error).message).toContain('Exa API error (HTTP 429): quota exceeded')
   })
 
   it('maps a network failure to DSHWS_EXA_REQUEST_FAILED', async () => {

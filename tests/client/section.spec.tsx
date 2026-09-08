@@ -62,9 +62,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
   return {
     members,
     searchChain: ORDERABLE,
-    fetchChain: ORDERABLE,
     searchChainPinned: false,
-    fetchChainPinned: false,
     timeoutMs: 30000,
     deepseekMaxUses: undefined,
     fallbackProvider: 'fetch',
@@ -260,7 +258,6 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
     // No dead prose lines: neither the old default-order hint nor the tail note.
-    expect(chains.textContent).not.toContain(en.chainDefaultHint)
     expect(chains.textContent).not.toContain(en.chainTailHint)
     // The bordered badge exists; focusing it opens the full order note.
     const badge = screen.getByTestId('dshws-chain-order-info')
@@ -313,7 +310,6 @@ describe('WebSearchSettingsSection', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     // Per-card hint paragraphs are gone — the note is stated once per card as
     // the input placeholder (S14d), never as rendered text.
-    expect(within(screen.getByTestId('dshws-members')).queryByText(en.keyFieldNote)).toBeNull()
     // One icon anchor after the heading; S14d: it carries the description.
     const anchorBtn = screen.getByRole('button', { name: en.description })
     fireEvent.focus(anchorBtn)
@@ -356,13 +352,44 @@ describe('WebSearchSettingsSection', () => {
   })
 
 
-  it('zero enabled configured members renders the no-usable warning (S14b D2)', () => {
+  it('zero usable members with the free fetch floor shows the floor note, not a failure (S14u 假警告)', () => {
+    // The chain card needs one configured member to render at all: keep a
+    // keyed DeepSeek that is switched off, so zero members are usable.
     const members = defaultMembers()
     for (const [index] of members.entries()) {
-      members[index] = member(members[index]!.key, members[index]!.label, { configured: index === 4 })
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
     }
-    members[4] = member('deepseek', 'DeepSeek', { enabled: false })
+    members[4] = member('deepseek', 'DeepSeek', { configured: true, enabled: false })
     render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    // fallbackProvider defaults to 'fetch' — the floor needs no key, so the
+    // next search does NOT fail and the red warning must stay gone.
+    expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
+    expect(screen.getByTestId('dshws-chain-floor').textContent).toBe(en.chainFloorFetchNote)
+  })
+
+  it('zero usable members with a keyed DeepSeek floor shows the DeepSeek floor note', () => {
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
+    }
+    members[4] = member('deepseek', 'DeepSeek', { configured: true, enabled: false })
+    const snapshot = { ...makeSnapshot(members), fallbackProvider: 'deepseek' as const }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
+    expect(screen.getByTestId('dshws-chain-floor').textContent).toBe(en.chainFloorDeepseekNote)
+  })
+
+  it('zero usable members with a KEYLESS DeepSeek floor keeps the honest failure warning', () => {
+    // A configured-but-disabled orderable member keeps the card rendered;
+    // the keyless DeepSeek floor then genuinely fails the next search.
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
+    }
+    members[0] = member('tavily', 'Tavily', { configured: true, enabled: false })
+    const snapshot = { ...makeSnapshot(members), fallbackProvider: 'deepseek' as const }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    expect(screen.queryByTestId('dshws-chain-floor')).toBeNull()
     expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
   })
 

@@ -85,7 +85,7 @@ export interface DeepSeekSettings {
    * `web-search-deepseek` knob of the same name/semantic/default). Launch-static.
    */
   maxUses?: number
-  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
 
@@ -99,7 +99,7 @@ export interface TavilySettings {
   baseURL?: string
   /** Default result count; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
   maxResults?: number
-  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
 
@@ -111,7 +111,7 @@ export interface FirecrawlSettings {
   apiKeyEnv?: string
   /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   baseURL?: string
-  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
 
@@ -125,7 +125,7 @@ export interface ExaSettings {
   baseURL?: string
   /** Default result count; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   numResults?: number
-  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
 
@@ -139,7 +139,7 @@ export interface PerplexitySettings {
   baseURL?: string
   /** Sonar model; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
   model?: string
-  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
 
@@ -153,7 +153,7 @@ export interface AnysearchSettings {
   baseURL?: string
   /** Regional zone passed through to the request body; omitted = not sent. Launch-static. */
   zone?: 'cn' | 'intl'
-  /** Pool selection policy; defaults to `order` (ADR-0008). Hot: settings changes apply to the next search. */
+  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
 
@@ -243,7 +243,7 @@ export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'e
   maxTokens?: number
   /** Server-tool search budget per request (S14c, host parity). */
   maxUses?: number
-  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
 
@@ -251,14 +251,14 @@ export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'e
 export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   maxResults?: number
-  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
 
 /** Fully defaulted settings for one member. */
 export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
-  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
 
@@ -266,7 +266,7 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
 export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   numResults?: number
-  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
 
@@ -275,7 +275,7 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
   baseURL?: string
   /** Regional zone passed to the request body; absent = not sent. */
   zone?: 'cn' | 'intl'
-  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
 
@@ -283,7 +283,7 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
 export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   model?: string
-  /** Pool selection policy; resolveConfig defaults to 'order' (ADR-0008/0011). */
+  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
 

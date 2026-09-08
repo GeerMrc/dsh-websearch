@@ -20,9 +20,8 @@ export const CHAIN_ERROR_CODES = {
 
 /**
  * Member-level code families. Every landed provider family carries its five
- * concrete codes (S05a: all five families are objects; a family value is a
- * reserved namespace prefix only between reserving the name and landing the
- * provider — a state that no longer exists).
+ * concrete codes (S05a: five families landed as objects; S14u added the
+ * fetch-search family, which had been borrowing the firecrawl namespace).
  */
 export const MEMBER_ERROR_CODES = {
   deepseek: {
@@ -45,6 +44,13 @@ export const MEMBER_ERROR_CODES = {
     httpError: 'DSHWS_FIRECRAWL_HTTP_ERROR',
     badResponse: 'DSHWS_FIRECRAWL_BAD_RESPONSE',
     aborted: 'DSHWS_FIRECRAWL_ABORTED',
+  },
+  fetchsearch: {
+    credentialMissing: 'DSHWS_FETCHSEARCH_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_FETCHSEARCH_REQUEST_FAILED',
+    httpError: 'DSHWS_FETCHSEARCH_HTTP_ERROR',
+    badResponse: 'DSHWS_FETCHSEARCH_BAD_RESPONSE',
+    aborted: 'DSHWS_FETCHSEARCH_ABORTED',
   },
   exa: {
     credentialMissing: 'DSHWS_EXA_CREDENTIAL_MISSING',

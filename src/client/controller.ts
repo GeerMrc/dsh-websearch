@@ -72,7 +72,6 @@ interface MemberSectionValue {
 interface SectionValue {
   fallbackProvider?: 'deepseek' | 'fetch' | 'auto'
   searchChain?: string[]
-  fetchChain?: string[]
   perMemberTimeoutMs?: number
   tavily?: MemberSectionValue
   exa?: MemberSectionValue
@@ -103,11 +102,8 @@ export interface MemberSnapshot {
 export interface SectionSnapshot {
   readonly members: readonly MemberSnapshot[]
   readonly searchChain: readonly string[]
-  readonly fetchChain: readonly string[]
   /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
   readonly searchChainPinned: boolean
-  /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
-  readonly fetchChainPinned: boolean
   readonly timeoutMs: number
   /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
   readonly deepseekMaxUses: number | undefined
@@ -156,9 +152,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     searchChain: value.searchChain?.length
       ? value.searchChain.filter((id) => id !== DEEPSEEK_MEMBER_ID)
       : [...ORDERABLE_MEMBER_IDS],
-    fetchChain: value.fetchChain?.length ? [...value.fetchChain] : [...ORDERABLE_MEMBER_IDS],
     searchChainPinned: (value.searchChain?.length ?? 0) > 0,
-    fetchChainPinned: (value.fetchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseekMaxUses: value.deepseek?.maxUses,
     fallbackProvider: value.fallbackProvider === 'deepseek' || value.fallbackProvider === 'fetch'
