@@ -12,6 +12,25 @@
 
 ---
 
+## 2026-09-08 — 实测报错取证：DDG 地板报错诚实化（Session 14v，S15 前插棒）
+
+**新增**
+- **fetch-search 202 反爬识别**：DuckDuckGo 对疑似机器人出口 IP 恒回 HTTP 202 + 首页壳（实测 html/lite 双端点、带 UA 同 202）——此前 202 ∈ response.ok 落进解析零结果，报 "parsed no results" 读起来像解析 bug；现单列 `anti-bot challenge shell (HTTP 202); the free fetch fallback is unavailable in this network`（`5255d16`）
+- **浏览器 UA 头**：DDG form POST 补桌面 Chrome UA 常量（裸请求头 = 不必要的 bot 指纹）
+
+**诚实标注（遗留项）**
+- 用户 5090 会话 web_fetch 11 错全部为**宿主 SSRF 防护 × 本机 fake-ip DNS**（198.18.x.x）：插件不在 web_fetch 路径（fetchProvider=官方 http）；环境解法（真实 IP DNS 分流）或配 FIRECRAWL_API_KEY 切本插件 fetch 链（服务端抓取）→ 归 S15 手册环境前提节（plan 014v 定性正本）
+- anysearch 超时/fetch-failed 波动 = 上游与代理链路（成功 21 次证明通路健康；重试语义 S14u 定稿不动）；octet-stream 拒收 = 宿主行为
+
+**治理**
+- 取证（盘上 session.jsonl.zstd 逐条 verbatim）→ 定性（DNS 对照实测 + 宿主 network.ts 源码）→ TDD 红绿 → 独立复审 **PASS（🔴×0 🟡×0，探针红签名）**；原文 audit-logs 在档
+- 执行红线 1 次当场纠正：typecheck exit 2 链式命令吞失败照常提交 → 立即补修 + 复检（e24d90c）
+
+**跟踪**
+- 测试基线 315→**317 passed | 9 skipped (326)**；下一棒：S15 手册棒（新增环境前提披露素材：fake-ip/DDG 地板边界/octet-stream）
+
+---
+
 ## 2026-09-07 — 搜索链重试机制质量收口（Session 14u，双深审触发 🔴×3 清偿）
 
 **新增**
