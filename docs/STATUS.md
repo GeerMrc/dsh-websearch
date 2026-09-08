@@ -71,12 +71,13 @@
 | 14t | 2026-09-07 | 徽标位置终调（标签后） | ✅ | commit d2ce699（badgeInLabel 亲证） | — |
 | 14u | 2026-09-07 | 质量收口棒：双深审 🔴×3+🟡×5 全清（重试机制定稿） | ✅ | merge 后 master HEAD；门墙 315\|9(324)/exit0/48 keys；复审 PASS（初审 BLOCKED→清偿复验 CONFIRMED） | 无挂账；S15 文档面归属在 plan 014u |
 | 14v | 2026-09-08 | 实测报错取证插棒：DDG 202 反爬壳单列报错 + UA 头（S15 前） | ✅ | merge 后 master HEAD；门墙 317\|9(326)/exit0；复审 PASS（🔴×0 🟡×0，探针红） | web_fetch non-public-IP=宿主SSRF×fake-ip 非插件（plan 014v 定性正本；S15 手册披露） |
+| 14w | 2026-09-08 | 主备链可验证交付：wire 级 e2e 正本 + 链卡主备徽标 + B2 v2 落档 + 手册素材 | ✅ | merge 后 master HEAD；门墙 320\|9(329)/exit0/50 keys；复审 PASS（两针探针真红 + 纯呈现核验） | B2 v2 启动包 + 暖启动预热入 🟢 池；S15 素材全就绪 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 14v ✅ 2026-09-08 收官——5090 实测取证：DDG 地板报错诚实化 + web_fetch 报错定性〔非插件〕）
+- **当前 session**: 无进行中（Session 14w ✅ 2026-09-08 收官——主备链可验证交付：e2e 正本 + 徽标 + B2 落档 + 手册素材）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
-- **上一棒**: Session 14v — 记录：docs/sessions/2026-09-08-session-14v.md
+- **上一棒**: Session 14w — 记录：docs/sessions/2026-09-08-session-14w.md
 - **下一棒**: S15 README + 迁移 + 升级手册（M5 文档腿收官；含 ADR-0008/0011/0012 勘注与架构 §4/§5 重试段——S14u 语义表为正素材）→ S16 上游验收准备
 - **活跃债务**: 🔴×0 🟡×0（阶段 4/5 审定+清偿）🟢×4 维持 + L-2 + 观察（badge 超长 id/fetchChain 显式不过滤对称注记/architecture D7 面→S15/AMBIGUOUS→S15 手册/发版清单→S15-S16/宿主闲置卡措辞〔已退役〕→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15）+ v2 backlog——正本：progress-M7 台账
-- **更新时间**: 2026-09-08（14v 阶段 6 收尾）
+- **更新时间**: 2026-09-08（14w 阶段 6 收尾）
