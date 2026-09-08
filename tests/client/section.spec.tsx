@@ -653,6 +653,64 @@ describe('WebSearchSettingsSection', () => {
     expect(input.value).toBe('100')
   })
 
+  it('the ! badge exists only in the EXPANDED body, never in the collapsed header (S14s 用户裁定)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const card = screen.getByTestId('dshws-member-tavily')
+    // Collapsed: no badge anywhere in the card.
+    expect(within(card).queryByTestId('dshws-keysel-info-tavily')).toBeNull()
+    expand('tavily')
+    // Expanded: the badge sits in the body, a sibling of the chip (not nested
+    // inside the header disclosure button — the S14r button-in-button fix).
+    const badge = within(card).getByTestId('dshws-keysel-info-tavily')
+    expect(badge.closest('button[data-testid="dshws-member-toggle-tavily"]')).toBeNull()
+    fireEvent.focus(badge)
+    expect(screen.getByRole('tooltip').textContent)
+      .toBe(en.keySelectionHint.replace('{policy}', en.keySelRoundRobin))
+  })
+
+  it('feedback color follows semantics: saved=green, cleared=warn, failed=error (S14s 分态配色)', async () => {
+    const onSave = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const onClear = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const onFail = vi.fn(async () => ({ ok: false }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSaveKey: onSave })} t={t} />)
+    expand('tavily')
+    // saved → success green
+    const input = focusKey('Tavily API Key')
+    fireEvent.change(input, { target: { value: 'sk-1' } })
+    fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.save}` }))
+    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsw-alias-state-success-primary)'))
+    cleanup()
+    // cleared → warn orange (the mislabeled-green bug the user caught)
+    render(<WebSearchSettingsSection {...makeProps({ onClearKey: onClear })} t={t} />)
+    expand('tavily')
+    fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.clear}` }))
+    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsw-alias-state-warn-label)'))
+    cleanup()
+    // failed → error red
+    render(<WebSearchSettingsSection {...makeProps({ onSaveKey: onFail })} t={t} />)
+    expand('tavily')
+    const input2 = focusKey('Tavily API Key')
+    fireEvent.change(input2, { target: { value: 'sk-2' } })
+    fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.save}` }))
+    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsh-alias-state-error-primary)'))
+  })
+
+  it('feedback auto-dismisses after 1.5s (S14s 时序收紧)', async () => {
+    vi.useFakeTimers()
+    try {
+      const onClear = vi.fn(async () => ({ ok: true }) as ActionResult)
+      render(<WebSearchSettingsSection {...makeProps({ onClearKey: onClear })} t={t} />)
+      expand('tavily')
+      fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.clear}` }))
+      await vi.advanceTimersByTimeAsync(0)
+      expect(screen.getByTestId('dshws-feedback-tavily').textContent).toBe(en.cleared)
+      await vi.advanceTimersByTimeAsync(1500)
+      expect(screen.queryByTestId('dshws-feedback-tavily')).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('an unconfigured member disables the policy chip; the ! badge carries the live semantics (S14n/S14r)', () => {
     const members = defaultMembers()
     members[0] = member('tavily', 'Tavily', { configured: false })

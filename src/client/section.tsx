@@ -163,10 +163,19 @@ const keySelButtonStyle = (pressed: boolean, configured: boolean) =>
     color: pressed ? 'var(--dsw-alias-label-secondary)' : 'var(--dsw-alias-label-tertiary)',
   }) as const
 
+/** S14s: feedback color follows the operation's semantics — save is a
+ * positive confirmation (success green), clear is a retractive act (warn),
+ * failure is an error; the old single green mislabeled both. */
+const feedbackColor = (state: 'saved' | 'cleared' | 'failed'): string =>
+  state === 'saved'
+    ? 'var(--dsw-alias-state-success-primary)'
+    : state === 'cleared'
+      ? 'var(--dsw-alias-state-warn-label)'
+      : 'var(--dsh-alias-state-error-primary)'
+
 const feedbackStyle = {
   flex: 1,
   fontSize: 12,
-  color: 'var(--dsw-alias-state-success-primary)',
 } as const
 
 /** Track follows the host switch shape (36x20, pad 2, r10 — SubagentModelSelectionCard
@@ -415,7 +424,7 @@ function MaxUsesRow(props: {
   // with the controller re-describe fix the value itself updates live too.
   useEffect(() => {
     if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 2500)
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
     return () => clearTimeout(timer)
   }, [feedback])
   const save = async (): Promise<void> => {
@@ -491,7 +500,7 @@ function MaxUsesRow(props: {
         {t('save')}
       </Button>
       {feedback ? (
-        <span role="status" data-testid="dshws-max-uses-feedback" style={feedbackStyle}>{t(feedback)}</span>
+        <span role="status" data-testid="dshws-max-uses-feedback" style={{ ...feedbackStyle, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
       ) : null}
     </div>
   )
@@ -598,7 +607,7 @@ function MemberEndpointField(props: {
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 2500)
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
     return () => clearTimeout(timer)
   }, [feedback])
   const value = draft ?? member.baseURL ?? ''
@@ -622,7 +631,7 @@ function MemberEndpointField(props: {
       />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
         {feedback ? (
-          <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={{ ...feedbackStyle, flex: undefined }}>{t(feedback)}</span>
+          <span role="status" data-testid={`dshws-endpoint-feedback-${member.key}`} style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
         ) : null}
         <Button
           variant="outline"
@@ -662,7 +671,7 @@ function MemberCard(props: {
   // reads as a stuck state (user report).
   useEffect(() => {
     if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 2500)
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
     return () => clearTimeout(timer)
   }, [feedback])
   const save = async (): Promise<void> => {
@@ -707,23 +716,6 @@ function MemberCard(props: {
         >
           <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
           <strong style={nameStyle}>{member.label}</strong>
-          {/* S14r: the per-tool key-policy note lives behind a ! badge on the
-          name (chain-card pattern) instead of a full hint line. */}
-          <Tooltip
-            label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
-            side="bottom"
-            delayMs={200}
-            maxWidth={320}
-          >
-            <button
-              type="button"
-              aria-label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
-              data-testid={`dshws-keysel-info-${member.key}`}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6 }}
-            >
-              !
-            </button>
-          </Tooltip>
           <span style={{ flex: 1 }} />
           <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
         </button>
@@ -784,6 +776,24 @@ function MemberCard(props: {
               {t(keySelectionLabelKey(member.keySelection))}
             </button>
           </Tooltip>
+          {/* S14s (user ruling): the ! badge appears only in the EXPANDED body
+          (chain-card form; independent top-level button — the old placement
+          nested it inside the header disclosure button). */}
+          <Tooltip
+            label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
+            side="bottom"
+            delayMs={200}
+            maxWidth={320}
+          >
+            <button
+              type="button"
+              aria-label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
+              data-testid={`dshws-keysel-info-${member.key}`}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6, flexShrink: 0 }}
+            >
+              !
+            </button>
+          </Tooltip>
         </div>
       </div>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —
@@ -791,7 +801,7 @@ function MemberCard(props: {
       <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} />
       <div style={footerStyle}>
         {feedback ? (
-          <span role="status" data-testid={`dshws-feedback-${member.key}`} style={feedbackStyle}>{t(feedback)}</span>
+          <span role="status" data-testid={`dshws-feedback-${member.key}`} style={{ ...feedbackStyle, color: feedbackColor(feedback) }}>{t(feedback)}</span>
         ) : (
           <span style={{ flex: 1 }} />
         )}
