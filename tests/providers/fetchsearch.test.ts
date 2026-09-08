@@ -72,12 +72,22 @@ describe('FetchSearchProvider (S14e D1)', () => {
     const provider = new FetchSearchProvider()
     const shell = '<!DOCTYPE html><html><head><title>DuckDuckGo HTML: Private Search Without JavaScript</title></head><body></body></html>'
     vi.stubGlobal('fetch', vi.fn(async () => new Response(shell, { status: 202 })))
-    const blocked = await provider.search({ query: 'x' }).then(() => null, (error: unknown) => error as Error)
+    const blocked = (await provider.search({ query: 'x' }).then(
+      () => {
+        throw new Error('expected the search to reject')
+      },
+      (error: unknown) => error,
+    )) as Error
     expect(blocked).toMatchObject({ code: 'DSHWS_FETCHSEARCH_BAD_RESPONSE' })
     expect(blocked.message).toContain('anti-bot challenge shell (HTTP 202)')
     expect(blocked.message).toContain('unavailable in this network')
     vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>genuinely empty result page</html>', { status: 200 })))
-    const empty = await provider.search({ query: 'x' }).then(() => null, (error: unknown) => error as Error)
+    const empty = (await provider.search({ query: 'x' }).then(
+      () => {
+        throw new Error('expected the search to reject')
+      },
+      (error: unknown) => error,
+    )) as Error
     expect(empty).toMatchObject({ code: 'DSHWS_FETCHSEARCH_BAD_RESPONSE' })
     expect(empty.message).not.toContain('anti-bot')
     expect(empty.message).toContain('parsed no results')
@@ -86,11 +96,12 @@ describe('FetchSearchProvider (S14e D1)', () => {
 
   it('sends a desktop browser user-agent with the form POST (S14v T2)', async () => {
     const provider = new FetchSearchProvider()
-    const fetchMock = vi.fn(async () => new Response(FIXTURE, { status: 200 }))
+    const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(FIXTURE, { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
     await provider.search({ query: 'x' })
-    const init = fetchMock.mock.calls[0]![1] as { headers: Record<string, string> }
-    expect(init.headers['user-agent']).toMatch(/Mozilla\/5\.0/)
+    const init = fetchMock.mock.calls[0]![1] as RequestInit
+    const headers = init.headers as Record<string, string>
+    expect(headers['user-agent']).toMatch(/Mozilla\/5\.0/)
     vi.unstubAllGlobals()
   })
 })
