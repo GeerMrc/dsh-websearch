@@ -62,6 +62,8 @@ export type DshWsLocaleKey =
   | 'maskedKey'
   | 'fallbackChoiceFree'
   | 'chainOrderHint'
+  | 'chainRolePrimary'
+  | 'chainRoleStandby'
   | 'chainNoUsableWarning'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
@@ -118,7 +120,9 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackChoicePaid: 'DeepSeek paid',
   fallbackChoiceFree: 'Fetch (free)',
   keyPlaceholder: '{ref} — multiple keys: APIKEY1,APIKEY2,… (max 10)',
-  chainOrderHint: 'Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch (fallback search tool: paid DeepSeek APIKEY or free Fetch websearch)',
+  chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last member is the in-chain standby, and the built-in floor (paid DeepSeek or free Fetch) still follows it. Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch.',
+  chainRolePrimary: 'Primary',
+  chainRoleStandby: 'Standby',
   maskedKey: '••••••••',
 }
 
@@ -170,6 +174,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackChoicePaid: 'DeepSeek 付费',
   fallbackChoiceFree: 'Fetch 免费',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',
-  chainOrderHint: '内置默认序：Tavily → Exa → Perplexity → Firecrawl → AnySearch（兜底搜索工具：付费 DeepSeek APIKEY 或 免费 Fetch websearch）',
+  chainOrderHint: '链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位是链内兜底位，其后仍有内置地板（付费 DeepSeek 或免费 Fetch）。内置默认序：Tavily → Exa → Perplexity → Firecrawl → AnySearch。',
+  chainRolePrimary: '主搜索',
+  chainRoleStandby: '兜底位',
   maskedKey: '••••••••',
 }

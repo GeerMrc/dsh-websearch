@@ -393,6 +393,33 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
   })
 
+  it('marks the first ready member as primary and the last as the standby slot (S14w 主备显式化)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    // Five ready members: tavily heads the chain (primary), anysearch closes
+    // it (the in-chain standby slot).
+    const rows = screen.getAllByTestId(/^dshws-chain-item-/)
+    expect(rows).toHaveLength(5)
+    expect(within(rows[0] as HTMLElement).getByTestId('dshws-chain-role-primary')).toBeTruthy()
+    expect(within(rows[4] as HTMLElement).getByTestId('dshws-chain-role-standby')).toBeTruthy()
+    // Role badges exist only on the two ends — the middle members carry none.
+    for (const row of rows.slice(1, 4)) {
+      expect(within(row as HTMLElement).queryByTestId('dshws-chain-role-primary')).toBeNull()
+      expect(within(row as HTMLElement).queryByTestId('dshws-chain-role-standby')).toBeNull()
+    }
+  })
+
+  it('a single ready member is primary and NOT its own standby (S14w 主备显式化)', () => {
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: index === 0 })
+    }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
+    const rows = screen.getAllByTestId(/^dshws-chain-item-/)
+    expect(rows).toHaveLength(1)
+    expect(within(rows[0] as HTMLElement).getByTestId('dshws-chain-role-primary')).toBeTruthy()
+    expect(within(rows[0] as HTMLElement).queryByTestId('dshws-chain-role-standby')).toBeNull()
+  })
+
   it('key field placeholders, masking, and the {N} hint interpolate live values (S14d D3/T1, stage45 🟡-B 清偿)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')

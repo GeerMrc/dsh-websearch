@@ -339,6 +339,15 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
               >
                 <span style={chainIndexStyle}>{index + 1}</span>
                 <span data-dshws-chain-label="">{labelOf(id)}</span>
+                {/* S14w: the chain order IS the primary/standby order — the
+                two ends carry explicit role chips (pure presentation; the
+                underlying chain semantics are unchanged). */}
+                {index === 0 ? (
+                  <span data-testid="dshws-chain-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span>
+                ) : null}
+                {visibleSearch.length > 1 && index === visibleSearch.length - 1 ? (
+                  <span data-testid="dshws-chain-role-standby" style={roleChipStyle}>{t('chainRoleStandby')}</span>
+                ) : null}
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"
@@ -521,6 +530,17 @@ const chainIndexStyle = {
   fontSize: 12,
   color: 'var(--dsw-alias-label-tertiary)',
   minWidth: 14,
+} as const
+
+/** Role chip for the two chain ends (S14w): a quiet bordered pill, secondary tone. */
+const roleChipStyle = {
+  fontSize: 10,
+  lineHeight: 1.4,
+  padding: '0 6px',
+  border: '1px solid var(--dsw-alias-border-l2)',
+  borderRadius: 999,
+  color: 'var(--dsw-alias-label-secondary)',
+  whiteSpace: 'nowrap',
 } as const
 
 const moveButtonStyle = {
