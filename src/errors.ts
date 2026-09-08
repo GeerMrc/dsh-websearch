@@ -85,20 +85,27 @@ export class DshwsError extends Error {
 export interface ChainMemberFailure {
   /** Provider id of the failed member (e.g. `dshws-tavily`). */
   readonly memberId: string
-  /** Human-readable failure reason; timeout entries carry the `DSHWS_MEMBER_TIMEOUT` marker. */
-  readonly reason: string
-  /** The error the member threw, when the failure came from a throw. */
+  /** One human-readable failure reason per attempted draw, in draw order; timeout entries carry the `DSHWS_MEMBER_TIMEOUT` marker. */
+  readonly drawReasons: readonly string[]
+  /** The error the member's last draw threw, when the failure came from a throw. */
   readonly error?: unknown
 }
 
 /**
- * Build the terminal `DSHWS_CHAIN_EXHAUSTED` error. The message embeds one
- * `memberId: reason` line per failed member; the last member's thrown error
- * (when any) is chained as `cause` so the terminal diagnostics keep the
- * deepest failure (ADR-0002 Decision 3).
+ * Build the terminal `DSHWS_CHAIN_EXHAUSTED` error. The message embeds ONE
+ * line per failed member — a multi-draw member lists its draws inline, so
+ * the member count stays truthful; the last member's last-draw error (when
+ * any) is chained as `cause` so the terminal diagnostics keep the deepest
+ * failure (ADR-0002 Decision 3).
  */
 export function createChainExhaustedError(failures: readonly ChainMemberFailure[]): DshwsError {
-  const lines = failures.map((failure) => `- ${failure.memberId}: ${failure.reason}`)
+  const lines = failures.map((failure) => {
+    const detail =
+      failure.drawReasons.length > 1
+        ? `failed (${failure.drawReasons.length} draws: ${failure.drawReasons.join('; ')})`
+        : failure.drawReasons[0] ?? 'failed'
+    return `- ${failure.memberId}: ${detail}`
+  })
   const last = failures.at(-1)
   return new DshwsError(
     CHAIN_ERROR_CODES.exhausted,

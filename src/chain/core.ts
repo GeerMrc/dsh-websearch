@@ -144,7 +144,8 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
    * network/quota noise specific to THAT key, so the chain redraws another
    * key from the member's pool (a fresh `invoke` re-reads the pool policy)
    * before degrading to the next member. Three draws per member cap the
-   * added latency; the per-member timeout budget still applies per draw.
+   * added latency; the per-member timeout budget is ONE shared deadline
+   * across those draws (S14u), so redrawing never multiplies the budget.
    */
   static readonly MEMBER_DRAWS = 3
 
@@ -153,7 +154,7 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
     return member.multiKeyPool === true ? ChainCore.MEMBER_DRAWS : 1
   }
 
-  /** Try members in configured order; per member up to MEMBER_DRAWS key redraws, then degrade. */
+  /** Try members in configured order; per member one shared timeout budget across up to MEMBER_DRAWS key redraws, then degrade. */
   async run(
     request: Req,
     signal: AbortSignal | undefined,
@@ -164,7 +165,19 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
       const member = this.#options.members.resolve(id)
       if (!this.#isUsable(member)) continue
       const draws = this.#drawsFor(member)
+      const deadline = Date.now() + this.#options.perMemberTimeoutMs
+      const drawReasons: string[] = []
+      let lastError: unknown
       for (let draw = 1; draw <= draws; draw += 1) {
+        const remaining = deadline - Date.now()
+        if (remaining <= 0) {
+          // A prior draw consumed the whole budget: the member degrades now,
+          // with the spent budget recorded instead of a zero-ms fake draw.
+          const reason = `${CHAIN_ERROR_CODES.memberTimeout}: member budget of ${this.#options.perMemberTimeoutMs}ms spent after ${drawReasons.length} draw(s)`
+          drawReasons.push(reason)
+          this.#options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
+          break
+        }
       try {
         const controller = new AbortController()
         const abortFromOuter = () => controller.abort(signal?.reason)
@@ -177,7 +190,7 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
         const timer = setTimeout(() => {
           controller.abort()
           fireTimeout()
-        }, this.#options.perMemberTimeoutMs)
+        }, remaining)
         try {
           const memberPromise = invoke(member.provider, request, controller.signal)
           // After a timeout abort the member promise still rejects (typically
@@ -197,16 +210,21 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
         if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
         const isTimeout = error === MEMBER_TIMED_OUT
         const reason = isTimeout
-          ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within ${this.#options.perMemberTimeoutMs}ms`
+          ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within the member budget of ${this.#options.perMemberTimeoutMs}ms`
           : error instanceof Error
             ? error.message
             : String(error)
-        failures.push({ memberId: id, reason, error: isTimeout ? undefined : error })
-        const drawNote = draw < draws ? `; redrawing key (${draw + 1}/${draws})` : '; degrading to next member'
+        drawReasons.push(reason)
+        if (!isTimeout) lastError = error
+        const drawNote = draw < draws && !isTimeout ? `; redrawing key (${draw + 1}/${draws})` : '; degrading to next member'
         this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
-        if (draw >= draws) break // budget spent → degrade to the next member
-        continue // redraw another key within the same member
+        if (isTimeout) break // the shared budget is spent → degrade to the next member
+        if (draw >= draws) break // draw budget spent → degrade to the next member
+        continue // redraw another key within the same member, on the remaining budget
       }
+      }
+      if (drawReasons.length > 0) {
+        failures.push(lastError !== undefined ? { memberId: id, drawReasons, error: lastError } : { memberId: id, drawReasons })
       }
     }
     if (failures.length === 0) throw noMemberConfigured(this.#options.order)

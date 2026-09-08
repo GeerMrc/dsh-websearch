@@ -37,6 +37,10 @@ interface AssembleOverrides {
   exaEnabled?: boolean
   withAnysearch?: boolean
   tavilyKeySelection?: 'order' | 'round-robin' | 'random'
+  /** Pin the fallback choice (S14u: keep the chain tail loopback-controlled). */
+  fallbackProvider?: 'deepseek' | 'fetch'
+  /** Point the deepseek member at THIS scenario's loopback server (the caller cannot know the ephemeral port). */
+  deepseekAtLoopback?: boolean
   /** Explicit configured-ref set (defaults: the three primaries). */
   configuredRefs?: string[]
   /** Per-ref credential values (defaults keep 'fake-key' for every ref). */
@@ -146,7 +150,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(elapsed).toBeLessThan(5000)
       const degrade = handle.logLines.find((line) => line.includes('dshws-tavily failed'))
       expect(degrade).toBeDefined()
-      expect(degrade!).toContain('DSHWS_MEMBER_TIMEOUT: no result within 150ms')
+      expect(degrade!).toContain('DSHWS_MEMBER_TIMEOUT: no result within the member budget of 150ms')
       expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-exa')
       expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /exa/search'])
     } finally {
