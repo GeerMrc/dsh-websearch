@@ -231,7 +231,7 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           if (draw >= draws) break // draw budget spent → degrade to the next member
           continue // redraw another key within the same member, on the remaining budget
         }
-        }
+      }
       if (drawReasons.length > 0) {
         failures.push(lastError !== undefined ? { memberId: id, drawReasons, error: lastError } : { memberId: id, drawReasons })
       }
