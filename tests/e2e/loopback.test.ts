@@ -229,7 +229,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     try {
       const exhausted = await chain.search({ query: 'loopback all-fail' }).then(() => null, (error: unknown) => error as Error)
       expect(exhausted).not.toBeNull()
-      const failure = exhausted as unknown as { code: string; message: string; cause?: { code?: string } }
+      const failure = exhausted as unknown as { code: string; message: string; cause?: { code?: string; httpStatus?: number } }
       expect(failure.code).toBe('DSHWS_CHAIN_EXHAUSTED')
       // One summary line per member, in walk order — the pinned deepseek tail
       // included, so the walk stays entirely on the loopback server.
@@ -247,6 +247,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       // The last member's thrown error rides as cause (ADR-0002 Decision 3):
       // the loopback deepseek tail's HTTP 500.
       expect(failure.cause?.code).toBe('DSHWS_DEEPSEEK_HTTP_ERROR')
+      expect(failure.cause?.httpStatus).toBe(500)
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',

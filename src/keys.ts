@@ -141,8 +141,9 @@ export class KeyPool {
    * Draw one key per policy. `random` draws from a shuffled deck without
    * replacement (ADR-0012): mid-cycle draws walk the deck; an exhausted deck
    * or a split whose multiset no longer matches the deck (hot value change)
-   * reshuffles first. A failed request consumes its draw — no same-member
-   * retry, the chain degrades instead.
+   * reshuffles first. A failed request consumes its draw; whether the chain
+   * redraws another key within the member (S14r: up to MEMBER_DRAWS draws,
+   * multi-key pools with a switching policy only) is chain policy.
    */
   #select(keys: readonly string[]): string {
     const selection = this.#ports.selection()

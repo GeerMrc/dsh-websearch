@@ -73,13 +73,24 @@ export const MEMBER_ERROR_CODES = {
 export class DshwsError extends Error {
   /** Stable `DSHWS_*` code; consumers must tolerate member-specific codes. */
   readonly code: string
+  /** HTTP status of the failing response, when the failure came from one; a non-retryable status ends the member's redraw loop (S14u). */
+  readonly httpStatus?: number
 
-  constructor(code: string, message: string, options?: { cause?: unknown }) {
+  constructor(code: string, message: string, options?: { cause?: unknown; httpStatus?: number }) {
     super(message, options)
     this.name = 'DshwsError'
     this.code = code
+    this.httpStatus = options?.httpStatus
   }
 }
+
+/**
+ * HTTP statuses that hold for every key of a member with certainty — bad
+ * request, bad key, forbidden, missing route, unprocessable body. The chain
+ * degrades to the next member without spending redraw draws on them (S14u);
+ * 429 and 5xx stay out because they are key- or moment-specific.
+ */
+export const NON_RETRYABLE_HTTP_STATUSES: ReadonlySet<number> = new Set([400, 401, 403, 404, 422])
 
 /** One member's failure, as recorded by the chain while degrading. */
 export interface ChainMemberFailure {

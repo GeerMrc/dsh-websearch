@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { WebSearchProvider, WebSearchResult } from '@deepseek-ai/dsh-web'
 import type { ChainMemberResolver } from '../../src/chain/core.ts'
 import { ChainSearchProvider } from '../../src/chain/core.ts'
+import { DshwsError } from '../../src/errors.ts'
 
 function fakeResult(content?: string): WebSearchResult {
   return { content, sources: [], truncated: false }
@@ -651,5 +652,58 @@ describe('member budget & exhaustion aggregation (S14u)', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it('degrades at once on a deterministic 4xx — no redraw can change the verdict (S14u 4xx 分流)', async () => {
+    // 401 holds for EVERY key of the member with certainty: spending redraw
+    // draws on it only multiplies the same failure and delays the fallback.
+    let draws = 0
+    const unauthorized = {
+      id: 'dshws-authfail',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily API error (HTTP 401): invalid api key', { httpStatus: 401 })
+      },
+    }
+    const calls: string[] = []
+    const logs: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-authfail': { provider: unauthorized as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-backup': { provider: trackingProvider('dshws-backup', calls) },
+      }),
+      order: ['dshws-authfail', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+      log: (message) => logs.push(message),
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(draws).toBe(1)
+    expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
+    expect(logs.some((line) => line.includes('deterministic HTTP 401'))).toBe(true)
+  })
+
+  it('keeps the redraw budget for retryable statuses — 429 is key-/moment-specific (S14u 4xx 分流)', async () => {
+    let draws = 0
+    const throttled = {
+      id: 'dshws-throttled',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily API error (HTTP 429)', { httpStatus: 429 })
+      },
+    }
+    const calls: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-throttled': { provider: throttled as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-backup': { provider: trackingProvider('dshws-backup', calls) },
+      }),
+      order: ['dshws-throttled', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(draws).toBe(3)
+    expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
   })
 })
