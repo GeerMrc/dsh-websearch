@@ -12,6 +12,33 @@
 
 ---
 
+## 2026-09-07 — 搜索链重试机制质量收口（Session 14u，双深审触发 🔴×3 清偿）
+
+**新增**
+- **重试机制定稿**（docs/notes/2026-09-07-s14u-quality-hardening.md 语义表）：成员内 key 级重试 3 draw〔仅多 key 池且策略非 order〕；**成员级共享超时预算**（一个 deadline 跨全部 draw，≤1× perMemberTimeoutMs，预算耗尽不再起 0ms 假 draw）；**确定性 4xx 分流**（`DshwsError.httpStatus` + {400,401,403,404,422} 直接降级，429/5xx/网络错保留 redraw）；耗尽摘要**每成员一行**（多 draw 内联 `failed (3 draws: …)`，成员计数归真）
+- **零可用成员三态呈现**：fetch 地板/已配 key 的 DeepSeek 地板→中性地板说明（2 新键）；仅显式 DeepSeek 兜底且无 key→诚实红色失败警告（旧版一律假红警告）
+- fetchsearch 自有错误族 `DSHWS_FETCHSEARCH_*`（不再借用 firecrawl 族）；exa HTTP 错误消息保留状态前缀
+
+**清偿（🔴×3 + 🟡×5 + 复审 🔴×1+🟡×3）**
+- 🔴 auto 兜底断裂：deepseek 成员 enabled gate 恒真，链尾资格唯一入口 = `fallbackProvider` 命名（`8709248`）
+- 🔴 order 盲重试：`hasMultiKeyPool` 纳入策略（`650f639`）
+- 🔴 loopback e2e 真外网：全败场景钉 deepseek 链尾回 loopback（`eafd095`）
+- 🟡 耗尽聚合+共享预算（`1df8125`）/ 4xx 分流+文案（`514cc82`）/ 残渣清理：孤儿键 6 删（52→48 keys）+ memberDisabled 死分支 + fetchChain 死快照字段 + config.ts 12 处 JSDoc 默认勘正（`3445ae3`）
+- 复审清偿：T4 测试 Unhandled Rejection 致 vitest exit 1（创建即挂 handler）+ 缩进/死兜底字面/enabled 架空 JSDoc（`b61622c`+`9dc0bb6`）
+
+**治理**
+- 阶段 0 快速通道（用户指令双深审代行；🟡 过程债 = 深审原文未落盘，session-14u 勘误披露）→ T1-T6 逐一 TDD 红绿留痕 → T8 独立复审初判 **BLOCKED**（探针×3 证判别力）→ 四项清偿 → 同 Agent 复验 **PASS/CONFIRMED**；两轮原文 audit-logs 在档
+
+**诚实标注（遗留项）**
+- 3423 实测用 fake DeepSeek key 已从 `.credentials.yaml` 物理清除（GUI 清空不清文件），零残留亲证
+- S14f-S14t 微批（台账在 STATUS）未单列 CHANGELOG 条目——沿用微批口径
+
+**跟踪**
+- 测试基线 305→**315 passed | 9 skipped (324)**；i18n 52→**48 keys**；client.js **64.42 kB**；门墙口径新增 exit code + Errors 行
+- 下一棒：S15 手册棒（README/迁移/升级手册 + ADR-0008/0011/0012 勘注 + 架构 §4/§5 重试段）
+
+---
+
 ## 2026-09-07 — 免费 fetch 搜索兜底（DDG）+ 二选一自动默认 + 链徽标（Session 14e，用户方向修正）
 
 **新增**
