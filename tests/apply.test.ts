@@ -5,39 +5,59 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 describe('apply assembly', () => {
-  it('registers the chains and all seven members with ctx.web (double registration topology, S14e +fetch-search)', () => {
+  it('registers the chains and all six members with ctx.web (double registration topology, ADR-0014 −fetch-search)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
-    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch', 'dshws-fetch-search'])
+    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
     expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
   })
 
-  it('auto with the model key ready keeps the PAID floor reachable under the DEFAULT config (S14u regression)', async () => {
-    // The exact broken quadrant: default config (no explicit deepseek section),
-    // DEEPSEEK key configured, fallbackProvider=auto. The chain tail resolves
-    // to dshws-deepseek; the member gate must NOT skip it.
+  it('a model key alone grants NO paid reach — the floor joins only when designated (ADR-0014, was the S14u auto quadrant)', async () => {
+    // Pre-0.2 the auto default silently enabled the paid floor once the
+    // Models-page key existed; ADR-0014 moves participation behind an explicit
+    // designation, so the DEFAULT chain stays tool-members-only.
     const { ctx, providers, configured } = fakeCtx()
     configured.add('DEEPSEEK_API_KEY')
     apply(ctx as unknown as Context, {})
     const chain = providers.get('dshws-chain') as WebSearchProvider
-    // Prime the credential gates first so the auto branch sees the key and
-    // names the PAID tail — the floor is then out of the order for real.
     await flushGate()
-    await vi.waitFor(() => expect(chain.available()).toBe(true))
+    expect(chain.available()).toBe(false)
+    const exhausted = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(exhausted).toMatchObject({ code: 'DSHWS_NO_MEMBER_CONFIGURED' })
   })
 
-  it('the chain is AVAILABLE with no credentials — the free fetch floor (S14e 语义变更，用户设计)', () => {
+  it('zero credentials: the chain is honestly unavailable and says what to do (ADR-0014 breaking pin)', async () => {
     const { ctx, providers } = fakeCtx()
     apply(ctx as unknown as Context, {})
     const chain = providers.get('dshws-chain') as WebSearchProvider
-    expect(chain.available()).toBe(true)
+    expect(chain.available()).toBe(false)
+    const caught = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect(caught).toMatchObject({ code: 'DSHWS_NO_MEMBER_CONFIGURED' })
+    expect(caught!.message).toContain('select the DeepSeek paid fallback')
   })
 
-  it('an explicit PAID fallback choice with no model key keeps the chain unavailable (S14e: paid is honest)', () => {
+  it('designated DeepSeek with no model key keeps the chain unavailable (paid is honest)', () => {
     const { ctx, providers } = fakeCtx()
-    apply(ctx as unknown as Context, { fallbackProvider: 'deepseek' })
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     expect(chain.available()).toBe(false)
+  })
+
+  it('legacy fallbackProvider: deepseek designates the paid floor; the other alias values mean auto (ADR-0014)', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, { fallbackProvider: 'deepseek' })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
+
+    // 'fetch' named the deleted free floor — it normalizes to auto, no floor.
+    const { ctx: ctx2, providers: providers2, configured: configured2 } = fakeCtx()
+    configured2.add('DEEPSEEK_API_KEY')
+    apply(ctx2 as unknown as Context, { fallbackProvider: 'fetch' })
+    const chain2 = providers2.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    expect(chain2.available()).toBe(false)
   })
 
   it('reports plugin name and inject surface for the loader', () => {
@@ -46,16 +66,106 @@ describe('apply assembly', () => {
   })
 })
 
+describe('ADR-0014 fallback participation (quadrant pins)', () => {
+  const allFail = () => vi.fn(async (_url: string | URL | Request) =>
+    new Response('server error', { status: 500 }))
+
+  async function exhaustedError(chain: WebSearchProvider): Promise<Error> {
+    return await chain.search({ query: 'q' }).then(
+      () => {
+        throw new Error('expected the chain to reject')
+      },
+      (error: unknown) => error as Error,
+    )
+  }
+
+  it('④ self-exclusion: one ready tool + selected keyed DeepSeek stays ELIGIBLE (readyCount never counts DeepSeek)', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    // If the guard counted DeepSeek itself, readyCount would be 2 and the
+    // floor would vanish — the exact suicide hole the ADR pins shut.
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
+    vi.stubGlobal('fetch', allFail())
+    const error = await exhaustedError(chain)
+    expect(error.message).toContain('- dshws-deepseek:')
+  })
+
+  it('⑤ the enabled face: a disabled keyed tool does NOT consume the one-tool slot', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    configured.add('EXA_API_KEY')
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek', tavily: { enabled: false } })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    // Ready tools = exa only (tavily disabled) → count 1 → the floor joins.
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
+    vi.stubGlobal('fetch', allFail())
+    const error = await exhaustedError(chain)
+    expect(error.message).toContain('- dshws-deepseek:')
+    expect(error.message).not.toContain('- dshws-tavily:')
+  })
+
+  it('⑥ the key clause: designated + eligible count but NO key → auto chain, no floor', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    vi.stubGlobal('fetch', allFail())
+    const error = await exhaustedError(chain)
+    expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+    expect(error.message).toContain('- dshws-tavily:')
+    expect(error.message).not.toContain('- dshws-deepseek:')
+  })
+
+  it('① two-plus ready tools: the paid floor is GONE even when designated and keyed (user rule)', async () => {
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    configured.add('EXA_API_KEY')
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    vi.stubGlobal('fetch', allFail())
+    const error = await exhaustedError(chain)
+    expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+    expect(error.message).toContain('all 2 configured chain members failed')
+    expect(error.message).not.toContain('- dshws-deepseek:')
+  })
+
+  it('hot-switch: a second tool key landing revokes the floor on the NEXT search (intent degrades to auto)', async () => {
+    const { ctx, providers, configured, emitUpdated } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    vi.stubGlobal('fetch', allFail())
+    expect((await exhaustedError(chain)).message).toContain('- dshws-deepseek:')
+
+    configured.add('EXA_API_KEY')
+    emitUpdated('EXA_API_KEY')
+    await vi.waitFor(() => {
+      void chain.search({ query: 'probe' }).catch(() => {})
+    })
+    const error = await exhaustedError(chain)
+    expect(error.message).not.toContain('- dshws-deepseek:')
+  })
+})
+
 describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', () => {
   it('chain availability flips when a ref is configured, and flips back when removed', async () => {
     const { ctx, providers, configured, emitUpdated } = fakeCtx()
-    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, {})
     const chain = providers.get('dshws-chain') as WebSearchProvider
 
-    // S14e: with the free floor the chain stays available throughout; the
-    // flip is now observable via the explicit paid choice below instead.
     await flushGate()
-    expect(chain.available()).toBe(true)
+    expect(chain.available()).toBe(false)
 
     configured.add('TAVILY_API_KEY')
     emitUpdated('TAVILY_API_KEY')
@@ -63,13 +173,13 @@ describe('apply credential wiring (凭据热刷新，宪法必测挂账 V-05)', 
 
     configured.delete('TAVILY_API_KEY')
     emitUpdated('TAVILY_API_KEY')
-    await vi.waitFor(() => expect(chain.available()).toBe(true))
+    await vi.waitFor(() => expect(chain.available()).toBe(false))
   })
 
   it('a configured key makes the member ready after the initial prime (no event needed)', async () => {
     const { ctx, providers, configured } = fakeCtx()
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await vi.waitFor(() => expect(chain.available()).toBe(true))
   })
@@ -181,12 +291,13 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, { deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
 
-    // Every member fails with HTTP 500, so the exhausted summary records the
-    // walk order: built-in order puts tavily before deepseek.
+    // One ready tool + designated + keyed DeepSeek = the floor is eligible and
+    // appended after the span. Every member fails with HTTP 500, so the
+    // exhausted summary records the walk order: tavily before deepseek.
     vi.stubGlobal('fetch', vi.fn(async (_url: string | URL | Request) =>
       new Response('server error', { status: 500 })))
     const first = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
@@ -196,11 +307,11 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     expect(first!.message.indexOf(tavilyLine)).toBeGreaterThan(-1)
     expect(first!.message.indexOf(tavilyLine)).toBeLessThan(first!.message.indexOf(deepseekLine))
 
-    // S14c: deepseek left the orderable domain — a pinned chain naming it first
-    // (pre-S14c shape) is filtered and re-appended as the fixed tail, so the
-    // walk order stays tavily → deepseek. Reordering the orderable span still
+    // A pinned chain naming the deepseek tail first (pre-S14c shape) is
+    // stripped; the guard re-appends it when eligible, so the walk order
+    // stays tavily → deepseek. Reordering the orderable span still
     // hot-applies on the next search.
-    commitSettings({ searchChain: ['dshws-deepseek', 'dshws-tavily'], deepseek: { enabled: true } })
+    commitSettings({ searchChain: ['dshws-deepseek', 'dshws-tavily'], fallbackMember: 'dshws-deepseek' })
     const second = await chain.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
     expect(second).toBeDefined()
     expect(second!.message.indexOf(tavilyLine)).toBeGreaterThan(-1)
@@ -211,7 +322,7 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('TAVILY_API_KEY')
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, { perMemberTimeoutMs: 30, deepseek: { enabled: true } })
+    apply(ctx as unknown as Context, { perMemberTimeoutMs: 30, fallbackMember: 'dshws-deepseek' })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
 

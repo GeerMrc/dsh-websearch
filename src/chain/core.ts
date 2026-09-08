@@ -254,7 +254,8 @@ function noMemberConfigured(order: readonly string[]): DshwsError {
   return new DshwsError(
     CHAIN_ERROR_CODES.noMemberConfigured,
     `${CHAIN_ERROR_CODES.noMemberConfigured}: no usable member on the chain (chain order: ${order.join(', ')});`
-    + ' enable or configure a member on the dsh-websearch settings page (DeepSeek falls back through the Models-page key)',
+    + ' enable or configure a member on the dsh-websearch settings page,'
+    + ' or select the DeepSeek paid fallback there when fewer than two tools are ready (Models-page key required)',
   )
 }
 

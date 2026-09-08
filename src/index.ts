@@ -25,8 +25,7 @@ import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
 import { AnysearchSearchProvider, resolveAnysearchMemberOptions } from './providers/anysearch.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
-import { FetchSearchProvider, FETCH_FALLBACK_MEMBER_ID } from './providers/fetchsearch.ts'
-import { DEEPSEEK_FALLBACK_MEMBER_ID, fallbackMemberId } from './config.ts'
+import { DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER } from './config.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
 import { PerplexitySearchProvider, resolvePerplexityMemberOptions } from './providers/perplexity.ts'
@@ -143,11 +142,9 @@ export function apply(ctx: Context, config: Config): void {
 
   const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({
     enabled: () =>
-      // S14u (plan 014e D2, retroactively landed): the deepseek fallback's
-      // membership is governed SOLELY by fallbackProvider naming it as the
-      // chain tail — its legacy enabled flag (paid opt-in default false,
-      // S14d) must not skip the named tail, which silently evicted the free
-      // floor too (the auto branch had already replaced the tail id).
+      // The deepseek member's chain membership is governed SOLELY by the
+      // ADR-0014 participation guard (designated + at most one ready tool +
+      // key armed) — its legacy enabled flag must not veto a guarded tail.
       memberKey === 'deepseek' ? true : live.current()[memberKey].enabled,
     credentialsReady: () => pool.ready(),
     // S14r: same-member key redraw only helps when the pool holds >1 key.
@@ -157,6 +154,20 @@ export function apply(ctx: Context, config: Config): void {
   const searchMembers = new MemberRegistry()
   const fetchMembers = new MemberRegistry<WebFetchProvider>()
 
+  /**
+   * Ready TOOL members (ADR-0014): enabled five-tool members whose key gate is
+   * armed, read live per call. DeepSeek is excluded BY SPEC — the paid floor's
+   * eligibility rule counts only the tools it would back up, so 'one ready
+   * tool + selected DeepSeek' stays eligible instead of counting itself to 2.
+   */
+  const readyToolMemberCount = (): number => {
+    const current = live.current()
+    return ORDERABLE_SEARCH_MEMBER_ORDER.filter((id) => {
+      const key = id.replace('dshws-', '') as MemberKey
+      return current[key].enabled && pools[key].ready()
+    }).length
+  }
+
   // Chain options are getter-backed on purpose: the chain shells keep the
   // options object by reference, so every run reads the live chain order and
   // timeout — a settings change reaches the next search without re-registering.
@@ -164,13 +175,20 @@ export function apply(ctx: Context, config: Config): void {
     members: searchMembers.toResolver(),
     get order() {
       const current = live.current()
-      // S14e: 'auto' picks the paid floor only when its key gate is armed;
-      // otherwise the free fetch scrape serves as the chain tail.
       const chain = [...current.searchChain]
-      const tail = current.fallbackProvider === 'auto'
-        ? (pools.deepseek.ready() ? DEEPSEEK_FALLBACK_MEMBER_ID : FETCH_FALLBACK_MEMBER_ID)
-        : fallbackMemberId(current.fallbackProvider)
-      chain[chain.length - 1] = tail
+      // DeepSeek paid-floor participation (ADR-0014): the INTENT is
+      // `fallbackMember` naming it; the ELIGIBILITY is runtime state — at most
+      // one ready TOOL member (DeepSeek never counts itself: 'one tool plus a
+      // selected DeepSeek' must stay eligible) and its key gate armed.
+      // Credential facts are invisible to resolveConfig, so this single hot
+      // rule lives in the getter; it only APPENDS, never replaces — the
+      // static chain (with the designated tool member already pinned at the
+      // tail) is authoritative for everything else.
+      if (current.fallbackMember === DEEPSEEK_FALLBACK_MEMBER_ID
+        && readyToolMemberCount() <= 1
+        && pools.deepseek.ready()) {
+        chain.push(DEEPSEEK_FALLBACK_MEMBER_ID)
+      }
       return chain
     },
     get perMemberTimeoutMs() {
@@ -244,14 +262,6 @@ export function apply(ctx: Context, config: Config): void {
     ctx.web.registerSearchProvider(provider)
     searchMembers.register(provider, gates(memberKey, pool))
   }
-  // S14e: the free fetch floor carries no credential ref — its gate is always
-  // ready, enabled with the chain (the choice itself lives in fallbackProvider).
-  const fetchSearch = new FetchSearchProvider()
-  ctx.web.registerSearchProvider(fetchSearch)
-  searchMembers.register(fetchSearch, {
-    enabled: () => true,
-    credentialsReady: () => true,
-  })
   // The scrape face shares the firecrawl instance, key pool, and gate.
   ctx.web.registerFetchProvider(firecrawl)
   fetchMembers.register(firecrawl, gates('firecrawl', pools.firecrawl))
