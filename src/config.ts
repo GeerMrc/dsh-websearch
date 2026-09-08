@@ -22,44 +22,56 @@ export const ORDERABLE_SEARCH_MEMBER_ORDER: readonly string[] = [
 ]
 
 /**
- * The DeepSeek member id, pinned to the search-chain tail regardless of any
- * pinned order (S14c/ADR-0004 D3 注记：固定链尾兜底，不参与排序). A pinned
- * chain that still names it (pre-S14c settings) is filtered and re-appended.
+ * The DeepSeek member id — the paid fallback candidate (ADR-0014). It is not
+ * orderable and joins the chain only when designated AND eligible (see the
+ * participation guard in src/index.ts: at most one ready tool member).
  */
 export const DEEPSEEK_FALLBACK_MEMBER_ID = 'dshws-deepseek'
 
 /**
- * The keyless DuckDuckGo scrape member (S14e): the FREE side of the fallback
- * choice — no credential ref, its gate is always ready.
+ * The designated fallback role (ADR-0014): `'auto'` (default — the last
+ * position of the chain order IS the fallback), one of the five tool member
+ * ids (pinned tail, stripped from the normal rotation), or the paid DeepSeek
+ * floor (participation is runtime-guarded, never static).
  */
-export const FETCH_FALLBACK_MEMBER_ID = 'dshws-fetch-search'
-
-/** The fallback choice (S14e): which member serves as the chain-tail floor. */
-export type FallbackProvider = 'deepseek' | 'fetch' | 'auto'
+export type FallbackMember =
+  | 'auto'
+  | 'dshws-tavily'
+  | 'dshws-exa'
+  | 'dshws-perplexity'
+  | 'dshws-firecrawl'
+  | 'dshws-anysearch'
+  | typeof DEEPSEEK_FALLBACK_MEMBER_ID
 
 /**
- * Effective built-in search order: the orderable five, then the DeepSeek
- * fallback tail (ADR-0004 中立开箱默认序, S14c 形态). Fetch chains use the
- * orderable five only — DeepSeek is not a fetch member.
+ * Legacy pre-0.2 fallback field values (ADR-0014): kept in the input schema so
+ * stored sections from older versions still load; `resolveConfig` normalizes
+ * them into {@link FallbackMember} ('deepseek' names the paid floor, the rest
+ * — including the deleted free floor — mean 'auto'). The GUI never writes it.
  */
-export const BUILT_IN_MEMBER_ORDER: readonly string[] = [...ORDERABLE_SEARCH_MEMBER_ORDER, DEEPSEEK_FALLBACK_MEMBER_ID]
+export type LegacyFallbackProvider = 'deepseek' | 'none' | 'auto' | 'fetch'
 
 /**
- * S14e: the chain tail is the CHOSEN fallback member. `auto` resolves at the
- * chain-consumption seam (the key gate is runtime state, not config); here we
- * keep `auto` symbolic so the live getter can decide per request.
+ * Effective built-in search order (ADR-0014): the orderable five only — the
+ * chain's last ready member is the fallback; no member is appended by default.
  */
-export function fallbackMemberId(choice: FallbackProvider | undefined): string {
-  if (choice === 'fetch') return FETCH_FALLBACK_MEMBER_ID
-  // 'deepseek' and the unset default both name the paid floor; 'auto' is
-  // resolved by the caller (live getter) before the chain sees it.
-  return DEEPSEEK_FALLBACK_MEMBER_ID
-}
+export const BUILT_IN_MEMBER_ORDER: readonly string[] = [...ORDERABLE_SEARCH_MEMBER_ORDER]
 
-/** Strip both fallback ids from the orderable span and append the chosen tail. */
-export function withFallbackTail(chain: readonly string[], choice: FallbackProvider | undefined): string[] {
-  const span = chain.filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID && id !== FETCH_FALLBACK_MEMBER_ID)
-  return [...span, fallbackMemberId(choice)]
+/**
+ * Compose the search chain for the designated fallback (ADR-0014): a
+ * designated TOOL member is stripped from the orderable span and pinned at
+ * the tail — its only role is fallback. `'auto'` keeps the span as ordered;
+ * designating DeepSeek does NOT statically append it — its participation is
+ * a runtime eligibility rule (order getter in src/index.ts), so the static
+ * layer yields the span and the guard appends when eligible.
+ */
+export function withDesignatedFallback(chain: readonly string[], fallbackMember: FallbackMember): string[] {
+  // Dead ids from older formats never reach the chain: pre-S14c pinned orders
+  // naming the deepseek tail, and the deleted free member ('dshws-fetch-search',
+  // never orderable but a pinned order could name it via fallbackProvider: 'fetch').
+  const span = chain.filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID && id !== 'dshws-fetch-search')
+  if (fallbackMember === 'auto' || fallbackMember === DEEPSEEK_FALLBACK_MEMBER_ID) return span
+  return [...span.filter((id) => id !== fallbackMember), fallbackMember]
 }
 
 /** Per-member timeout budget applied when the config omits one (ADR-0002). */
@@ -71,9 +83,9 @@ export type KeySelection = 'order' | 'round-robin' | 'random'
 /** DeepSeek member settings (`dshws-deepseek`). */
 export interface DeepSeekSettings {
   /**
-   * Client-facing switch, `false` unless set. Since S14u this flag no longer
-   * governs chain membership — the fallback member is named solely by
-   * `fallbackProvider` — it only feeds the settings-page snapshot.
+   * Client-facing switch, `false` unless set. Since ADR-0014 this flag no
+   * longer governs chain membership — the fallback role is named solely by
+   * `fallbackMember` — it only feeds the settings-page snapshot.
    */
   enabled?: boolean
   /** Credential-ref env name resolved through the credentials service. Defaults to `DEEPSEEK_API_KEY`. */
@@ -170,11 +182,18 @@ export interface Config {
   /** Timeout budget per chain member per call, in milliseconds. Defaults to {@link DEFAULT_PER_MEMBER_TIMEOUT_MS}. Hot: settings changes apply to the next search. */
   perMemberTimeoutMs?: number
   /**
-   * The chain-tail fallback choice (S14e): `'deepseek'` (paid, needs the
-   * Models-page key), `'fetch'` (free DuckDuckGo scrape), or `'auto'` (default —
-   * deepseek when its key is configured, else fetch). Hot.
+   * The designated fallback (ADR-0014): `'auto'` (default — chain-order last
+   * position), a tool member id (pinned tail), or `'dshws-deepseek'` (paid
+   * floor; joins only when at most one tool member is ready and its key is
+   * configured). Hot: settings changes apply to the next search.
    */
-  fallbackProvider?: FallbackProvider
+  fallbackMember?: FallbackMember
+  /**
+   * @deprecated Legacy pre-0.2 alias (ADR-0014), read-only: normalized into
+   * {@link fallbackMember} at resolve time; the GUI never writes it. Kept in
+   * the schema so stored sections from older versions still load.
+   */
+  fallbackProvider?: LegacyFallbackProvider
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -192,7 +211,8 @@ export interface Config {
 /** Validation schema the cordis loader applies to the `dsh-websearch` config section. */
 export const Config: z<Config> = z.object({
   searchChain: z.array(z.string()),
-  fallbackProvider: z.union(['deepseek', 'fetch', 'auto']),
+  fallbackMember: z.union(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-deepseek']),
+  fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -293,8 +313,9 @@ export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings
 
 /** Fully defaulted plugin configuration; the chain providers consume this, not the raw `Config`. */
 export interface ResolvedWebSearchConfig {
+  /** Canonical designated fallback (legacy `fallbackProvider` normalized away; ADR-0014). */
+  readonly fallbackMember: FallbackMember
   /** Search priority chain; never empty after resolution. */
-  readonly fallbackProvider: FallbackProvider
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
   readonly fetchChain: readonly string[]
@@ -316,12 +337,17 @@ export interface ResolvedWebSearchConfig {
  * implementations (S04/S05a); their values pass through untouched.
  */
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
+  const fallbackMember: FallbackMember = config.fallbackMember !== undefined
+    ? config.fallbackMember
+    // Legacy alias (ADR-0014): 'deepseek' names the paid floor; 'none',
+    // 'auto', and the deleted 'fetch' free floor all mean the chain-order tail.
+    : (config.fallbackProvider === 'deepseek' ? DEEPSEEK_FALLBACK_MEMBER_ID : 'auto')
   return {
-    searchChain: withFallbackTail(
+    searchChain: withDesignatedFallback(
       config.searchChain?.length ? [...config.searchChain] : ORDERABLE_SEARCH_MEMBER_ORDER,
-      config.fallbackProvider,
+      fallbackMember,
     ),
-    fallbackProvider: config.fallbackProvider ?? 'auto',
+    fallbackMember,
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],

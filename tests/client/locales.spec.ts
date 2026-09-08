@@ -33,10 +33,37 @@ describe('client locales', () => {
     expect(zh.chainPinned).toBe('已钉死（覆盖默认序）')
   })
 
-  it('carries the S14u floor notes on both sides (假警告清偿)', () => {
-    expect(en.chainFloorFetchNote).toContain('free fetch fallback')
-    expect(zh.chainFloorFetchNote).toContain('免费 fetch 兜底')
-    expect(en.chainFloorDeepseekNote).toContain('DeepSeek fallback')
-    expect(zh.chainFloorDeepseekNote).toContain('DeepSeek 兜底')
+  it('carries the ADR-0014 fallback-tool keys on both sides', () => {
+    expect(en.fallbackAutoOption).toContain('Auto')
+    expect(zh.fallbackAutoOption).toContain('自动')
+    expect(en.fallbackDeepseekOption).toContain('Models-page key')
+    expect(zh.fallbackDeepseekOption).toContain('模型页 key')
+    expect(en.fallbackDeepseekStoppedNote).toContain('disabled')
+    expect(zh.fallbackDeepseekStoppedNote).toContain('已停用')
+    expect(en.fallbackDeepseekKeylessNote).toContain('not configured')
+    expect(zh.fallbackDeepseekKeylessNote).toContain('未配置')
+    expect(en.fallbackDesignationLostNote).toContain('not ready')
+    expect(zh.fallbackDesignationLostNote).toContain('未就绪')
+    expect(en.chainLockedNote).toContain('locked')
+    expect(zh.chainLockedNote).toContain('锁定')
+    expect(en.chainFloorDeepseekNote).toContain('DeepSeek paid fallback')
+    expect(zh.chainFloorDeepseekNote).toContain('DeepSeek 付费兜底')
+    // The free-fetch floor keys are gone with the member (ADR-0014).
+    expect('chainFloorFetchNote' in en).toBe(false)
+    expect('fallbackChoiceFree' in en).toBe(false)
+  })
+
+  it('keeps the four rewritten sentences truthful on BOTH sides (ADR-0014; zh escape caught in review)', () => {
+    // The zh side once kept stale copy after the en rewrite — these keyword
+    // pins make any future half-rewrite fail the suite.
+    expect(zh.chainOrderHint).not.toContain('免费 Fetch')
+    expect(zh.chainOrderHint).toContain('锁定链尾')
+    expect(zh.chainNoUsableWarning).toContain('没有可用搜索工具')
+    expect(zh.chainNoUsableWarning).not.toContain('且 DeepSeek 兜底 key 未配置')
+    expect(zh.fallbackNote).not.toContain('DuckDuckGo')
+    expect(zh.fallbackNote).toContain('专职链尾兜底')
+    expect(zh.chainTailHint).not.toContain('DeepSeek 恒为链尾兜底')
+    expect(en.chainOrderHint).not.toContain('free Fetch')
+    expect(en.fallbackNote).not.toContain('DuckDuckGo')
   })
 })

@@ -71,7 +71,10 @@ interface MemberSectionValue {
 }
 
 interface SectionValue {
-  fallbackProvider?: 'deepseek' | 'fetch' | 'auto'
+  /** Designated fallback (ADR-0014 canonical field; the GUI writes only this). */
+  fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
+  /** @deprecated Legacy pre-0.2 alias (ADR-0014), read-only input. */
+  fallbackProvider?: 'deepseek' | 'none' | 'auto' | 'fetch'
   searchChain?: string[]
   perMemberTimeoutMs?: number
   tavily?: MemberSectionValue
@@ -108,11 +111,14 @@ export interface SectionSnapshot {
   readonly timeoutMs: number
   /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
   readonly deepseekMaxUses: number | undefined
-  /**
-   * The fallback choice (S14e): the explicit section value, or the AUTO
-   * default derived from the DeepSeek key readiness (key → paid, none → free).
-   */
-  readonly fallbackProvider: 'deepseek' | 'fetch'
+  /** Canonical designated fallback (ADR-0014); legacy values normalized away. */
+  readonly fallbackSelection: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
+  /** True when a DESIGNATED TOOL member is ready (configured && enabled). */
+  readonly fallbackDesignationReady: boolean
+  /** True when the paid DeepSeek option exists at all: at most one ready tool member AND its key configured. */
+  readonly fallbackDeepseekEligible: boolean
+  /** Ready tool members (configured && enabled), excluding DeepSeek — the ADR-0014 count. */
+  readonly readyToolMembers: readonly string[]
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -140,7 +146,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       memberId: member.memberId,
       refName,
       // Client-facing flag (S14d default off); chain membership itself is
-      // governed solely by fallbackProvider (S14u).
+      // governed by the ADR-0014 fallback rules, not this flag.
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'round-robin',
@@ -149,6 +155,15 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       writable: fact?.writable === true,
     }
   })
+  // Ready TOOL members (ADR-0014): configured && enabled, DeepSeek excluded
+  // BY SPEC — the paid floor's eligibility counts only the tools it backs up.
+  const readyToolMembers = members
+    .filter((m) => m.key !== 'deepseek' && m.configured && m.enabled)
+    .map((m) => m.memberId)
+  const fallbackSelection: SectionSnapshot['fallbackSelection'] = value.fallbackMember !== undefined
+    ? value.fallbackMember
+    : (value.fallbackProvider === 'deepseek' ? 'dshws-deepseek' : 'auto')
+  const deepseekRef = value.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY'
   return {
     members,
     searchChain: value.searchChain?.length
@@ -157,9 +172,14 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     searchChainPinned: (value.searchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseekMaxUses: value.deepseek?.maxUses,
-    fallbackProvider: value.fallbackProvider === 'deepseek' || value.fallbackProvider === 'fetch'
-      ? value.fallbackProvider
-      : (facts.get('DEEPSEEK_API_KEY')?.configured === true ? 'deepseek' : 'fetch'),
+    // ADR-0014 canonical projection: fallbackMember wins; the legacy alias
+    // normalizes in ('deepseek' designates the paid floor, everything else
+    // means the chain-order tail) so legacy values never leak into the snapshot.
+    fallbackSelection,
+    fallbackDesignationReady: fallbackSelection !== 'auto' && fallbackSelection !== 'dshws-deepseek'
+      && members.some((m) => m.memberId === fallbackSelection && m.configured && m.enabled),
+    fallbackDeepseekEligible: readyToolMembers.length <= 1 && facts.get(deepseekRef)?.configured === true,
+    readyToolMembers,
     revision,
     writable,
   }
@@ -277,9 +297,9 @@ export class WebSearchSettingsController {
     return { ok: true }
   }
 
-  /** Set the fallback choice (S14e): top-level field, hot on the next search. */
-  async setFallbackProvider(choice: 'deepseek' | 'fetch'): Promise<ActionResult> {
-    const result = await this.#ports.updateSettings(NS, { fallbackProvider: choice }, this.#revision)
+  /** Designate the fallback (ADR-0014): top-level field, hot on the next search. */
+  async setFallbackMember(member: SectionSnapshot['fallbackSelection']): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { fallbackMember: member }, this.#revision)
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }

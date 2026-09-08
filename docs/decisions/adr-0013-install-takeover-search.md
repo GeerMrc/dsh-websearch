@@ -1,6 +1,7 @@
 ---
 title: "ADR-0013: 装即接管 web_search（插件随包 patch 钉扎 search 侧）"
 status: accepted
+superseded-partial: 2026-09-09 ADR-0014 supersedes D1/D6's「DeepSeek 末位兜底」tail framing (install takeover itself unchanged: searchProvider dshws-chain pin stands)
 date: 2026-09-06
 type: feat
 origin: 用户提议与方向裁定（2026-09-06，方案 B；双 Agent 只读调研——宿主 patch 机制 file:line + 本仓决策链）

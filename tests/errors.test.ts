@@ -24,7 +24,7 @@ describe('error code catalog', () => {
     expect(CHAIN_ERROR_CODES.memberTimeout).toBe('DSHWS_MEMBER_TIMEOUT')
   })
 
-  it('lands concrete code objects for all six provider families', () => {
+  it('lands concrete code objects for all five provider families (ADR-0014 removed the fetch-search member)', () => {
     expect(MEMBER_ERROR_CODES.deepseek).toEqual({
       credentialMissing: 'DSHWS_DEEPSEEK_CREDENTIAL_MISSING',
       requestFailed: 'DSHWS_DEEPSEEK_REQUEST_FAILED',
@@ -66,13 +66,6 @@ describe('error code catalog', () => {
       httpError: 'DSHWS_FIRECRAWL_HTTP_ERROR',
       badResponse: 'DSHWS_FIRECRAWL_BAD_RESPONSE',
       aborted: 'DSHWS_FIRECRAWL_ABORTED',
-    })
-    expect(MEMBER_ERROR_CODES.fetchsearch).toEqual({
-      credentialMissing: 'DSHWS_FETCHSEARCH_CREDENTIAL_MISSING',
-      requestFailed: 'DSHWS_FETCHSEARCH_REQUEST_FAILED',
-      httpError: 'DSHWS_FETCHSEARCH_HTTP_ERROR',
-      badResponse: 'DSHWS_FETCHSEARCH_BAD_RESPONSE',
-      aborted: 'DSHWS_FETCHSEARCH_ABORTED',
     })
   })
 })

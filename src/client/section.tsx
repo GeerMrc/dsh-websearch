@@ -32,8 +32,8 @@ export interface SectionProps {
   onSetMaxUses: (maxUses: number) => Promise<ActionResult>
   /** Per-member endpoint override (S14k, host-parity「接口地址」). */
   onSetBaseURL: (memberKey: string, baseURL: string) => Promise<ActionResult>
-  /** Fallback choice (S14e): paid DeepSeek vs free fetch scrape. */
-  onSetFallbackProvider: (choice: 'deepseek' | 'fetch') => Promise<ActionResult>
+  /** Designated fallback (ADR-0014): 'auto' = chain-order last position. */
+  onSetFallbackMember: (member: SectionSnapshot['fallbackSelection']) => Promise<ActionResult>
 }
 
 /**
@@ -58,7 +58,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onMoveSearch={(id, delta) => controller.moveSearchChainEntry(id, delta)}
         onSetKeySelection={(key, selection) => controller.setKeySelection(key, selection)}
         onSetMaxUses={(maxUses) => controller.setDeepseekMaxUses(maxUses)}
-        onSetFallbackProvider={(choice) => controller.setFallbackProvider(choice)}
+        onSetFallbackMember={(member) => controller.setFallbackMember(member)}
         onSetBaseURL={(key, url) => controller.setBaseURL(key, url)}
       />
     )
@@ -243,7 +243,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackProvider, onSetBaseURL } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetBaseURL } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -258,6 +258,14 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   const visibleSearch = snapshot.searchChain.filter((id) =>
     snapshot.members.some((m) => m.memberId === id && m.configured && m.enabled),
   )
+  // ADR-0014: a designated tool member leaves the reorderable span and renders
+  // as a LOCKED tail row (fallback-only role, badge follows the designation);
+  // 'auto' keeps the S14w semantics — the last ready member is the standby.
+  const designatedId = snapshot.fallbackSelection !== 'auto' && snapshot.fallbackSelection !== 'dshws-deepseek'
+    ? snapshot.fallbackSelection
+    : null
+  const orderableSearch = designatedId === null ? visibleSearch : visibleSearch.filter((id) => id !== designatedId)
+  const showLockedTail = designatedId !== null && snapshot.fallbackDesignationReady
   // The chain card only earns its place once at least one member is configured:
   // with nothing configured it read as a half-screen block of static copy.
   const showChains = snapshot.members.some((m) => m.configured)
@@ -331,7 +339,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           >
             {/* Disabled boundaries follow the FILTERED (visible) list: computing them
             against the full chain left the last visible ↓ clickable and failing. */}
-            {visibleSearch.map((id, index) => (
+            {orderableSearch.map((id, index) => (
               <li
                 key={id}
                 data-testid={`dshws-chain-item-${id}`}
@@ -340,12 +348,12 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 <span style={chainIndexStyle}>{index + 1}</span>
                 <span data-dshws-chain-label="">{labelOf(id)}</span>
                 {/* S14w: the chain order IS the primary/standby order — the
-                two ends carry explicit role chips (pure presentation; the
-                underlying chain semantics are unchanged). */}
+                two ends carry explicit role chips (pure presentation). With a
+                designation (ADR-0014) the standby chip moves to the locked tail. */}
                 {index === 0 ? (
                   <span data-testid="dshws-chain-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span>
                 ) : null}
-                {visibleSearch.length > 1 && index === visibleSearch.length - 1 ? (
+                {!showLockedTail && orderableSearch.length > 1 && index === orderableSearch.length - 1 ? (
                   <span data-testid="dshws-chain-role-standby" style={roleChipStyle}>{t('chainRoleStandby')}</span>
                 ) : null}
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
@@ -361,7 +369,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 <button
                   type="button"
                   aria-label={`${labelOf(id)} ${t('moveDown')}`}
-                  disabled={index === visibleSearch.length - 1}
+                  disabled={index === orderableSearch.length - 1 && !showLockedTail}
                   onClick={() => void move(id, 1)}
                   style={moveButtonStyle}
                 >
@@ -369,20 +377,34 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 </button>
               </li>
             ))}
+            {showLockedTail && designatedId !== null ? (
+              <li
+                key={designatedId}
+                data-testid={`dshws-chain-item-${designatedId}`}
+                data-dshws-chain-locked=""
+                style={chainRowStyle}
+              >
+                <span style={chainIndexStyle}>{orderableSearch.length + 1}</span>
+                <span data-dshws-chain-label="">{labelOf(designatedId)}</span>
+                <span data-testid="dshws-chain-role-standby" style={roleChipStyle}>{t('chainRoleStandby')}</span>
+                <span style={hintStyle}>{t('chainLockedNote')}</span>
+                <span style={{ flex: 1 }} />
+              </li>
+            ) : null}
 
           </ol>
           ) : null}
-          {/* S14u: the zero-usable state tells the truth about the floor — a
-          usable floor (free fetch, or a keyed DeepSeek) means the next search
-          does NOT fail; only a DeepSeek floor without its key is a hard fail. */}
+          {/* ADR-0014 two-state: zero usable tools and no working floor → the
+          honest red warning; a selected, eligible, keyed DeepSeek floor is the
+          only thing that keeps the next search alive. */}
           {snapshot.members.every((m) => !(m.configured && m.enabled)) && showChains ? (
-            snapshot.fallbackProvider === 'deepseek' && !snapshot.members.some((m) => m.key === 'deepseek' && m.configured) ? (
-              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
-                {t('chainNoUsableWarning')}
+            snapshot.fallbackSelection === 'dshws-deepseek' && snapshot.fallbackDeepseekEligible ? (
+              <p role="status" data-testid="dshws-chain-floor" style={hintStyle}>
+                {t('chainFloorDeepseekNote')}
               </p>
             ) : (
-              <p role="status" data-testid="dshws-chain-floor" style={hintStyle}>
-                {t(snapshot.fallbackProvider === 'deepseek' ? 'chainFloorDeepseekNote' : 'chainFloorFetchNote')}
+              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
+                {t('chainNoUsableWarning')}
               </p>
             )
           ) : null}
@@ -406,11 +428,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             onSetBaseURL={onSetBaseURL}
           />
         ))}
-        {snapshot.members
-          .filter((member) => member.key === 'deepseek')
-          .map((member) => (
-            <DeepSeekFallbackRow key={member.key} member={member} t={t} choice={snapshot.fallbackProvider} onChoose={onSetFallbackProvider} />
-          ))}
+        <FallbackToolRow key="dshws-fallback-tool" snapshot={snapshot} t={t} onChoose={onSetFallbackMember} />
       </div>
     </div>
   )
@@ -563,55 +581,69 @@ const moveButtonStyle = {
  * semantics behind an ⓘ tooltip, and the paid-fallback off-switch (the
  * ADR-0004 neutrality opt-out).
  */
-function DeepSeekFallbackRow(props: {
-  member: MemberSnapshot
+function FallbackToolRow(props: {
+  snapshot: SectionSnapshot
   t: (key: DshWsLocaleKey) => string
-  choice: 'deepseek' | 'fetch'
-  onChoose: (choice: 'deepseek' | 'fetch') => Promise<ActionResult>
+  onChoose: (member: SectionSnapshot['fallbackSelection']) => Promise<ActionResult>
 }) {
-  const { member, t, choice, onChoose } = props
-  // S14i (user audit): the ACTIVE choice carries the green dot — paid is
-  // green only when chosen AND its shared key is configured; free is green
-  // when chosen (keyless, always ready). The old row dot keyed off the
-  // DeepSeek key alone and misled under either choice.
-  const paidActive = choice === 'deepseek' && member.configured
-  const fetchActive = choice === 'fetch'
-  const paidDotTitle = choice === 'deepseek'
-    ? (member.configured ? t('configured') : t('notConfigured'))
+  const { snapshot, t, onChoose } = props
+  const { fallbackSelection, readyToolMembers, fallbackDeepseekEligible, fallbackDesignationReady } = snapshot
+  const readyCount = readyToolMembers.length
+  // Contract (ADR-0014): two-plus ready tools → the selector offers the tool
+  // members only; zero or one → it offers the paid DeepSeek candidate.
+  const toolOptions = readyCount >= 2 ? readyToolMembers : []
+  const offerDeepseek = readyCount <= 1
+  const deepseekKeyed = snapshot.members.some((m) => m.key === 'deepseek' && m.configured)
+  // A stored DeepSeek designation with two-plus ready tools is not offered:
+  // the intent degrades to auto — display auto and explain below.
+  const effective = fallbackSelection === 'dshws-deepseek' && !offerDeepseek ? 'auto' : fallbackSelection
+  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
+    return () => clearTimeout(timer)
+  }, [feedback])
+  const note =
+    fallbackSelection === 'dshws-deepseek' && !offerDeepseek ? t('fallbackDeepseekStoppedNote')
+    : fallbackSelection === 'dshws-deepseek' && !deepseekKeyed ? t('fallbackDeepseekKeylessNote')
+    : fallbackSelection !== 'auto' && fallbackSelection !== 'dshws-deepseek' && !fallbackDesignationReady ? t('fallbackDesignationLostNote')
     : undefined
+  const dotOn = effective === 'dshws-deepseek'
+    ? (deepseekKeyed && fallbackDeepseekEligible)
+    : effective !== 'auto' ? fallbackDesignationReady : false
+  const dotTitle = dotOn ? t('configured') : note !== undefined ? t('notConfigured') : undefined
   return (
-    <div data-testid="dshws-fallback-deepseek" style={{ ...cardStyle, flexDirection: 'row', alignItems: 'center', gap: 8, padding: '10px 14px' }}>
-      <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
-      <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
-        <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
-          <IconQuestionOutline14 />
-        </button>
-      </Tooltip>
-      <span style={{ flex: 1 }} />
-      {/* S14e/S14i: paid DeepSeek vs free DuckDuckGo scrape; the active tool
-      shows its own status dot inside the choice button. */}
-      <div role="group" aria-label={t('fallbackChoiceGroup')} style={{ display: 'flex', gap: 4 }}>
-        <button
-          type="button"
-          aria-pressed={choice === 'deepseek'}
-          aria-label={t('fallbackChoicePaid')}
-          onClick={() => void onChoose('deepseek')}
-          style={{ ...keySelButtonStyle(choice === 'deepseek', true), fontSize: 11, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+    <div data-testid="dshws-fallback-tool" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
+        <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
+          <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
+            <IconQuestionOutline14 />
+          </button>
+        </Tooltip>
+        <span style={{ flex: 1 }} />
+        <span role="img" aria-label={dotTitle} title={dotTitle} data-testid="dshws-fallback-dot" style={statusDotStyle(dotOn)} />
+        <select
+          aria-label={t('fallbackRowLabel')}
+          data-testid="dshws-fallback-select"
+          value={effective}
+          onChange={(event) => {
+            const next = event.target.value as SectionSnapshot['fallbackSelection']
+            void onChoose(next).then((result) => setFeedback(result.ok ? 'saved' : 'failed'))
+          }}
+          style={{ ...fieldInputStyle, width: 240, margin: 0 }}
         >
-          <span role="img" aria-label={paidDotTitle} title={paidDotTitle} data-testid="dshws-fallback-dot-paid" style={statusDotStyle(paidActive)} />
-          {t('fallbackChoicePaid')}
-        </button>
-        <button
-          type="button"
-          aria-pressed={choice === 'fetch'}
-          aria-label={t('fallbackChoiceFree')}
-          onClick={() => void onChoose('fetch')}
-          style={{ ...keySelButtonStyle(choice === 'fetch', true), fontSize: 11, padding: '0 8px', display: 'inline-flex', alignItems: 'center', gap: 5 }}
-        >
-          <span role="img" aria-label={fetchActive ? t('configured') : undefined} title={fetchActive ? t('configured') : undefined} data-testid="dshws-fallback-dot-fetch" style={statusDotStyle(fetchActive)} />
-          {t('fallbackChoiceFree')}
-        </button>
+          <option value="auto">{t('fallbackAutoOption')}</option>
+          {toolOptions.map((id) => <option key={id} value={id}>{labelOf(id)}</option>)}
+          {offerDeepseek ? <option value="dshws-deepseek">{t('fallbackDeepseekOption')}</option> : null}
+        </select>
+        {feedback ? (
+          <span role="status" data-testid="dshws-fallback-feedback" style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
+        ) : null}
       </div>
+      {note !== undefined ? (
+        <p role="status" data-testid="dshws-fallback-note" style={{ ...hintStyle, margin: 0, color: 'var(--dsw-alias-state-warn-label)' }}>{note}</p>
+      ) : null}
     </div>
   )
 }

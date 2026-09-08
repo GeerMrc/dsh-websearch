@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
 
 describe('resolveConfig', () => {
-  it('applies the built-in member order to empty chains (ADR-0004)', () => {
+  it('applies the built-in member order to empty chains — five tools, no appended tail (ADR-0014)', () => {
     const resolved = resolveConfig({})
     expect(BUILT_IN_MEMBER_ORDER).toEqual([
       'dshws-tavily',
@@ -10,23 +10,52 @@ describe('resolveConfig', () => {
       'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-anysearch',
-      'dshws-deepseek',
     ])
-    expect(resolved.searchChain).toEqual([...ORDERABLE_SEARCH_MEMBER_ORDER, DEEPSEEK_FALLBACK_MEMBER_ID])
+    // The chain's last ready member IS the fallback; nothing is appended by default.
+    expect(resolved.searchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
+    expect(resolved.fallbackMember).toBe('auto')
     expect(resolved.fetchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
   })
 
   it('keeps an explicit chain verbatim, tolerating member ids that are not registered yet', () => {
     const resolved = resolveConfig({ searchChain: ['dshws-deepseek', 'dshws-not-registered-yet'] })
-    // S14c: deepseek leaves the orderable domain — a pinned chain keeps its
-    // orderable ids but deepseek is filtered and re-appended as the fixed tail.
-    expect(resolved.searchChain).toEqual(['dshws-not-registered-yet', 'dshws-deepseek'])
+    // Dead ids (pre-S14c deepseek tail; the deleted free floor) are stripped,
+    // never re-appended — deepseek joins only through the runtime guard.
+    expect(resolved.searchChain).toEqual(['dshws-not-registered-yet'])
   })
 
   it('resolves search and fetch chains independently', () => {
     const resolved = resolveConfig({ searchChain: ['dshws-exa'], fetchChain: ['dshws-firecrawl'] })
-    expect(resolved.searchChain).toEqual(['dshws-exa', DEEPSEEK_FALLBACK_MEMBER_ID])
+    expect(resolved.searchChain).toEqual(['dshws-exa'])
     expect(resolved.fetchChain).toEqual(['dshws-firecrawl'])
+  })
+
+  it('pins a designated tool member at the tail, stripped from the rotation (ADR-0014)', () => {
+    const designated = resolveConfig({ fallbackMember: 'dshws-exa' })
+    expect(designated.searchChain).toEqual(['dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-exa'])
+    // A pinned chain naming the designated member elsewhere: same strip + pin.
+    const pinned = resolveConfig({ searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-firecrawl'], fallbackMember: 'dshws-exa' })
+    expect(pinned.searchChain).toEqual(['dshws-tavily', 'dshws-firecrawl', 'dshws-exa'])
+  })
+
+  it('designating DeepSeek does NOT statically append it — participation is a runtime rule (ADR-0014)', () => {
+    const resolved = resolveConfig({ fallbackMember: 'dshws-deepseek' })
+    expect(resolved.searchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
+    expect(resolved.fallbackMember).toBe('dshws-deepseek')
+  })
+
+  it('normalizes the legacy fallbackProvider alias and prefers an explicit fallbackMember (ADR-0014)', () => {
+    expect(resolveConfig({ fallbackProvider: 'deepseek' }).fallbackMember).toBe('dshws-deepseek')
+    for (const legacy of ['none', 'auto', 'fetch', undefined] as const) {
+      expect(resolveConfig({ fallbackProvider: legacy }).fallbackMember).toBe('auto')
+    }
+    // Priority: fallbackMember (including its explicit 'auto') wins over the legacy field.
+    expect(resolveConfig({ fallbackMember: 'auto', fallbackProvider: 'deepseek' }).fallbackMember).toBe('auto')
+  })
+
+  it('rejects invalid fallback values fail-loud at the schema (ADR-0014)', () => {
+    expect(() => Config({ fallbackMember: 'banana' as never })).toThrow()
+    expect(() => Config({ fallbackProvider: 'banana' as never })).toThrow()
   })
 
   it('defaults perMemberTimeoutMs to 30000 and keeps an explicit budget', () => {

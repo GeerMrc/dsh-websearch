@@ -38,7 +38,9 @@ interface AssembleOverrides {
   withAnysearch?: boolean
   tavilyKeySelection?: 'order' | 'round-robin' | 'random'
   /** Pin the fallback choice (S14u: keep the chain tail loopback-controlled). */
-  fallbackProvider?: 'deepseek' | 'fetch'
+  fallbackProvider?: 'deepseek'
+  /** Designate the fallback member (ADR-0014 canonical field). */
+  fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
   /** Point the deepseek member at THIS scenario's loopback server (the caller cannot know the ephemeral port). */
   deepseekAtLoopback?: boolean
   /** Point the firecrawl member at THIS scenario's loopback server (S14w primary/standby scenario). */
@@ -61,6 +63,7 @@ async function assemble(
     for (const ref of configured) handle.configured.add(ref)
     apply(handle.ctx as unknown as Context, {
       ...(overrides?.fallbackProvider !== undefined ? { fallbackProvider: overrides.fallbackProvider } : {}),
+      ...(overrides?.fallbackMember !== undefined ? { fallbackMember: overrides.fallbackMember } : {}),
       searchChain: overrides?.searchChain ?? [...MEMBERS],
       perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
       tavily: {
@@ -212,7 +215,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     }
   })
 
-  it('reports terminal exhaustion with the per-member summary and the deepest cause (全败报错)', async () => {
+  it('reports terminal exhaustion with the per-member summary and the deepest cause (全败报错 + ADR-0014 ①号钉子)', async () => {
     const { server, chain } = await assemble(
       {
         '/tavily/search': { kind: 'status', status: 429 },
@@ -220,9 +223,11 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         '/perplexity/chat/completions': { kind: 'status', status: 500, body: { detail: 'backend down' } },
         '/deepseek/messages': { kind: 'status', status: 500, body: { error: { message: 'quota' } } },
       },
-      // S14u: pin the fallback to the loopback-controlled deepseek member —
-      // the previous run let the tail fetch-search hit html.duckduckgo.com
-      // for real (an external-network dependency inside a loopback e2e).
+      // THREE ready tools + a designated, keyed, loopback-wired DeepSeek: the
+      // legacy 'deepseek' alias designates it, and the ADR-0014 rule STILL
+      // keeps it out (two-plus ready tools → the paid floor is gone). The
+      // deepseek endpoint is wired so any violation would surface as an
+      // arrival; the walk stays entirely on the loopback server.
       {
         fallbackProvider: 'deepseek',
         deepseekAtLoopback: true,
@@ -234,28 +239,26 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(exhausted).not.toBeNull()
       const failure = exhausted as unknown as { code: string; message: string; cause?: { code?: string; httpStatus?: number } }
       expect(failure.code).toBe('DSHWS_CHAIN_EXHAUSTED')
-      // One summary line per member, in walk order — the pinned deepseek tail
-      // included, so the walk stays entirely on the loopback server.
+      // One summary line per member, in walk order — the three tools only.
       const message = failure.message
       const tavilyAt = message.indexOf('- dshws-tavily:')
       const exaAt = message.indexOf('- dshws-exa:')
       const perplexityAt = message.indexOf('- dshws-perplexity:')
-      const deepseekAt = message.indexOf('- dshws-deepseek:')
       expect(tavilyAt).toBeGreaterThan(-1)
       expect(exaAt).toBeGreaterThan(tavilyAt)
       expect(perplexityAt).toBeGreaterThan(exaAt)
-      expect(deepseekAt).toBeGreaterThan(perplexityAt)
       expect(message).toContain('HTTP 429')
-      expect(message).toContain('all 4 configured chain members failed')
-      // The last member's thrown error rides as cause (ADR-0002 Decision 3):
-      // the loopback deepseek tail's HTTP 500.
-      expect(failure.cause?.code).toBe('DSHWS_DEEPSEEK_HTTP_ERROR')
+      expect(message).toContain('all 3 configured chain members failed')
+      // ADR-0014: no paid floor with three ready tools — no summary line, no arrival.
+      expect(message).not.toContain('- dshws-deepseek:')
+      expect(server.arrivals).not.toContain('POST /deepseek/messages')
+      // The last member's thrown error rides as cause (ADR-0002 Decision 3).
+      expect(failure.cause?.code).toBe('DSHWS_PERPLEXITY_HTTP_ERROR')
       expect(failure.cause?.httpStatus).toBe(500)
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
         'POST /perplexity/chat/completions',
-        'POST /deepseek/messages',
       ])
     } finally {
       await server.close()
@@ -330,6 +333,64 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         'POST /firecrawl/v2/search',
       ])
       expect(server.auths).toEqual(['Bearer k1', 'Bearer k2', 'Bearer k3', 'Bearer k1', 'Bearer fk1'])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('one ready tool + selected keyed DeepSeek joins as the paid floor (ADR-0014 ④号场景, e2e)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/tavily/search': { kind: 'status', status: 429 },
+        '/deepseek/messages': {
+          kind: 'success',
+          body: { content: [{ type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: 'https://ds.test/floor' }] }] },
+        },
+      },
+      {
+        fallbackMember: 'dshws-deepseek',
+        deepseekAtLoopback: true,
+        searchChain: ['dshws-tavily'],
+        configuredRefs: ['TAVILY_API_KEY', 'DEEPSEEK_API_KEY'],
+      },
+    )
+    try {
+      const result = await chain.search({ query: 'single-tool paid floor' })
+      expect(result.content).toBe('[served-by: dshws-deepseek]')
+      expect(result.sources[0]?.url).toBe('https://ds.test/floor')
+      expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /deepseek/messages'])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('a designated tool member is stripped from the rotation and pinned at the tail (ADR-0014 strip-to-tail)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/tavily/search': { kind: 'status', status: 429 },
+        '/firecrawl/v2/search': { kind: 'status', status: 429 },
+        '/exa/search': { kind: 'status', status: 429 },
+      },
+      {
+        // Designate exa: the walk must be tavily → firecrawl → exa (exa last),
+        // no matter where exa sits in the configured order.
+        fallbackMember: 'dshws-exa',
+        firecrawlAtLoopback: true,
+        searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-firecrawl'],
+        configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'FIRECRAWL_API_KEY'],
+      },
+    )
+    try {
+      const exhausted = await chain.search({ query: 'strip-to-tail' }).then(() => null, (error: unknown) => error as Error)
+      expect(exhausted).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+      expect(server.arrivals).toEqual([
+        'POST /tavily/search',
+        'POST /firecrawl/v2/search',
+        'POST /exa/search',
+      ])
+      const message = (exhausted as Error).message
+      expect(message.indexOf('- dshws-tavily:')).toBeLessThan(message.indexOf('- dshws-firecrawl:'))
+      expect(message.indexOf('- dshws-firecrawl:')).toBeLessThan(message.indexOf('- dshws-exa:'))
     } finally {
       await server.close()
     }
