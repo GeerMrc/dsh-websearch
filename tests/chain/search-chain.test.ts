@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { WebSearchProvider, WebSearchResult } from '@deepseek-ai/dsh-web'
 import type { ChainMemberResolver } from '../../src/chain/core.ts'
 import { ChainSearchProvider } from '../../src/chain/core.ts'
+import { DshwsError } from '../../src/errors.ts'
 
 function fakeResult(content?: string): WebSearchResult {
   return { content, sources: [], truncated: false }
@@ -517,5 +518,195 @@ describe('per-member timeout (必测⑦)', () => {
     controller.abort()
     await expect(settled).rejects.toThrow('caller cancelled')
     expect(calls).toEqual(['dshws-abortable'])
+  })
+})
+
+describe('member budget & exhaustion aggregation (S14u)', () => {
+  it('aggregates a multi-draw member into ONE summary line and counts members, not draws', async () => {
+    let draws = 0
+    const flaky = {
+      id: 'dshws-flaky',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new Error(`quota exhausted on draw ${draws}`)
+      },
+    }
+    const calls: string[] = []
+    const beta = failingProvider('dshws-beta', calls, 'connection refused')
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-flaky': { provider: flaky as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-beta': { provider: beta },
+      }),
+      order: ['dshws-flaky', 'dshws-beta'],
+      perMemberTimeoutMs: 1000,
+    })
+    const error = await chain.search({ query: 'q' }).then(
+      () => {
+        throw new Error('expected the chain to reject')
+      },
+      (caught: unknown) => caught,
+    )
+    expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+    const message = (error as Error).message
+    // Two MEMBERS failed — never "4" (3 draws + 1 member) as the per-draw
+    // summary used to count.
+    expect(message).toContain('all 2 configured chain members failed')
+    // One line per member; the multi-draw member carries its draws inline.
+    expect(message).toContain('- dshws-flaky: failed (3 draws: quota exhausted on draw 1; quota exhausted on draw 2; quota exhausted on draw 3)')
+    expect(message).toContain('- dshws-beta: connection refused')
+    // The last member's last-draw error still rides as cause (ADR-0002 D3).
+    expect((error as { cause?: unknown }).cause).toBeInstanceOf(Error)
+    expect((error as { cause: Error }).cause.message).toBe('connection refused')
+  })
+
+  it('shares ONE timeout budget across a member redraws — the member degrades at the budget, not 3× it', async () => {
+    vi.useFakeTimers()
+    try {
+      let draws = 0
+      const slowFail = {
+        id: 'dshws-slowfail',
+        available: () => true,
+        search: async () => {
+          draws += 1
+          // Every draw rejects 600ms in. With a 1000ms SHARED budget:
+          // draw 1 fails at t=600; draw 2 inherits the remaining 400ms and
+          // times out at t=1000 — budget spent, degrade. A per-DRAW budget
+          // would instead run draw 2 and draw 3 to completion (t=1800).
+          await new Promise((_resolve, reject) => {
+            setTimeout(() => reject(new Error('quota exhausted')), 600)
+          })
+          return fakeResult()
+        },
+      }
+      const calls: string[] = []
+      let backupCalledAt = 0
+      const backup: WebSearchProvider = {
+        id: 'dshws-backup',
+        available: () => true,
+        search: async () => {
+          calls.push('dshws-backup')
+          backupCalledAt = Date.now()
+          return fakeResult('backup answer')
+        },
+      }
+      const chain = new ChainSearchProvider({
+        members: resolver({
+          'dshws-slowfail': { provider: slowFail as unknown as WebSearchProvider, multiKeyPool: true },
+          'dshws-backup': { provider: backup },
+        }),
+        order: ['dshws-slowfail', 'dshws-backup'],
+        perMemberTimeoutMs: 1000,
+      })
+      const startedAt = Date.now()
+      const settled = chain.search({ query: 'q' })
+      await vi.advanceTimersByTimeAsync(2000)
+      const result = await settled
+      expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
+      expect(draws).toBe(2)
+      // The member degraded at its 1000ms shared deadline — the backup is
+      // reached within the budget, never at 3× it (a per-draw budget would
+      // hand the backup over only at t=1800).
+      expect(backupCalledAt - startedAt).toBeLessThanOrEqual(1000)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('records the shared-budget exhaustion as a member-timeout reason when a redraw cannot start', async () => {
+    vi.useFakeTimers()
+    try {
+      // Draw 1 hangs to the full budget; the timeout reason is recorded and
+      // NO further draw starts (budget spent) — a multi-key member whose
+      // first key hangs degrades at exactly perMemberTimeoutMs.
+      let draws = 0
+      const hangThenFail = {
+        id: 'dshws-hangkey',
+        available: () => true,
+        search: async () => {
+          draws += 1
+          await new Promise((_resolve, reject) => {
+            setTimeout(() => reject(new Error('never reached in time')), 1500)
+          })
+          return fakeResult()
+        },
+      }
+      const chain = new ChainSearchProvider({
+        members: resolver({ 'dshws-hangkey': { provider: hangThenFail as unknown as WebSearchProvider, multiKeyPool: true } }),
+        order: ['dshws-hangkey'],
+        perMemberTimeoutMs: 1000,
+      })
+      // The handler attaches at creation: the rejection fires inside
+      // advanceTimersByTimeAsync, and a later .then() would leave the
+      // window unhandled (vitest fails the run as an Unhandled Rejection).
+      const settled = chain.search({ query: 'q' }).then(
+        () => {
+          throw new Error('expected the chain to reject')
+        },
+        (caught: unknown) => caught,
+      )
+      await vi.advanceTimersByTimeAsync(2000)
+      const error = (await settled) as Error
+      expect(draws).toBe(1)
+      expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
+      expect((error as Error).message).toContain('DSHWS_MEMBER_TIMEOUT')
+      expect((error as Error).message).toContain('- dshws-hangkey: DSHWS_MEMBER_TIMEOUT')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('degrades at once on a deterministic 4xx — no redraw can change the verdict (S14u 4xx 分流)', async () => {
+    // 401 holds for EVERY key of the member with certainty: spending redraw
+    // draws on it only multiplies the same failure and delays the fallback.
+    let draws = 0
+    const unauthorized = {
+      id: 'dshws-authfail',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily API error (HTTP 401): invalid api key', { httpStatus: 401 })
+      },
+    }
+    const calls: string[] = []
+    const logs: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-authfail': { provider: unauthorized as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-backup': { provider: trackingProvider('dshws-backup', calls) },
+      }),
+      order: ['dshws-authfail', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+      log: (message) => logs.push(message),
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(draws).toBe(1)
+    expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
+    expect(logs.some((line) => line.includes('deterministic HTTP 401'))).toBe(true)
+  })
+
+  it('keeps the redraw budget for retryable statuses — 429 is key-/moment-specific (S14u 4xx 分流)', async () => {
+    let draws = 0
+    const throttled = {
+      id: 'dshws-throttled',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily API error (HTTP 429)', { httpStatus: 429 })
+      },
+    }
+    const calls: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-throttled': { provider: throttled as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-backup': { provider: trackingProvider('dshws-backup', calls) },
+      }),
+      order: ['dshws-throttled', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(draws).toBe(3)
+    expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
   })
 })

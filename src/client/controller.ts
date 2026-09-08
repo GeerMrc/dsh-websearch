@@ -7,7 +7,8 @@
  * entry wires the real `ctx.remote` namespaces in one adapter.
  *
  * Client-side defaulting mirrors the node half's `resolveConfig` (built-in
- * member order, 30s timeout, per-member default refs, `enabled: true` except the opt-in deepseek fallback) because
+ * member order, 30s timeout, per-member default refs, `enabled: true` with
+ * the deepseek fallback's client-facing flag defaulting to `false`) because
  * the described section value only carries user-set fields. Member ids and
  * default ref names are spelled here rather than imported: a client bundle
  * must not depend on host packages at value level (upstream WebSearchCard NS
@@ -72,7 +73,6 @@ interface MemberSectionValue {
 interface SectionValue {
   fallbackProvider?: 'deepseek' | 'fetch' | 'auto'
   searchChain?: string[]
-  fetchChain?: string[]
   perMemberTimeoutMs?: number
   tavily?: MemberSectionValue
   exa?: MemberSectionValue
@@ -103,11 +103,8 @@ export interface MemberSnapshot {
 export interface SectionSnapshot {
   readonly members: readonly MemberSnapshot[]
   readonly searchChain: readonly string[]
-  readonly fetchChain: readonly string[]
   /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
   readonly searchChainPinned: boolean
-  /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
-  readonly fetchChainPinned: boolean
   readonly timeoutMs: number
   /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
   readonly deepseekMaxUses: number | undefined
@@ -142,7 +139,8 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       label: member.label,
       memberId: member.memberId,
       refName,
-      // S14d: the deepseek fallback is opt-in (mirrors node resolveConfig).
+      // Client-facing flag (S14d default off); chain membership itself is
+      // governed solely by fallbackProvider (S14u).
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'round-robin',
@@ -156,9 +154,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     searchChain: value.searchChain?.length
       ? value.searchChain.filter((id) => id !== DEEPSEEK_MEMBER_ID)
       : [...ORDERABLE_MEMBER_IDS],
-    fetchChain: value.fetchChain?.length ? [...value.fetchChain] : [...ORDERABLE_MEMBER_IDS],
     searchChainPinned: (value.searchChain?.length ?? 0) > 0,
-    fetchChainPinned: (value.fetchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseekMaxUses: value.deepseek?.maxUses,
     fallbackProvider: value.fallbackProvider === 'deepseek' || value.fallbackProvider === 'fetch'

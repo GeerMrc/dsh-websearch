@@ -69,13 +69,15 @@ export class KeyPool {
   }
 
   /**
-   * Whether the last draw saw more than one usable key (S14r): a multi-key
-   * pool can redraw a DIFFERENT key on retry; a single key cannot. Before
-   * the first draw this reports false — the gate warms up after the first
-   * request, so the very first request degrades on single-key members.
+   * Whether the next draw could yield a DIFFERENT key (S14r/S14u): needs
+   * more than one key AND a policy that advances the selection — `order`
+   * always returns keys[0], so its "redraws" would retry the SAME key and
+   * the retry gate must refuse (blind-retry guard extended to policies).
+   * Before the first draw this reports false — the gate warms up after the
+   * first request, so the very first request degrades on single-key members.
    */
   hasMultiKeyPool(): boolean {
-    return this.#lastKeyCount > 1
+    return this.#lastKeyCount > 1 && this.#ports.selection() !== 'order'
   }
 
   /** The live ref name (gate priming and diagnostics). */
@@ -139,8 +141,9 @@ export class KeyPool {
    * Draw one key per policy. `random` draws from a shuffled deck without
    * replacement (ADR-0012): mid-cycle draws walk the deck; an exhausted deck
    * or a split whose multiset no longer matches the deck (hot value change)
-   * reshuffles first. A failed request consumes its draw — no same-member
-   * retry, the chain degrades instead.
+   * reshuffles first. A failed request consumes its draw; whether the chain
+   * redraws another key within the member (S14r: up to MEMBER_DRAWS draws,
+   * multi-key pools with a switching policy only) is chain policy.
    */
   #select(keys: readonly string[]): string {
     const selection = this.#ports.selection()

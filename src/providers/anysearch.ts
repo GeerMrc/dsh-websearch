@@ -163,7 +163,7 @@ export class AnysearchSearchProvider implements WebSearchProvider {
         // into a generic HTTP-error message.
         if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Anysearch', signal, error)
       }
-      throw new DshwsError(codes.httpError, message)
+      throw new DshwsError(codes.httpError, message, { httpStatus: status })
     }
 
     let envelope: AnysearchEnvelope

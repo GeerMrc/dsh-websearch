@@ -45,7 +45,7 @@ describe('FetchSearchProvider (S14e D1)', () => {
 
   it('rejects an empty query and parses fetched HTML into sources', async () => {
     const provider = new FetchSearchProvider()
-    await expect(provider.search({ query: '  ' })).rejects.toMatchObject({ code: 'DSHWS_FIRECRAWL_CREDENTIAL_MISSING' })
+    await expect(provider.search({ query: '  ' })).rejects.toMatchObject({ code: 'DSHWS_FETCHSEARCH_CREDENTIAL_MISSING' })
 
     const fetchMock = vi.fn(async () => new Response(FIXTURE, { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
@@ -58,9 +58,9 @@ describe('FetchSearchProvider (S14e D1)', () => {
   it('fails loud on HTTP errors and on zero parsed results', async () => {
     const provider = new FetchSearchProvider()
     vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 503 })))
-    await expect(provider.search({ query: 'x' })).rejects.toMatchObject({ code: 'DSHWS_FIRECRAWL_REQUEST_FAILED' })
+    await expect(provider.search({ query: 'x' })).rejects.toMatchObject({ code: 'DSHWS_FETCHSEARCH_REQUEST_FAILED' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>empty</html>', { status: 200 })))
-    await expect(provider.search({ query: 'x' })).rejects.toMatchObject({ code: 'DSHWS_FIRECRAWL_BAD_RESPONSE' })
+    await expect(provider.search({ query: 'x' })).rejects.toMatchObject({ code: 'DSHWS_FETCHSEARCH_BAD_RESPONSE' })
     vi.unstubAllGlobals()
   })
 })

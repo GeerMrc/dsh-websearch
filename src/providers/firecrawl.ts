@@ -247,7 +247,7 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         // in `message` and a non-JSON error body only ever cost the richer text.
         if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
       }
-      throw new DshwsError(codes.httpError, message)
+      throw new DshwsError(codes.httpError, message, { httpStatus: status })
     }
     try {
       return await response.json()

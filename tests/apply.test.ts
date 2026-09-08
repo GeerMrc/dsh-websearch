@@ -12,6 +12,20 @@ describe('apply assembly', () => {
     expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
   })
 
+  it('auto with the model key ready keeps the PAID floor reachable under the DEFAULT config (S14u regression)', async () => {
+    // The exact broken quadrant: default config (no explicit deepseek section),
+    // DEEPSEEK key configured, fallbackProvider=auto. The chain tail resolves
+    // to dshws-deepseek; the member gate must NOT skip it.
+    const { ctx, providers, configured } = fakeCtx()
+    configured.add('DEEPSEEK_API_KEY')
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    // Prime the credential gates first so the auto branch sees the key and
+    // names the PAID tail — the floor is then out of the order for real.
+    await flushGate()
+    await vi.waitFor(() => expect(chain.available()).toBe(true))
+  })
+
   it('the chain is AVAILABLE with no credentials — the free fetch floor (S14e 语义变更，用户设计)', () => {
     const { ctx, providers } = fakeCtx()
     apply(ctx as unknown as Context, {})

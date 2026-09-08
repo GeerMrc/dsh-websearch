@@ -24,22 +24,19 @@ describe('client locales', () => {
     }
   })
 
-  it('carries the 12a formatted key field note on both sides (反馈②)', () => {
-    expect(en.keyFieldNote).toBe('Multiple keys: {APIKEY1,APIKEY2,...} (max 10)')
-    expect(zh.keyFieldNote).toBe('多把 key：{APIKEY1,APIKEY2,...}（最多 10 把）')
-    // The example key is gone from the union (checked without tripping TS2339).
-    expect('keyFieldNoteExample' in en).toBe(false)
-    expect('keyFieldNoteExample' in zh).toBe(false)
-  })
-
   it('carries the S07 reorder and chain-state keys on both sides', () => {
     expect(en.moveUp).toBe('Move up')
     expect(en.moveDown).toBe('Move down')
-    expect(en.chainDefault).toBe('Built-in default order')
     expect(en.chainPinned).toBe('Pinned (overrides default)')
     expect(zh.moveUp).toBe('上移')
     expect(zh.moveDown).toBe('下移')
-    expect(zh.chainDefault).toBe('内置默认序')
     expect(zh.chainPinned).toBe('已钉死（覆盖默认序）')
+  })
+
+  it('carries the S14u floor notes on both sides (假警告清偿)', () => {
+    expect(en.chainFloorFetchNote).toContain('free fetch fallback')
+    expect(zh.chainFloorFetchNote).toContain('免费 fetch 兜底')
+    expect(en.chainFloorDeepseekNote).toContain('DeepSeek fallback')
+    expect(zh.chainFloorDeepseekNote).toContain('DeepSeek 兜底')
   })
 })

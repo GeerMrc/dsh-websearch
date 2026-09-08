@@ -24,7 +24,7 @@ describe('error code catalog', () => {
     expect(CHAIN_ERROR_CODES.memberTimeout).toBe('DSHWS_MEMBER_TIMEOUT')
   })
 
-  it('lands concrete code objects for all five provider families', () => {
+  it('lands concrete code objects for all six provider families', () => {
     expect(MEMBER_ERROR_CODES.deepseek).toEqual({
       credentialMissing: 'DSHWS_DEEPSEEK_CREDENTIAL_MISSING',
       requestFailed: 'DSHWS_DEEPSEEK_REQUEST_FAILED',
@@ -67,6 +67,13 @@ describe('error code catalog', () => {
       badResponse: 'DSHWS_FIRECRAWL_BAD_RESPONSE',
       aborted: 'DSHWS_FIRECRAWL_ABORTED',
     })
+    expect(MEMBER_ERROR_CODES.fetchsearch).toEqual({
+      credentialMissing: 'DSHWS_FETCHSEARCH_CREDENTIAL_MISSING',
+      requestFailed: 'DSHWS_FETCHSEARCH_REQUEST_FAILED',
+      httpError: 'DSHWS_FETCHSEARCH_HTTP_ERROR',
+      badResponse: 'DSHWS_FETCHSEARCH_BAD_RESPONSE',
+      aborted: 'DSHWS_FETCHSEARCH_ABORTED',
+    })
   })
 })
 
@@ -75,9 +82,9 @@ describe('createChainExhaustedError', () => {
     const first = new Error('429 quota exceeded')
     const last = new Error('connection refused')
     const err = createChainExhaustedError([
-      { memberId: 'dshws-tavily', reason: '429 quota exceeded', error: first },
-      { memberId: 'dshws-exa', reason: 'timed out after 30000ms (DSHWS_MEMBER_TIMEOUT)' },
-      { memberId: 'dshws-deepseek', reason: 'connection refused', error: last },
+      { memberId: 'dshws-tavily', drawReasons: ['429 quota exceeded'], error: first },
+      { memberId: 'dshws-exa', drawReasons: ['timed out after 30000ms (DSHWS_MEMBER_TIMEOUT)'] },
+      { memberId: 'dshws-deepseek', drawReasons: ['connection refused'], error: last },
     ])
     expect(err).toBeInstanceOf(DshwsError)
     expect(err.code).toBe('DSHWS_CHAIN_EXHAUSTED')
@@ -87,14 +94,30 @@ describe('createChainExhaustedError', () => {
     expect(err.cause).toBe(last)
   })
 
+  it('renders a multi-draw member as ONE line with its draws inline (S14u 聚合)', () => {
+    const err = createChainExhaustedError([
+      {
+        memberId: 'dshws-tavily',
+        drawReasons: ['429 on key 1', '429 on key 2', 'connection reset on key 3'],
+        error: new Error('connection reset on key 3'),
+      },
+      { memberId: 'dshws-exa', drawReasons: ['connection refused'], error: new Error('connection refused') },
+    ])
+    expect(err.message).toContain('all 2 configured chain members failed')
+    expect(err.message).toContain(
+      '- dshws-tavily: failed (3 draws: 429 on key 1; 429 on key 2; connection reset on key 3)',
+    )
+    expect(err.message).toContain('- dshws-exa: connection refused')
+  })
+
   it('names its code in the message so the terminal failure is diagnosable', () => {
-    const err = createChainExhaustedError([{ memberId: 'dshws-tavily', reason: 'boom' }])
+    const err = createChainExhaustedError([{ memberId: 'dshws-tavily', drawReasons: ['boom'] }])
     expect(err.message).toContain('DSHWS_CHAIN_EXHAUSTED')
   })
 
   it('omits the cause when the last member failed without a thrown error', () => {
     const err = createChainExhaustedError([
-      { memberId: 'dshws-tavily', reason: 'timed out after 100ms (DSHWS_MEMBER_TIMEOUT)' },
+      { memberId: 'dshws-tavily', drawReasons: ['timed out after 100ms (DSHWS_MEMBER_TIMEOUT)'] },
     ])
     expect(err.cause).toBeUndefined()
   })

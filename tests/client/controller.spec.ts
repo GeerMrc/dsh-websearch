@@ -138,7 +138,6 @@ describe('WebSearchSettingsController', () => {
       'dshws-firecrawl',
       'dshws-anysearch',
     ])
-    expect(snapshot.fetchChain).toEqual(snapshot.searchChain)
     expect(snapshot.timeoutMs).toBe(30000)
   })
 
@@ -300,12 +299,10 @@ describe('WebSearchSettingsController', () => {
     }
     await controller.init()
     expect(controller.snapshot().searchChainPinned).toBe(false)
-    expect(controller.snapshot().fetchChainPinned).toBe(false)
 
     const result = await controller.moveSearchChainEntry('dshws-tavily', 1)
     expect(result.ok).toBe(true)
     expect(controller.snapshot().searchChainPinned).toBe(true)
-    expect(controller.snapshot().fetchChainPinned).toBe(false)
     expect(controller.snapshot().searchChain[0]).toBe('dshws-exa')
   })
 
@@ -316,7 +313,6 @@ describe('WebSearchSettingsController', () => {
     await controller.init()
 
     expect(controller.snapshot().searchChainPinned).toBe(true)
-    expect(controller.snapshot().fetchChainPinned).toBe(false)
   })
 
   it('a move in a mixed configured set swaps with the adjacent configured member, skipping unconfigured ones (S11 🟡2 清偿)', async () => {

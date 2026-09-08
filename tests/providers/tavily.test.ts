@@ -125,14 +125,14 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
   it('maps HTTP 429 with a non-JSON body to DSHWS_TAVILY_HTTP_ERROR carrying the status', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse('rate limited', 429)))
     const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
-    expect(caught).toMatchObject({ code: codes.httpError })
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 429 })
     expect((caught as Error).message).toContain('429')
   })
 
   it('unfolds a JSON error body into the HTTP error message when present', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: 'invalid api key' }, 401)))
     const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
-    expect(caught).toMatchObject({ code: codes.httpError })
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 401 })
     expect((caught as Error).message).toContain('invalid api key')
   })
 

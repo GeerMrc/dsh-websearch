@@ -125,7 +125,7 @@ export function apply(ctx: Context, config: Config): void {
   ): KeyPool =>
     new KeyPool({
       ref: () => live.current()[memberKey].apiKeyEnv,
-      selection: () => live.current()[memberKey].keySelection ?? 'order',
+      selection: () => live.current()[memberKey].keySelection ?? 'round-robin',
       isReady: (ref) => gate.isReady(ref),
       resolve: async (ref) => (await credentials.resolve(credentialRef(ref)))?.value,
       label,
@@ -142,7 +142,13 @@ export function apply(ctx: Context, config: Config): void {
   } as const
 
   const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({
-    enabled: () => live.current()[memberKey].enabled,
+    enabled: () =>
+      // S14u (plan 014e D2, retroactively landed): the deepseek fallback's
+      // membership is governed SOLELY by fallbackProvider naming it as the
+      // chain tail — its legacy enabled flag (paid opt-in default false,
+      // S14d) must not skip the named tail, which silently evicted the free
+      // floor too (the auto branch had already replaced the tail id).
+      memberKey === 'deepseek' ? true : live.current()[memberKey].enabled,
     credentialsReady: () => pool.ready(),
     // S14r: same-member key redraw only helps when the pool holds >1 key.
     multiKeyPool: () => pool.hasMultiKeyPool(),

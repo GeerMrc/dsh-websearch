@@ -37,6 +37,10 @@ interface AssembleOverrides {
   exaEnabled?: boolean
   withAnysearch?: boolean
   tavilyKeySelection?: 'order' | 'round-robin' | 'random'
+  /** Pin the fallback choice (S14u: keep the chain tail loopback-controlled). */
+  fallbackProvider?: 'deepseek' | 'fetch'
+  /** Point the deepseek member at THIS scenario's loopback server (the caller cannot know the ephemeral port). */
+  deepseekAtLoopback?: boolean
   /** Explicit configured-ref set (defaults: the three primaries). */
   configuredRefs?: string[]
   /** Per-ref credential values (defaults keep 'fake-key' for every ref). */
@@ -54,6 +58,7 @@ async function assemble(
       ?? [...REFS, ...(overrides?.withAnysearch ? ['ANYSEARCH_API_KEY'] : [])]
     for (const ref of configured) handle.configured.add(ref)
     apply(handle.ctx as unknown as Context, {
+      ...(overrides?.fallbackProvider !== undefined ? { fallbackProvider: overrides.fallbackProvider } : {}),
       searchChain: overrides?.searchChain ?? [...MEMBERS],
       perMemberTimeoutMs: overrides?.perMemberTimeoutMs ?? 30000,
       tavily: {
@@ -63,6 +68,7 @@ async function assemble(
       exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
       perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
       ...(overrides?.withAnysearch ? { anysearch: { baseURL: `http://127.0.0.1:${server.port}/anysearch` } } : {}),
+      ...(overrides?.deepseekAtLoopback ? { deepseek: { baseURL: `http://127.0.0.1:${server.port}/deepseek` } } : {}),
     })
     const chain = handle.providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
@@ -144,7 +150,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(elapsed).toBeLessThan(5000)
       const degrade = handle.logLines.find((line) => line.includes('dshws-tavily failed'))
       expect(degrade).toBeDefined()
-      expect(degrade!).toContain('DSHWS_MEMBER_TIMEOUT: no result within 150ms')
+      expect(degrade!).toContain('DSHWS_MEMBER_TIMEOUT: no result within the member budget of 150ms')
       expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-exa')
       expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /exa/search'])
     } finally {
@@ -209,31 +215,44 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
         '/perplexity/chat/completions': { kind: 'status', status: 500, body: { detail: 'backend down' } },
+        '/deepseek/messages': { kind: 'status', status: 500, body: { error: { message: 'quota' } } },
+      },
+      // S14u: pin the fallback to the loopback-controlled deepseek member —
+      // the previous run let the tail fetch-search hit html.duckduckgo.com
+      // for real (an external-network dependency inside a loopback e2e).
+      {
+        fallbackProvider: 'deepseek',
+        deepseekAtLoopback: true,
+        configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY', 'DEEPSEEK_API_KEY'],
       },
     )
     try {
       const exhausted = await chain.search({ query: 'loopback all-fail' }).then(() => null, (error: unknown) => error as Error)
       expect(exhausted).not.toBeNull()
-      const failure = exhausted as unknown as { code: string; message: string; cause?: { code?: string } }
+      const failure = exhausted as unknown as { code: string; message: string; cause?: { code?: string; httpStatus?: number } }
       expect(failure.code).toBe('DSHWS_CHAIN_EXHAUSTED')
-      // One summary line per member, in walk order.
+      // One summary line per member, in walk order — the pinned deepseek tail
+      // included, so the walk stays entirely on the loopback server.
       const message = failure.message
       const tavilyAt = message.indexOf('- dshws-tavily:')
       const exaAt = message.indexOf('- dshws-exa:')
       const perplexityAt = message.indexOf('- dshws-perplexity:')
+      const deepseekAt = message.indexOf('- dshws-deepseek:')
       expect(tavilyAt).toBeGreaterThan(-1)
       expect(exaAt).toBeGreaterThan(tavilyAt)
       expect(perplexityAt).toBeGreaterThan(exaAt)
+      expect(deepseekAt).toBeGreaterThan(perplexityAt)
       expect(message).toContain('HTTP 429')
       expect(message).toContain('all 4 configured chain members failed')
-      // The last member's thrown error rides as cause (ADR-0002 Decision 3).
-      // S14e: the chain now ends at the free fetch floor, so the deepest
-      // cause is the fetch-search failure (no loopback member for it).
-      expect(failure.cause?.code).toBe('DSHWS_FIRECRAWL_BAD_RESPONSE')
+      // The last member's thrown error rides as cause (ADR-0002 Decision 3):
+      // the loopback deepseek tail's HTTP 500.
+      expect(failure.cause?.code).toBe('DSHWS_DEEPSEEK_HTTP_ERROR')
+      expect(failure.cause?.httpStatus).toBe(500)
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
         'POST /perplexity/chat/completions',
+        'POST /deepseek/messages',
       ])
     } finally {
       await server.close()

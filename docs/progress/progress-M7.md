@@ -19,7 +19,7 @@
 
 ## 进行中
 
-- 无（S14e 收官 2026-09-07）
+- 无（S14u 收官 2026-09-07）
 
 ## 待启动
 
@@ -54,6 +54,7 @@ session 记录双落）。
 
 | 棒 | 命令（七件全名） | 数字 |
 |---|---|---|
+| S14u | ①`pnpm test` → **exit 0，315 passed \| 9 skipped (324)**（305→315：+10 = T1 象限 1 + T2 策略 1 + T4 聚合/预算 3+errors 1 + T5 分流 2 + T6 三态 2——口径含 Errors 行〔T8 教训〕）②tc 0 双面 ③lint 0w0e 52f ④build index.js **70519**/d.ts **28543**/client.js **64424**（gzip 16.48）⑤check:i18n **48 keys** parity（52−6 孤儿+2 地板）+ CJK 19f 零违规 ⑥pack 换包 3423 实测 ⑦clean | S14u T7 亲跑（提交态 3445ae3）+ T8 清偿后 9dc0bb6 复跑 exit0 |
 | S14e | ①`pnpm test` → **292 passed \| 9 skipped (301)**（284→292：+8 = fetchsearch 6 + 语义适配 2）②tc 0 ③lint 0w0e 50f ④build index.js 60.95→**65.89**/d.ts 28.02/client.js **54.91** ⑤五件 ⑥**51 keys** ⑦clean | S14e T3 亲跑 |
 | S14d | ①`pnpm test` → **284 passed \| 9 skipped (293)**（净 0：+语义适配与 choice 用例互抵）②typecheck 0 ③lint 0w0e 50f ④build client.js 52.07→**53.48**（index 零漂移）⑤五件 ⑥**48 keys** parity ⑦clean | S14d T4 亲跑 |
 | S14c | ①`pnpm test` → **29 files（28 passed + 1 skipped），Tests 284 passed \| 9 skipped (293)**（277→284：+7 = section 4 + patch 守卫 1 + provider maxUses 1 + controller maxUses 1；既有零破坏含 settings/config/apply 语义适配）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0w0e（50 files）**④`pnpm build` → index.js 60.95 / index.d.ts 27.57 / **client.js 47.47→52.07 kB** ⑤pack 五件（tarball 内 patch 三条目亲读）⑥check:i18n → **43 keys** parity + 18 files 零 CJK ⑦clean | S14c T5 提交态亲跑 + stage45 零偏差 + 🟡×2 清偿后 284\|9(293) 双亲见 |

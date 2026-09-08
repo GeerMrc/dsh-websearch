@@ -159,7 +159,7 @@ export class TavilySearchProvider implements WebSearchProvider {
         // in `message` and a non-JSON error body only ever cost the richer text.
         if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
       }
-      throw new DshwsError(codes.httpError, message)
+      throw new DshwsError(codes.httpError, message, { httpStatus: status })
     }
 
     try {

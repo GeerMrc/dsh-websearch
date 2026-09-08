@@ -20,9 +20,8 @@ export const CHAIN_ERROR_CODES = {
 
 /**
  * Member-level code families. Every landed provider family carries its five
- * concrete codes (S05a: all five families are objects; a family value is a
- * reserved namespace prefix only between reserving the name and landing the
- * provider — a state that no longer exists).
+ * concrete codes (S05a: five families landed as objects; S14u added the
+ * fetch-search family, which had been borrowing the firecrawl namespace).
  */
 export const MEMBER_ERROR_CODES = {
   deepseek: {
@@ -45,6 +44,13 @@ export const MEMBER_ERROR_CODES = {
     httpError: 'DSHWS_FIRECRAWL_HTTP_ERROR',
     badResponse: 'DSHWS_FIRECRAWL_BAD_RESPONSE',
     aborted: 'DSHWS_FIRECRAWL_ABORTED',
+  },
+  fetchsearch: {
+    credentialMissing: 'DSHWS_FETCHSEARCH_CREDENTIAL_MISSING',
+    requestFailed: 'DSHWS_FETCHSEARCH_REQUEST_FAILED',
+    httpError: 'DSHWS_FETCHSEARCH_HTTP_ERROR',
+    badResponse: 'DSHWS_FETCHSEARCH_BAD_RESPONSE',
+    aborted: 'DSHWS_FETCHSEARCH_ABORTED',
   },
   exa: {
     credentialMissing: 'DSHWS_EXA_CREDENTIAL_MISSING',
@@ -73,32 +79,50 @@ export const MEMBER_ERROR_CODES = {
 export class DshwsError extends Error {
   /** Stable `DSHWS_*` code; consumers must tolerate member-specific codes. */
   readonly code: string
+  /** HTTP status of the failing response, when the failure came from one; a non-retryable status ends the member's redraw loop (S14u). */
+  readonly httpStatus?: number
 
-  constructor(code: string, message: string, options?: { cause?: unknown }) {
+  constructor(code: string, message: string, options?: { cause?: unknown; httpStatus?: number }) {
     super(message, options)
     this.name = 'DshwsError'
     this.code = code
+    this.httpStatus = options?.httpStatus
   }
 }
+
+/**
+ * HTTP statuses that hold for every key of a member with certainty — bad
+ * request, bad key, forbidden, missing route, unprocessable body. The chain
+ * degrades to the next member without spending redraw draws on them (S14u);
+ * 429 and 5xx stay out because they are key- or moment-specific.
+ */
+export const NON_RETRYABLE_HTTP_STATUSES: ReadonlySet<number> = new Set([400, 401, 403, 404, 422])
 
 /** One member's failure, as recorded by the chain while degrading. */
 export interface ChainMemberFailure {
   /** Provider id of the failed member (e.g. `dshws-tavily`). */
   readonly memberId: string
-  /** Human-readable failure reason; timeout entries carry the `DSHWS_MEMBER_TIMEOUT` marker. */
-  readonly reason: string
-  /** The error the member threw, when the failure came from a throw. */
+  /** One human-readable failure reason per attempted draw, in draw order; timeout entries carry the `DSHWS_MEMBER_TIMEOUT` marker. */
+  readonly drawReasons: readonly string[]
+  /** The error the member's last draw threw, when the failure came from a throw. */
   readonly error?: unknown
 }
 
 /**
- * Build the terminal `DSHWS_CHAIN_EXHAUSTED` error. The message embeds one
- * `memberId: reason` line per failed member; the last member's thrown error
- * (when any) is chained as `cause` so the terminal diagnostics keep the
- * deepest failure (ADR-0002 Decision 3).
+ * Build the terminal `DSHWS_CHAIN_EXHAUSTED` error. The message embeds ONE
+ * line per failed member — a multi-draw member lists its draws inline, so
+ * the member count stays truthful; the last member's last-draw error (when
+ * any) is chained as `cause` so the terminal diagnostics keep the deepest
+ * failure (ADR-0002 Decision 3).
  */
 export function createChainExhaustedError(failures: readonly ChainMemberFailure[]): DshwsError {
-  const lines = failures.map((failure) => `- ${failure.memberId}: ${failure.reason}`)
+  const lines = failures.map((failure) => {
+    const detail =
+      failure.drawReasons.length > 1
+        ? `failed (${failure.drawReasons.length} draws: ${failure.drawReasons.join('; ')})`
+        : failure.drawReasons[0] ?? 'failed'
+    return `- ${failure.memberId}: ${detail}`
+  })
   const last = failures.at(-1)
   return new DshwsError(
     CHAIN_ERROR_CODES.exhausted,

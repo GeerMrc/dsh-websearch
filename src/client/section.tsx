@@ -331,21 +331,14 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           >
             {/* Disabled boundaries follow the FILTERED (visible) list: computing them
             against the full chain left the last visible ↓ clickable and failing. */}
-            {visibleSearch.map((id, index) => {
-              // S14b D2: the visible list is the live serving order — a configured
-              // but disabled member stays listed (position matters once re-enabled)
-              // yet must read as inert, not as servable.
-              const memberDisabled = snapshot.members.some((m) => m.memberId === id && !m.enabled)
-              return (
+            {visibleSearch.map((id, index) => (
               <li
                 key={id}
                 data-testid={`dshws-chain-item-${id}`}
-                style={{ ...chainRowStyle, ...(memberDisabled ? { opacity: 0.45 } : {}) }}
-                title={memberDisabled ? t('chainDisabledNote').trim() : undefined}
+                style={chainRowStyle}
               >
                 <span style={chainIndexStyle}>{index + 1}</span>
                 <span data-dshws-chain-label="">{labelOf(id)}</span>
-                {memberDisabled ? <span style={hintStyle}>{t('chainDisabledNote')}</span> : null}
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"
@@ -366,14 +359,23 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                   ↓
                 </button>
               </li>
-              )
-            })}
+            ))}
+
           </ol>
           ) : null}
+          {/* S14u: the zero-usable state tells the truth about the floor — a
+          usable floor (free fetch, or a keyed DeepSeek) means the next search
+          does NOT fail; only a DeepSeek floor without its key is a hard fail. */}
           {snapshot.members.every((m) => !(m.configured && m.enabled)) && showChains ? (
-            <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
-              {t('chainNoUsableWarning')}
-            </p>
+            snapshot.fallbackProvider === 'deepseek' && !snapshot.members.some((m) => m.key === 'deepseek' && m.configured) ? (
+              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
+                {t('chainNoUsableWarning')}
+              </p>
+            ) : (
+              <p role="status" data-testid="dshws-chain-floor" style={hintStyle}>
+                {t(snapshot.fallbackProvider === 'deepseek' ? 'chainFloorDeepseekNote' : 'chainFloorFetchNote')}
+              </p>
+            )
           ) : null}
           <p style={hintStyle}>
             {t('timeout')}: {snapshot.timeoutMs} ms

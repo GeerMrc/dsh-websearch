@@ -160,14 +160,14 @@ export class ExaSearchProvider implements WebSearchProvider {
       try {
         const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
         const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message = detail
+        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
       } catch (error: unknown) {
         // An abort firing mid-body must surface as aborted, not be swallowed
         // into a generic HTTP-error message; otherwise the status is already
         // in `message` and a non-JSON error body only ever cost the richer text.
         if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Exa', signal, error)
       }
-      throw new DshwsError(codes.httpError, message)
+      throw new DshwsError(codes.httpError, message, { httpStatus: status })
     }
 
     try {
