@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
 
 describe('resolveConfig', () => {
   it('applies the built-in member order to empty chains — five tools, no appended tail (ADR-0014)', () => {

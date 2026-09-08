@@ -38,7 +38,7 @@ interface AssembleOverrides {
   withAnysearch?: boolean
   tavilyKeySelection?: 'order' | 'round-robin' | 'random'
   /** Pin the fallback choice (S14u: keep the chain tail loopback-controlled). */
-  fallbackProvider?: 'deepseek' | 'fetch'
+  fallbackProvider?: 'deepseek'
   /** Designate the fallback member (ADR-0014 canonical field). */
   fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
   /** Point the deepseek member at THIS scenario's loopback server (the caller cannot know the ephemeral port). */

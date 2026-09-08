@@ -83,9 +83,9 @@ export type KeySelection = 'order' | 'round-robin' | 'random'
 /** DeepSeek member settings (`dshws-deepseek`). */
 export interface DeepSeekSettings {
   /**
-   * Client-facing switch, `false` unless set. Since S14u this flag no longer
-   * governs chain membership — the fallback member is named solely by
-   * `fallbackProvider` — it only feeds the settings-page snapshot.
+   * Client-facing switch, `false` unless set. Since ADR-0014 this flag no
+   * longer governs chain membership — the fallback role is named solely by
+   * `fallbackMember` — it only feeds the settings-page snapshot.
    */
   enabled?: boolean
   /** Credential-ref env name resolved through the credentials service. Defaults to `DEEPSEEK_API_KEY`. */

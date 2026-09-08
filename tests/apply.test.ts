@@ -83,7 +83,11 @@ describe('ADR-0014 fallback participation (quadrant pins)', () => {
     const { ctx, providers, configured } = fakeCtx()
     configured.add('TAVILY_API_KEY')
     configured.add('DEEPSEEK_API_KEY')
-    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek' })
+    // deepseek.enabled=true pins the harshest variant: a regressed counter
+    // that counts every ENABLED member (not just the five tools) would count
+    // DeepSeek itself → 2 → the floor vanishes. The probe for this exact
+    // regression must stay red (stage-4/5 Y-2 清偿).
+    apply(ctx as unknown as Context, { fallbackMember: 'dshws-deepseek', deepseek: { enabled: true } })
     const chain = providers.get('dshws-chain') as WebSearchProvider
     await flushGate()
     // If the guard counted DeepSeek itself, readyCount would be 2 and the
@@ -150,11 +154,13 @@ describe('ADR-0014 fallback participation (quadrant pins)', () => {
 
     configured.add('EXA_API_KEY')
     emitUpdated('EXA_API_KEY')
-    await vi.waitFor(() => {
-      void chain.search({ query: 'probe' }).catch(() => {})
+    // The gate refresh is async; wait until a search's exhaustion summary
+    // actually reflects the revoked floor (no deepseek line) — the wait
+    // condition IS the assertion, not a fire-and-forget probe.
+    await vi.waitFor(async () => {
+      const error = await exhaustedError(chain)
+      expect(error.message).not.toContain('- dshws-deepseek:')
     })
-    const error = await exhaustedError(chain)
-    expect(error.message).not.toContain('- dshws-deepseek:')
   })
 })
 

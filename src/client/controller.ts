@@ -146,7 +146,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       memberId: member.memberId,
       refName,
       // Client-facing flag (S14d default off); chain membership itself is
-      // governed solely by fallbackProvider (S14u).
+      // governed by the ADR-0014 fallback rules, not this flag.
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'round-robin',
