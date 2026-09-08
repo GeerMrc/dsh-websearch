@@ -65,7 +65,10 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     searchChainPinned: false,
     timeoutMs: 30000,
     deepseekMaxUses: undefined,
-    fallbackProvider: 'fetch',
+    fallbackSelection: 'auto',
+    fallbackDesignationReady: false,
+    fallbackDeepseekEligible: false,
+    readyToolMembers: [...ORDERABLE],
     revision: 0,
     writable: true,
   }
@@ -80,7 +83,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onMoveSearch: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
-    onSetFallbackProvider: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetFallbackMember: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetBaseURL: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
@@ -93,9 +96,11 @@ describe('WebSearchSettingsSection', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
     expect(cards.length).toBe(6)
-    // Scoped to the cards grid: the brand label also renders in chain rows.
-    expect(within(screen.getByTestId('dshws-members')).getByText('Tavily')).toBeTruthy()
-    expect(within(screen.getByTestId('dshws-members')).getByText('AnySearch')).toBeTruthy()
+    // Card testids, not brand text: the fallback selector's options also
+    // carry brand names inside this container (ADR-0014).
+    expect(screen.getByTestId('dshws-member-tavily')).toBeTruthy()
+    expect(screen.getByTestId('dshws-member-anysearch')).toBeTruthy()
+    expect(screen.getByTestId('dshws-fallback-tool')).toBeTruthy()
   })
 
   it('renders localized heading and description through the t seat', () => {
@@ -320,23 +325,25 @@ describe('WebSearchSettingsSection', () => {
     expect(within(screen.getByTestId('dshws-members')).queryByRole('tooltip')).toBeNull()
   })
 
-  it('the fallback row carries no key surface; the ACTIVE choice owns the green dot (S14b D1 + S14i 审核)', () => {
+  it('the fallback row is a single tool selector; five ready tools → tool options only (ADR-0014)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const row = screen.getByTestId('dshws-fallback-deepseek')
+    const row = screen.getByTestId('dshws-fallback-tool')
     expect(within(row).getByText(en.fallbackRowLabel)).toBeTruthy()
     const info = within(row).getByRole('button', { name: en.fallbackInfo })
     fireEvent.focus(info)
     expect(screen.getByRole('tooltip').textContent).toBe(en.fallbackNote)
     fireEvent.blur(info)
     expect(screen.queryByRole('tooltip')).toBeNull()
-    // No key input, no pool controls, no save/clear — and no leftover
-    // DeepSeek-specific label/badge (S14i: those live in the ⓘ note only).
+    // No key input, no pool controls, no save/clear.
     expect(within(row).queryByLabelText(`DeepSeek ${en.apiKey}`)).toBeNull()
     expect(within(row).queryByRole('group', { name: en.keySelection })).toBeNull()
     expect(within(row).queryByRole('button', { name: `DeepSeek ${en.save}` })).toBeNull()
-    expect(within(row).queryByTestId('dshws-keysel-hint-deepseek')).toBeNull()
-    expect(within(row).queryByText(en.sharedWithModels)).toBeNull()
-    expect(within(row).getByRole('group', { name: en.fallbackChoiceGroup })).toBeTruthy()
+    const select = within(row).getByTestId('dshws-fallback-select') as HTMLSelectElement
+    // Five ready tools: Auto + the five tool members; NO paid DeepSeek option.
+    const values = Array.from(select.options).map((option) => option.value)
+    expect(values).toEqual(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'])
+    expect(select.value).toBe('auto')
+    expect(within(row).queryByTestId('dshws-fallback-note')).toBeNull()
   })
 
 
@@ -352,42 +359,45 @@ describe('WebSearchSettingsSection', () => {
   })
 
 
-  it('zero usable members with the free fetch floor shows the floor note, not a failure (S14u 假警告)', () => {
-    // The chain card needs one configured member to render at all: keep a
-    // keyed DeepSeek that is switched off, so zero members are usable.
-    const members = defaultMembers()
-    for (const [index] of members.entries()) {
-      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
-    }
-    members[4] = member('deepseek', 'DeepSeek', { configured: true, enabled: false })
-    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
-    // fallbackProvider defaults to 'fetch' — the floor needs no key, so the
-    // next search does NOT fail and the red warning must stay gone.
-    expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
-    expect(screen.getByTestId('dshws-chain-floor').textContent).toBe(en.chainFloorFetchNote)
-  })
-
-  it('zero usable members with a keyed DeepSeek floor shows the DeepSeek floor note', () => {
-    const members = defaultMembers()
-    for (const [index] of members.entries()) {
-      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
-    }
-    members[4] = member('deepseek', 'DeepSeek', { configured: true, enabled: false })
-    const snapshot = { ...makeSnapshot(members), fallbackProvider: 'deepseek' as const }
-    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
-    expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
-    expect(screen.getByTestId('dshws-chain-floor').textContent).toBe(en.chainFloorDeepseekNote)
-  })
-
-  it('zero usable members with a KEYLESS DeepSeek floor keeps the honest failure warning', () => {
+  it('zero usable tools with nothing selected is the honest red warning (ADR-0014 default, breaking pin)', () => {
     // A configured-but-disabled orderable member keeps the card rendered;
-    // the keyless DeepSeek floor then genuinely fails the next search.
+    // with no designated floor the next search genuinely fails.
     const members = defaultMembers()
     for (const [index] of members.entries()) {
       members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
     }
     members[0] = member('tavily', 'Tavily', { configured: true, enabled: false })
-    const snapshot = { ...makeSnapshot(members), fallbackProvider: 'deepseek' as const }
+    const snapshot = { ...makeSnapshot(members), readyToolMembers: [] }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    expect(screen.queryByTestId('dshws-chain-floor')).toBeNull()
+    expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
+  })
+
+  it('zero usable tools + selected eligible keyed DeepSeek shows the paid floor note', () => {
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
+    }
+    members[0] = member('tavily', 'Tavily', { configured: true, enabled: false })
+    members[4] = member('deepseek', 'DeepSeek', { configured: true, enabled: false })
+    const snapshot = {
+      ...makeSnapshot(members),
+      readyToolMembers: [],
+      fallbackSelection: 'dshws-deepseek' as const,
+      fallbackDeepseekEligible: true,
+    }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    expect(screen.queryByTestId('dshws-chain-no-usable')).toBeNull()
+    expect(screen.getByTestId('dshws-chain-floor').textContent).toBe(en.chainFloorDeepseekNote)
+  })
+
+  it('zero usable tools + selected KEYLESS DeepSeek keeps the honest warning', () => {
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: false })
+    }
+    members[0] = member('tavily', 'Tavily', { configured: true, enabled: false })
+    const snapshot = { ...makeSnapshot(members), readyToolMembers: [], fallbackSelection: 'dshws-deepseek' as const }
     render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
     expect(screen.queryByTestId('dshws-chain-floor')).toBeNull()
     expect(screen.getByTestId('dshws-chain-no-usable').textContent).toBe(en.chainNoUsableWarning)
@@ -479,43 +489,92 @@ describe('WebSearchSettingsSection', () => {
     await waitFor(() => expect(onSetBaseURL).toHaveBeenCalledWith('tavily', 'https://proxy.example/api'))
   })
 
-  it('the fallback is a paid-vs-free choice; pressing writes the explicit field (S14e D3, 用户方向修正)', async () => {
-    const onSetFallbackProvider = vi.fn(async () => ({ ok: true }) as ActionResult)
-    render(<WebSearchSettingsSection {...makeProps({ onSetFallbackProvider })} t={t} />)
-    const row = screen.getByTestId('dshws-fallback-deepseek')
-    // Fixture default: fetch (free) — the auto default with no model key.
-    const paid = within(row).getByRole('button', { name: en.fallbackChoicePaid }) as HTMLButtonElement
-    const free = within(row).getByRole('button', { name: en.fallbackChoiceFree }) as HTMLButtonElement
-    expect(free.getAttribute('aria-pressed')).toBe('true')
-    expect(paid.getAttribute('aria-pressed')).toBe('false')
-    fireEvent.click(paid)
-    await waitFor(() => expect(onSetFallbackProvider).toHaveBeenCalledWith('deepseek'))
-    fireEvent.click(free)
-    await waitFor(() => expect(onSetFallbackProvider).toHaveBeenCalledWith('fetch'))
+  it('selecting a fallback tool writes the canonical field (ADR-0014)', async () => {
+    const onSetFallbackMember = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetFallbackMember })} t={t} />)
+    const select = screen.getByTestId('dshws-fallback-select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'dshws-exa' } })
+    await waitFor(() => expect(onSetFallbackMember).toHaveBeenCalledWith('dshws-exa'))
   })
 
+  it('zero or one ready tool: the selector offers the paid DeepSeek option instead of tools (ADR-0014)', () => {
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: index === 0 })
+    }
+    const snapshot = { ...makeSnapshot(members), readyToolMembers: ['dshws-tavily'] }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    const select = screen.getByTestId('dshws-fallback-select') as HTMLSelectElement
+    const values = Array.from(select.options).map((option) => option.value)
+    expect(values).toEqual(['auto', 'dshws-deepseek'])
+  })
 
-  it('the choice dots follow the ACTIVE tool: paid needs its key, free is always ready (S14i)', () => {
-    // Default fixture: choice=fetch (auto, no key) → fetch dot green, paid gray.
+  it('a stored DeepSeek selection with two-plus ready tools degrades to auto with the stop note (ADR-0014)', () => {
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: { ...makeSnapshot(), fallbackSelection: 'dshws-deepseek' as const } })} t={t} />)
+    const select = screen.getByTestId('dshws-fallback-select') as HTMLSelectElement
+    expect(select.value).toBe('auto')
+    expect(screen.getByTestId('dshws-fallback-note').textContent).toBe(en.fallbackDeepseekStoppedNote)
+  })
+
+  it('a designated tool member renders as the LOCKED chain tail with the standby badge (ADR-0014 strip-to-tail)', () => {
+    const snapshot = {
+      ...makeSnapshot(),
+      fallbackSelection: 'dshws-exa' as const,
+      fallbackDesignationReady: true,
+    }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    const locked = screen.getByTestId('dshws-chain-item-dshws-exa')
+    expect(locked.getAttribute('data-dshws-chain-locked')).toBe('')
+    expect(within(locked).getByTestId('dshws-chain-role-standby')).toBeTruthy()
+    expect(within(locked).getByText(en.chainLockedNote)).toBeTruthy()
+    // Locked tail has no move buttons, and the reorderable rows exclude exa.
+    expect(within(locked).queryByRole('button')).toBeNull()
+    expect(screen.getByTestId('dshws-chain-item-dshws-tavily')).toBeTruthy()
+    expect(within(screen.getByTestId('dshws-search-chain')).queryByTestId('dshws-chain-item-dshws-exa')).toBe(locked)
+    // The last orderable row is NOT badged standby (the badge follows the lock).
+    const anysearchRow = screen.getByTestId('dshws-chain-item-dshws-anysearch')
+    expect(within(anysearchRow).queryByTestId('dshws-chain-role-standby')).toBeNull()
+  })
+
+  it('a NOT-READY designation keeps the auto walk and explains in the fallback row (ADR-0014 degrade)', () => {
+    // Realistic shape: exa was designated, then lost its key — it is not in
+    // the ready walk at all; the last ready tool holds the standby badge.
+    const members = defaultMembers()
+    members[1] = member('exa', 'Exa', { configured: false })
+    const snapshot = {
+      ...makeSnapshot(members),
+      readyToolMembers: ['dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'],
+      fallbackSelection: 'dshws-exa' as const,
+      fallbackDesignationReady: false,
+    }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    // No exa row at all (unusable members never list), no locked tail.
+    expect(screen.queryByTestId('dshws-chain-item-dshws-exa')).toBeNull()
+    const lastRow = screen.getByTestId('dshws-chain-item-dshws-anysearch')
+    expect(within(lastRow).getByTestId('dshws-chain-role-standby')).toBeTruthy()
+    expect(screen.getByTestId('dshws-fallback-note').textContent).toBe(en.fallbackDesignationLostNote)
+  })
+
+  it('the fallback dot: green for an armed paid selection, warn for auto (ADR-0014)', () => {
+    // Default fixture: auto → dot off.
     const first = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const paidDot1 = screen.getByTestId('dshws-fallback-dot-paid')
-    const fetchDot1 = screen.getByTestId('dshws-fallback-dot-fetch')
-    expect(paidDot1.style.background).toBe('var(--dsw-alias-state-warn-label)')
-    expect(fetchDot1.style.background).toBe('var(--dsw-alias-state-success-primary)')
+    expect(screen.getByTestId('dshws-fallback-dot').style.background).toBe('var(--dsw-alias-state-warn-label)')
     first.unmount()
 
-    // choice=deepseek with the key configured → paid dot green, fetch gray.
-    const second = render(<WebSearchSettingsSection {...makeProps({ snapshot: { ...makeSnapshot(), fallbackProvider: 'deepseek' } })} t={t} />)
-    expect(screen.getByTestId('dshws-fallback-dot-paid').style.background).toBe('var(--dsw-alias-state-success-primary)')
-    expect(screen.getByTestId('dshws-fallback-dot-fetch').style.background).toBe('var(--dsw-alias-state-warn-label)')
-    second.unmount()
-
-    // choice=deepseek WITHOUT the key → both gray (paid not armed; honest).
-    const dryMembers = defaultMembers()
-    dryMembers[4] = member('deepseek', 'DeepSeek', { configured: false })
-    render(<WebSearchSettingsSection {...makeProps({ snapshot: { ...makeSnapshot(dryMembers), fallbackProvider: 'deepseek' } })} t={t} />)
-    expect(screen.getByTestId('dshws-fallback-dot-paid').style.background).toBe('var(--dsw-alias-state-warn-label)')
-    expect(screen.getByTestId('dshws-fallback-dot-fetch').style.background).toBe('var(--dsw-alias-state-warn-label)')
+    // Selected + eligible + keyed → green.
+    const members = defaultMembers()
+    for (const [index] of members.entries()) {
+      members[index] = member(members[index]!.key, members[index]!.label, { configured: index === 0 })
+    }
+    members[4] = member('deepseek', 'DeepSeek', { configured: true, enabled: false })
+    const snapshot = {
+      ...makeSnapshot(members),
+      readyToolMembers: ['dshws-tavily'],
+      fallbackSelection: 'dshws-deepseek' as const,
+      fallbackDeepseekEligible: true,
+    }
+    render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    expect(screen.getByTestId('dshws-fallback-dot').style.background).toBe('var(--dsw-alias-state-success-primary)')
   })
 
 
@@ -670,7 +729,7 @@ describe('WebSearchSettingsSection', () => {
     const members = container.querySelector('[data-testid="dshws-members"]')!
     const children = Array.from(members.children)
     expect(children.length).toBe(6)
-    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fallback-deepseek')
+    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fallback-tool')
   })
 
   it('maxUses save patches the deepseek member key (S14c T4)', async () => {

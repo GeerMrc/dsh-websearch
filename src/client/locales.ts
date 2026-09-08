@@ -32,7 +32,6 @@ export type DshWsLocaleKey =
   | 'moveUp'
   | 'moveDown'
   | 'chainFloorDeepseekNote'
-  | 'chainFloorFetchNote'
   | 'chainPinned'
   | 'keySelection'
   | 'keySelOrder'
@@ -56,11 +55,14 @@ export type DshWsLocaleKey =
   | 'maxUsesHint'
   | 'chainTailHint'
   | 'configure'
-  | 'fallbackChoiceGroup'
-  | 'fallbackChoicePaid'
+  | 'fallbackAutoOption'
+  | 'fallbackDeepseekOption'
+  | 'fallbackDeepseekStoppedNote'
+  | 'fallbackDeepseekKeylessNote'
+  | 'fallbackDesignationLostNote'
+  | 'chainLockedNote'
   | 'keyPlaceholder'
   | 'maskedKey'
-  | 'fallbackChoiceFree'
   | 'chainOrderHint'
   | 'chainRolePrimary'
   | 'chainRoleStandby'
@@ -90,8 +92,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   failed: 'Action failed',
   moveUp: 'Move up',
   moveDown: 'Move down',
-  chainFloorDeepseekNote: 'No configured member is enabled — the next web_search will be served by the DeepSeek fallback.',
-  chainFloorFetchNote: 'No configured member is enabled — the next web_search will be served by the free fetch fallback.',
+  chainFloorDeepseekNote: 'No usable search tool — the next web_search will be served by the selected DeepSeek paid fallback.',
   chainPinned: 'Pinned (overrides default)',
   keySelection: 'Key selection',
   keySelOrder: 'Order',
@@ -110,17 +111,20 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackRowLabel: 'Fallback search',
   endpointLabel: 'Endpoint',
   endpointNote: 'Leave empty for the provider default. Applies at the next launch.',
-  fallbackNote: 'The chain-tail fallback: when no orderable member is usable, the ACTIVE choice below serves the search. Paid = DeepSeek websearch through the Models-page DEEPSEEK_API_KEY (shared with chat; edits on either side overwrite the other; needs the key configured, budget via Max searches per request). Free = keyless DuckDuckGo scrape (always ready; reachability depends on the network). The default is automatic: model key present → paid, otherwise free; switch any time, effective on the next search.',
-  chainNoUsableWarning: 'No configured member is enabled and the DeepSeek fallback key is not configured — the next web_search will fail. Enable a member or configure the DeepSeek key.',
+  fallbackNote: 'The fallback tool: with two or more ready tools, pick one to hold the chain-tail fallback slot (it leaves the normal rotation and only serves when every other tool failed — its own multi-key retries apply). With zero or one ready tool you may instead select the paid DeepSeek floor (Models-page DEEPSEEK_API_KEY, shared with chat; edits on either side overwrite the other; budget via Max searches per request). Auto = the last tool in the chain order is the fallback. Effective on the next search.',
+  chainNoUsableWarning: 'No usable search tool and no working fallback — the next web_search will fail. Enable or configure a tool member, or select the DeepSeek paid fallback (needs the Models-page key, offered with fewer than two ready tools).',
   maxUsesLabel: 'Max searches per request',
   maxUsesHint: 'One request may search at most {N} times before it must answer.',
-  chainTailHint: 'DeepSeek stays the chain-tail fallback and is not orderable.',
+  chainTailHint: 'The designated fallback tool is pinned at the chain tail and not orderable; Auto = the last tool in the order.',
   configure: 'Configure',
-  fallbackChoiceGroup: 'Fallback',
-  fallbackChoicePaid: 'DeepSeek paid',
-  fallbackChoiceFree: 'Fetch (free)',
+  fallbackAutoOption: 'Auto (chain-order last)',
+  fallbackDeepseekOption: 'DeepSeek paid (needs the Models-page key)',
+  fallbackDeepseekStoppedNote: 'Two or more ready tools are configured — the paid DeepSeek fallback is disabled; the fallback comes from your tools.',
+  fallbackDeepseekKeylessNote: 'DeepSeek paid is selected but its key is not configured (Models page); until then the chain runs without a paid floor.',
+  fallbackDesignationLostNote: 'The designated fallback tool is not ready (missing key or disabled); the chain-order last tool serves as the fallback meanwhile.',
+  chainLockedNote: 'locked fallback',
   keyPlaceholder: '{ref} — multiple keys: APIKEY1,APIKEY2,… (max 10)',
-  chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last member is the in-chain standby, and the built-in floor (paid DeepSeek or free Fetch) still follows it. Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch.',
+  chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last ready member is the in-chain standby (or the designated fallback tool, locked at the tail). Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch.',
   chainRolePrimary: 'Primary',
   chainRoleStandby: 'Standby',
   maskedKey: '••••••••',
@@ -144,8 +148,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   failed: '操作失败',
   moveUp: '上移',
   moveDown: '下移',
-  chainFloorDeepseekNote: '没有已启用的已配置成员——下一次 web_search 将由 DeepSeek 兜底服务。',
-  chainFloorFetchNote: '没有已启用的已配置成员——下一次 web_search 将由免费 fetch 兜底服务。',
+  chainFloorDeepseekNote: '没有可用搜索工具——下一次 web_search 将由所选 DeepSeek 付费兜底服务。',
   chainPinned: '已钉死（覆盖默认序）',
   keySelection: 'Key 策略',
   keySelOrder: '顺序',
@@ -164,15 +167,18 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackRowLabel: '兜底搜索',
   endpointLabel: '接口地址',
   endpointNote: '留空使用提供方默认地址；下次启动生效。',
-  fallbackNote: '链尾兜底：前序成员均不可用时，由下方当前激活的选项承接搜索。付费 = 经模型设置页 DEEPSEEK_API_KEY 的 DeepSeek websearch（与聊天共用同一把 key，两处修改后写覆盖；需已配置该 key；预算见「单次请求最多搜索次数」）。免费 = 免 key 的 DuckDuckGo 抓取（恒就绪；可达性取决于网络）。默认自动：有模型 key → 付费，否则免费；可随时切换，下一次搜索生效。',
+  fallbackNote: '兜底工具：两家及以上工具就绪时，可指定一家专职链尾兜底（它退出常规轮换，仅在其余工具全部失败后接手——含其自身多 key 重试规则）；零家或一家就绪时可改选付费 DeepSeek 地板（经模型设置页 DEEPSEEK_API_KEY，与聊天共用同一把 key，两处后写覆盖先写；预算见「单次请求最多搜索次数」）。自动 = 链序末位工具即兜底。下一次搜索生效。',
   chainNoUsableWarning: '没有已启用的已配置成员，且 DeepSeek 兜底 key 未配置——下一次 web_search 将失败。请启用某成员或配置 DeepSeek key。',
   maxUsesLabel: '单次请求最多搜索次数',
   maxUsesHint: '一次请求必须作答前最多可搜索{N}次。',
-  chainTailHint: 'DeepSeek 恒为链尾兜底，不参与排序。',
+  fallbackAutoOption: '自动（链序末位）',
+  fallbackDeepseekOption: 'DeepSeek 付费（需模型页 key）',
+  fallbackDeepseekStoppedNote: '已配置两家及以上搜索工具——付费 DeepSeek 兜底已停用，兜底由你的工具承担。',
+  fallbackDeepseekKeylessNote: '已选择 DeepSeek 付费但模型页 key 未配置；在此之前链上没有付费兜底。',
+  fallbackDesignationLostNote: '指定的兜底工具未就绪（缺 key 或已停用）；期间由链序末位工具承担兜底。',
+  chainLockedNote: '锁定兜底',
+  chainTailHint: '被指定的兜底工具固定链尾、不可排序；自动 = 链序末位即兜底。',
   configure: '配置',
-  fallbackChoiceGroup: '兜底',
-  fallbackChoicePaid: 'DeepSeek 付费',
-  fallbackChoiceFree: 'Fetch 免费',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',
   chainOrderHint: '链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位是链内兜底位，其后仍有内置地板（付费 DeepSeek 或免费 Fetch）。内置默认序：Tavily → Exa → Perplexity → Firecrawl → AnySearch。',
   chainRolePrimary: '主搜索',

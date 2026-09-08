@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+const waitFor = vi.waitFor
 import { WebSearchSettingsController } from '../../src/client/controller.ts'
 import type { WebSearchSettingsPorts } from '../../src/client/controller.ts'
 import type { CredentialInfo } from '@deepseek-ai/dsh-credentials'
@@ -352,37 +353,65 @@ describe('WebSearchSettingsController', () => {
     expect(remote.updateCalls).toHaveLength(1)
   })
 
-  it('derives the auto fallback from the DeepSeek key readiness and honors the explicit choice (S14e, stage45 🟡-A 清偿)', async () => {
-    // Auto default, no model key fact → the free fetch floor.
+  it('projects the canonical fallback selection: fallbackMember wins, legacy normalizes away (ADR-0014)', async () => {
+    // Default: auto — a DeepSeek key alone no longer changes anything.
     const bare = new FakeRemote()
+    bare.creds.set('DEEPSEEK_API_KEY', { configured: true, source: 'file', writable: true })
     const bareController = new WebSearchSettingsController(makePorts(bare))
     await bareController.init()
-    expect(bareController.snapshot().fallbackProvider).toBe('fetch')
+    const bareSnapshot = bareController.snapshot()
+    expect(bareSnapshot.fallbackSelection).toBe('auto')
+    expect(bareSnapshot.readyToolMembers).toEqual([])
 
-    // Auto default, model key configured → the paid floor.
-    const keyed = new FakeRemote()
-    keyed.creds.set('DEEPSEEK_API_KEY', { configured: true, source: 'file', writable: true })
-    const keyedController = new WebSearchSettingsController(makePorts(keyed))
-    await keyedController.init()
-    expect(keyedController.snapshot().fallbackProvider).toBe('deepseek')
+    // Legacy alias: 'deepseek' designates the paid floor; the rest mean auto.
+    const legacyPaid = new FakeRemote()
+    legacyPaid.nsValue = { fallbackProvider: 'deepseek' }
+    const legacyPaidController = new WebSearchSettingsController(makePorts(legacyPaid))
+    await legacyPaidController.init()
+    expect(legacyPaidController.snapshot().fallbackSelection).toBe('dshws-deepseek')
 
-    // An explicit section value overrides auto derivation.
+    const legacyFetch = new FakeRemote()
+    legacyFetch.nsValue = { fallbackProvider: 'fetch' }
+    const legacyFetchController = new WebSearchSettingsController(makePorts(legacyFetch))
+    await legacyFetchController.init()
+    expect(legacyFetchController.snapshot().fallbackSelection).toBe('auto')
+
+    // Explicit fallbackMember (including its 'auto') wins over the legacy field.
     const explicit = new FakeRemote()
-    explicit.nsValue = { fallbackProvider: 'fetch' }
-    explicit.creds.set('DEEPSEEK_API_KEY', { configured: true, source: 'file', writable: true })
+    explicit.nsValue = { fallbackMember: 'auto', fallbackProvider: 'deepseek' }
     const explicitController = new WebSearchSettingsController(makePorts(explicit))
     await explicitController.init()
-    expect(explicitController.snapshot().fallbackProvider).toBe('fetch')
+    expect(explicitController.snapshot().fallbackSelection).toBe('auto')
   })
 
-  it('setFallbackProvider writes the top-level field with the current revision (S14e, stage45 🟡-A 清偿)', async () => {
+  it('derives readyToolMembers and the DeepSeek eligibility from credential facts (ADR-0014, hot 1→2 flip)', async () => {
+    const remote = new FakeRemote()
+    remote.creds.set('DEEPSEEK_API_KEY', { configured: true, source: 'file', writable: true })
+    remote.creds.set('TAVILY_API_KEY', { configured: true, source: 'file', writable: true })
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    // One ready tool → DeepSeek eligible (its own key never counts itself).
+    let snapshot = controller.snapshot()
+    expect(snapshot.readyToolMembers).toEqual(['dshws-tavily'])
+    expect(snapshot.fallbackDeepseekEligible).toBe(true)
+
+    // A second tool key lands → eligibility revokes on the next refresh.
+    remote.creds.set('EXA_API_KEY', { configured: true, source: 'file', writable: true })
+    remote.emitReferenceUpdated('EXA_API_KEY')
+    await waitFor(() => expect(controller.snapshot().readyToolMembers).toEqual(['dshws-tavily', 'dshws-exa']))
+    snapshot = controller.snapshot()
+    expect(snapshot.readyToolMembers).toEqual(['dshws-tavily', 'dshws-exa'])
+    expect(snapshot.fallbackDeepseekEligible).toBe(false)
+  })
+
+  it('setFallbackMember writes the canonical top-level field with the current revision (ADR-0014)', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))
     await controller.init()
-    const ok = await controller.setFallbackProvider('fetch')
+    const ok = await controller.setFallbackMember('dshws-exa')
     expect(ok.ok).toBe(true)
     expect(remote.updateCalls).toEqual([
-      { ns: 'dsh-websearch', patch: { fallbackProvider: 'fetch' }, expectedRevision: 0 },
+      { ns: 'dsh-websearch', patch: { fallbackMember: 'dshws-exa' }, expectedRevision: 0 },
     ])
   })
 
