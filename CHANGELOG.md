@@ -12,6 +12,33 @@
 
 ---
 
+## 2026-09-09 — 兜底重构 0.2.0：删免费地板 + 兜底工具显式指定 + DeepSeek 条件参与（Session 14x，ADR-0014）
+
+**新增**
+- **兜底工具单选择器**（ADR-0014）：替代「DeepSeek 付费 | Fetch 免费」两按钮——两家及以上工具就绪时可选 [自动（链序末位）| 各就绪工具]（**付费 DeepSeek 彻底消失**）；零/一家就绪时可选 [自动 | DeepSeek 付费（需模型页 key）]
+- **指定成员锁定链尾**：被指定工具退出常规轮换、专职兜底（含自身多 key 重试规则），链卡锁定尾行 +「兜底位」徽标跟随 + 「锁定兜底」标记
+- **fallbackMember 单字段**（'auto' 显式默认）；legacy fallbackProvider 读入别名平滑归一（'deepseek'→指定付费，'fetch'/'auto'/'none'→auto——旧 GUI 写过的值升级不炸载入）
+- **DeepSeek 参与守卫**：选中 && 就绪工具成员 ≤1 && key 有效（append-only 单条热规则；readyCount 排除 DeepSeek 自身——自数自杀洞审核钉死）；不可实现的意图一律降级 auto 链（可观测一致）
+
+**清偿（breaking，0.1.0 → 0.2.0）**
+- **删除 dshws-fetch-search 免费成员与 DSHWS_FETCHSEARCH_* 码族**：免费抓取地板在主要网络段被 DDG 反爬封死（S14v 实证），删除比维护诚实
+- 零 key 安装从「碰运气免费抓取」变为 `DSHWS_NO_MEMBER_CONFIGURED` 诚实报错（文案点名两出路）
+- 有 DeepSeek key 但未点名的存量用户失去自动付费触达（费用控制权归还用户）
+- **老用户升级口径**：settings.yaml 里的 `fallbackProvider` 旧值自动归一，无需手改；行为变化=付费触达与免费地板按上述规则重排
+
+**治理**
+- 三轮独立计划审核（轮 1 六必改 / 轮 2 四必改 / 轮 3 增量三必改全吸收；正本 audit-logs 三份在档）；用户三轮产品裁决（删免费/显式指定/条件禁用）+ 计划包两轮驳回后按产品视角重写获批
+- 钉子测试：①④⑤⑥象限 + 热切换 1→2 + strip-to-tail e2e + legacy 别名兼测 + 零 key 断言 + schema 双负测
+
+**诚实标注（遗留项）**
+- 用户报告场景回归在案：仅 AnySearch 就绪时全败 → 报错不再含 fetch 行（R2 验收）
+- B2 v2 落档 superseded（目标形态被本重构实现）；fetch 地板维护面归零
+
+**跟踪**
+- 测试基线 320→**329 passed | 9 skipped (338)**；i18n 50→**52 keys**；下一棒：S15 手册棒（按 ADR-0014 新语义撰写）
+
+---
+
 ## 2026-09-08 — 主备链可验证交付（Session 14w，S15 前增强轮）
 
 **新增**
