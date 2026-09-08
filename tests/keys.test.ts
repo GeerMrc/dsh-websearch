@@ -105,6 +105,18 @@ describe('KeyPool single-slot comma value (ADR-0011)', () => {
     expect(await pool.resolveApiKey()).toBe('k2')
   })
 
+  it('hasMultiKeyPool is false under the order policy — a redraw cannot yield a different key (S14u 🔴-2)', async () => {
+    const { pool, setValue } = makePool({ value: 'k1,k2', selection: 'order' })
+    await pool.resolveApiKey()
+    // Two keys but order always returns keys[0]: a "redraw" would retry the
+    // SAME key — the retry gate must refuse.
+    expect(pool.hasMultiKeyPool()).toBe(false)
+    setValue('k1,k2')
+    const { pool: rr } = makePool({ value: 'k1,k2', selection: 'round-robin' })
+    await rr.resolveApiKey()
+    expect(rr.hasMultiKeyPool()).toBe(true)
+  })
+
   it('a consumed draw is not re-offered to the next attempt (失败不回牌钉牌——S13 🟢 S14 T2 清偿)', async () => {
     // Contract pin (src/keys.ts #select): a failed request consumes its draw —
     // no same-member retry, the chain degrades instead. The pool has no
