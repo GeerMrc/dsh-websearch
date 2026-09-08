@@ -24,6 +24,13 @@ const DDG_HTML_ENDPOINT = 'https://html.duckduckgo.com/html/'
 const codes = MEMBER_ERROR_CODES.fetchsearch
 
 /**
+ * Desktop browser identity for the form POST. DuckDuckGo does not require it,
+ * but a bare header set is an unnecessary bot fingerprint (S14v T2).
+ */
+const DDG_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+
+/**
  * Decode a DDG redirect hop (`//duckduckgo.com/l/?uddg=<encoded>`) into the
  * real result URL; direct hrefs pass through untouched.
  */
@@ -83,7 +90,10 @@ export class FetchSearchProvider implements WebSearchProvider {
     try {
       response = await fetch(url, {
         method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          'user-agent': DDG_USER_AGENT,
+        },
         body: `q=${encodeURIComponent(query)}`,
         redirect: 'error',
         signal,
@@ -94,6 +104,17 @@ export class FetchSearchProvider implements WebSearchProvider {
     }
     if (!response.ok) {
       throw new DshwsError(codes.requestFailed, `Fetch search HTTP ${response.status}`)
+    }
+    // HTTP 202 with the homepage shell is DuckDuckGo's anti-bot answer to
+    // suspected egress IPs (observed 2026-09-08: both html and lite endpoints,
+    // with or without a browser user-agent). It is `ok` per fetch semantics,
+    // so it would otherwise fall through to the parser and surface as a
+    // misleading "parsed no results" — name the block instead (S14v T1).
+    if (response.status === 202) {
+      throw new DshwsError(
+        codes.badResponse,
+        'DuckDuckGo returned an anti-bot challenge shell (HTTP 202); the free fetch fallback is unavailable in this network',
+      )
     }
     const html = await response.text()
     const result = parseDdgHtml(html, request.maxResults ?? 8)
