@@ -659,9 +659,12 @@ describe('WebSearchSettingsSection', () => {
     // Collapsed: no badge anywhere in the card.
     expect(within(card).queryByTestId('dshws-keysel-info-tavily')).toBeNull()
     expand('tavily')
-    // Expanded: the badge sits in the body, a sibling of the chip (not nested
-    // inside the header disclosure button — the S14r button-in-button fix).
+    // Expanded: the badge sits INSIDE the「API Key」field-label span (S14t —
+    // beside the field it explains), not after the input+chip row.
     const badge = within(card).getByTestId('dshws-keysel-info-tavily')
+    const labelSpan = badge.closest('span')
+    expect(labelSpan?.textContent).toContain(en.apiKey)
+    // And the chip row that follows holds only the input + chip.
     expect(badge.closest('button[data-testid="dshws-member-toggle-tavily"]')).toBeNull()
     fireEvent.focus(badge)
     expect(screen.getByRole('tooltip').textContent)

@@ -734,7 +734,26 @@ function MemberCard(props: {
       {open ? (
       <>
       <div style={fieldStyle}>
-        <span style={fieldLabelStyle}>{t('apiKey')}</span>
+        <span style={fieldLabelStyle}>
+          {t('apiKey')}
+          {/* S14t (user ruling): the ! badge sits right after the「API Key」
+          LABEL — beside the field it explains, not after the input+chip row. */}
+          <Tooltip
+            label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
+            side="bottom"
+            delayMs={200}
+            maxWidth={320}
+          >
+            <button
+              type="button"
+              aria-label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
+              data-testid={`dshws-keysel-info-${member.key}`}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6 }}
+            >
+              !
+            </button>
+          </Tooltip>
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         {/* S14q (user ruling): typing is PLAINTEXT; the •••• mask shows only
         while a configured card sits re-expanded and untouched — focusing the
@@ -774,24 +793,6 @@ function MemberCard(props: {
             >
               <span aria-hidden="true" style={{ fontSize: 12 }}>⇄</span>
               {t(keySelectionLabelKey(member.keySelection))}
-            </button>
-          </Tooltip>
-          {/* S14s (user ruling): the ! badge appears only in the EXPANDED body
-          (chain-card form; independent top-level button — the old placement
-          nested it inside the header disclosure button). */}
-          <Tooltip
-            label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
-            side="bottom"
-            delayMs={200}
-            maxWidth={320}
-          >
-            <button
-              type="button"
-              aria-label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
-              data-testid={`dshws-keysel-info-${member.key}`}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6, flexShrink: 0 }}
-            >
-              !
             </button>
           </Tooltip>
         </div>
