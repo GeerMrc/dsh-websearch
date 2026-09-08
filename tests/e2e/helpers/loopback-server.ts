@@ -25,6 +25,12 @@ export type LoopbackBehavior =
   | { kind: 'status'; status: number; body?: unknown }
   | { kind: 'hang' }
   | { kind: 'destroy' }
+  /**
+   * Steps consumed in arrival order; once exhausted the LAST step repeats.
+   * This is what lets one scenario show a member's healthy phase followed by
+   * its failing phase (S14w primary/standby).
+   */
+  | { kind: 'sequence'; steps: LoopbackBehavior[] }
 
 export interface LoopbackServer {
   readonly port: number
@@ -52,10 +58,23 @@ function respond(res: ServerResponse, status: number, body: unknown): void {
 export async function startLoopback(behavior: Record<string, LoopbackBehavior>): Promise<LoopbackServer> {
   const arrivals: string[] = []
   const auths: string[] = []
+  const queues = new Map<string, LoopbackBehavior[]>()
+  const repeatLastStep = (steps: readonly LoopbackBehavior[]): LoopbackBehavior =>
+    steps[steps.length - 1] ?? { kind: 'status', status: 500 }
+  const nextAction = (path: string): LoopbackBehavior | undefined => {
+    const scripted = behavior[path]
+    if (scripted?.kind !== 'sequence') return scripted
+    let queue = queues.get(path)
+    if (queue === undefined) {
+      queue = [...scripted.steps]
+      queues.set(path, queue)
+    }
+    return queue.shift() ?? repeatLastStep(scripted.steps)
+  }
   const server: Server = createServer((req: IncomingMessage, res: ServerResponse) => {
     arrivals.push(`${req.method ?? 'GET'} ${req.url ?? '/'}`)
     auths.push(String(req.headers.authorization ?? ''))
-    const action = behavior[req.url ?? '/']
+    const action = nextAction(req.url ?? '/')
     if (action === undefined) {
       respond(res, 404, {})
       return
@@ -72,7 +91,11 @@ export async function startLoopback(behavior: Record<string, LoopbackBehavior>):
       respond(res, action.status, action.body ?? {})
       return
     }
-    respond(res, 200, action.body)
+    if (action.kind === 'success') {
+      respond(res, 200, action.body)
+      return
+    }
+    respond(res, 500, { error: 'unhandled behavior kind' })
   })
   const port = await listen(server)
   return {

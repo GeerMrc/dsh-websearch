@@ -41,6 +41,8 @@ interface AssembleOverrides {
   fallbackProvider?: 'deepseek' | 'fetch'
   /** Point the deepseek member at THIS scenario's loopback server (the caller cannot know the ephemeral port). */
   deepseekAtLoopback?: boolean
+  /** Point the firecrawl member at THIS scenario's loopback server (S14w primary/standby scenario). */
+  firecrawlAtLoopback?: boolean
   /** Explicit configured-ref set (defaults: the three primaries). */
   configuredRefs?: string[]
   /** Per-ref credential values (defaults keep 'fake-key' for every ref). */
@@ -68,6 +70,7 @@ async function assemble(
       exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
       perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
       ...(overrides?.withAnysearch ? { anysearch: { baseURL: `http://127.0.0.1:${server.port}/anysearch` } } : {}),
+      ...(overrides?.firecrawlAtLoopback ? { firecrawl: { baseURL: `http://127.0.0.1:${server.port}/firecrawl` } } : {}),
       ...(overrides?.deepseekAtLoopback ? { deepseek: { baseURL: `http://127.0.0.1:${server.port}/deepseek` } } : {}),
     })
     const chain = handle.providers.get('dshws-chain') as WebSearchProvider
@@ -272,6 +275,61 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       for (let index = 0; index < 3; index += 1) await chain.search({ query: `rr-${index}` })
       // Wire-level rotation proof: each search carried a different key, in pool order.
       expect(server.auths).toEqual(['Bearer k1', 'Bearer k2', 'Bearer k3'])
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('a primary member exhausts its multi-key draws, then the standby member takes over (主备模式正本, S14w)', async () => {
+    // The machine-readable definition of the primary/standby pattern: tavily
+    // is PRIMARY (first in the chain order) and retries only across its OWN
+    // key pool (3 draws, one key each); only after that budget is spent does
+    // the standby (firecrawl, second in the order) serve the request. The
+    // wire-level auths prove the key rotation happened inside the primary.
+    const { server, chain } = await assemble(
+      {
+        // Phase 1 (warm-up): tavily healthy — the primary serves. Phase 2:
+        // every draw 429s, so the primary exhausts its key pool and the
+        // standby takes over.
+        '/tavily/search': {
+          kind: 'sequence',
+          steps: [
+            { kind: 'success', body: { results: [{ url: 'https://tv.test/primary', title: 'Primary answer' }] } },
+            { kind: 'status', status: 429 },
+            { kind: 'status', status: 429 },
+            { kind: 'status', status: 429 },
+          ],
+        },
+        '/firecrawl/v2/search': {
+          kind: 'success',
+          body: { success: true, data: { web: [{ url: 'https://fc.test/standby', title: 'Standby answer', description: 'standby snippet' }] } },
+        },
+      },
+      {
+        searchChain: ['dshws-tavily', 'dshws-firecrawl'],
+        firecrawlAtLoopback: true,
+        configuredRefs: ['TAVILY_API_KEY', 'FIRECRAWL_API_KEY'],
+        values: { TAVILY_API_KEY: 'k1,k2,k3', FIRECRAWL_API_KEY: 'fk1' },
+      },
+    )
+    try {
+      // Warm-up: the healthy primary serves (this also arms the multi-key
+      // pool gate — it reads the pool size only after the first key draw).
+      const warmup = await chain.search({ query: 'warm' })
+      expect(warmup.content).toBe('[served-by: dshws-tavily]')
+      // Probe: the primary exhausts its OWN key pool first (k2 → k3 → k1,
+      // round-robin), and only then does the standby serve the request.
+      const result = await chain.search({ query: 'primary-standby' })
+      expect(result.content).toBe('[served-by: dshws-firecrawl]')
+      expect(result.sources[0]?.url).toBe('https://fc.test/standby')
+      expect(server.arrivals).toEqual([
+        'POST /tavily/search',
+        'POST /tavily/search',
+        'POST /tavily/search',
+        'POST /tavily/search',
+        'POST /firecrawl/v2/search',
+      ])
+      expect(server.auths).toEqual(['Bearer k1', 'Bearer k2', 'Bearer k3', 'Bearer k1', 'Bearer fk1'])
     } finally {
       await server.close()
     }
