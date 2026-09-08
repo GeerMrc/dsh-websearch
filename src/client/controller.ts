@@ -7,7 +7,8 @@
  * entry wires the real `ctx.remote` namespaces in one adapter.
  *
  * Client-side defaulting mirrors the node half's `resolveConfig` (built-in
- * member order, 30s timeout, per-member default refs, `enabled: true` except the opt-in deepseek fallback) because
+ * member order, 30s timeout, per-member default refs, `enabled: true` with
+ * the deepseek fallback's client-facing flag defaulting to `false`) because
  * the described section value only carries user-set fields. Member ids and
  * default ref names are spelled here rather than imported: a client bundle
  * must not depend on host packages at value level (upstream WebSearchCard NS
@@ -138,7 +139,8 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       label: member.label,
       memberId: member.memberId,
       refName,
-      // S14d: the deepseek fallback is opt-in (mirrors node resolveConfig).
+      // Client-facing flag (S14d default off); chain membership itself is
+      // governed solely by fallbackProvider (S14u).
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'round-robin',

@@ -178,60 +178,60 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           this.#options.log?.(`[dshws-chain] member ${id} failed (${reason}); degrading to next member`)
           break
         }
-      try {
-        const controller = new AbortController()
-        const abortFromOuter = () => controller.abort(signal?.reason)
-        signal?.addEventListener('abort', abortFromOuter, { once: true })
-        if (signal?.aborted) abortFromOuter()
-        let fireTimeout: () => void = () => {}
-        const timedOut = new Promise<never>((_, reject) => {
-          fireTimeout = () => reject(MEMBER_TIMED_OUT)
-        })
-        const timer = setTimeout(() => {
-          controller.abort()
-          fireTimeout()
-        }, remaining)
         try {
-          const memberPromise = invoke(member.provider, request, controller.signal)
-          // After a timeout abort the member promise still rejects (typically
-          // with an AbortError); that rejection is expected here — the timeout
-          // is already recorded as the member's failure.
-          memberPromise.catch(() => {})
-          const result = await Promise.race([memberPromise, timedOut])
-          this.#options.log?.(`[dshws-chain] served-by: ${id}`)
-          return this.#transform(id, result)
-        } finally {
-          clearTimeout(timer)
-          signal?.removeEventListener('abort', abortFromOuter)
+          const controller = new AbortController()
+          const abortFromOuter = () => controller.abort(signal?.reason)
+          signal?.addEventListener('abort', abortFromOuter, { once: true })
+          if (signal?.aborted) abortFromOuter()
+          let fireTimeout: () => void = () => {}
+          const timedOut = new Promise<never>((_, reject) => {
+            fireTimeout = () => reject(MEMBER_TIMED_OUT)
+          })
+          const timer = setTimeout(() => {
+            controller.abort()
+            fireTimeout()
+          }, remaining)
+          try {
+            const memberPromise = invoke(member.provider, request, controller.signal)
+            // After a timeout abort the member promise still rejects (typically
+            // with an AbortError); that rejection is expected here — the timeout
+            // is already recorded as the member's failure.
+            memberPromise.catch(() => {})
+            const result = await Promise.race([memberPromise, timedOut])
+            this.#options.log?.(`[dshws-chain] served-by: ${id}`)
+            return this.#transform(id, result)
+          } finally {
+            clearTimeout(timer)
+            signal?.removeEventListener('abort', abortFromOuter)
+          }
+        } catch (error) {
+          // Caller cancellation is the caller's verdict, not a member failure:
+          // propagate it instead of degrading to further members.
+          if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
+          const isTimeout = error === MEMBER_TIMED_OUT
+          const deterministicStatus =
+            !isTimeout && error instanceof DshwsError && error.httpStatus !== undefined && NON_RETRYABLE_HTTP_STATUSES.has(error.httpStatus)
+              ? error.httpStatus
+              : undefined
+          const reason = isTimeout
+            ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within the member budget of ${this.#options.perMemberTimeoutMs}ms`
+            : error instanceof Error
+              ? error.message
+              : String(error)
+          drawReasons.push(reason)
+          if (!isTimeout) lastError = error
+          const drawNote = isTimeout || deterministicStatus !== undefined
+            ? `; degrading to next member${deterministicStatus !== undefined ? ` (deterministic HTTP ${deterministicStatus})` : ''}`
+            : draw < draws
+              ? `; redrawing key (${draw + 1}/${draws})`
+              : '; degrading to next member'
+          this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
+          if (isTimeout) break // the shared budget is spent → degrade to the next member
+          if (deterministicStatus !== undefined) break // every key would fail the same way → degrade
+          if (draw >= draws) break // draw budget spent → degrade to the next member
+          continue // redraw another key within the same member, on the remaining budget
         }
-      } catch (error) {
-        // Caller cancellation is the caller's verdict, not a member failure:
-        // propagate it instead of degrading to further members.
-        if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
-        const isTimeout = error === MEMBER_TIMED_OUT
-        const deterministicStatus =
-          !isTimeout && error instanceof DshwsError && error.httpStatus !== undefined && NON_RETRYABLE_HTTP_STATUSES.has(error.httpStatus)
-            ? error.httpStatus
-            : undefined
-        const reason = isTimeout
-          ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within the member budget of ${this.#options.perMemberTimeoutMs}ms`
-          : error instanceof Error
-            ? error.message
-            : String(error)
-        drawReasons.push(reason)
-        if (!isTimeout) lastError = error
-        const drawNote = isTimeout || deterministicStatus !== undefined
-          ? `; degrading to next member${deterministicStatus !== undefined ? ` (deterministic HTTP ${deterministicStatus})` : ''}`
-          : draw < draws
-            ? `; redrawing key (${draw + 1}/${draws})`
-            : '; degrading to next member'
-        this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
-        if (isTimeout) break // the shared budget is spent → degrade to the next member
-        if (deterministicStatus !== undefined) break // every key would fail the same way → degrade
-        if (draw >= draws) break // draw budget spent → degrade to the next member
-        continue // redraw another key within the same member, on the remaining budget
-      }
-      }
+        }
       if (drawReasons.length > 0) {
         failures.push(lastError !== undefined ? { memberId: id, drawReasons, error: lastError } : { memberId: id, drawReasons })
       }

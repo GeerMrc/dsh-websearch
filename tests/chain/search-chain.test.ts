@@ -637,14 +637,17 @@ describe('member budget & exhaustion aggregation (S14u)', () => {
         order: ['dshws-hangkey'],
         perMemberTimeoutMs: 1000,
       })
-      const settled = chain.search({ query: 'q' })
-      await vi.advanceTimersByTimeAsync(2000)
-      const error = await settled.then(
+      // The handler attaches at creation: the rejection fires inside
+      // advanceTimersByTimeAsync, and a later .then() would leave the
+      // window unhandled (vitest fails the run as an Unhandled Rejection).
+      const settled = chain.search({ query: 'q' }).then(
         () => {
           throw new Error('expected the chain to reject')
         },
         (caught: unknown) => caught,
       )
+      await vi.advanceTimersByTimeAsync(2000)
+      const error = (await settled) as Error
       expect(draws).toBe(1)
       expect(error).toMatchObject({ code: 'DSHWS_CHAIN_EXHAUSTED' })
       expect((error as Error).message).toContain('DSHWS_MEMBER_TIMEOUT')
