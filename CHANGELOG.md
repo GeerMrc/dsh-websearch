@@ -12,6 +12,21 @@
 
 ---
 
+## 2026-09-09 — 装即接管默认预设（Session 14z2，替代手动预设切换）
+
+**新增**
+- **安装即移除 web_fetch**（用户裁定：预设手动切换对交付不专业）：插件加载时从**已安装宿主的 standard 预设实时再生成**仅搜索组合（单 diff：tool-web fetch→false——零漂移，跟随宿主升级），写入 `<home>/.agent-presets/dshws-search-only/`（版本标记；用户自撰同名目录永不覆写）；预设落盘成功且当前默认仍=standard 时经 settings 服务热切默认（下一会话生效）——**静态钉 default 被明确排除**（预设缺失会让会话创建抛错=砖机风险；失败方向永远落回可用的 standard）；用户自选默认永不越权
+- 实测：新会话**不动预设选择器**即组合 `dshws-search-only`、模型工具面无 web_fetch、仅 web_search 可用
+
+**诚实标注**
+- 卸载残留：settings 默认值 + 预设目录保留（组合完整可用）；恢复 = 选择器切回标准或删目录（upgrade manual 待记）
+- 首次部署后已开着的浏览器页面可能持有陈旧名单缓存——重载后默认显示正确（实测）
+
+**跟踪**
+- 基线 337→**343 passed | 9 skipped (352)**（authoring 6 例 + fake settings 探针面）
+
+---
+
 ## 2026-09-09 — web_fetch 移除 + 链路文件日志（Session 14z，用户默认裁定）
 
 **新增**
