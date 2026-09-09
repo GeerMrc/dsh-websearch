@@ -66,10 +66,38 @@ describe('resolveConfig', () => {
   it('defaults every provider section to enabled with its credential-ref env name', () => {
     const resolved = resolveConfig({})
     expect(resolved.deepseek).toEqual({ enabled: false, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'round-robin' })
-    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'round-robin' })
+    // S17 D4: tavily's answer feature defaults ON at the basic tier.
+    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'round-robin', includeAnswer: 'basic' })
     expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'round-robin' })
     expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin' })
     expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'round-robin' })
+  })
+
+  describe('S17 P1 parameter defaults and passthrough', () => {
+    it('tavily: includeAnswer defaults basic; topic/timeRange/searchDepth absent until set', () => {
+      const resolved = resolveConfig({})
+      expect(resolved.tavily.includeAnswer).toBe('basic')
+      expect(resolved.tavily.topic).toBeUndefined()
+      expect(resolved.tavily.timeRange).toBeUndefined()
+      expect(resolved.tavily.searchDepth).toBeUndefined()
+    })
+
+    it('tavily: explicit S17 fields pass through untouched', () => {
+      const resolved = resolveConfig({
+        tavily: { topic: 'news', timeRange: 'month', searchDepth: 'advanced', includeAnswer: 'advanced' },
+      })
+      expect(resolved.tavily.topic).toBe('news')
+      expect(resolved.tavily.timeRange).toBe('month')
+      expect(resolved.tavily.searchDepth).toBe('advanced')
+      expect(resolved.tavily.includeAnswer).toBe('advanced')
+    })
+
+    it('tavily: invalid S17 enum values fail loud at the schema', () => {
+      expect(() => Config({ tavily: { topic: 'banana' as never } })).toThrow()
+      expect(() => Config({ tavily: { timeRange: 'decade' as never } })).toThrow()
+      expect(() => Config({ tavily: { searchDepth: 'deep' as never } })).toThrow()
+      expect(() => Config({ tavily: { includeAnswer: true as never } })).toThrow()
+    })
   })
 
   it('passes through configured extra refs and key selection per member', () => {

@@ -115,6 +115,24 @@ export interface TavilySettings {
   baseURL?: string
   /** Default result count; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   maxResults?: number
+  /**
+   * Search category (S17 P1, official 3-value enum): `general` (default — omitted = not sent),
+   * `news` (carries `published_date`), `finance`. Hot.
+   */
+  topic?: 'general' | 'news' | 'finance'
+  /** Publication-recency filter (S17 P1, official enum; omitted = not sent). Hot. */
+  timeRange?: 'day' | 'week' | 'month' | 'year'
+  /**
+   * Search depth tier (S17 P1, official 4-value enum; omitted = `basic` API default). `advanced`
+   * costs 2 credits per search, the rest 1. Hot.
+   */
+  searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
+  /**
+   * Generated-answer tier (S17 P1; the boolean form evolved into the `basic`/`advanced` enum).
+   * Defaults to `'basic'` — the answer is free per the official docs and becomes the result's
+   * `content` (D4). Hot.
+   */
+  includeAnswer?: 'basic' | 'advanced'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -245,6 +263,10 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     maxResults: z.number().step(1).min(1),
+    topic: z.union(['general', 'news', 'finance']),
+    timeRange: z.union(['day', 'week', 'month', 'year']),
+    searchDepth: z.union(['basic', 'advanced', 'fast', 'ultra-fast']),
+    includeAnswer: z.union(['basic', 'advanced']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   firecrawl: z.object({
@@ -291,6 +313,14 @@ export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'e
 export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   maxResults?: number
+  /** Search category; absent = not sent (S17 P1). */
+  topic?: 'general' | 'news' | 'finance'
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  timeRange?: 'day' | 'week' | 'month' | 'year'
+  /** Search depth tier; absent = API default `basic` (S17 P1). */
+  searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
+  /** Generated-answer tier; resolveConfig defaults `'basic'` (S17 P1, D4). */
+  includeAnswer?: 'basic' | 'advanced'
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -388,6 +418,11 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.tavily?.keySelection ?? 'round-robin',
       baseURL: config.tavily?.baseURL?.trim() === '' ? undefined : config.tavily?.baseURL,
       maxResults: config.tavily?.maxResults,
+      topic: config.tavily?.topic,
+      timeRange: config.tavily?.timeRange,
+      searchDepth: config.tavily?.searchDepth,
+      // S17 D4: the free generated answer is ON at the basic tier by default.
+      includeAnswer: config.tavily?.includeAnswer ?? 'basic',
     },
     firecrawl: {
       enabled: config.firecrawl?.enabled ?? true,

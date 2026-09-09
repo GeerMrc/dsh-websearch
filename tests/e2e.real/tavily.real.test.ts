@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { TavilyMemberConfig } from '../../src/config.ts'
 import { TavilySearchProvider, TAVILY_DEFAULT_BASE_URL, resolveTavilyMemberOptions } from '../../src/providers/tavily.ts'
 
 /**
@@ -23,6 +24,18 @@ maybe('dshws-tavily real API', () => {
     const result = await provider.search({ query: 'DeepSeek Harness web search', maxResults: 5 })
     expect(result.sources.length).toBeGreaterThan(0)
     for (const source of result.sources) expect(source.url).toMatch(/^https?:\/\//u)
+  }, 30_000)
+
+  it('S17: news topic + include_answer returns news sources and a synthesized answer (roadmap 验收例)', async () => {
+    const provider = new TavilySearchProvider(resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', topic: 'news', timeRange: 'month' } satisfies TavilyMemberConfig,
+      async () => apiKey,
+    ))
+    const result = await provider.search({ query: 'latest AI news', maxResults: 5 })
+    expect(result.sources.length).toBeGreaterThan(0)
+    // The news topic carries published dates; the synthesized answer becomes content (S17 D4).
+    expect(result.content).toBeDefined()
+    expect(result.content!.length).toBeGreaterThan(0)
   }, 30_000)
 })
 

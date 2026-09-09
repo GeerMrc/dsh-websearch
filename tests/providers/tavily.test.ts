@@ -33,6 +33,11 @@ describe('dshws-tavily option resolution', () => {
     expect(resolved.baseURL).toBe(TAVILY_DEFAULT_BASE_URL)
     expect(resolved.apiKeyRef).toBe('TAVILY_API_KEY')
     expect(resolved.maxResults).toBeUndefined()
+    // S17 D4: the answer feature is on by default at the basic tier.
+    expect(resolved.includeAnswer).toBe('basic')
+    expect(resolved.topic).toBeUndefined()
+    expect(resolved.timeRange).toBeUndefined()
+    expect(resolved.searchDepth).toBeUndefined()
   })
 
   it('passes explicit baseURL/maxResults through untouched', () => {
@@ -73,7 +78,7 @@ describe('dshws-tavily request mapping', () => {
     expect(headers['authorization']).toBe('Bearer tvly-key')
     expect(headers['content-type']).toBe('application/json')
     expect(headers['user-agent']).toBe('dsh-websearch/0.2.2')
-    expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5 })
+    expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5, include_answer: 'basic' })
   })
 
   it('falls back to the configured maxResults when a request omits it (passthrough, no clamp)', async () => {
@@ -81,7 +86,7 @@ describe('dshws-tavily request mapping', () => {
     vi.stubGlobal('fetch', fetchMock)
     await new TavilySearchProvider({ ...options, maxResults: 7 }).search({ query: 'q' })
     const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
-    expect(JSON.parse(init.body as string)).toEqual({ query: 'q', max_results: 7 })
+    expect(JSON.parse(init.body as string)).toEqual({ query: 'q', max_results: 7, include_answer: 'basic' })
   })
 
   it('omits max_results when neither the request nor the config sets one', async () => {
@@ -90,6 +95,53 @@ describe('dshws-tavily request mapping', () => {
     await new TavilySearchProvider(options).search({ query: 'q' })
     const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(JSON.parse(init.body as string)).not.toHaveProperty('max_results')
+  })
+})
+
+describe('dshws-tavily S17 P1 parameter wire', () => {
+  it('defaults: include_answer basic always sent; topic/time_range/search_depth absent (S17 D4)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new TavilySearchProvider(options).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).toEqual({ query: 'q', include_answer: 'basic' })
+  })
+
+  it('configured topic/timeRange/searchDepth land on the wire under native names', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', topic: 'news', timeRange: 'week', searchDepth: 'ultra-fast' } satisfies TavilyMemberConfig,
+      async () => 'tvly-key',
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).toEqual({
+      query: 'q',
+      include_answer: 'basic',
+      topic: 'news',
+      time_range: 'week',
+      search_depth: 'ultra-fast',
+    })
+  })
+
+  it('includeAnswer advanced overrides the default (S17 D4)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', includeAnswer: 'advanced' } satisfies TavilyMemberConfig,
+      async () => 'tvly-key',
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).include_answer).toBe('advanced')
+  })
+
+  it('response answer maps to result content; blank answer stays omitted', () => {
+    expect(mapTavilyResponse({ answer: 'A synthesized answer.', results: [{ url: 'https://a.test' }] }).content)
+      .toBe('A synthesized answer.')
+    expect(mapTavilyResponse({ answer: '   ', results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
+    expect(mapTavilyResponse({ results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
   })
 })
 

@@ -1,12 +1,17 @@
 /**
  * `dshws-tavily` chain member: Tavily search API (`POST /search`, bearer
- * auth). Wire contract per the official API reference (2026-09-02,
+ * auth). Wire contract per the official API reference (2026-09-10,
  * docs.tavily.com/documentation/api-reference/endpoint/search): request takes
- * `query` + optional `max_results` (API-side default 10); response carries
- * `results[]` with `url`/`title`/`content`/`score`/`published_date`, where
- * `content` is a short excerpt mapped to the seam's `snippet`. No generated
- * answer is requested (`include_answer` stays off), so `content` stays
- * omitted on the normalized result.
+ * `query` + optional `max_results` (API-side default 10), `topic`
+ * (`general|news|finance`; `news` carries `published_date`), `time_range`
+ * (`day|week|month|year`), `search_depth` (`basic|advanced|fast|ultra-fast`;
+ * `advanced` costs 2 credits), and `include_answer` (`basic|advanced` — the
+ * boolean form evolved into this enum). `include_answer: 'basic'` is sent by
+ * default (S17 D4): the generated answer is free per the official docs and
+ * the response's top-level `answer` becomes the seam result's `content`
+ * (blank stays omitted). Response `results[]` carries
+ * `url`/`title`/`content`/`score`/`published_date`, where `content` is a
+ * short excerpt mapped to the seam's `snippet`.
  *
  * `max_results` is passed through unclamped: the seam's `maxResults` is a
  * caller bound the API enforces (a >20 value gets a 4xx, which reads as an
@@ -52,6 +57,8 @@ export interface TavilyResultItem {
 
 export interface TavilySearchResponse {
   readonly results?: readonly TavilyResultItem[]
+  /** Generated answer; present when `include_answer` was requested (S17 D4). */
+  readonly answer?: string
 }
 
 /** Fully-resolved runtime options for the member; defaults applied by {@link resolveTavilyMemberOptions}. */
@@ -64,6 +71,14 @@ export interface TavilyMemberOptions {
   readonly baseURL: string
   /** Default result count when a request carries no `maxResults`. */
   readonly maxResults?: number
+  /** Search category; absent = not sent (S17 P1). */
+  readonly topic?: 'general' | 'news' | 'finance'
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  readonly timeRange?: 'day' | 'week' | 'month' | 'year'
+  /** Search depth tier; absent = API default `basic` (S17 P1). */
+  readonly searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
+  /** Generated-answer tier; resolved default `'basic'` (S17 P1, D4). */
+  readonly includeAnswer: 'basic' | 'advanced'
 }
 
 /**
@@ -79,6 +94,10 @@ export function resolveTavilyMemberOptions(
     resolveApiKey,
     baseURL: config.baseURL ?? TAVILY_DEFAULT_BASE_URL,
     maxResults: config.maxResults,
+    topic: config.topic,
+    timeRange: config.timeRange,
+    searchDepth: config.searchDepth,
+    includeAnswer: config.includeAnswer ?? 'basic',
   }
 }
 
@@ -98,14 +117,19 @@ export function mapTavilyResult(item: TavilyResultItem): WebSearchSource | undef
 }
 
 /**
- * Map a search response envelope to a normalized result: no generated
- * answer, no provider-side truncation (the web service owns that).
+ * Map a search response envelope to a normalized result: the generated
+ * `answer` (requested by default, S17 D4) becomes `content` — blank stays
+ * omitted; no provider-side truncation (the web service owns that).
  */
 export function mapTavilyResponse(response: TavilySearchResponse): WebSearchResult {
   const sources = (response.results ?? [])
     .map(mapTavilyResult)
     .filter((source): source is WebSearchSource => source !== undefined)
-  return { sources, truncated: false }
+  return {
+    ...response.answer != null && response.answer.trim().length > 0 ? { content: response.answer } : {},
+    sources,
+    truncated: false,
+  }
 }
 
 /** The Tavily-backed chain member; redirects fail as a request failure. */
@@ -139,6 +163,13 @@ export class TavilySearchProvider implements WebSearchProvider {
         body: JSON.stringify({
           query: request.query,
           ...maxResults !== undefined ? { max_results: maxResults } : {},
+          ...this.options.topic !== undefined ? { topic: this.options.topic } : {},
+          ...this.options.timeRange !== undefined ? { time_range: this.options.timeRange } : {},
+          ...this.options.searchDepth !== undefined ? { search_depth: this.options.searchDepth } : {},
+          // Always sent: the official docs state include_answer must be set
+          // manually (auto_parameters never manages it); the resolved default
+          // is 'basic' (S17 D4).
+          include_answer: this.options.includeAnswer,
         }),
         ...(signal !== undefined ? { signal } : {}),
       })
