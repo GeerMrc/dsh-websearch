@@ -107,6 +107,23 @@ type MemberKey = 'tavily' | 'exa' | 'perplexity' | 'firecrawl' | 'deepseek' | 'a
 export function apply(ctx: Context, config: Config): void {
   const live = new LiveResolvedConfig(config)
   const resolved = resolveConfig(config)
+
+  /**
+   * Hot-backed member options (S17 D1): every property read re-resolves
+   * through the live config, so a committed settings change reaches the next
+   * search without re-registration — the chain-order getter precedent
+   * (below) applied to the member option objects. `build` may read any slice
+   * of the live snapshot (the member section and, from the S17 unified
+   * language/region entry, root fields as well); it stays a pure resolution,
+   * cheap to re-run per read. Providers hold this object by reference and
+   * read fields per call, so delegation through the proxy is invisible to
+   * them.
+   */
+  const hotMemberOptions = <T extends object>(build: () => T): T =>
+    new Proxy({} as T, {
+      get: (_target, property, receiver) => Reflect.get(build(), property, receiver),
+    })
+
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
   // S15c (user ruling "complete takeover, zero errors"): hide web_fetch from
@@ -274,15 +291,17 @@ export function apply(ctx: Context, config: Config): void {
   // so this half of the takeover never serves. Nothing registers here.
 
   // Bundled members in BUILT_IN_MEMBER_ORDER relative order. Member options
-  // are launch-static (D2): only the chain order/timeout and the enabled
-  // gates hot-apply. Every member registers twice — under its own id in
-  // ctx.web for direct pinning, and in the plugin registry with its gates for
-  // the chain (ADR-0002 Decision 5).
+  // resolve through the live config per read (S17 D1 hot options): every
+  // option field — chain order/timeout, enabled gates, base URLs, models,
+  // result counts, and the P1 parameter batch — reaches the next search. Every
+  // member registers twice — under its own id in ctx.web for direct pinning,
+  // and in the plugin registry with its gates for the chain (ADR-0002
+  // Decision 5).
   const firecrawl = new FirecrawlProvider(
-    resolveFirecrawlMemberOptions(resolved.firecrawl, () => traced.firecrawl.resolveApiKey()),
+    hotMemberOptions(() => resolveFirecrawlMemberOptions(live.current().firecrawl, () => traced.firecrawl.resolveApiKey())),
   )
   const anysearch = new AnysearchSearchProvider(
-    resolveAnysearchMemberOptions(resolved.anysearch, () => traced.anysearch.resolveApiKey()),
+    hotMemberOptions(() => resolveAnysearchMemberOptions(live.current().anysearch, () => traced.anysearch.resolveApiKey())),
   )
   const members: readonly {
     provider: WebSearchProvider
@@ -291,21 +310,21 @@ export function apply(ctx: Context, config: Config): void {
   }[] = [
     {
       provider: new TavilySearchProvider(
-        resolveTavilyMemberOptions(resolved.tavily, () => traced.tavily.resolveApiKey()),
+        hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey())),
       ),
       memberKey: 'tavily',
       pool: pools.tavily,
     },
     {
       provider: new ExaSearchProvider(
-        resolveExaMemberOptions(resolved.exa, () => traced.exa.resolveApiKey()),
+        hotMemberOptions(() => resolveExaMemberOptions(live.current().exa, () => traced.exa.resolveApiKey())),
       ),
       memberKey: 'exa',
       pool: pools.exa,
     },
     {
       provider: new PerplexitySearchProvider(
-        resolvePerplexityMemberOptions(resolved.perplexity, () => traced.perplexity.resolveApiKey()),
+        hotMemberOptions(() => resolvePerplexityMemberOptions(live.current().perplexity, () => traced.perplexity.resolveApiKey())),
       ),
       memberKey: 'perplexity',
       pool: pools.perplexity,
@@ -313,7 +332,7 @@ export function apply(ctx: Context, config: Config): void {
     { provider: firecrawl, memberKey: 'firecrawl', pool: pools.firecrawl },
     {
       provider: new DeepSeekSearchProvider(
-        resolveDeepSeekMemberOptions(resolved.deepseek, () => traced.deepseek.resolveApiKey()),
+        hotMemberOptions(() => resolveDeepSeekMemberOptions(live.current().deepseek, () => traced.deepseek.resolveApiKey())),
       ),
       memberKey: 'deepseek',
       pool: pools.deepseek,

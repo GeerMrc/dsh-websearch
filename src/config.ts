@@ -90,15 +90,15 @@ export interface DeepSeekSettings {
   enabled?: boolean
   /** Credential-ref env name resolved through the credentials service. Defaults to `DEEPSEEK_API_KEY`. */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Chat model powering the web_search server tool; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** Chat model powering the web_search server tool; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   model?: string
-  /** Response token cap; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** Response token cap; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   maxTokens?: number
   /**
    * Server-tool search budget per request (S14c, host parity — the host
-   * `web-search-deepseek` knob of the same name/semantic/default). Launch-static.
+   * `web-search-deepseek` knob of the same name/semantic/default). Hot (S17 D1).
    */
   maxUses?: number
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
@@ -109,11 +109,11 @@ export interface DeepSeekSettings {
 export interface TavilySettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `TAVILY_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `TAVILY_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Default result count; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** Default result count; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   maxResults?: number
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
@@ -123,9 +123,9 @@ export interface TavilySettings {
 export interface FirecrawlSettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `FIRECRAWL_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `FIRECRAWL_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
@@ -135,11 +135,11 @@ export interface FirecrawlSettings {
 export interface ExaSettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `EXA_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `EXA_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Default result count; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** Default result count; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   numResults?: number
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
@@ -149,11 +149,11 @@ export interface ExaSettings {
 export interface PerplexitySettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `PERPLEXITY_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `PERPLEXITY_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Sonar model; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** Sonar model; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   model?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
@@ -163,11 +163,11 @@ export interface PerplexitySettings {
 export interface AnysearchSettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `ANYSEARCH_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `ANYSEARCH_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted. Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted. Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Regional zone passed through to the request body; omitted = not sent. Launch-static. */
+  /** Regional zone passed through to the request body; omitted = not sent. Hot (S17 D1). */
   zone?: 'cn' | 'intl'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
