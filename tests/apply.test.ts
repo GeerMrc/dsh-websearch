@@ -5,11 +5,13 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 describe('apply assembly', () => {
-  it('registers the chains and all six members with ctx.web (double registration topology, ADR-0014 −fetch-search)', () => {
+  it('registers the search chain and all six members; the fetch chain is RETIRED (S14z, ADR-0014 −fetch-search −fetch-face)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
-    expect(fetch).toEqual(['dshws-chain-fetch', 'dshws-firecrawl'])
+    // S14z: nothing registers a fetch provider — web_fetch is removed at the
+    // preset layer and the seam keeps the official http provider.
+    expect(fetch).toEqual([])
   })
 
   it('a model key alone grants NO paid reach — the floor joins only when designated (ADR-0014, was the S14u auto quadrant)', async () => {
