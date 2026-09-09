@@ -14,6 +14,13 @@
  * @module dsh-websearch
  */
 import type { Context } from '@deepseek-ai/cordis'
+// Type-only: pulls the `tools`, `systemPrompt`, and agent lifecycle event
+// declarations into this program via module augmentation (dsh-agent's
+// `agent/created` payload, dsh-tools' `ctx.tools`, dsh-system-prompt's
+// `ctx.systemPrompt`).
+import type {} from '@deepseek-ai/dsh-agent'
+import type {} from '@deepseek-ai/dsh-tools'
+import type {} from '@deepseek-ai/dsh-system-prompt'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
@@ -102,12 +109,25 @@ export function apply(ctx: Context, config: Config): void {
   const resolved = resolveConfig(config)
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
-  // S15a universal web_fetch takeover: a fetch-gate provider pinned by the
-  // patch (fetchProvider), hot-flipping between guidance-error (ON) and HTTP
-  // delegation (OFF) — the review's M1+M2 ruling. The preset copies (Layer B)
-  // regenerate on every load; the default switch follows the S14z2 safe order.
+  // S15c (user ruling "complete takeover, zero errors"): hide web_fetch from
+  // every agent's tool list through the OFFICIAL tools.restrict() API — the
+  // same mechanism the subagent system uses to control tool visibility
+  // (child-agent.ts:217 precedent). Combined with a scoped same-name empty
+  // system-prompt section that shadows tool-web's guidance text, the model
+  // never sees web_fetch at all: no schema, no prompt mention, no execution,
+  // no errors. Works for every preset (standard/PTC/creative/minimal/custom).
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
   ctx.web.registerFetchProvider(new FetchGateProvider(fetchTakeoverActive))
+  ctx.on('agent/created', ({ agent }) => {
+    if (!fetchTakeoverActive()) return
+    // The named tool vanishes from the agent's tool list AND refuses
+    // execution — one call covers both (tools/index.ts restrict semantics).
+    agent.ctx.tools.restrict({ deny: ['web_fetch'] })
+    // Shadow tool-web's `tool:web_fetch` guidance section with an empty
+    // text; renderPrompt drops zero-length sections, so the model reads
+    // nothing about web_fetch (system-prompt scoped shadowing semantics).
+    agent.ctx.systemPrompt.section({ name: 'tool:web_fetch', order: 2100, text: '' })
+  })
 
   // S15b (user ruling): gate-only takeover — no preset copies, no default
   // switching. The settings inject exists solely for the ONE-TIME migration:

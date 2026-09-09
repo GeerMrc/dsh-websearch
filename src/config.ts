@@ -201,11 +201,11 @@ export interface Config {
    */
   chainLogFile?: boolean
   /**
-   * Universal web_fetch takeover (S15a): true = the fetch-gate provider
-   * rejects web_fetch calls with guidance toward web_search AND search-only
-   * preset copies are authored for standard/ptc/cordis; false = the gate
-   * delegates to plain HTTP and the copies are cleared. Default true.
-   * Hot: applies to the next web_fetch call and the next load's presets.
+   * Universal web_fetch takeover (S15c): true = the web_fetch tool is
+   * hidden from every agent's tool list and prompt via the official
+   * `tools.restrict()` API (zero errors, zero guidance); false = web_fetch
+   * is visible and functional. Default true.
+   * Hot: applies to the next agent created after the settings commit.
    */
   fetchTakeover?: boolean
   /** DeepSeek member settings. */
