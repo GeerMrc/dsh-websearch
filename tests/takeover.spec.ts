@@ -15,9 +15,9 @@ import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 interface RestrictCall { readonly deny: readonly string[] }
 interface SectionCall { readonly name: string; readonly order: number; readonly text: string }
-interface AgentCall { readonly restrictCalls: readonly RestrictCall[]; readonly sectionCalls: readonly SectionCall[] }
+interface AgentCall { restrictCalls: RestrictCall[]; sectionCalls: SectionCall[] }
 
-function takeoverCtx(takeover: boolean): { ctx: Context; agents: AgentCall[] } {
+function takeoverCtx(takeover: boolean): { ctx: Context; agents: AgentCall[]; createAgent: () => void } {
   const agents: AgentCall[] = []
   const { ctx } = fakeCtx()
   const c = ctx as unknown as Record<string, unknown>
@@ -60,7 +60,7 @@ function takeoverCtx(takeover: boolean): { ctx: Context; agents: AgentCall[] } {
     }
   }
 
-  return { ctx: c as unknown as Context, agents, createAgent: createAgent as unknown as () => void }
+  return { ctx: c as unknown as Context, agents, createAgent }
 }
 
 describe('S15c takeover: tools.restrict on agent/created', () => {
@@ -70,8 +70,8 @@ describe('S15c takeover: tools.restrict on agent/created', () => {
     await flushGate()
 
     // Simulate two agents being created
-    ;(createAgent as () => void)()
-    ;(createAgent as () => void)()
+    createAgent()
+    createAgent()
 
     expect(agents).toHaveLength(2)
     for (const agent of agents) {
@@ -89,7 +89,7 @@ describe('S15c takeover: tools.restrict on agent/created', () => {
     apply(ctx, { fetchTakeover: false })
     await flushGate()
 
-    ;(createAgent as () => void)()
+    createAgent()
 
     expect(agents).toHaveLength(1)
     expect(agents[0]!.restrictCalls).toHaveLength(0)
