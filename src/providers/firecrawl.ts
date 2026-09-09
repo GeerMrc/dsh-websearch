@@ -86,6 +86,10 @@ export interface FirecrawlMemberOptions {
   readonly resolveApiKey: () => Promise<string | undefined>
   /** Endpoint base; `/v2/search` and `/v2/scrape` are appended. */
   readonly baseURL: string
+  /** Time-based search filter; absent = not sent (S17 P1). */
+  readonly tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Free-text geo location; absent = not sent (S17 P1). */
+  readonly location?: string
 }
 
 /**
@@ -100,6 +104,8 @@ export function resolveFirecrawlMemberOptions(
     apiKeyRef: config.apiKeyEnv,
     resolveApiKey,
     baseURL: config.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
+    tbs: config.tbs,
+    location: config.location,
   }
 }
 
@@ -179,6 +185,8 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         body: JSON.stringify({
           query: request.query,
           ...limit !== undefined ? { limit } : {},
+          ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
+          ...this.options.location !== undefined ? { location: this.options.location } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

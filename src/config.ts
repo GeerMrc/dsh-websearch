@@ -145,6 +145,16 @@ export interface FirecrawlSettings {
   apiKeyEnv?: string
   /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
+  /**
+   * Time-based search filter (S17 P1, Google-style `tbs` presets; omitted = no filter). Hot.
+   */
+  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /**
+   * Free-text geo location for search results (S17 P1, e.g. `San Francisco,California,United
+   * States`; city-level granularity — finer than the global country entry; omitted = not sent).
+   * The official docs recommend setting it together with a country. Hot.
+   */
+  location?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -305,6 +315,8 @@ export const Config: z<Config> = z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
+    tbs: z.union(['qdr:h', 'qdr:d', 'qdr:w', 'qdr:m', 'qdr:y']),
+    location: z.string(),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   exa: z.object({
@@ -366,6 +378,10 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
 /** Fully defaulted settings for one member. */
 export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
+  /** Time-based search filter; absent = not sent (S17 P1). */
+  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Free-text geo location; absent = not sent (S17 P1). */
+  location?: string
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -479,6 +495,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       apiKeyEnv: config.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
       keySelection: config.firecrawl?.keySelection ?? 'round-robin',
       baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
+      tbs: config.firecrawl?.tbs,
+      location: config.firecrawl?.location?.trim() === '' ? undefined : config.firecrawl?.location,
     },
     exa: {
       enabled: config.exa?.enabled ?? true,

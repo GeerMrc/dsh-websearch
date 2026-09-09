@@ -144,6 +144,15 @@ describe('resolveConfig', () => {
       expect(() => Config({ perplexity: { searchRecencyFilter: 'decade' as never } })).toThrow()
       expect(() => Config({ perplexity: { searchContextSize: 'huge' as never } })).toThrow()
     })
+
+    it('firecrawl: tbs/location absent until set; explicit values pass through; bad tbs fails loud', () => {
+      expect(resolveConfig({}).firecrawl.tbs).toBeUndefined()
+      expect(resolveConfig({}).firecrawl.location).toBeUndefined()
+      const resolved = resolveConfig({ firecrawl: { tbs: 'qdr:m', location: 'Shanghai,China' } })
+      expect(resolved.firecrawl.tbs).toBe('qdr:m')
+      expect(resolved.firecrawl.location).toBe('Shanghai,China')
+      expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
+    })
   })
 
   it('passes through configured extra refs and key selection per member', () => {
