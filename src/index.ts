@@ -19,6 +19,7 @@ import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { createChainFileLog } from './chain-log.ts'
+import { ensureSearchOnlyPreset, SEARCH_ONLY_PRESET_ID } from './preset-authoring.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 import { CredentialGate } from './credentials.ts'
@@ -100,6 +101,21 @@ export function apply(ctx: Context, config: Config): void {
   const resolved = resolveConfig(config)
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
+  // Install-time web_fetch removal (S14z2): author the search-only preset
+  // first; only a successful write earns the roster-default switch, and only
+  // when the current default is still `standard` (a user's own choice is
+  // never overridden). The default is switched through the settings service —
+  // hot on the next session — never through a static patch, because a default
+  // id without a preset makes session creation throw.
+  ctx.inject(['settings'], (settingsCtx) => {
+    const presets = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'agent-presets')
+    const current = (presets?.value as { default?: string } | undefined)?.default ?? 'standard'
+    if (current !== 'standard') return
+    if (ensureSearchOnlyPreset() === undefined) return
+    // Fire-and-forget by design: a failed switch leaves the default on the
+    // working  — the safe direction — and the next load retries.
+    void settingsCtx.settings.update('agent-presets', { default: SEARCH_ONLY_PRESET_ID }).catch(() => {})
+  })
   const log = (message: string) => {
     ctx.logger.info(message)
     fileLog(message)

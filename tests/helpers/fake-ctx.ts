@@ -87,6 +87,12 @@ export function fakeCtx(options?: { withSettings?: boolean; values?: Record<stri
             installSection: (...args: never[]) => {
               settingsHooks = args[4] as SettingsHooks
             },
+            // S14z2 takeover probe face: the roster default reads through
+            // describe(); the fake exposes no agent-presets namespace, so the
+            // effective default stays 'standard' and (with no installed
+            // shipped-preset package under the repo) the write never fires.
+            describe: () => [],
+            update: () => Promise.resolve(),
           },
         })
       }
