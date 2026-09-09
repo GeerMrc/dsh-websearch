@@ -12,6 +12,26 @@
 
 ---
 
+## 2026-09-09 — 全模式 web_fetch 接管 0.2.1（Session 15a，B+C 组合）
+
+**新增**
+- **多预设副本（Layer B）**：standard/PTC/创造三个含 web_fetch 的 shipped 预设各自动生成"仅搜索"副本（创造含 skills/ 随行），安装即生效；默认切到标准副本
+- **fetch-gate 网关（Layer C）**：常驻 fetch provider 钉在 seam 上——ON：web_fetch 调用得到"已接管，请用 web_search"指引；OFF：委托 HTTP 抓取（含 SSRF 公网校验/二进制拒收/截断诚实标记/redirect 拒绝）
+- **设置页 toggle**「接管 web_fetch（全模式）」：默认开；关=副本清除+默认复原+网关透传
+- 即使手动选原版预设，web_fetch 也被网关拦住（工具名残留但功能 100% 拦截）
+
+**清偿（审核 🔴+🟡）**
+- 🔴 M3：takeover 分路改读 settings 持久值（live.current() 在 inject 时刻仍是 entry 默认——settings 面翻转不可见的根因）
+- 🟡 Y-2：OFF 委托安全面（SSRF/二进制/truncated/redirect 四项对齐官方 provider）
+
+**治理**
+- 计划审核（5 必改：网关模式/文案面/会话恢复/升级路径/skills 复制）+ 阶段 4/5 BLOCKED→清偿→复验 PASS（available 探针 0→1 红实证闭洞）
+
+**跟踪**
+- 基线 346→**354 passed | 9 skipped (363)**；版本 0.2.1
+
+---
+
 ## 2026-09-09 — 装即接管默认预设（Session 14z2，替代手动预设切换）
 
 **新增**
