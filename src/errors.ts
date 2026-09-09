@@ -72,7 +72,7 @@ export const MEMBER_ERROR_CODES = {
 export class DshwsError extends Error {
   /** Stable `DSHWS_*` code; consumers must tolerate member-specific codes. */
   readonly code: string
-  /** HTTP status of the failing response, when the failure came from one; a non-retryable status ends the member's redraw loop (S14u). */
+  /** HTTP status of the failing response, when the failure came from one; drives the request-level vs credential-level redraw split (S14y). */
   readonly httpStatus?: number
 
   constructor(code: string, message: string, options?: { cause?: unknown; httpStatus?: number }) {
@@ -84,12 +84,21 @@ export class DshwsError extends Error {
 }
 
 /**
- * HTTP statuses that hold for every key of a member with certainty — bad
- * request, bad key, forbidden, missing route, unprocessable body. The chain
- * degrades to the next member without spending redraw draws on them (S14u);
- * 429 and 5xx stay out because they are key- or moment-specific.
+ * HTTP statuses that hold for the REQUEST regardless of which pool key sent
+ * it — malformed body, missing route, unprocessable payload (S14y split of
+ * the former S14u set). The chain degrades at once: no key can change the
+ * verdict.
  */
-export const NON_RETRYABLE_HTTP_STATUSES: ReadonlySet<number> = new Set([400, 401, 403, 404, 422])
+export const REQUEST_LEVEL_HTTP_STATUSES: ReadonlySet<number> = new Set([400, 404, 422])
+
+/**
+ * HTTP statuses that fail THIS credential but not necessarily the others in
+ * the pool — 401/403 mean the drawn key is invalid or barred, and pool keys
+ * are independent credentials (live finding 2026-09-09: one expired key
+ * poisoned every second search once 401 skipped redraws). The chain redraws
+ * another key first and degrades only when the draw budget is spent.
+ */
+export const CREDENTIAL_LEVEL_HTTP_STATUSES: ReadonlySet<number> = new Set([401, 403])
 
 /** One member's failure, as recorded by the chain while degrading. */
 export interface ChainMemberFailure {

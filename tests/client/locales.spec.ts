@@ -36,8 +36,8 @@ describe('client locales', () => {
   it('carries the ADR-0014 fallback-tool keys on both sides', () => {
     expect(en.fallbackAutoOption).toContain('Auto')
     expect(zh.fallbackAutoOption).toContain('自动')
-    expect(en.fallbackDeepseekOption).toContain('Models-page key')
-    expect(zh.fallbackDeepseekOption).toContain('模型页 key')
+    expect(en.fallbackDeepseekOption).toBe('DeepSeek paid')
+    expect(zh.fallbackDeepseekOption).toBe('DeepSeek 付费')
     expect(en.fallbackDeepseekStoppedNote).toContain('disabled')
     expect(zh.fallbackDeepseekStoppedNote).toContain('已停用')
     expect(en.fallbackDeepseekKeylessNote).toContain('not configured')

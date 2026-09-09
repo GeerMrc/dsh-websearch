@@ -9,7 +9,7 @@
  * @module dsh-websearch/chain/core
  */
 import type { WebFetchProvider, WebFetchResult, WebFetchRequest, WebSearchProvider, WebSearchRequest, WebSearchResult } from '@deepseek-ai/dsh-web'
-import { CHAIN_ERROR_CODES, createChainExhaustedError, DshwsError, NON_RETRYABLE_HTTP_STATUSES } from '../errors.ts'
+import { CHAIN_ERROR_CODES, createChainExhaustedError, CREDENTIAL_LEVEL_HTTP_STATUSES, DshwsError, REQUEST_LEVEL_HTTP_STATUSES } from '../errors.ts'
 import type { ChainMemberFailure } from '../errors.ts'
 
 /** One chain member as resolved at call time. */
@@ -168,7 +168,11 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
       const deadline = Date.now() + this.#options.perMemberTimeoutMs
       const drawReasons: string[] = []
       let lastError: unknown
-      for (let draw = 1; draw <= draws; draw += 1) {
+      // The loop bound is the hard cap: the gate-computed `draws` (which may
+      // be 1 while the multi-key pool is still cold) governs NON-credential
+      // failures via the break below, while a credential-level 401/403 may
+      // redraw up to the cap regardless (first-search healing, S14y).
+      for (let draw = 1; draw <= ChainCore.MEMBER_DRAWS; draw += 1) {
         const remaining = deadline - Date.now()
         if (remaining <= 0) {
           // A prior draw consumed the whole budget: the member degrades now,
@@ -209,10 +213,9 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // propagate it instead of degrading to further members.
           if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
           const isTimeout = error === MEMBER_TIMED_OUT
-          const deterministicStatus =
-            !isTimeout && error instanceof DshwsError && error.httpStatus !== undefined && NON_RETRYABLE_HTTP_STATUSES.has(error.httpStatus)
-              ? error.httpStatus
-              : undefined
+          const status = !isTimeout && error instanceof DshwsError ? error.httpStatus : undefined
+          const requestLevelStatus = status !== undefined && REQUEST_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
+          const credentialLevelStatus = status !== undefined && CREDENTIAL_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
           const reason = isTimeout
             ? `${CHAIN_ERROR_CODES.memberTimeout}: no result within the member budget of ${this.#options.perMemberTimeoutMs}ms`
             : error instanceof Error
@@ -220,15 +223,19 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
               : String(error)
           drawReasons.push(reason)
           if (!isTimeout) lastError = error
-          const drawNote = isTimeout || deterministicStatus !== undefined
-            ? `; degrading to next member${deterministicStatus !== undefined ? ` (deterministic HTTP ${deterministicStatus})` : ''}`
-            : draw < draws
-              ? `; redrawing key (${draw + 1}/${draws})`
-              : '; degrading to next member'
+          // A credential-level failure bypasses the (possibly COLD) multi-key
+          // gate: the gate learns the pool size only after the first key draw,
+          // and a 401/403 is itself evidence that a DIFFERENT key may serve —
+          // the first search after boot must heal, not degrade blind (S14y).
+          const redrawCap = credentialLevelStatus !== undefined ? ChainCore.MEMBER_DRAWS : draws
+          const degrading = isTimeout || requestLevelStatus !== undefined || draw >= redrawCap
+          const drawNote = degrading
+            ? `; degrading to next member${requestLevelStatus !== undefined ? ` (request-level HTTP ${requestLevelStatus})` : ''}`
+            : `; redrawing key (${draw + 1}/${redrawCap})${credentialLevelStatus !== undefined ? ` (credential-level HTTP ${credentialLevelStatus}: another key may be valid)` : ''}`
           this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
           if (isTimeout) break // the shared budget is spent → degrade to the next member
-          if (deterministicStatus !== undefined) break // every key would fail the same way → degrade
-          if (draw >= draws) break // draw budget spent → degrade to the next member
+          if (requestLevelStatus !== undefined) break // no key can change this verdict → degrade
+          if (draw >= redrawCap) break // draw budget spent (gate draws, or the credential cap) → degrade
           continue // redraw another key within the same member, on the remaining budget
         }
       }

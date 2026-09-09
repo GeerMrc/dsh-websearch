@@ -396,6 +396,36 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     }
   })
 
+  it('a mixed key pool heals: the dead key 401s, the next key serves the SAME member (S14y 本案 wire 钉子)', async () => {
+    const { server, chain } = await assemble(
+      {
+        // First draw hits the dead key (401, credential-level), second draw
+        // rotates to the live key and succeeds — wire-level proof that one
+        // expired key no longer poisons the pool.
+        '/tavily/search': {
+          kind: 'sequence',
+          steps: [
+            { kind: 'status', status: 401, body: { detail: 'Invalid API key.' } },
+            { kind: 'success', body: { results: [{ url: 'https://tv.test/healed', title: 'Healed' }] } },
+          ],
+        },
+      },
+      {
+        searchChain: ['dshws-tavily'],
+        configuredRefs: ['TAVILY_API_KEY'],
+        values: { TAVILY_API_KEY: 'dead-key,live-key' },
+      },
+    )
+    try {
+      const result = await chain.search({ query: 'mixed-pool heal' })
+      expect(result.content).toBe('[served-by: dshws-tavily]')
+      expect(result.sources[0]?.url).toBe('https://tv.test/healed')
+      expect(server.auths).toEqual(['Bearer dead-key', 'Bearer live-key'])
+    } finally {
+      await server.close()
+    }
+  })
+
   it('skips a member whose credential ref is unconfigured and serves from the next member (gate 跳过腿)', async () => {
     const { server, chain } = await assemble(
       {

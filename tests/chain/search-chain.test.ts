@@ -657,9 +657,11 @@ describe('member budget & exhaustion aggregation (S14u)', () => {
     }
   })
 
-  it('degrades at once on a deterministic 4xx — no redraw can change the verdict (S14u 4xx 分流)', async () => {
-    // 401 holds for EVERY key of the member with certainty: spending redraw
-    // draws on it only multiplies the same failure and delays the fallback.
+  it('a CREDENTIAL-level 4xx (401) redraws across pool keys — one dead key must not poison the pool (S14y 勘正 S14u 前提)', async () => {
+    // S14u treated 401 as "holds for every key with certainty" — wrong for
+    // multi-key pools whose keys are INDEPENDENT credentials (live finding
+    // 2026-09-09: one expired as_sk key made every second search fail).
+    // 401/403 now redraw; only a fully-failed pool degrades.
     let draws = 0
     const unauthorized = {
       id: 'dshws-authfail',
@@ -681,9 +683,63 @@ describe('member budget & exhaustion aggregation (S14u)', () => {
       log: (message) => logs.push(message),
     })
     const result = await chain.search({ query: 'q' })
+    // All three draws spent on the dead credentials, THEN degrade.
+    expect(draws).toBe(3)
+    expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
+    expect(logs.some((line) => line.includes('credential-level HTTP 401'))).toBe(true)
+  })
+
+  it('a MIXED pool heals: the first key 401s, the second serves — same member (S14y 本案钉子)', async () => {
+    let draws = 0
+    const mixed = {
+      id: 'dshws-mixedpool',
+      available: () => true,
+      async search() {
+        draws += 1
+        if (draws === 1) throw new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily API error (HTTP 401): invalid api key', { httpStatus: 401 })
+        return fakeResult('healed by the second key')
+      },
+    }
+    const calls: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-mixedpool': { provider: mixed as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-backup': { provider: trackingProvider('dshws-backup', calls) },
+      }),
+      order: ['dshws-mixedpool', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+    })
+    const result = await chain.search({ query: 'q' })
+    expect(result.content).toBe('[served-by: dshws-mixedpool]' + String.fromCharCode(10) + 'healed by the second key')
+    expect(draws).toBe(2)
+    expect(calls).toEqual([])
+  })
+
+  it('a REQUEST-level 4xx (400) degrades at once — no key can change the verdict (S14y 4xx 二分)', async () => {
+    let draws = 0
+    const badRequest = {
+      id: 'dshws-badrequest',
+      available: () => true,
+      async search() {
+        draws += 1
+        throw new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily API error (HTTP 400): malformed query', { httpStatus: 400 })
+      },
+    }
+    const calls: string[] = []
+    const logs: string[] = []
+    const chain = new ChainSearchProvider({
+      members: resolver({
+        'dshws-badrequest': { provider: badRequest as unknown as WebSearchProvider, multiKeyPool: true },
+        'dshws-backup': { provider: trackingProvider('dshws-backup', calls) },
+      }),
+      order: ['dshws-badrequest', 'dshws-backup'],
+      perMemberTimeoutMs: 1000,
+      log: (message) => logs.push(message),
+    })
+    const result = await chain.search({ query: 'q' })
     expect(draws).toBe(1)
     expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
-    expect(logs.some((line) => line.includes('deterministic HTTP 401'))).toBe(true)
+    expect(logs.some((line) => line.includes('request-level HTTP 400'))).toBe(true)
   })
 
   it('keeps the redraw budget for retryable statuses — 429 is key-/moment-specific (S14u 4xx 分流)', async () => {
