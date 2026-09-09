@@ -159,6 +159,22 @@ export interface ExaSettings {
   baseURL?: string
   /** Default result count; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   numResults?: number
+  /**
+   * Search type (S17 P1): the current official 6-value enum — `keyword`/`neural` were removed
+   * upstream. Defaults to `'auto'` (the provider constant). Hot.
+   */
+  type?: 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
+  /**
+   * Text fallback (S17 P1, D4 default `true`): also request `contents.text` so a result without
+   * highlights keeps a full-text excerpt as its snippet instead of being dropped. Hot.
+   */
+  textFallback?: boolean
+  /**
+   * Publication-date floor (S17 P1): only results published after this date. Stored as
+   * `YYYY-MM-DD` (the GUI date input) or a full ISO date-time; the provider normalizes date-only
+   * values to the date-time form the API expects. Hot.
+   */
+  startPublishedDate?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -280,6 +296,9 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     numResults: z.number().step(1).min(1),
+    type: z.union(['instant', 'fast', 'auto', 'deep-lite', 'deep', 'deep-reasoning']),
+    textFallback: z.boolean(),
+    startPublishedDate: z.string(),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   perplexity: z.object({
@@ -336,6 +355,12 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
 export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   numResults?: number
+  /** Search type; absent = provider default `'auto'` (S17 P1). */
+  type?: 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
+  /** Text fallback; resolveConfig defaults `true` (S17 P1, D4). */
+  textFallback?: boolean
+  /** Publication-date floor; absent = not sent (S17 P1). */
+  startPublishedDate?: string
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -436,6 +461,10 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.exa?.keySelection ?? 'round-robin',
       baseURL: config.exa?.baseURL?.trim() === '' ? undefined : config.exa?.baseURL,
       numResults: config.exa?.numResults,
+      type: config.exa?.type,
+      // S17 D4: text fallback is ON by default — it fixes dropped results.
+      textFallback: config.exa?.textFallback ?? true,
+      startPublishedDate: config.exa?.startPublishedDate,
     },
     perplexity: {
       enabled: config.perplexity?.enabled ?? true,

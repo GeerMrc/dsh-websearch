@@ -1,12 +1,18 @@
 /**
- * `dshws-exa` chain member: Exa search API (`POST /search` with highlight
- * contents). Wire contract mirrors the upstream implementation
+ * `dshws-exa` chain member: Exa search API (`POST /search` with highlight and
+ * text contents). Wire contract mirrors the upstream implementation
  * (deepseek-harness `packages/web/web-search-exa`, dev@3281e04b59 — re-implemented
  * here because the upstream `exa` id collides with the host's already-registered
- * provider and breaks the `dshws-` prefix discipline, ADR-0003). Entries carry
- * no usable snippet are dropped — the seam has no other field to derive one
- * from, and inventing one would lie. Exa returns no generated answer, so
- * `content` stays omitted.
+ * provider and breaks the `dshws-` prefix discipline, ADR-0003) updated to the
+ * current official API (2026-09-10, exa.ai/docs/reference/search): `type` is
+ * the current 6-value enum (`keyword`/`neural` were removed upstream), and
+ * `contents.text` is requested alongside the highlights by default (S17 D4) —
+ * a result whose highlights are absent keeps its full-text excerpt as the
+ * snippet instead of being dropped; entries with neither portable excerpt are
+ * still dropped (the seam has no other field to derive one from, and inventing
+ * one would lie). `startPublishedDate` (date-only input normalized to the
+ * date-time form) is passed through when set. Exa returns no generated
+ * answer, so `content` stays omitted.
  *
  * The key resolves fresh per operation through the injected thunk — the
  * provider never holds it.
@@ -34,16 +40,31 @@ export const EXA_MEMBER_ID = 'dshws-exa'
 /** Default Exa search endpoint; `/search` is the operation. */
 export const EXA_DEFAULT_BASE_URL = 'https://api.exa.ai'
 
-/** Default retrieval mode: let Exa pick between keyword and neural search. */
+/** Default retrieval type: let Exa pick between keyword and neural search. */
 export const EXA_DEFAULT_SEARCH_TYPE = 'auto'
 
 /** Highlight snippet budget per result in characters (the current official form; the old `highlightsPerUrl` count is deprecated and ignored upstream). */
 export const EXA_HIGHLIGHT_MAX_CHARACTERS = 400
 
+/** Text-fallback excerpt budget per result in characters (S17 P1; official range 1-10000). */
+export const EXA_TEXT_FALLBACK_MAX_CHARACTERS = 1000
+
+/** Exa search type (S17 P1): the current official 6-value enum — `keyword`/`neural` were removed upstream. */
+export type ExaSearchType = 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
+
 const codes = MEMBER_ERROR_CODES.exa
 
 /** Attribution header sent on every request; bump with the package version. */
 const USER_AGENT = 'dsh-websearch/0.2.2'
+
+/**
+ * Normalize a stored publication-date floor to the ISO date-time form the API
+ * expects: a date-only `YYYY-MM-DD` value (the GUI date input's shape) gains
+ * a midnight-UTC time; a full date-time string passes through.
+ */
+export function normalizeStartPublishedDate(value: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value
+}
 
 /** Wire type of one Exa `results[]` entry (optional fields read tolerantly). */
 export interface ExaResultItem {
@@ -51,6 +72,8 @@ export interface ExaResultItem {
   readonly title?: string
   readonly publishedDate?: string
   readonly highlights?: readonly string[]
+  /** Full-text excerpt; present when `contents.text` was requested (S17 P1). */
+  readonly text?: string
 }
 
 export interface ExaSearchResponse {
@@ -67,6 +90,12 @@ export interface ExaMemberOptions {
   readonly baseURL: string
   /** Default result count when a request carries no `maxResults`. */
   readonly numResults?: number
+  /** Search type; resolved default `'auto'` (S17 P1). */
+  readonly type: ExaSearchType
+  /** Text fallback; resolved default `true` — `contents.text` rides along (S17 P1, D4). */
+  readonly textFallback: boolean
+  /** Publication-date floor, normalized to date-time; absent = not sent (S17 P1). */
+  readonly startPublishedDate?: string
 }
 
 /**
@@ -82,16 +111,23 @@ export function resolveExaMemberOptions(
     resolveApiKey,
     baseURL: config.baseURL ?? EXA_DEFAULT_BASE_URL,
     numResults: config.numResults,
+    type: config.type ?? EXA_DEFAULT_SEARCH_TYPE,
+    textFallback: config.textFallback ?? true,
+    startPublishedDate: config.startPublishedDate !== undefined
+      ? normalizeStartPublishedDate(config.startPublishedDate)
+      : undefined,
   }
 }
 
 /**
  * Map one Exa result to a normalized source, or `undefined` when it carries
- * no portable snippet: the first non-blank highlight becomes `snippet`, and
- * an entry without one is dropped.
+ * no portable excerpt: the first non-blank highlight becomes `snippet`, with
+ * the full-text `text` as the fallback (S17 P1); an entry with neither is
+ * dropped.
  */
 export function mapExaResult(result: ExaResultItem): WebSearchSource | undefined {
-  const snippet = result.highlights?.find(highlight => highlight.trim().length > 0)
+  const highlight = result.highlights?.find(h => h.trim().length > 0)
+  const snippet = highlight ?? (result.text !== undefined && result.text.trim().length > 0 ? result.text : undefined)
   if (snippet === undefined || result.url === undefined || result.url.length === 0) return undefined
   return {
     url: result.url,
@@ -144,9 +180,15 @@ export class ExaSearchProvider implements WebSearchProvider {
         },
         body: JSON.stringify({
           query: request.query,
-          type: EXA_DEFAULT_SEARCH_TYPE,
-          contents: { highlights: { query: request.query, maxCharacters: EXA_HIGHLIGHT_MAX_CHARACTERS } },
+          type: this.options.type,
+          contents: {
+            highlights: { query: request.query, maxCharacters: EXA_HIGHLIGHT_MAX_CHARACTERS },
+            // S17 D4: text rides along by default so snippet-less results are
+            // kept; turning the fallback off restores the highlight-only wire.
+            ...this.options.textFallback ? { text: { maxCharacters: EXA_TEXT_FALLBACK_MAX_CHARACTERS } } : {},
+          },
           ...numResults !== undefined ? { numResults } : {},
+          ...this.options.startPublishedDate !== undefined ? { startPublishedDate: this.options.startPublishedDate } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

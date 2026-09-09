@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { ExaMemberConfig } from '../../src/config.ts'
 import { EXA_DEFAULT_BASE_URL, EXA_MEMBER_ID, ExaSearchProvider, resolveExaMemberOptions } from '../../src/providers/exa.ts'
 
 /**
@@ -23,6 +24,17 @@ maybe('dshws-exa real API', () => {
     const result = await provider.search({ query: 'DeepSeek Harness web search', maxResults: 5 })
     expect(result.sources.length).toBeGreaterThan(0)
     for (const source of result.sources) expect(source.url).toMatch(/^https?:\/\//u)
+  }, 30_000)
+
+  it('S17: text fallback keeps every returned result snippeted (丢结果修复)', async () => {
+    const provider = new ExaSearchProvider(resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', type: 'fast' } satisfies ExaMemberConfig,
+      async () => apiKey,
+    ))
+    const result = await provider.search({ query: 'cordis plugin framework', maxResults: 5 })
+    expect(result.sources.length).toBeGreaterThan(0)
+    // With contents.text riding along, no returned entry lacks a portable snippet.
+    for (const source of result.sources) expect(source.snippet).toBeDefined()
   }, 30_000)
 })
 

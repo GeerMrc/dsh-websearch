@@ -69,7 +69,8 @@ describe('resolveConfig', () => {
     // S17 D4: tavily's answer feature defaults ON at the basic tier.
     expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'round-robin', includeAnswer: 'basic' })
     expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'round-robin' })
-    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin' })
+    // S17 D4: exa's text fallback defaults ON (丢结果修复).
+    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin', textFallback: true })
     expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'round-robin' })
   })
 
@@ -97,6 +98,28 @@ describe('resolveConfig', () => {
       expect(() => Config({ tavily: { timeRange: 'decade' as never } })).toThrow()
       expect(() => Config({ tavily: { searchDepth: 'deep' as never } })).toThrow()
       expect(() => Config({ tavily: { includeAnswer: true as never } })).toThrow()
+    })
+
+    it('exa: textFallback defaults true (D4); type/startPublishedDate absent until set', () => {
+      const resolved = resolveConfig({})
+      expect(resolved.exa.textFallback).toBe(true)
+      expect(resolved.exa.type).toBeUndefined()
+      expect(resolved.exa.startPublishedDate).toBeUndefined()
+    })
+
+    it('exa: explicit type (current 6-value enum) and date floor pass through', () => {
+      const resolved = resolveConfig({
+        exa: { type: 'deep-reasoning', textFallback: false, startPublishedDate: '2026-01-15' },
+      })
+      expect(resolved.exa.type).toBe('deep-reasoning')
+      expect(resolved.exa.textFallback).toBe(false)
+      expect(resolved.exa.startPublishedDate).toBe('2026-01-15')
+    })
+
+    it('exa: removed enum values (keyword/neural) and bad types fail loud at the schema', () => {
+      expect(() => Config({ exa: { type: 'keyword' as never } })).toThrow()
+      expect(() => Config({ exa: { type: 'neural' as never } })).toThrow()
+      expect(() => Config({ exa: { type: 'banana' as never } })).toThrow()
     })
   })
 
@@ -144,6 +167,8 @@ describe('resolveConfig', () => {
       baseURL: 'https://exa.example',
       numResults: 7,
       keySelection: 'round-robin',
+      // S17 D4: the text fallback default rides along on every resolution.
+      textFallback: true,
     })
   })
 })
