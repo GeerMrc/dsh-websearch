@@ -631,7 +631,7 @@ function FallbackToolRow(props: {
             const next = event.target.value as SectionSnapshot['fallbackSelection']
             void onChoose(next).then((result) => setFeedback(result.ok ? 'saved' : 'failed'))
           }}
-          style={{ ...fieldInputStyle, width: 240, margin: 0 }}
+          style={{ ...fieldInputStyle, width: 200, margin: 0 }}
         >
           <option value="auto">{t('fallbackAutoOption')}</option>
           {toolOptions.map((id) => <option key={id} value={id}>{labelOf(id)}</option>)}
