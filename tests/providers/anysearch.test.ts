@@ -74,6 +74,7 @@ describe('dshws-anysearch wire behavior (mock HTTP)', () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('https://anysearch.example/v1/search')
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer anysearch-fake-key')
+    expect(new Headers(init.headers).get('user-agent')).toBe('dsh-websearch/0.3.0')
     expect(JSON.parse(String(init.body))).toEqual({ query: 'hello', zone: 'cn' })
 
     const unzoned = makeProvider()

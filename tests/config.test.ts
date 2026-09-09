@@ -66,10 +66,103 @@ describe('resolveConfig', () => {
   it('defaults every provider section to enabled with its credential-ref env name', () => {
     const resolved = resolveConfig({})
     expect(resolved.deepseek).toEqual({ enabled: false, apiKeyEnv: 'DEEPSEEK_API_KEY', keySelection: 'round-robin' })
-    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'round-robin' })
+    // S17 D4: tavily's answer feature defaults ON at the basic tier.
+    expect(resolved.tavily).toEqual({ enabled: true, apiKeyEnv: 'TAVILY_API_KEY', keySelection: 'round-robin', includeAnswer: 'basic' })
     expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'round-robin' })
-    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin' })
+    // S17 D4: exa's text fallback defaults ON (丢结果修复).
+    expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin', textFallback: true })
     expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'round-robin' })
+  })
+
+  describe('S17 P1 parameter defaults and passthrough', () => {
+    it('tavily: includeAnswer defaults basic; topic/timeRange/searchDepth absent until set', () => {
+      const resolved = resolveConfig({})
+      expect(resolved.tavily.includeAnswer).toBe('basic')
+      expect(resolved.tavily.topic).toBeUndefined()
+      expect(resolved.tavily.timeRange).toBeUndefined()
+      expect(resolved.tavily.searchDepth).toBeUndefined()
+    })
+
+    it('tavily: explicit S17 fields pass through untouched', () => {
+      const resolved = resolveConfig({
+        tavily: { topic: 'news', timeRange: 'month', searchDepth: 'advanced', includeAnswer: 'advanced' },
+      })
+      expect(resolved.tavily.topic).toBe('news')
+      expect(resolved.tavily.timeRange).toBe('month')
+      expect(resolved.tavily.searchDepth).toBe('advanced')
+      expect(resolved.tavily.includeAnswer).toBe('advanced')
+    })
+
+    it('tavily: invalid S17 enum values fail loud at the schema', () => {
+      expect(() => Config({ tavily: { topic: 'banana' as never } })).toThrow()
+      expect(() => Config({ tavily: { timeRange: 'decade' as never } })).toThrow()
+      expect(() => Config({ tavily: { searchDepth: 'deep' as never } })).toThrow()
+      expect(() => Config({ tavily: { includeAnswer: true as never } })).toThrow()
+    })
+
+    it('exa: textFallback defaults true (D4); type/startPublishedDate absent until set', () => {
+      const resolved = resolveConfig({})
+      expect(resolved.exa.textFallback).toBe(true)
+      expect(resolved.exa.type).toBeUndefined()
+      expect(resolved.exa.startPublishedDate).toBeUndefined()
+    })
+
+    it('exa: explicit type (current 6-value enum) and date floor pass through', () => {
+      const resolved = resolveConfig({
+        exa: { type: 'deep-reasoning', textFallback: false, startPublishedDate: '2026-01-15' },
+      })
+      expect(resolved.exa.type).toBe('deep-reasoning')
+      expect(resolved.exa.textFallback).toBe(false)
+      expect(resolved.exa.startPublishedDate).toBe('2026-01-15')
+    })
+
+    it('exa: removed enum values (keyword/neural) and bad types fail loud at the schema', () => {
+      expect(() => Config({ exa: { type: 'keyword' as never } })).toThrow()
+      expect(() => Config({ exa: { type: 'neural' as never } })).toThrow()
+      expect(() => Config({ exa: { type: 'banana' as never } })).toThrow()
+    })
+
+    it('perplexity: maxTokens/recency/contextSize absent until set (1024 stays the provider default)', () => {
+      const resolved = resolveConfig({})
+      expect(resolved.perplexity.maxTokens).toBeUndefined()
+      expect(resolved.perplexity.searchRecencyFilter).toBeUndefined()
+      expect(resolved.perplexity.searchContextSize).toBeUndefined()
+    })
+
+    it('perplexity: explicit S17 fields pass through (recency 5 值含 hour)', () => {
+      const resolved = resolveConfig({
+        perplexity: { maxTokens: 2048, searchRecencyFilter: 'hour', searchContextSize: 'medium' },
+      })
+      expect(resolved.perplexity.maxTokens).toBe(2048)
+      expect(resolved.perplexity.searchRecencyFilter).toBe('hour')
+      expect(resolved.perplexity.searchContextSize).toBe('medium')
+    })
+
+    it('perplexity: maxTokens bounds and bad enums fail loud at the schema (API 硬约束)', () => {
+      expect(() => Config({ perplexity: { maxTokens: 0 } })).toThrow()
+      expect(() => Config({ perplexity: { maxTokens: 200000 } })).toThrow()
+      expect(() => Config({ perplexity: { searchRecencyFilter: 'decade' as never } })).toThrow()
+      expect(() => Config({ perplexity: { searchContextSize: 'huge' as never } })).toThrow()
+    })
+
+    it('firecrawl: tbs/location absent until set; explicit values pass through; bad tbs fails loud', () => {
+      expect(resolveConfig({}).firecrawl.tbs).toBeUndefined()
+      expect(resolveConfig({}).firecrawl.location).toBeUndefined()
+      const resolved = resolveConfig({ firecrawl: { tbs: 'qdr:m', location: 'Shanghai,China' } })
+      expect(resolved.firecrawl.tbs).toBe('qdr:m')
+      expect(resolved.firecrawl.location).toBe('Shanghai,China')
+      expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
+    })
+
+    it('unified geo entry: absent by default; passthrough canonicalizes casing and drops blanks (ADR-0015)', () => {
+      expect(resolveConfig({}).searchCountry).toBeUndefined()
+      expect(resolveConfig({}).searchLanguage).toBeUndefined()
+      const resolved = resolveConfig({ searchCountry: ' cn ', searchLanguage: 'ZH ' })
+      expect(resolved.searchCountry).toBe('CN')
+      expect(resolved.searchLanguage).toBe('zh')
+      expect(resolveConfig({ searchCountry: '', searchLanguage: '' }).searchCountry).toBeUndefined()
+      expect(resolveConfig({ searchCountry: '', searchLanguage: '' }).searchLanguage).toBeUndefined()
+    })
   })
 
   it('passes through configured extra refs and key selection per member', () => {
@@ -116,6 +209,8 @@ describe('resolveConfig', () => {
       baseURL: 'https://exa.example',
       numResults: 7,
       keySelection: 'round-robin',
+      // S17 D4: the text fallback default rides along on every resolution.
+      textFallback: true,
     })
   })
 })

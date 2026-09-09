@@ -516,3 +516,53 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.configured).toBe(false)
   })
 })
+
+describe('S17 P1 member options and unified geo entry', () => {
+  it('setMemberOption patches the member key with the option and current revision', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(remote)
+    await controller.init()
+
+    const result = await controller.setMemberOption('tavily', 'topic', 'news')
+    expect(result).toEqual({ ok: true })
+    expect(remote.updateCalls.at(-1)).toMatchObject({ ns: 'dsh-websearch', patch: { tavily: { topic: 'news' } } })
+    // The refreshed snapshot carries the new raw value.
+    expect(controller.snapshot().members.find((member) => member.key === 'tavily')?.topic).toBe('news')
+  })
+
+  it('setMemberOption clear sentinel (empty string) still writes the patch (the node half normalizes it away)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(remote)
+    await controller.init()
+
+    await controller.setMemberOption('perplexity', 'searchRecencyFilter', '')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ perplexity: { searchRecencyFilter: '' } })
+  })
+
+  it('the snapshot exposes the S17 raw values with client-side defaults (textFallback true)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(remote)
+    await controller.init()
+
+    const tavily = controller.snapshot().members.find((member) => member.key === 'tavily')
+    expect(tavily?.topic).toBeUndefined()
+    expect(tavily?.includeAnswer).toBeUndefined()
+    const exa = controller.snapshot().members.find((member) => member.key === 'exa')
+    expect(exa?.textFallback).toBe(true)
+    expect(controller.snapshot().searchCountry).toBeUndefined()
+    expect(controller.snapshot().searchLanguage).toBeUndefined()
+  })
+
+  it('setSearchCountry / setSearchLanguage patch the top-level fields and refresh', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(remote)
+    await controller.init()
+
+    await controller.setSearchCountry('CN')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ searchCountry: 'CN' })
+    await controller.setSearchLanguage('zh')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ searchLanguage: 'zh' })
+    // The FakeRemote's shallow merge keeps the earlier sibling (the real host deep-merges).
+    expect(controller.snapshot().searchCountry).toBe('CN')
+  })
+})

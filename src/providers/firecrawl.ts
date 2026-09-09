@@ -17,6 +17,7 @@
  * @module dsh-websearch/providers/firecrawl
  */
 import type { FirecrawlMemberConfig } from '../config.ts'
+import type { UnifiedSearchGeo } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type {
   WebFetchProvider,
@@ -46,7 +47,7 @@ export const FIRECRAWL_DEFAULT_BASE_URL = 'https://api.firecrawl.dev'
 const codes = MEMBER_ERROR_CODES.firecrawl
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.2.2'
+const USER_AGENT = 'dsh-websearch/0.3.0'
 
 /** Wire type of one Firecrawl `data.web[]` search entry (optional fields read tolerantly). */
 export interface FirecrawlWebResult {
@@ -86,6 +87,12 @@ export interface FirecrawlMemberOptions {
   readonly resolveApiKey: () => Promise<string | undefined>
   /** Endpoint base; `/v2/search` and `/v2/scrape` are appended. */
   readonly baseURL: string
+  /** Time-based search filter; absent = not sent (S17 P1). */
+  readonly tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Free-text geo location; absent = not sent (S17 P1). */
+  readonly location?: string
+  /** Unified search region (ISO 3166-1 alpha-2); absent = not sent (S17 P1, ADR-0015 — the fix for the API's US default). */
+  readonly country?: string
 }
 
 /**
@@ -95,11 +102,15 @@ export interface FirecrawlMemberOptions {
 export function resolveFirecrawlMemberOptions(
   config: FirecrawlMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  geo?: UnifiedSearchGeo,
 ): FirecrawlMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
     resolveApiKey,
     baseURL: config.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
+    tbs: config.tbs,
+    location: config.location,
+    country: geo?.country,
   }
 }
 
@@ -179,6 +190,9 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         body: JSON.stringify({
           query: request.query,
           ...limit !== undefined ? { limit } : {},
+          ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
+          ...this.options.location !== undefined ? { location: this.options.location } : {},
+          ...this.options.country !== undefined ? { country: this.options.country } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

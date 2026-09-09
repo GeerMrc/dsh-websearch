@@ -37,6 +37,10 @@ describe('dshws-perplexity option resolution', () => {
     expect(resolved.baseURL).toBe(PERPLEXITY_DEFAULT_BASE_URL)
     expect(resolved.model).toBe(PERPLEXITY_DEFAULT_MODEL)
     expect(resolved.apiKeyRef).toBe('PERPLEXITY_API_KEY')
+    // S17 P1 defaults: the explicit 1024 token cap stays; filters absent until set.
+    expect(resolved.maxTokens).toBe(1024)
+    expect(resolved.searchRecencyFilter).toBeUndefined()
+    expect(resolved.searchContextSize).toBeUndefined()
   })
 
   it('passes explicit baseURL/model through untouched', () => {
@@ -75,12 +79,60 @@ describe('dshws-perplexity request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer pplx-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.2')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.3.0')
     expect(JSON.parse(init.body as string)).toEqual({
       model: PERPLEXITY_DEFAULT_MODEL,
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'hello' }],
     })
+  })
+
+  it('S17: configured maxTokens lands as max_tokens (1024 腰斩修复 = 可配)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolvePerplexityMemberOptions(
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', maxTokens: 4096 } satisfies PerplexityMemberConfig,
+      async () => 'pplx-key',
+    )
+    await new PerplexitySearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.max_tokens).toBe(4096)
+  })
+
+  it('S17: recency lands top-level; context size nests under web_search_options (single construction point)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolvePerplexityMemberOptions(
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', searchRecencyFilter: 'week', searchContextSize: 'high' } satisfies PerplexityMemberConfig,
+      async () => 'pplx-key',
+    )
+    await new PerplexitySearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.search_recency_filter).toBe('week')
+    expect(body.web_search_options).toEqual({ search_context_size: 'high' })
+  })
+
+  it('S17: neither nested field set → web_search_options absent from the wire', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new PerplexitySearchProvider(options).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('web_search_options')
+    expect(body).not.toHaveProperty('search_recency_filter')
+  })
+
+  it('S17 T6: unified country joins web_search_options.user_location at the single construction point; language lands as language_preference', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolvePerplexityMemberOptions(
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', searchContextSize: 'high' } satisfies PerplexityMemberConfig,
+      async () => 'pplx-key',
+      { country: 'CN', language: 'zh' },
+    )
+    await new PerplexitySearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.web_search_options).toEqual({ search_context_size: 'high', user_location: { country: 'CN' } })
+    expect(body.language_preference).toBe('zh')
   })
 })
 

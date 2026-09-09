@@ -27,6 +27,41 @@
 
 ## 已完成
 
+### S17 P1 高价值参数批（2026-09-10，分支 feat/s17-p1-params）
+
+阶段 0 独立审核 S15c 收尾+S16-P0 **PASS**（🔴×0；🟡×4 全为登记/流程面 → T0 清偿；
+🟢×2；正本 audit-logs/2026-09-10-s17-stage0-review-of-16p0.md）→ plan 017（含验证矩阵 +
+附录 A 四家 API 核证正本；**三处枚举漂移改判** + **Perplexity Sonar 2026-09-27 日落新发现**）
+→ 阶段 2 两轮（NEEDS REVISION 必改×3〔B1 验收矛盾/B2 版本次序/B3 truncated 契约越权〕+
+建议×4 全吸收 → 增量复审 **APPROVED**）→ 阶段 2.5 AskUserQuestion 未获答按先例取默认
+（批准/默认开/S18 插行，披露双落）→ 逐一执行 → 阶段 4 **R1-R6 PASS**（全量唯一责任点
+亲跑）→ 阶段 5 **COMPLETE**（三正交 + 冒烟 72）→ T11 收官。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批：plan/audit-log 入库 + 🟡×4 清偿（台账补行/四棒 reconstructed/STATUS 刷新+行序/lint 3w）+ roadmap S18 插行 + session 骨架 | 完成（`9264402`；lint 复验 0w0e；takeover 3 passed） |
+| T1 | 热化机制 hotMemberOptions（双参形状）六成员接入 + launch-static 文案全量改写 | 完成（`37868a8`；红 2f\|25p → 绿 47p） |
+| T2 | Tavily 4 参数 + answer→content | 完成（`11cd0ed`；红 11f\|30p → 绿 57p\|2s） |
+| T3 | Exa 3 参数（type 6 值/textFallback 丢结果修复/startPublishedDate 归一） | 完成（`90cee45`；红 6f\|40p → 绿 82p\|2s） |
+| T4 | Perplexity 3 参数（web_search_options 嵌套单一构造点；finish_reason 不映射 truncated） | 完成（`da679ac`；红 5f\|40p → 绿 45p） |
+| T5 | Firecrawl tbs/location | 完成（`d9f50a6`；红 2f\|47p → 绿 65p\|3s） |
+| T6 | 统一语言/区域入口 + ADR-0015（Tavily country v1 防御 = 计划内微调留痕） | 完成（`03733a2`；红 6f\|136p → 绿 157p） |
+| T7 | client 面：11 控件 + 全局字段 + 42 键（96）+ '' 清除哨兵 | 完成（`d607590`；夹具类型红 → 92p；牙齿探针 1f→复绿 57p） |
+| T8 | 0.3.0 bump + UA×6 + anysearch UA 断言（🟢 清偿）+ 3423 换包浏览器全要素 | 完成（`339c6bf`；providers 113p；CN/tbs 持久化亲读；截图×2 /tmp/dshws-s17/） |
+| T9 | 真实 API（firecrawl tbs 2160ms 真实通过；T/E/P 无 key 披露）+ 门墙静态六件 + Agent Note + web_fetch 评估 | 完成（`b8ef6aa`） |
+| T10 | 阶段 4/5 独立验证 | **R1-R6 PASS / R7 带瑕疵 / 阶段 5 COMPLETE**（正本 audit-logs s17-stage4/stage5） |
+| T11 | 收官：阶段 4/5 抓获 6 项全清（ADR 笔误/plan D2 勘注/JSDoc 警示/台账指针/audit-log×2/记录补全）+ 原子收官 + merge | 完成（本序列） |
+
+### S17 门墙（提交态，node v22.23.2；全量数字正本 = 阶段 4 audit-log）
+
+①`pnpm test` 全量 → **399 passed \| 13 skipped (412) exit0**（357→399：+42 = 14 参数
+provider/config/wire + client 控件 specs + 热通路 3 + real 新 4；13 skipped 全为 e2e.real
+无 key 自跳）②`pnpm typecheck` → exit 0 双面 ③`pnpm lint` → **0w0e（57 files）**
+④`pnpm build` → index.js **83.65**（gzip 22.33）/ index.d.ts 38.68 / client.js **95.68**
+（gzip 22.70）⑤pack 五件 **53.5kB** ⑥`pnpm check:i18n` → **96 keys** parity + 21 files
+零 CJK ⑦`git status` clean。真实 API 面：FIRECRAWL key 下 `tests/e2e.real/` =
+9 passed\|10 skipped（含 S17 tbs 例 2160ms）。
+
 ### S10 anysearch 成员批（2026-09-03，分支 feat/s10-anysearch-member）
 
 阶段 0 独立审核 S09 **PASS**（🔴×0；审核面外 🟡×2 记录更正类 = index 注释「已收敛」
@@ -382,6 +417,13 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
 | v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期——**S14 T1 地基调研已落档**（docs/notes/2026-09-06-s14-fetch-fallback-research.md §2：宿主 client 零 usage/balance slot，可借面 settings.section/sidebar.footer.action；provider 余额 API 调研属 v2 正式立项内容） |
 | v2 backlog：fetch 兜底开关 | 🟢 v2 | 未排期——**S14 T1 缝隙判定已落档**（同注记 §1：宿主单赢家无降级 + fetch 无 settings namespace + 唯一外挂缝 = registerFetchProvider 新 id + patch 钉 fetchProvider + 内部回落 HttpFetchProvider；热切上限 = patch live reload，GUI 热开关需上游） |
+| 〔补账 2026-09-10，S17 T0——台账 S14c 起停更，本行起为 S14c-S16-P0 内联登记镜像 + 新登记；阶段 0 审核 🟡-1 清偿〕 | | |
+| v2 backlog：B2 启动包 + 暖启动预热 | 🟢 v2 | S14w 登记（2026-09-08，STATUS 台账 14w 行）；未排期 |
+| 链路文件日志的 GUI 轨迹页可见面 | 🟢 v2 | S14z 登记（2026-09-09，STATUS 台账 14z 行）；文件日志本体已交付（chain-log），GUI 可见面 v2 |
+| 卸载残留：settings 默认值 + 预设目录（remove 单命令后不清理；用户自撰同名目录永不覆写） | 🟢 观察 | S14z2 登记（2026-09-09，STATUS 台账 14z2 行）；诚实披露态维持 |
+| web_fetch 完整替代（「按 URL 取全文」能力缺口；现态 = S15c restrict 隐藏，工作正常零报错） | 🟡 | S16-P0 登记（2026-09-10）；**恢复路径评估完成（2026-09-10 S17 T9）——结论正本 = 本行 + CHANGELOG「2026-09-10 — S17」条目**：短期 = fetchTakeover 开关关闭即恢复官方 web_fetch（零开发，已可用）；中期 = Firecrawl scrape 单成员（fetch face 代码在档，接线量小，耗 credits）；长期 = 多工具 fetch 链复活（v2 backlog，链壳代码在档）。实现归后续棒/v2 |
+| Perplexity Sonar 全线 2026-09-27 日落（含现用 /chat/completions 别名）——Perplexity 成员届时不可用 | 🟡 | S17 阶段 1 调研发现（2026-09-10，plan 017 附录 A 出处在档）；S17 参数按 Agent API 同名可迁移形态设计；迁移棒 = S18（roadmap 插行，2026-09-27 前落地） |
+| 新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归） | 🟢 观察 | S17 阶段 5 登记（2026-09-10）；后续棒顺手补 |
 
 ## 已验锚点（台账）
 

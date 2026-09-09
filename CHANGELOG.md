@@ -12,6 +12,39 @@
 
 ---
 
+## 2026-09-10 — P1 高价值参数批 0.3.0：14 参数全链路 + 成员 options 热化 + 统一语言/区域入口（Session 17，API 对齐系列第 2 棒 + 阶段 0 🟡×4 清偿）
+
+**新增（0.2.2 → 0.3.0，功能批 minor）**
+- **14 个 wire 参数全链路**（config schema + resolveConfig + provider wire + GUI 控件 + locales + 单测红绿）：
+  - Tavily：`topic`（general/news/finance）/ `time_range` / `search_depth`（**现行 4 值**：basic/advanced/fast/ultra-fast）/ `include_answer`（**默认 basic 恒发**——免费生成答案→结果 content）
+  - Exa：`type`（**现行 6 值**，keyword/neural 上游已移除）/ `textFallback`（**默认 true**——contents.text 回退，修复「无 highlight 结果整条被丢」）/ `startPublishedDate`（date-only 归一 T00:00:00Z）
+  - Perplexity：`maxTokens` 可配（**1024 腰斩修复 = 可调高**，缺省维持显式 1024，上限 128000）/ `search_recency_filter`（5 值含 hour）/ `web_search_options.search_context_size`（嵌套现行形态，单一构造点）
+  - Firecrawl：`tbs`（qdr:h/d/w/m/y）/ `location`（城市级自由文本）；`country` 经全局入口喂给（ADR-0015）
+  - 通用：根 `searchCountry`/`searchLanguage` 单写入点 fan-out 四家（Exa userLocation / Perplexity user_location.country + language_preference / Firecrawl country〔**修 API 缺省 US 偏差**〕/ Tavily language）
+- **成员 options 统一热化（D1）**：`hotMemberOptions` getter 委托——settings commit 下一次搜索即生效（既有 baseURL/model/maxResults/numResults/maxTokens 一并变热，有意行为变更：endpointNote「下次启动」→「下一次搜索」）
+- **GUI**：11 成员级控件（描述符驱动）+ 全局搜索区域/语言字段；locales 54→**96 keys**（en/zh parity）
+- ADR-0015（统一入口：全局单写入点 + Tavily country v1 防御）+ Agent Note 四家参数正本（docs/notes/2026-09-10-s17-api-alignment.md）
+
+**清偿（4+3 笔）**
+- 阶段 0 🟡×4：progress-M7 台账 web_fetch 悬空行 + S14c 起停更债务镜像 / S15a·15b·15c·16-P0 四棒 session 记录 reconstructed 补落 / STATUS 位置块半刷新 + 台账行序勘正 / lint 3 warnings（→ 0w0e 复验）
+- 🟢×2：anysearch UA 断言补齐（6/6）/ 全量基线坐实（阶段 4 亲跑 399|13(412) exit0）
+
+**治理**
+- 阶段 0 PASS（🔴×0）→ plan 017 两轮（NEEDS REVISION 必改×3 全吸收 → **APPROVED**）→ 2.5 默认批准披露（问询未获答，项目先例取默认：批准/默认开/S18 插行）→ T0-T9 逐一 TDD → 阶段 4 **R1-R6 PASS**（探针 A/B 有牙）→ 阶段 5 **COMPLETE**（安全/契约/前瞻三正交 + 冒烟 72）；audit-log 正本 ×4 入库
+
+**诚实标注（遗留项）**
+- **真实 API 参数实测缩面**：scratch 凭据池仅 firecrawl 1 key + anysearch 池——firecrawl tbs 真实通过（2160ms）；**Tavily news topic 验收例 / Exa / Perplexity 新参数无 key 未实测**（e2e.real 断言在档自跳；补 key 即闭合），归用户择机
+- **Perplexity Sonar 全线 2026-09-27 停止支持**（官方横幅，含现用 /chat/completions）——S17 参数按 Agent API 同名可迁移形态设计，config 面 S18 零改动；迁移棒 = roadmap S18 插行，建议立即接棒
+- **web_fetch 恢复路径评估结论**（🟡 在档项收口）：短期 = fetchTakeover 开关关闭即恢复官方 web_fetch（零开发，已可用）；中期 = Firecrawl scrape 单成员（fetch face 代码在档）；长期 = 多工具 fetch 链复活（v2 backlog）。实现归后续棒/v2
+- 两处默认开启行为变更（2.5 默认裁定）：Tavily include_answer basic 恒发 + Exa contents.text 默认随行——升级即生效
+- 🟢：新类型 re-export 未做（0.2.x 口径一致，后续棒）
+
+**跟踪（观察期）**
+- 基线 **399 passed | 13 skipped (412) exit0**（357→399）/ tc 0 / lint 0w0e 57f / build 83.65+38.68+95.68（gzip 22.33/8.62/22.70）/ pack 五件 53.5kB / i18n 96 keys + 21f 零 CJK / UA dsh-websearch/0.3.0 ×6
+- 下一棒接力指令摘要：Session 18 Perplexity Agent API 迁移（2026-09-27 前）——正本 session-17 记录★节
+
+---
+
 ## 2026-09-10 — P0 API 对齐修复 + web_fetch 技术债标记（Session S16-P0）
 
 **修复级变更**

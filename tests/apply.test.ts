@@ -294,6 +294,67 @@ describe('apply key-pool hot path (ADR-0011 单槽逗号值)', () => {
   })
 })
 
+describe('apply member-options hot path (S17 D1 统一热化)', () => {
+  it('a committed tavily maxResults change reaches the next search wire without re-registration', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, { tavily: { maxResults: 5 } })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const bodyOf = (): Record<string, unknown> =>
+      JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+
+    await chain.search({ query: 'a' })
+    expect(bodyOf().max_results).toBe(5)
+
+    // Pre-S17 the member options were launch-static: this commit only took
+    // effect at the next launch. The unified hot options (D1) must deliver
+    // the new bound on the very next search.
+    commitSettings({ tavily: { maxResults: 9 } })
+    await chain.search({ query: 'b' })
+    expect(bodyOf().max_results).toBe(9)
+  })
+
+  it('a committed baseURL override reaches the next search (launch-static retired)', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const urlOf = (): string => (fetchMock.mock.calls.at(-1) as unknown as [string])[0]
+
+    await chain.search({ query: 'a' })
+    expect(urlOf()).toContain('api.tavily.com')
+
+    commitSettings({ tavily: { baseURL: 'https://proxy.tavily.test' } })
+    await chain.search({ query: 'b' })
+    expect(urlOf()).toContain('proxy.tavily.test')
+  })
+
+  it('a committed unified searchCountry reaches the next exa wire (global entry hot, ADR-0015)', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('EXA_API_KEY')
+    apply(ctx as unknown as Context, { searchChain: ['dshws-exa'] })
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://exa.test', text: 't' }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const bodyOf = (): Record<string, unknown> =>
+      JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+
+    await chain.search({ query: 'a' })
+    expect(bodyOf()).not.toHaveProperty('userLocation')
+
+    commitSettings({ searchChain: ['dshws-exa'], searchCountry: 'DE' })
+    await chain.search({ query: 'b' })
+    expect(bodyOf().userLocation).toBe('DE')
+  })
+})
+
 describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
   it('hot-applies a chain reorder: the NEXT search walks members in the new order', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()

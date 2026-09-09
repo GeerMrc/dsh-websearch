@@ -34,6 +34,10 @@ describe('dshws-exa option resolution', () => {
     expect(resolved.baseURL).toBe(EXA_DEFAULT_BASE_URL)
     expect(resolved.apiKeyRef).toBe('EXA_API_KEY')
     expect(resolved.numResults).toBeUndefined()
+    // S17 P1 defaults: auto type, text fallback ON, no date floor.
+    expect(resolved.type).toBe('auto')
+    expect(resolved.textFallback).toBe(true)
+    expect(resolved.startPublishedDate).toBeUndefined()
   })
 
   it('passes explicit baseURL/numResults through untouched', () => {
@@ -44,6 +48,77 @@ describe('dshws-exa option resolution', () => {
     expect(resolved.baseURL).toBe('https://proxy.test')
     expect(resolved.numResults).toBe(8)
     expect(resolved.apiKeyRef).toBe('MY_KEY')
+  })
+})
+
+describe('dshws-exa S17 P1 parameter wire', () => {
+  it('configured type lands on the wire (current official 6-value enum)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', type: 'deep' } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).type).toBe('deep')
+  })
+
+  it('textFallback false removes contents.text from the wire', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', textFallback: false } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.contents).toEqual({ highlights: { query: 'q', maxCharacters: 400 } })
+  })
+
+  it('startPublishedDate: date-only input normalizes to the date-time form; full ISO passes through', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const dayOnly = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', startPublishedDate: '2026-01-15' } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(dayOnly).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.startPublishedDate).toBe('2026-01-15T00:00:00Z')
+
+    const fullIso = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', startPublishedDate: '2026-01-15T08:30:00Z' } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(fullIso).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.startPublishedDate).toBe('2026-01-15T08:30:00Z')
+  })
+
+  it('omits startPublishedDate when unset', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new ExaSearchProvider(options).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('startPublishedDate')
+  })
+
+  it('S17 T6: unified country fans out as userLocation; absent → not sent', async () => {
+    const withCountry = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
+      async () => 'exa-key',
+      { country: 'CN' },
+    )
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new ExaSearchProvider(withCountry).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.userLocation).toBe('CN')
+
+    await new ExaSearchProvider(options).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('userLocation')
   })
 })
 
@@ -72,11 +147,16 @@ describe('dshws-exa request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer exa-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.2')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.3.0')
     expect(JSON.parse(init.body as string)).toEqual({
       query: 'hello',
       type: 'auto',
-      contents: { highlights: { query: 'hello', maxCharacters: 400 } },
+      contents: {
+        highlights: { query: 'hello', maxCharacters: 400 },
+        // S17 D4: text fallback is ON by default — a result without highlights
+        // keeps its full-text excerpt instead of being dropped.
+        text: { maxCharacters: 1000 },
+      },
       numResults: 5,
     })
   })
@@ -118,6 +198,16 @@ describe('dshws-exa response mapping', () => {
     expect(mapExaResult({ url: 'https://a.test', highlights: ['  ', 'first real'] }))
       .toEqual({ url: 'https://a.test', snippet: 'first real' })
     expect(mapExaResult({ url: 'https://a.test', highlights: [] })).toBeUndefined()
+  })
+
+  it('S17 D4 named: a result WITHOUT highlights but with text is KEPT — text is the snippet fallback (丢结果修复)', () => {
+    expect(mapExaResult({ url: 'https://a.test', text: 'full-text excerpt of the page' }))
+      .toEqual({ url: 'https://a.test', snippet: 'full-text excerpt of the page' })
+    // Highlights still win when both are present.
+    expect(mapExaResult({ url: 'https://b.test', highlights: ['salient'], text: 'full text' }))
+      .toEqual({ url: 'https://b.test', snippet: 'salient' })
+    // Neither field → still dropped (nothing to derive a snippet from).
+    expect(mapExaResult({ url: 'https://c.test', text: '   ' })).toBeUndefined()
   })
 
   it('tolerates a missing results array', () => {

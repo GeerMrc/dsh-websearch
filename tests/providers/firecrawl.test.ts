@@ -36,6 +36,9 @@ describe('dshws-firecrawl option resolution', () => {
     const resolved = resolveFirecrawlMemberOptions({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  }, async () => undefined)
     expect(resolved.baseURL).toBe(FIRECRAWL_DEFAULT_BASE_URL)
     expect(resolved.apiKeyRef).toBe('FIRECRAWL_API_KEY')
+    // S17 P1 defaults: no time filter, no geo location.
+    expect(resolved.tbs).toBeUndefined()
+    expect(resolved.location).toBeUndefined()
   })
 
   it('passes explicit baseURL through untouched', () => {
@@ -45,6 +48,47 @@ describe('dshws-firecrawl option resolution', () => {
     )
     expect(resolved.baseURL).toBe('https://proxy.test')
     expect(resolved.apiKeyRef).toBe('MY_KEY')
+  })
+})
+
+describe('dshws-firecrawl S17 P1 parameter wire', () => {
+  it('configured tbs and location land on the search wire under native names', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', tbs: 'qdr:w', location: 'Beijing,China' } satisfies FirecrawlMemberConfig,
+      async () => 'fc-key',
+    )
+    await new FirecrawlProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.tbs).toBe('qdr:w')
+    expect(body.location).toBe('Beijing,China')
+  })
+
+  it('unset tbs/location stay absent from the wire', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await searchProvider().search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('tbs')
+    expect(body).not.toHaveProperty('location')
+  })
+
+  it('S17 T6: unified country fans out to the search wire; absent → not sent', async () => {
+    const withCountry = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
+      async () => 'fc-key',
+      { country: 'CN' },
+    )
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new FirecrawlProvider(withCountry).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.country).toBe('CN')
+
+    await searchProvider().search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('country')
   })
 })
 
@@ -75,7 +119,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.2')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.3.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5 })
   })
 

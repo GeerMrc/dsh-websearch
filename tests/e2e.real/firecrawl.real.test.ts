@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { FirecrawlMemberConfig } from '../../src/config.ts'
 import {
   FIRECRAWL_DEFAULT_BASE_URL,
   FIRECRAWL_MEMBER_ID,
@@ -28,6 +29,15 @@ maybe('dshws-firecrawl real API', () => {
     const result = await provider.search({ query: 'DeepSeek Harness web search', maxResults: 5 })
     expect(result.sources.length).toBeGreaterThan(0)
     for (const source of result.sources) expect(source.url).toMatch(/^https?:\/\//u)
+  }, 60_000)
+
+  it('S17: tbs week filter serves results for a live query', async () => {
+    const provider = new FirecrawlProvider(resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', tbs: 'qdr:w' } satisfies FirecrawlMemberConfig,
+      async () => apiKey,
+    ))
+    const result = await provider.search({ query: 'artificial intelligence news', maxResults: 5 })
+    expect(result.sources.length).toBeGreaterThan(0)
   }, 60_000)
 
   it('fetches a page as text through the scrape face', async () => {

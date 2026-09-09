@@ -1,12 +1,17 @@
 /**
  * `dshws-tavily` chain member: Tavily search API (`POST /search`, bearer
- * auth). Wire contract per the official API reference (2026-09-02,
+ * auth). Wire contract per the official API reference (2026-09-10,
  * docs.tavily.com/documentation/api-reference/endpoint/search): request takes
- * `query` + optional `max_results` (API-side default 10); response carries
- * `results[]` with `url`/`title`/`content`/`score`/`published_date`, where
- * `content` is a short excerpt mapped to the seam's `snippet`. No generated
- * answer is requested (`include_answer` stays off), so `content` stays
- * omitted on the normalized result.
+ * `query` + optional `max_results` (API-side default 10), `topic`
+ * (`general|news|finance`; `news` carries `published_date`), `time_range`
+ * (`day|week|month|year`), `search_depth` (`basic|advanced|fast|ultra-fast`;
+ * `advanced` costs 2 credits), and `include_answer` (`basic|advanced` — the
+ * boolean form evolved into this enum). `include_answer: 'basic'` is sent by
+ * default (S17 D4): the generated answer is free per the official docs and
+ * the response's top-level `answer` becomes the seam result's `content`
+ * (blank stays omitted). Response `results[]` carries
+ * `url`/`title`/`content`/`score`/`published_date`, where `content` is a
+ * short excerpt mapped to the seam's `snippet`.
  *
  * `max_results` is passed through unclamped: the seam's `maxResults` is a
  * caller bound the API enforces (a >20 value gets a 4xx, which reads as an
@@ -17,6 +22,7 @@
  * @module dsh-websearch/providers/tavily
  */
 import type { TavilyMemberConfig } from '../config.ts'
+import type { UnifiedSearchGeo } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -39,7 +45,7 @@ export const TAVILY_DEFAULT_BASE_URL = 'https://api.tavily.com'
 const codes = MEMBER_ERROR_CODES.tavily
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.2.2'
+const USER_AGENT = 'dsh-websearch/0.3.0'
 
 /** Wire type of one Tavily `results[]` entry (optional fields read tolerantly). */
 export interface TavilyResultItem {
@@ -52,6 +58,8 @@ export interface TavilyResultItem {
 
 export interface TavilySearchResponse {
   readonly results?: readonly TavilyResultItem[]
+  /** Generated answer; present when `include_answer` was requested (S17 D4). */
+  readonly answer?: string
 }
 
 /** Fully-resolved runtime options for the member; defaults applied by {@link resolveTavilyMemberOptions}. */
@@ -64,21 +72,40 @@ export interface TavilyMemberOptions {
   readonly baseURL: string
   /** Default result count when a request carries no `maxResults`. */
   readonly maxResults?: number
+  /** Search category; absent = not sent (S17 P1). */
+  readonly topic?: 'general' | 'news' | 'finance'
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  readonly timeRange?: 'day' | 'week' | 'month' | 'year'
+  /** Search depth tier; absent = API default `basic` (S17 P1). */
+  readonly searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
+  /** Generated-answer tier; resolved default `'basic'` (S17 P1, D4). */
+  readonly includeAnswer: 'basic' | 'advanced'
+  /** Unified search language (ISO 639-1); absent = not sent (S17 P1, ADR-0015). */
+  readonly language?: string
 }
 
 /**
  * Explicit defaulting at the owning boundary (explicit > implicit): the base
- * URL default lands here, config passthrough stays untouched.
+ * URL default lands here, config passthrough stays untouched. The geo entry
+ * contributes only the language — Tavily's `country` expects country-name
+ * strings (ISO-code compatibility unverified), so v1 does not fan the region
+ * out here (ADR-0015).
  */
 export function resolveTavilyMemberOptions(
   config: TavilyMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  geo?: UnifiedSearchGeo,
 ): TavilyMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
     resolveApiKey,
     baseURL: config.baseURL ?? TAVILY_DEFAULT_BASE_URL,
     maxResults: config.maxResults,
+    topic: config.topic,
+    timeRange: config.timeRange,
+    searchDepth: config.searchDepth,
+    includeAnswer: config.includeAnswer ?? 'basic',
+    language: geo?.language,
   }
 }
 
@@ -98,14 +125,19 @@ export function mapTavilyResult(item: TavilyResultItem): WebSearchSource | undef
 }
 
 /**
- * Map a search response envelope to a normalized result: no generated
- * answer, no provider-side truncation (the web service owns that).
+ * Map a search response envelope to a normalized result: the generated
+ * `answer` (requested by default, S17 D4) becomes `content` — blank stays
+ * omitted; no provider-side truncation (the web service owns that).
  */
 export function mapTavilyResponse(response: TavilySearchResponse): WebSearchResult {
   const sources = (response.results ?? [])
     .map(mapTavilyResult)
     .filter((source): source is WebSearchSource => source !== undefined)
-  return { sources, truncated: false }
+  return {
+    ...response.answer != null && response.answer.trim().length > 0 ? { content: response.answer } : {},
+    sources,
+    truncated: false,
+  }
 }
 
 /** The Tavily-backed chain member; redirects fail as a request failure. */
@@ -139,6 +171,14 @@ export class TavilySearchProvider implements WebSearchProvider {
         body: JSON.stringify({
           query: request.query,
           ...maxResults !== undefined ? { max_results: maxResults } : {},
+          ...this.options.topic !== undefined ? { topic: this.options.topic } : {},
+          ...this.options.timeRange !== undefined ? { time_range: this.options.timeRange } : {},
+          ...this.options.searchDepth !== undefined ? { search_depth: this.options.searchDepth } : {},
+          // Always sent: the official docs state include_answer must be set
+          // manually (auto_parameters never manages it); the resolved default
+          // is 'basic' (S17 D4).
+          include_answer: this.options.includeAnswer,
+          ...this.options.language !== undefined ? { language: this.options.language } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

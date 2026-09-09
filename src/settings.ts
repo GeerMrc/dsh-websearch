@@ -8,10 +8,11 @@
  * restart (architecture §5; the upstream web-search-deepseek wiring pattern).
  *
  * The hot subset observable at runtime is the chain order, the per-member
- * timeout, the per-member enabled flag, and the key pools (pool refs and
- * selection policy, ADR-0008); provider option fields (base URLs, models,
- * result counts) stay launch-static (plan D2) and are documented as such in
- * the Config JSDoc.
+ * timeout, the per-member enabled flag, the key pools (pool refs and
+ * selection policy, ADR-0008), and — since S17 D1 — every member option
+ * field (base URLs, models, result counts, and the P1 parameter batch):
+ * member options resolve through the live config on every read, so a
+ * committed settings change reaches the next search.
  *
  * @module dsh-websearch/settings
  */

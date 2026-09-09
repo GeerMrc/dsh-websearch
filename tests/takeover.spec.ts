@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
@@ -17,7 +17,7 @@ interface RestrictCall { readonly deny: readonly string[] }
 interface SectionCall { readonly name: string; readonly order: number; readonly text: string }
 interface AgentCall { restrictCalls: RestrictCall[]; sectionCalls: SectionCall[] }
 
-function takeoverCtx(takeover: boolean): { ctx: Context; agents: AgentCall[]; createAgent: () => void } {
+function takeoverCtx(): { ctx: Context; agents: AgentCall[]; createAgent: () => void } {
   const agents: AgentCall[] = []
   const { ctx } = fakeCtx()
   const c = ctx as unknown as Record<string, unknown>
@@ -65,7 +65,7 @@ function takeoverCtx(takeover: boolean): { ctx: Context; agents: AgentCall[]; cr
 
 describe('S15c takeover: tools.restrict on agent/created', () => {
   it('takeover ON (default): every new agent gets web_fetch denied and prompt shadowed', async () => {
-    const { ctx, agents, createAgent } = takeoverCtx(true)
+    const { ctx, agents, createAgent } = takeoverCtx()
     apply(ctx, {})
     await flushGate()
 
@@ -85,7 +85,7 @@ describe('S15c takeover: tools.restrict on agent/created', () => {
   })
 
   it('takeover OFF: no restrict call, no prompt shadow', async () => {
-    const { ctx, agents, createAgent } = takeoverCtx(false)
+    const { ctx, agents, createAgent } = takeoverCtx()
     apply(ctx, { fetchTakeover: false })
     await flushGate()
 

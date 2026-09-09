@@ -22,7 +22,7 @@ import type {} from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
+import type { WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { createChainFileLog } from './chain-log.ts'
@@ -30,6 +30,7 @@ import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
+import type { UnifiedSearchGeo } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
@@ -107,6 +108,32 @@ type MemberKey = 'tavily' | 'exa' | 'perplexity' | 'firecrawl' | 'deepseek' | 'a
 export function apply(ctx: Context, config: Config): void {
   const live = new LiveResolvedConfig(config)
   const resolved = resolveConfig(config)
+
+  /**
+   * Hot-backed member options (S17 D1): every property read re-resolves
+   * through the live config, so a committed settings change reaches the next
+   * search without re-registration — the chain-order getter precedent
+   * (below) applied to the member option objects. `build` may read any slice
+   * of the live snapshot (the member section and, from the S17 unified
+   * language/region entry, root fields as well); it stays a pure resolution,
+   * cheap to re-run per read. Providers hold this object by reference and
+   * read fields per call, so delegation through the proxy is invisible to
+   * them. Limitation (intentional, stage-5 verified): the proxy answers
+   * plain property reads only — `JSON.stringify`, spread, `Object.keys`, and
+   * `in` all silently see an empty object, so never enumerate or serialize
+   * member options; read named fields directly.
+   */
+  const hotMemberOptions = <T extends object>(build: () => T): T =>
+    new Proxy({} as T, {
+      get: (_target, property, receiver) => Reflect.get(build(), property, receiver),
+    })
+
+  /** The unified language/region entry (ADR-0015) read live per call, fed to the members whose APIs accept it. */
+  const geoOf = (): UnifiedSearchGeo => {
+    const current = live.current()
+    return { country: current.searchCountry, language: current.searchLanguage }
+  }
+
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
   // S15c (user ruling "complete takeover, zero errors"): hide web_fetch from
@@ -274,15 +301,17 @@ export function apply(ctx: Context, config: Config): void {
   // so this half of the takeover never serves. Nothing registers here.
 
   // Bundled members in BUILT_IN_MEMBER_ORDER relative order. Member options
-  // are launch-static (D2): only the chain order/timeout and the enabled
-  // gates hot-apply. Every member registers twice — under its own id in
-  // ctx.web for direct pinning, and in the plugin registry with its gates for
-  // the chain (ADR-0002 Decision 5).
+  // resolve through the live config per read (S17 D1 hot options): every
+  // option field — chain order/timeout, enabled gates, base URLs, models,
+  // result counts, and the P1 parameter batch — reaches the next search. Every
+  // member registers twice — under its own id in ctx.web for direct pinning,
+  // and in the plugin registry with its gates for the chain (ADR-0002
+  // Decision 5).
   const firecrawl = new FirecrawlProvider(
-    resolveFirecrawlMemberOptions(resolved.firecrawl, () => traced.firecrawl.resolveApiKey()),
+    hotMemberOptions(() => resolveFirecrawlMemberOptions(live.current().firecrawl, () => traced.firecrawl.resolveApiKey(), geoOf())),
   )
   const anysearch = new AnysearchSearchProvider(
-    resolveAnysearchMemberOptions(resolved.anysearch, () => traced.anysearch.resolveApiKey()),
+    hotMemberOptions(() => resolveAnysearchMemberOptions(live.current().anysearch, () => traced.anysearch.resolveApiKey())),
   )
   const members: readonly {
     provider: WebSearchProvider
@@ -291,21 +320,21 @@ export function apply(ctx: Context, config: Config): void {
   }[] = [
     {
       provider: new TavilySearchProvider(
-        resolveTavilyMemberOptions(resolved.tavily, () => traced.tavily.resolveApiKey()),
+        hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey(), geoOf())),
       ),
       memberKey: 'tavily',
       pool: pools.tavily,
     },
     {
       provider: new ExaSearchProvider(
-        resolveExaMemberOptions(resolved.exa, () => traced.exa.resolveApiKey()),
+        hotMemberOptions(() => resolveExaMemberOptions(live.current().exa, () => traced.exa.resolveApiKey(), geoOf())),
       ),
       memberKey: 'exa',
       pool: pools.exa,
     },
     {
       provider: new PerplexitySearchProvider(
-        resolvePerplexityMemberOptions(resolved.perplexity, () => traced.perplexity.resolveApiKey()),
+        hotMemberOptions(() => resolvePerplexityMemberOptions(live.current().perplexity, () => traced.perplexity.resolveApiKey(), geoOf())),
       ),
       memberKey: 'perplexity',
       pool: pools.perplexity,
@@ -313,7 +342,7 @@ export function apply(ctx: Context, config: Config): void {
     { provider: firecrawl, memberKey: 'firecrawl', pool: pools.firecrawl },
     {
       provider: new DeepSeekSearchProvider(
-        resolveDeepSeekMemberOptions(resolved.deepseek, () => traced.deepseek.resolveApiKey()),
+        hotMemberOptions(() => resolveDeepSeekMemberOptions(live.current().deepseek, () => traced.deepseek.resolveApiKey())),
       ),
       memberKey: 'deepseek',
       pool: pools.deepseek,

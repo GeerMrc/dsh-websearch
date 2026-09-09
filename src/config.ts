@@ -90,15 +90,15 @@ export interface DeepSeekSettings {
   enabled?: boolean
   /** Credential-ref env name resolved through the credentials service. Defaults to `DEEPSEEK_API_KEY`. */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Chat model powering the web_search server tool; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** Chat model powering the web_search server tool; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   model?: string
-  /** Response token cap; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** Response token cap; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   maxTokens?: number
   /**
    * Server-tool search budget per request (S14c, host parity — the host
-   * `web-search-deepseek` knob of the same name/semantic/default). Launch-static.
+   * `web-search-deepseek` knob of the same name/semantic/default). Hot (S17 D1).
    */
   maxUses?: number
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
@@ -109,12 +109,30 @@ export interface DeepSeekSettings {
 export interface TavilySettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `TAVILY_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `TAVILY_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Default result count; provider default applies when omitted (S04). Launch-static: a settings change applies at next launch. */
+  /** Default result count; provider default applies when omitted (S04). Hot: a settings change applies to the next search (S17 D1). */
   maxResults?: number
+  /**
+   * Search category (S17 P1, official 3-value enum): `general` (default — omitted = not sent),
+   * `news` (carries `published_date`), `finance`. Hot.
+   */
+  topic?: 'general' | 'news' | 'finance' | ''
+  /** Publication-recency filter (S17 P1, official enum; omitted = not sent). Hot. */
+  timeRange?: 'day' | 'week' | 'month' | 'year' | ''
+  /**
+   * Search depth tier (S17 P1, official 4-value enum; omitted = `basic` API default). `advanced`
+   * costs 2 credits per search, the rest 1. Hot.
+   */
+  searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast' | ''
+  /**
+   * Generated-answer tier (S17 P1; the boolean form evolved into the `basic`/`advanced` enum).
+   * Defaults to `'basic'` — the answer is free per the official docs and becomes the result's
+   * `content` (D4). Hot.
+   */
+  includeAnswer?: 'basic' | 'advanced'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -123,10 +141,20 @@ export interface TavilySettings {
 export interface FirecrawlSettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `FIRECRAWL_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `FIRECRAWL_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
+  /**
+   * Time-based search filter (S17 P1, Google-style `tbs` presets; omitted = no filter). Hot.
+   */
+  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y' | ''
+  /**
+   * Free-text geo location for search results (S17 P1, e.g. `San Francisco,California,United
+   * States`; city-level granularity — finer than the global country entry; omitted = not sent).
+   * The official docs recommend setting it together with a country. Hot.
+   */
+  location?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -135,12 +163,28 @@ export interface FirecrawlSettings {
 export interface ExaSettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `EXA_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `EXA_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Default result count; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** Default result count; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   numResults?: number
+  /**
+   * Search type (S17 P1): the current official 6-value enum — `keyword`/`neural` were removed
+   * upstream. Defaults to `'auto'` (the provider constant). Hot.
+   */
+  type?: 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
+  /**
+   * Text fallback (S17 P1, D4 default `true`): also request `contents.text` so a result without
+   * highlights keeps a full-text excerpt as its snippet instead of being dropped. Hot.
+   */
+  textFallback?: boolean
+  /**
+   * Publication-date floor (S17 P1): only results published after this date. Stored as
+   * `YYYY-MM-DD` (the GUI date input) or a full ISO date-time; the provider normalizes date-only
+   * values to the date-time form the API expects. Hot.
+   */
+  startPublishedDate?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -149,12 +193,28 @@ export interface ExaSettings {
 export interface PerplexitySettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `PERPLEXITY_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `PERPLEXITY_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Sonar model; provider default applies when omitted (S05a). Launch-static: a settings change applies at next launch. */
+  /** Sonar model; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   model?: string
+  /**
+   * Response token cap (S17 P1, "1024 腰斩修复"): the resolved default stays the explicit 1024
+   * (no official documented default exists; community-level truncation reports); raise it to let
+   * longer answers through. API hard bound 1..128000. Hot.
+   */
+  maxTokens?: number
+  /**
+   * Publication-recency filter (S17 P1, official 5-value enum incl. `hour`; omitted = not sent).
+   * Hot.
+   */
+  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year' | ''
+  /**
+   * Search context tier (S17 P1, official enum; omitted = not sent, API default `low`). Tiered
+   * per-request cost ($5/$8/$12 per 1k sonar requests). Hot.
+   */
+  searchContextSize?: 'low' | 'medium' | 'high' | ''
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -163,14 +223,25 @@ export interface PerplexitySettings {
 export interface AnysearchSettings {
   /** Defaults to `true`. Hot: settings changes apply to the next search. */
   enabled?: boolean
-  /** Defaults to `ANYSEARCH_API_KEY`. Launch-static: a settings change applies at next launch (keys are configured through the credentials service, not this field). */
+  /** Defaults to `ANYSEARCH_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
   apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted. Launch-static: a settings change applies at next launch. */
+  /** API endpoint base; provider default applies when omitted. Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
-  /** Regional zone passed through to the request body; omitted = not sent. Launch-static. */
+  /** Regional zone passed through to the request body; omitted = not sent. Hot (S17 D1). */
   zone?: 'cn' | 'intl'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
+}
+
+/**
+ * The unified language/region entry (S17 P1, ADR-0015): a single write point
+ * fanned out to each member's native wire parameter. Country is an ISO
+ * 3166-1 alpha-2 code, language an ISO 639-1 code; both normalize (country
+ * uppercase, language lowercase) and blank means "not sent".
+ */
+export interface UnifiedSearchGeo {
+  readonly country?: string
+  readonly language?: string
 }
 
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
@@ -208,6 +279,20 @@ export interface Config {
    * Hot: applies to the next agent created after the settings commit.
    */
   fetchTakeover?: boolean
+  /**
+   * Unified search region (S17 P1, ADR-0015): an ISO 3166-1 alpha-2 code (e.g. `CN`) fanned
+   * out to the members whose native APIs accept a region — Exa `userLocation`, Perplexity
+   * `web_search_options.user_location.country`, Firecrawl `country` (Tavily is excluded in v1:
+   * its `country` expects country-name strings; ISO-code compatibility is unverified). Blank =
+   * not sent. Hot: the next search.
+   */
+  searchCountry?: string
+  /**
+   * Unified search language (S17 P1, ADR-0015): an ISO 639-1 code (e.g. `zh`) fanned out to
+   * the members with a search-level language parameter — Tavily `language`, Perplexity
+   * `language_preference`. Blank = not sent. Hot: the next search.
+   */
+  searchLanguage?: string
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -229,6 +314,8 @@ export const Config: z<Config> = z.object({
   fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
   chainLogFile: z.boolean(),
   fetchTakeover: z.boolean(),
+  searchCountry: z.string(),
+  searchLanguage: z.string(),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -245,12 +332,18 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     maxResults: z.number().step(1).min(1),
+    topic: z.union(['', 'general', 'news', 'finance']),
+    timeRange: z.union(['', 'day', 'week', 'month', 'year']),
+    searchDepth: z.union(['', 'basic', 'advanced', 'fast', 'ultra-fast']),
+    includeAnswer: z.union(['basic', 'advanced']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   firecrawl: z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
+    tbs: z.union(['', 'qdr:h', 'qdr:d', 'qdr:w', 'qdr:m', 'qdr:y']),
+    location: z.string(),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   exa: z.object({
@@ -258,6 +351,9 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     numResults: z.number().step(1).min(1),
+    type: z.union(['instant', 'fast', 'auto', 'deep-lite', 'deep', 'deep-reasoning']),
+    textFallback: z.boolean(),
+    startPublishedDate: z.string(),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   perplexity: z.object({
@@ -265,6 +361,9 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     model: z.string(),
+    maxTokens: z.number().step(1).min(1).max(128000),
+    searchRecencyFilter: z.union(['', 'hour', 'day', 'week', 'month', 'year']),
+    searchContextSize: z.union(['', 'low', 'medium', 'high']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -291,6 +390,14 @@ export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'e
 export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   maxResults?: number
+  /** Search category; absent = not sent (S17 P1). */
+  topic?: 'general' | 'news' | 'finance'
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  timeRange?: 'day' | 'week' | 'month' | 'year'
+  /** Search depth tier; absent = API default `basic` (S17 P1). */
+  searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
+  /** Generated-answer tier; resolveConfig defaults `'basic'` (S17 P1, D4). */
+  includeAnswer?: 'basic' | 'advanced'
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -298,6 +405,10 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
 /** Fully defaulted settings for one member. */
 export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
+  /** Time-based search filter; absent = not sent (S17 P1). */
+  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Free-text geo location; absent = not sent (S17 P1). */
+  location?: string
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -306,6 +417,12 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
 export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   numResults?: number
+  /** Search type; absent = provider default `'auto'` (S17 P1). */
+  type?: 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
+  /** Text fallback; resolveConfig defaults `true` (S17 P1, D4). */
+  textFallback?: boolean
+  /** Publication-date floor; absent = not sent (S17 P1). */
+  startPublishedDate?: string
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -323,6 +440,12 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
 export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   model?: string
+  /** Response token cap; absent = provider default 1024 (S17 P1). */
+  maxTokens?: number
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  /** Search context tier; absent = not sent (S17 P1). */
+  searchContextSize?: 'low' | 'medium' | 'high'
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -333,6 +456,10 @@ export interface ResolvedWebSearchConfig {
   readonly fallbackMember: FallbackMember
   /** Universal web_fetch takeover toggle, resolved default true (S15a). */
   readonly fetchTakeover: boolean
+  /** Unified search region (ISO 3166-1 alpha-2, uppercase); absent = not sent (S17 P1, ADR-0015). */
+  readonly searchCountry?: string
+  /** Unified search language (ISO 639-1, lowercase); absent = not sent (S17 P1, ADR-0015). */
+  readonly searchLanguage?: string
   /** Search priority chain; never empty after resolution. */
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
@@ -367,6 +494,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     ),
     fallbackMember,
     fetchTakeover: config.fetchTakeover ?? true,
+    // ADR-0015 canonical forms: country uppercase, language lowercase; blank drops.
+    searchCountry: config.searchCountry?.trim().length ? config.searchCountry.trim().toUpperCase() : undefined,
+    searchLanguage: config.searchLanguage?.trim().length ? config.searchLanguage.trim().toLowerCase() : undefined,
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],
@@ -388,12 +518,19 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.tavily?.keySelection ?? 'round-robin',
       baseURL: config.tavily?.baseURL?.trim() === '' ? undefined : config.tavily?.baseURL,
       maxResults: config.tavily?.maxResults,
+      topic: config.tavily?.topic || undefined,
+      timeRange: config.tavily?.timeRange || undefined,
+      searchDepth: config.tavily?.searchDepth || undefined,
+      // S17 D4: the free generated answer is ON at the basic tier by default.
+      includeAnswer: config.tavily?.includeAnswer ?? 'basic',
     },
     firecrawl: {
       enabled: config.firecrawl?.enabled ?? true,
       apiKeyEnv: config.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
       keySelection: config.firecrawl?.keySelection ?? 'round-robin',
       baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
+      tbs: config.firecrawl?.tbs || undefined,
+      location: config.firecrawl?.location?.trim() === '' ? undefined : config.firecrawl?.location,
     },
     exa: {
       enabled: config.exa?.enabled ?? true,
@@ -401,6 +538,10 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.exa?.keySelection ?? 'round-robin',
       baseURL: config.exa?.baseURL?.trim() === '' ? undefined : config.exa?.baseURL,
       numResults: config.exa?.numResults,
+      type: config.exa?.type,
+      // S17 D4: text fallback is ON by default — it fixes dropped results.
+      textFallback: config.exa?.textFallback ?? true,
+      startPublishedDate: config.exa?.startPublishedDate?.trim().length ? config.exa.startPublishedDate.trim() : undefined,
     },
     perplexity: {
       enabled: config.perplexity?.enabled ?? true,
@@ -408,6 +549,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.perplexity?.keySelection ?? 'round-robin',
       baseURL: config.perplexity?.baseURL?.trim() === '' ? undefined : config.perplexity?.baseURL,
       model: config.perplexity?.model,
+      maxTokens: config.perplexity?.maxTokens,
+      searchRecencyFilter: config.perplexity?.searchRecencyFilter || undefined,
+      searchContextSize: config.perplexity?.searchContextSize || undefined,
     },
     anysearch: {
       enabled: config.anysearch?.enabled ?? true,
