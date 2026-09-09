@@ -631,18 +631,31 @@ function FallbackToolRow(props: {
             const next = event.target.value as SectionSnapshot['fallbackSelection']
             void onChoose(next).then((result) => setFeedback(result.ok ? 'saved' : 'failed'))
           }}
-          style={{ ...fieldInputStyle, width: 200, margin: 0 }}
+          style={{
+            ...fieldInputStyle,
+            width: 'auto',
+            minWidth: 0,
+            margin: 0,
+            // Native chrome only: swap the edge-flush system arrow for an
+            // inset chevron so it keeps its distance from the border.
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            paddingRight: 30,
+            backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 10px center',
+          }}
         >
           <option value="auto">{t('fallbackAutoOption')}</option>
           {toolOptions.map((id) => <option key={id} value={id}>{labelOf(id)}</option>)}
           {offerDeepseek ? <option value="dshws-deepseek">{t('fallbackDeepseekOption')}</option> : null}
         </select>
-        {feedback ? (
-          <span role="status" data-testid="dshws-fallback-feedback" style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
-        ) : null}
       </div>
       {note !== undefined ? (
         <p role="status" data-testid="dshws-fallback-note" style={{ ...hintStyle, margin: 0, color: 'var(--dsw-alias-state-warn-label)' }}>{note}</p>
+      ) : null}
+      {feedback !== undefined ? (
+        <p role="status" data-testid="dshws-fallback-feedback" style={{ ...hintStyle, margin: 0, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</p>
       ) : null}
     </div>
   )
