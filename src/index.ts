@@ -17,7 +17,8 @@ import type { Context } from '@deepseek-ai/cordis'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
-import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain/core.ts'
+import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
+import { createChainFileLog } from './chain-log.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 import { CredentialGate } from './credentials.ts'
@@ -98,7 +99,11 @@ export function apply(ctx: Context, config: Config): void {
   const live = new LiveResolvedConfig(config)
   const resolved = resolveConfig(config)
   const credentials = ctx.credentials
-  const log = (message: string) => ctx.logger.info(message)
+  const fileLog = createChainFileLog(config.chainLogFile !== false)
+  const log = (message: string) => {
+    ctx.logger.info(message)
+    fileLog(message)
+  }
 
   // Build each member's key pool (ADR-0008): the primary ref plus any
   // configured extras. Entry-config names outside the credential grammar
@@ -131,6 +136,20 @@ export function apply(ctx: Context, config: Config): void {
       codes,
     })
 
+  // Draw-level trace (S14z): wraps each member's key thunk so every draw
+  // logs which key served it — last 4 chars only, enough to follow rotation
+  // without logging secrets. The pool itself returns the whole comma value;
+  // the SELECTION is only observable here, at the member boundary.
+  const tracedPool = (memberKey: MemberKey, pool: KeyPool) => ({
+    resolveApiKey: async (): Promise<string | undefined> => {
+      const key = await pool.resolveApiKey()
+      if (key !== undefined) log(`[dsh-websearch] key draw dshws-${memberKey} …${key.slice(-4)}`)
+      return key
+    },
+    ready: () => pool.ready(),
+    hasMultiKeyPool: () => pool.hasMultiKeyPool(),
+  })
+
   const pools = {
     tavily: keyPool('tavily', 'Tavily', MEMBER_ERROR_CODES.tavily),
     exa: keyPool('exa', 'Exa', MEMBER_ERROR_CODES.exa),
@@ -138,6 +157,15 @@ export function apply(ctx: Context, config: Config): void {
     firecrawl: keyPool('firecrawl', 'Firecrawl', MEMBER_ERROR_CODES.firecrawl),
     deepseek: keyPool('deepseek', 'DeepSeek', MEMBER_ERROR_CODES.deepseek),
     anysearch: keyPool('anysearch', 'Anysearch', MEMBER_ERROR_CODES.anysearch),
+  } as const
+
+  const traced = {
+    tavily: tracedPool('tavily', pools.tavily),
+    exa: tracedPool('exa', pools.exa),
+    perplexity: tracedPool('perplexity', pools.perplexity),
+    firecrawl: tracedPool('firecrawl', pools.firecrawl),
+    deepseek: tracedPool('deepseek', pools.deepseek),
+    anysearch: tracedPool('anysearch', pools.anysearch),
   } as const
 
   const gates = (memberKey: MemberKey, pool: KeyPool): MemberGates => ({
@@ -152,7 +180,6 @@ export function apply(ctx: Context, config: Config): void {
   })
 
   const searchMembers = new MemberRegistry()
-  const fetchMembers = new MemberRegistry<WebFetchProvider>()
 
   /**
    * Ready TOOL members (ADR-0014): enabled five-tool members whose key gate is
@@ -196,16 +223,9 @@ export function apply(ctx: Context, config: Config): void {
     },
     log,
   }))
-  ctx.web.registerFetchProvider(new ChainFetchProvider({
-    members: fetchMembers.toResolver(),
-    get order() {
-      return live.current().fetchChain
-    },
-    get perMemberTimeoutMs() {
-      return live.current().perMemberTimeoutMs
-    },
-    log,
-  }))
+  // S14z (user ruling): the plugin's fetch chain is RETIRED — web_fetch is
+  // removed at the preset layer and the seam keeps the official http provider,
+  // so this half of the takeover never serves. Nothing registers here.
 
   // Bundled members in BUILT_IN_MEMBER_ORDER relative order. Member options
   // are launch-static (D2): only the chain order/timeout and the enabled
@@ -213,10 +233,10 @@ export function apply(ctx: Context, config: Config): void {
   // ctx.web for direct pinning, and in the plugin registry with its gates for
   // the chain (ADR-0002 Decision 5).
   const firecrawl = new FirecrawlProvider(
-    resolveFirecrawlMemberOptions(resolved.firecrawl, () => pools.firecrawl.resolveApiKey()),
+    resolveFirecrawlMemberOptions(resolved.firecrawl, () => traced.firecrawl.resolveApiKey()),
   )
   const anysearch = new AnysearchSearchProvider(
-    resolveAnysearchMemberOptions(resolved.anysearch, () => pools.anysearch.resolveApiKey()),
+    resolveAnysearchMemberOptions(resolved.anysearch, () => traced.anysearch.resolveApiKey()),
   )
   const members: readonly {
     provider: WebSearchProvider
@@ -225,21 +245,21 @@ export function apply(ctx: Context, config: Config): void {
   }[] = [
     {
       provider: new TavilySearchProvider(
-        resolveTavilyMemberOptions(resolved.tavily, () => pools.tavily.resolveApiKey()),
+        resolveTavilyMemberOptions(resolved.tavily, () => traced.tavily.resolveApiKey()),
       ),
       memberKey: 'tavily',
       pool: pools.tavily,
     },
     {
       provider: new ExaSearchProvider(
-        resolveExaMemberOptions(resolved.exa, () => pools.exa.resolveApiKey()),
+        resolveExaMemberOptions(resolved.exa, () => traced.exa.resolveApiKey()),
       ),
       memberKey: 'exa',
       pool: pools.exa,
     },
     {
       provider: new PerplexitySearchProvider(
-        resolvePerplexityMemberOptions(resolved.perplexity, () => pools.perplexity.resolveApiKey()),
+        resolvePerplexityMemberOptions(resolved.perplexity, () => traced.perplexity.resolveApiKey()),
       ),
       memberKey: 'perplexity',
       pool: pools.perplexity,
@@ -247,7 +267,7 @@ export function apply(ctx: Context, config: Config): void {
     { provider: firecrawl, memberKey: 'firecrawl', pool: pools.firecrawl },
     {
       provider: new DeepSeekSearchProvider(
-        resolveDeepSeekMemberOptions(resolved.deepseek, () => pools.deepseek.resolveApiKey()),
+        resolveDeepSeekMemberOptions(resolved.deepseek, () => traced.deepseek.resolveApiKey()),
       ),
       memberKey: 'deepseek',
       pool: pools.deepseek,
@@ -262,9 +282,8 @@ export function apply(ctx: Context, config: Config): void {
     ctx.web.registerSearchProvider(provider)
     searchMembers.register(provider, gates(memberKey, pool))
   }
-  // The scrape face shares the firecrawl instance, key pool, and gate.
-  ctx.web.registerFetchProvider(firecrawl)
-  fetchMembers.register(firecrawl, gates('firecrawl', pools.firecrawl))
+  // S14z: the firecrawl scrape face is retired with the fetch chain — the
+  // instance below still serves its SEARCH face through the search registry.
 
   // Hot settings section when the host has a settings service; no-op
   // (entry config authoritative) otherwise. A committed change re-primes the

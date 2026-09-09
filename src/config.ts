@@ -194,6 +194,12 @@ export interface Config {
    * the schema so stored sections from older versions still load.
    */
   fallbackProvider?: LegacyFallbackProvider
+  /**
+   * Append the chain trace (draws with key tails, rotation, degradation,
+   * served-by) to `<dshHome>/logs/dsh-websearch.log` (S14z). Default true;
+   * best-effort — a failing append disables the sink, never the chain.
+   */
+  chainLogFile?: boolean
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -213,6 +219,7 @@ export const Config: z<Config> = z.object({
   searchChain: z.array(z.string()),
   fallbackMember: z.union(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-deepseek']),
   fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
+  chainLogFile: z.boolean(),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
