@@ -382,6 +382,12 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
 | v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期——**S14 T1 地基调研已落档**（docs/notes/2026-09-06-s14-fetch-fallback-research.md §2：宿主 client 零 usage/balance slot，可借面 settings.section/sidebar.footer.action；provider 余额 API 调研属 v2 正式立项内容） |
 | v2 backlog：fetch 兜底开关 | 🟢 v2 | 未排期——**S14 T1 缝隙判定已落档**（同注记 §1：宿主单赢家无降级 + fetch 无 settings namespace + 唯一外挂缝 = registerFetchProvider 新 id + patch 钉 fetchProvider + 内部回落 HttpFetchProvider；热切上限 = patch live reload，GUI 热开关需上游） |
+| 〔补账 2026-09-10，S17 T0——台账 S14c 起停更，本行起为 S14c-S16-P0 内联登记镜像 + 新登记；阶段 0 审核 🟡-1 清偿〕 | | |
+| v2 backlog：B2 启动包 + 暖启动预热 | 🟢 v2 | S14w 登记（2026-09-08，STATUS 台账 14w 行）；未排期 |
+| 链路文件日志的 GUI 轨迹页可见面 | 🟢 v2 | S14z 登记（2026-09-09，STATUS 台账 14z 行）；文件日志本体已交付（chain-log），GUI 可见面 v2 |
+| 卸载残留：settings 默认值 + 预设目录（remove 单命令后不清理；用户自撰同名目录永不覆写） | 🟢 观察 | S14z2 登记（2026-09-09，STATUS 台账 14z2 行）；诚实披露态维持 |
+| web_fetch 完整替代（「按 URL 取全文」能力缺口；现态 = S15c restrict 隐藏，工作正常零报错） | 🟡 | S16-P0 登记（2026-09-10，CHANGELOG 同日条目）；恢复路径评估 = S17 T9（Firecrawl 云端/官方回退/多工具 fetch 链三路对比），实现归后续棒 |
+| Perplexity Sonar 全线 2026-09-27 日落（含现用 /chat/completions 别名）——Perplexity 成员届时不可用 | 🟡 | S17 阶段 1 调研发现（2026-09-10，plan 017 附录 A 出处在档）；S17 参数按 Agent API 同名可迁移形态设计；迁移棒 = S18（roadmap 插行，2026-09-27 前落地） |
 
 ## 已验锚点（台账）
 
