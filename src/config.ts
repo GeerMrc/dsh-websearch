@@ -189,6 +189,22 @@ export interface PerplexitySettings {
   baseURL?: string
   /** Sonar model; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   model?: string
+  /**
+   * Response token cap (S17 P1, "1024 腰斩修复"): the resolved default stays the explicit 1024
+   * (no official documented default exists; community-level truncation reports); raise it to let
+   * longer answers through. API hard bound 1..128000. Hot.
+   */
+  maxTokens?: number
+  /**
+   * Publication-recency filter (S17 P1, official 5-value enum incl. `hour`; omitted = not sent).
+   * Hot.
+   */
+  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  /**
+   * Search context tier (S17 P1, official enum; omitted = not sent, API default `low`). Tiered
+   * per-request cost ($5/$8/$12 per 1k sonar requests). Hot.
+   */
+  searchContextSize?: 'low' | 'medium' | 'high'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -306,6 +322,9 @@ export const Config: z<Config> = z.object({
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     model: z.string(),
+    maxTokens: z.number().step(1).min(1).max(128000),
+    searchRecencyFilter: z.union(['hour', 'day', 'week', 'month', 'year']),
+    searchContextSize: z.union(['low', 'medium', 'high']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -378,6 +397,12 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
 export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
   model?: string
+  /** Response token cap; absent = provider default 1024 (S17 P1). */
+  maxTokens?: number
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  /** Search context tier; absent = not sent (S17 P1). */
+  searchContextSize?: 'low' | 'medium' | 'high'
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -472,6 +497,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.perplexity?.keySelection ?? 'round-robin',
       baseURL: config.perplexity?.baseURL?.trim() === '' ? undefined : config.perplexity?.baseURL,
       model: config.perplexity?.model,
+      maxTokens: config.perplexity?.maxTokens,
+      searchRecencyFilter: config.perplexity?.searchRecencyFilter,
+      searchContextSize: config.perplexity?.searchContextSize,
     },
     anysearch: {
       enabled: config.anysearch?.enabled ?? true,

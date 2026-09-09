@@ -121,6 +121,29 @@ describe('resolveConfig', () => {
       expect(() => Config({ exa: { type: 'neural' as never } })).toThrow()
       expect(() => Config({ exa: { type: 'banana' as never } })).toThrow()
     })
+
+    it('perplexity: maxTokens/recency/contextSize absent until set (1024 stays the provider default)', () => {
+      const resolved = resolveConfig({})
+      expect(resolved.perplexity.maxTokens).toBeUndefined()
+      expect(resolved.perplexity.searchRecencyFilter).toBeUndefined()
+      expect(resolved.perplexity.searchContextSize).toBeUndefined()
+    })
+
+    it('perplexity: explicit S17 fields pass through (recency 5 值含 hour)', () => {
+      const resolved = resolveConfig({
+        perplexity: { maxTokens: 2048, searchRecencyFilter: 'hour', searchContextSize: 'medium' },
+      })
+      expect(resolved.perplexity.maxTokens).toBe(2048)
+      expect(resolved.perplexity.searchRecencyFilter).toBe('hour')
+      expect(resolved.perplexity.searchContextSize).toBe('medium')
+    })
+
+    it('perplexity: maxTokens bounds and bad enums fail loud at the schema (API 硬约束)', () => {
+      expect(() => Config({ perplexity: { maxTokens: 0 } })).toThrow()
+      expect(() => Config({ perplexity: { maxTokens: 200000 } })).toThrow()
+      expect(() => Config({ perplexity: { searchRecencyFilter: 'decade' as never } })).toThrow()
+      expect(() => Config({ perplexity: { searchContextSize: 'huge' as never } })).toThrow()
+    })
   })
 
   it('passes through configured extra refs and key selection per member', () => {

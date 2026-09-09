@@ -5,9 +5,17 @@
  * `packages/web/web-search-perplexity`, dev@3281e04b59 — re-implemented here
  * because the upstream `perplexity` id collides with the host's
  * already-registered provider and breaks the `dshws-` prefix discipline,
- * ADR-0003). The generated answer becomes `content` (this is the one bundled
- * member that has one); sources prefer structured `search_results[]` and fall
- * back to URL-only `citations[]` only when `search_results` is absent.
+ * ADR-0003), extended to the current official parameter surface (2026-09-10,
+ * docs.perplexity.ai/api-reference/sonar-post): configurable `max_tokens`
+ * (resolved default 1024 — no official default is documented), top-level
+ * `search_recency_filter` (`hour|day|week|month|year`), and
+ * `web_search_options.search_context_size` (`low|medium|high`) built at one
+ * construction point (S17 P1). The generated answer becomes `content` (this
+ * is the one bundled member that has one); sources prefer structured
+ * `search_results[]` and fall back to URL-only `citations[]` only when
+ * `search_results` is absent. `finish_reason` is NOT mapped onto `truncated`
+ * — that field is the seam's own "sources were dropped" signal (S17 stage-2
+ * B3 ruling); token truncation stays observable through the raw response.
  *
  * The key resolves fresh per operation through the injected thunk — the
  * provider never holds it.
@@ -39,7 +47,6 @@ export const PERPLEXITY_DEFAULT_MODEL = 'sonar'
 
 /** Upper bound on generated answer tokens; request-shape constant, not a deployment tunable. */
 export const PERPLEXITY_DEFAULT_MAX_TOKENS = 1024
-
 const codes = MEMBER_ERROR_CODES.perplexity
 
 /** Attribution header sent on every request; bump with the package version. */
@@ -73,6 +80,12 @@ export interface PerplexityMemberOptions {
   readonly baseURL: string
   /** Search model name. */
   readonly model: string
+  /** Response token cap; resolved default 1024 (S17 P1). */
+  readonly maxTokens: number
+  /** Publication-recency filter; absent = not sent (S17 P1). */
+  readonly searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  /** Search context tier; absent = not sent (S17 P1). */
+  readonly searchContextSize?: 'low' | 'medium' | 'high'
 }
 
 /**
@@ -88,6 +101,9 @@ export function resolvePerplexityMemberOptions(
     resolveApiKey,
     baseURL: config.baseURL ?? PERPLEXITY_DEFAULT_BASE_URL,
     model: config.model ?? PERPLEXITY_DEFAULT_MODEL,
+    maxTokens: config.maxTokens ?? PERPLEXITY_DEFAULT_MAX_TOKENS,
+    searchRecencyFilter: config.searchRecencyFilter,
+    searchContextSize: config.searchContextSize,
   }
 }
 
@@ -142,6 +158,12 @@ export class PerplexitySearchProvider implements WebSearchProvider {
     const apiKey = await this.#apiKey(signal)
     throwIfMemberAborted(codes, 'Perplexity', signal)
     let response: Response
+    // The single construction point for the nested web_search_options object
+    // (plan 017 A2): searchContextSize lives here today, the unified
+    // language/region entry's user_location joins the same object in T6.
+    const webSearchOptions = {
+      ...this.options.searchContextSize !== undefined ? { search_context_size: this.options.searchContextSize } : {},
+    }
     try {
       response = await fetch(`${this.options.baseURL}/chat/completions`, {
         method: 'POST',
@@ -154,8 +176,10 @@ export class PerplexitySearchProvider implements WebSearchProvider {
         },
         body: JSON.stringify({
           model: this.options.model,
-          max_tokens: PERPLEXITY_DEFAULT_MAX_TOKENS,
+          max_tokens: this.options.maxTokens,
           messages: [{ role: 'user', content: request.query }],
+          ...this.options.searchRecencyFilter !== undefined ? { search_recency_filter: this.options.searchRecencyFilter } : {},
+          ...Object.keys(webSearchOptions).length > 0 ? { web_search_options: webSearchOptions } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })
