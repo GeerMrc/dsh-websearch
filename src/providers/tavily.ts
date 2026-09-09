@@ -2,7 +2,7 @@
  * `dshws-tavily` chain member: Tavily search API (`POST /search`, bearer
  * auth). Wire contract per the official API reference (2026-09-02,
  * docs.tavily.com/documentation/api-reference/endpoint/search): request takes
- * `query` + optional `max_results` (API-side default 5); response carries
+ * `query` + optional `max_results` (API-side default 10); response carries
  * `results[]` with `url`/`title`/`content`/`score`/`published_date`, where
  * `content` is a short excerpt mapped to the seam's `snippet`. No generated
  * answer is requested (`include_answer` stays off), so `content` stays
@@ -39,7 +39,7 @@ export const TAVILY_DEFAULT_BASE_URL = 'https://api.tavily.com'
 const codes = MEMBER_ERROR_CODES.tavily
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
+const USER_AGENT = 'dsh-websearch/0.2.2'
 
 /** Wire type of one Tavily `results[]` entry (optional fields read tolerantly). */
 export interface TavilyResultItem {

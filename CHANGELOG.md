@@ -12,6 +12,22 @@
 
 ---
 
+## 2026-09-10 — P0 API 对齐修复 + web_fetch 技术债标记（Session S16-P0）
+
+**修复级变更**
+- **Exa highlights 参数迁移**：已废弃的 `highlightsPerUrl: 1`（上游已忽略）→ 现行官方形态 `query + maxCharacters: 400`——消除 snippet 静默消失导致结果被丢的正确性风险
+- **Firecrawl scrape timeout 对齐**：显式 `timeout: 20000`（上游默认 60s vs 工具预算 30s——不设上限时客户端已 abort 而服务端继续烧 credit）
+- **6 个 USER_AGENT 统一更新**：`dsh-websearch/0.1.0` → `0.2.2`（deepseek/tavily/exa/perplexity 从 0.1.0，anysearch 从 0.2.0）
+- **Tavily 头注释勘正**：API 默认 max_results 实为 10（非 5）
+
+**技术债务标记**
+- web_fetch 完整替代正式登记为 🟡 级重大技术债务：当前 S15c 隐藏态工作正常（零报错零退化），但"按 URL 取全文"能力存在缺口；P1 参数对齐后评估恢复路径（Firecrawl 云端/官方回退/多工具 fetch 链）
+
+**跟踪**
+- 基线 357\|9(366) exit0；UA 测试断言同步更新
+
+---
+
 ## 2026-09-09 — web_fetch 彻底隐藏 via tools.restrict()（Session 15c，终版）
 
 **核心突破**

@@ -43,7 +43,7 @@ export const PERPLEXITY_DEFAULT_MAX_TOKENS = 1024
 const codes = MEMBER_ERROR_CODES.perplexity
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
+const USER_AGENT = 'dsh-websearch/0.2.2'
 
 /** Wire type of one structured `search_results[]` entry (optional fields read tolerantly). */
 export interface PerplexitySearchResult {

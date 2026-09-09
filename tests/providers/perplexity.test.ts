@@ -75,7 +75,7 @@ describe('dshws-perplexity request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer pplx-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.1.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.2.2')
     expect(JSON.parse(init.body as string)).toEqual({
       model: PERPLEXITY_DEFAULT_MODEL,
       max_tokens: 1024,

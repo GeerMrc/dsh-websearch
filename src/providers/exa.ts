@@ -37,13 +37,13 @@ export const EXA_DEFAULT_BASE_URL = 'https://api.exa.ai'
 /** Default retrieval mode: let Exa pick between keyword and neural search. */
 export const EXA_DEFAULT_SEARCH_TYPE = 'auto'
 
-/** Default number of highlight sentences requested per result. */
-export const EXA_DEFAULT_HIGHLIGHTS_PER_RESULT = 1
+/** Highlight snippet budget per result in characters (the current official form; the old `highlightsPerUrl` count is deprecated and ignored upstream). */
+export const EXA_HIGHLIGHT_MAX_CHARACTERS = 400
 
 const codes = MEMBER_ERROR_CODES.exa
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
+const USER_AGENT = 'dsh-websearch/0.2.2'
 
 /** Wire type of one Exa `results[]` entry (optional fields read tolerantly). */
 export interface ExaResultItem {
@@ -145,7 +145,7 @@ export class ExaSearchProvider implements WebSearchProvider {
         body: JSON.stringify({
           query: request.query,
           type: EXA_DEFAULT_SEARCH_TYPE,
-          contents: { highlights: { highlightsPerUrl: EXA_DEFAULT_HIGHLIGHTS_PER_RESULT } },
+          contents: { highlights: { query: request.query, maxCharacters: EXA_HIGHLIGHT_MAX_CHARACTERS } },
           ...numResults !== undefined ? { numResults } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),

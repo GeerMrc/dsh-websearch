@@ -75,7 +75,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.1.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.2.2')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5 })
   })
 
@@ -193,7 +193,7 @@ describe('dshws-firecrawl fetch face (mock HTTP)', () => {
     expect(init).toMatchObject({ method: 'POST', redirect: 'error' })
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
-    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://a.test', formats: ['markdown'] })
+    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://a.test', formats: ['markdown'], timeout: 20_000 })
     expect(result).toEqual({
       url: 'https://a.test/final',
       statusCode: 200,
