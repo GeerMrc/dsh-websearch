@@ -19,7 +19,7 @@ import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { createChainFileLog } from './chain-log.ts'
-import { clearAllSearchOnlyPresets, ensureAllSearchOnlyPresets, SEARCH_ONLY_PRESET_ID } from './preset-authoring.ts'
+import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
@@ -109,33 +109,21 @@ export function apply(ctx: Context, config: Config): void {
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
   ctx.web.registerFetchProvider(new FetchGateProvider(fetchTakeoverActive))
 
-  // The takeover reads the PERSISTED settings value (the same face the GUI
-  // writes), never `live.current()` — this plugin's own section registration
-  // lands later than this inject, so `live` still carries the entry default
-  // here and a settings-sourced toggle flip would be invisible until the
-  // NEXT process (review M3 root cause). Reading the settings service's
-  // resolved value makes OFF survive the restart that follows the toggle.
+  // S15b (user ruling): gate-only takeover — no preset copies, no default
+  // switching. The settings inject exists solely for the ONE-TIME migration:
+  // an S15a install may hold authored preset copies and a switched default;
+  // this removes them and restores `standard` so the plugin's footprint is
+  // exactly the gate. Swallowed failures: a read-only home or unreachable
+  // settings store leave the old copies in place — inert, the gate works.
   ctx.inject(['settings'], (settingsCtx) => {
-    const own = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'dsh-websearch')
-    const persisted = (own?.value as { fetchTakeover?: boolean } | undefined)?.fetchTakeover ?? true
-    if (!persisted) {
-      // Toggle OFF: restore the default FIRST (a default pointing at a
-      // deleted preset makes session creation throw — review M1/S1), then
-      // remove the authored copies. Swallowed failures: a read-only home or
-      // an unreachable settings store leave the copies in place — inert.
+    const presets = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'agent-presets')
+    const current = (presets?.value as { default?: string } | undefined)?.default ?? 'standard'
+    if (current === 'dshws-search-only') {
       void settingsCtx.settings.update('agent-presets', { default: 'standard' })
         .then(() => { clearAllSearchOnlyPresets() })
         .catch(() => {})
-      return
-    }
-    // Toggle ON (default): S14z2 safe order — ensure copies exist, then switch
-    // the default only when it is still `standard` (or already ours).
-    const presets = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'agent-presets')
-    const current = (presets?.value as { default?: string } | undefined)?.default ?? 'standard'
-    if (current !== 'standard' && current !== SEARCH_ONLY_PRESET_ID) return
-    if (ensureAllSearchOnlyPresets() === undefined) return
-    if (current === 'standard') {
-      void settingsCtx.settings.update('agent-presets', { default: SEARCH_ONLY_PRESET_ID }).catch(() => {})
+    } else {
+      clearAllSearchOnlyPresets()
     }
   })
   const log = (message: string) => {
