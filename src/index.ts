@@ -118,7 +118,10 @@ export function apply(ctx: Context, config: Config): void {
    * language/region entry, root fields as well); it stays a pure resolution,
    * cheap to re-run per read. Providers hold this object by reference and
    * read fields per call, so delegation through the proxy is invisible to
-   * them.
+   * them. Limitation (intentional, stage-5 verified): the proxy answers
+   * plain property reads only — `JSON.stringify`, spread, `Object.keys`, and
+   * `in` all silently see an empty object, so never enumerate or serialize
+   * member options; read named fields directly.
    */
   const hotMemberOptions = <T extends object>(build: () => T): T =>
     new Proxy({} as T, {
