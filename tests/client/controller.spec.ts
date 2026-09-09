@@ -415,6 +415,17 @@ describe('WebSearchSettingsController', () => {
     ])
   })
 
+  it('setFetchTakeover writes the top-level field with the current revision (S15a)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const ok = await controller.setFetchTakeover(false)
+    expect(ok.ok).toBe(true)
+    expect(remote.updateCalls).toEqual([
+      { ns: 'dsh-websearch', patch: { fetchTakeover: false }, expectedRevision: 0 },
+    ])
+  })
+
   it('setDeepseekMaxUses patches the deepseek member key with validation (S14c T4, stage45 🟡-2 清偿)', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))

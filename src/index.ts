@@ -20,7 +20,7 @@ import type {} from '@deepseek-ai/dsh-web'
 import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { createChainFileLog } from './chain-log.ts'
 import { clearAllSearchOnlyPresets, ensureAllSearchOnlyPresets, SEARCH_ONLY_PRESET_ID } from './preset-authoring.ts'
-import { FetchGateProvider, FETCH_GATE_PROVIDER_ID } from './fetch-gate.ts'
+import { FetchGateProvider } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 import { CredentialGate } from './credentials.ts'
@@ -109,18 +109,27 @@ export function apply(ctx: Context, config: Config): void {
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
   ctx.web.registerFetchProvider(new FetchGateProvider(fetchTakeoverActive))
 
+  // The takeover reads the PERSISTED settings value (the same face the GUI
+  // writes), never `live.current()` — this plugin's own section registration
+  // lands later than this inject, so `live` still carries the entry default
+  // here and a settings-sourced toggle flip would be invisible until the
+  // NEXT process (review M3 root cause). Reading the settings service's
+  // resolved value makes OFF survive the restart that follows the toggle.
   ctx.inject(['settings'], (settingsCtx) => {
-    if (!fetchTakeoverActive()) {
+    const own = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'dsh-websearch')
+    const persisted = (own?.value as { fetchTakeover?: boolean } | undefined)?.fetchTakeover ?? true
+    if (!persisted) {
       // Toggle OFF: restore the default FIRST (a default pointing at a
       // deleted preset makes session creation throw — review M1/S1), then
-      // remove the authored copies.
+      // remove the authored copies. Swallowed failures: a read-only home or
+      // an unreachable settings store leave the copies in place — inert.
       void settingsCtx.settings.update('agent-presets', { default: 'standard' })
         .then(() => { clearAllSearchOnlyPresets() })
         .catch(() => {})
       return
     }
     // Toggle ON (default): S14z2 safe order — ensure copies exist, then switch
-    // the default only when it is still `standard' (or already ours).
+    // the default only when it is still `standard` (or already ours).
     const presets = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'agent-presets')
     const current = (presets?.value as { default?: string } | undefined)?.default ?? 'standard'
     if (current !== 'standard' && current !== SEARCH_ONLY_PRESET_ID) return

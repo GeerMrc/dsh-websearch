@@ -433,6 +433,15 @@ describe('WebSearchSettingsSection', () => {
     expect(within(rows[0] as HTMLElement).queryByTestId('dshws-chain-role-standby')).toBeNull()
   })
 
+  it('the takeover toggle fires onSetFetchTakeover with the inverted value (S15a)', async () => {
+    const onSetFetchTakeover = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetFetchTakeover })} t={t} />)
+    const toggle = screen.getByTestId('dshws-fetch-takeover-toggle') as HTMLButtonElement
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(toggle)
+    await waitFor(() => expect(onSetFetchTakeover).toHaveBeenCalledWith(false))
+  })
+
   it('key field placeholders, masking, and the {N} hint interpolate live values (S14d D3/T1, stage45 🟡-B 清偿)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')
