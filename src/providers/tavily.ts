@@ -22,6 +22,7 @@
  * @module dsh-websearch/providers/tavily
  */
 import type { TavilyMemberConfig } from '../config.ts'
+import type { UnifiedSearchGeo } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -79,15 +80,21 @@ export interface TavilyMemberOptions {
   readonly searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
   /** Generated-answer tier; resolved default `'basic'` (S17 P1, D4). */
   readonly includeAnswer: 'basic' | 'advanced'
+  /** Unified search language (ISO 639-1); absent = not sent (S17 P1, ADR-0015). */
+  readonly language?: string
 }
 
 /**
  * Explicit defaulting at the owning boundary (explicit > implicit): the base
- * URL default lands here, config passthrough stays untouched.
+ * URL default lands here, config passthrough stays untouched. The geo entry
+ * contributes only the language — Tavily's `country` expects country-name
+ * strings (ISO-code compatibility unverified), so v1 does not fan the region
+ * out here (ADR-0015).
  */
 export function resolveTavilyMemberOptions(
   config: TavilyMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  geo?: UnifiedSearchGeo,
 ): TavilyMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -98,6 +105,7 @@ export function resolveTavilyMemberOptions(
     timeRange: config.timeRange,
     searchDepth: config.searchDepth,
     includeAnswer: config.includeAnswer ?? 'basic',
+    language: geo?.language,
   }
 }
 
@@ -170,6 +178,7 @@ export class TavilySearchProvider implements WebSearchProvider {
           // manually (auto_parameters never manages it); the resolved default
           // is 'basic' (S17 D4).
           include_answer: this.options.includeAnswer,
+          ...this.options.language !== undefined ? { language: this.options.language } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

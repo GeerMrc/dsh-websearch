@@ -153,6 +153,16 @@ describe('resolveConfig', () => {
       expect(resolved.firecrawl.location).toBe('Shanghai,China')
       expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
     })
+
+    it('unified geo entry: absent by default; passthrough canonicalizes casing and drops blanks (ADR-0015)', () => {
+      expect(resolveConfig({}).searchCountry).toBeUndefined()
+      expect(resolveConfig({}).searchLanguage).toBeUndefined()
+      const resolved = resolveConfig({ searchCountry: ' cn ', searchLanguage: 'ZH ' })
+      expect(resolved.searchCountry).toBe('CN')
+      expect(resolved.searchLanguage).toBe('zh')
+      expect(resolveConfig({ searchCountry: '', searchLanguage: '' }).searchCountry).toBeUndefined()
+      expect(resolveConfig({ searchCountry: '', searchLanguage: '' }).searchLanguage).toBeUndefined()
+    })
   })
 
   it('passes through configured extra refs and key selection per member', () => {

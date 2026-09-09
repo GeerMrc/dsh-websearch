@@ -23,6 +23,7 @@
  * @module dsh-websearch/providers/perplexity
  */
 import type { PerplexityMemberConfig } from '../config.ts'
+import type { UnifiedSearchGeo } from '../config.ts'
 import { MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -86,6 +87,10 @@ export interface PerplexityMemberOptions {
   readonly searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
   /** Search context tier; absent = not sent (S17 P1). */
   readonly searchContextSize?: 'low' | 'medium' | 'high'
+  /** Unified search region (ISO 3166-1 alpha-2) for `user_location.country`; absent = not sent (S17 P1, ADR-0015). */
+  readonly userLocationCountry?: string
+  /** Unified search language (ISO 639-1) for `language_preference`; absent = not sent (S17 P1, ADR-0015). */
+  readonly languagePreference?: string
 }
 
 /**
@@ -95,6 +100,7 @@ export interface PerplexityMemberOptions {
 export function resolvePerplexityMemberOptions(
   config: PerplexityMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  geo?: UnifiedSearchGeo,
 ): PerplexityMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -104,6 +110,8 @@ export function resolvePerplexityMemberOptions(
     maxTokens: config.maxTokens ?? PERPLEXITY_DEFAULT_MAX_TOKENS,
     searchRecencyFilter: config.searchRecencyFilter,
     searchContextSize: config.searchContextSize,
+    userLocationCountry: geo?.country,
+    languagePreference: geo?.language,
   }
 }
 
@@ -159,10 +167,11 @@ export class PerplexitySearchProvider implements WebSearchProvider {
     throwIfMemberAborted(codes, 'Perplexity', signal)
     let response: Response
     // The single construction point for the nested web_search_options object
-    // (plan 017 A2): searchContextSize lives here today, the unified
-    // language/region entry's user_location joins the same object in T6.
+    // (plan 017 A2): searchContextSize and the unified geo entry's
+    // user_location.country join the same object.
     const webSearchOptions = {
       ...this.options.searchContextSize !== undefined ? { search_context_size: this.options.searchContextSize } : {},
+      ...this.options.userLocationCountry !== undefined ? { user_location: { country: this.options.userLocationCountry } } : {},
     }
     try {
       response = await fetch(`${this.options.baseURL}/chat/completions`, {
@@ -180,6 +189,7 @@ export class PerplexitySearchProvider implements WebSearchProvider {
           messages: [{ role: 'user', content: request.query }],
           ...this.options.searchRecencyFilter !== undefined ? { search_recency_filter: this.options.searchRecencyFilter } : {},
           ...Object.keys(webSearchOptions).length > 0 ? { web_search_options: webSearchOptions } : {},
+          ...this.options.languagePreference !== undefined ? { language_preference: this.options.languagePreference } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

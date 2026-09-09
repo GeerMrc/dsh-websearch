@@ -17,6 +17,7 @@
  * @module dsh-websearch/providers/firecrawl
  */
 import type { FirecrawlMemberConfig } from '../config.ts'
+import type { UnifiedSearchGeo } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type {
   WebFetchProvider,
@@ -90,6 +91,8 @@ export interface FirecrawlMemberOptions {
   readonly tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
   /** Free-text geo location; absent = not sent (S17 P1). */
   readonly location?: string
+  /** Unified search region (ISO 3166-1 alpha-2); absent = not sent (S17 P1, ADR-0015 — the fix for the API's US default). */
+  readonly country?: string
 }
 
 /**
@@ -99,6 +102,7 @@ export interface FirecrawlMemberOptions {
 export function resolveFirecrawlMemberOptions(
   config: FirecrawlMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  geo?: UnifiedSearchGeo,
 ): FirecrawlMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -106,6 +110,7 @@ export function resolveFirecrawlMemberOptions(
     baseURL: config.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
     tbs: config.tbs,
     location: config.location,
+    country: geo?.country,
   }
 }
 
@@ -187,6 +192,7 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
           ...limit !== undefined ? { limit } : {},
           ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
           ...this.options.location !== undefined ? { location: this.options.location } : {},
+          ...this.options.country !== undefined ? { country: this.options.country } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

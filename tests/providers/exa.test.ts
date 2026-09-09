@@ -103,6 +103,23 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
     expect(body).not.toHaveProperty('startPublishedDate')
   })
+
+  it('S17 T6: unified country fans out as userLocation; absent → not sent', async () => {
+    const withCountry = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
+      async () => 'exa-key',
+      { country: 'CN' },
+    )
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new ExaSearchProvider(withCountry).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.userLocation).toBe('CN')
+
+    await new ExaSearchProvider(options).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('userLocation')
+  })
 })
 
 describe('dshws-exa availability (local checks only)', () => {

@@ -233,6 +233,17 @@ export interface AnysearchSettings {
   keySelection?: KeySelection
 }
 
+/**
+ * The unified language/region entry (S17 P1, ADR-0015): a single write point
+ * fanned out to each member's native wire parameter. Country is an ISO
+ * 3166-1 alpha-2 code, language an ISO 639-1 code; both normalize (country
+ * uppercase, language lowercase) and blank means "not sent".
+ */
+export interface UnifiedSearchGeo {
+  readonly country?: string
+  readonly language?: string
+}
+
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
 export interface Config {
   /** Search priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. Unknown ids are skipped at call time. Hot: settings changes apply to the next search. */
@@ -268,6 +279,20 @@ export interface Config {
    * Hot: applies to the next agent created after the settings commit.
    */
   fetchTakeover?: boolean
+  /**
+   * Unified search region (S17 P1, ADR-0015): an ISO 3166-1 alpha-2 code (e.g. `CN`) fanned
+   * out to the members whose native APIs accept a region — Exa `userLocation`, Perplexity
+   * `web_search_options.user_location.country`, Firecrawl `country` (Tavily is excluded in v1:
+   * its `country` expects country-name strings; ISO-code compatibility is unverified). Blank =
+   * not sent. Hot: the next search.
+   */
+  searchCountry?: string
+  /**
+   * Unified search language (S17 P1, ADR-0015): an ISO 639-1 code (e.g. `zh`) fanned out to
+   * the members with a search-level language parameter — Tavily `language`, Perplexity
+   * `language_preference`. Blank = not sent. Hot: the next search.
+   */
+  searchLanguage?: string
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -289,6 +314,8 @@ export const Config: z<Config> = z.object({
   fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
   chainLogFile: z.boolean(),
   fetchTakeover: z.boolean(),
+  searchCountry: z.string(),
+  searchLanguage: z.string(),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -429,6 +456,10 @@ export interface ResolvedWebSearchConfig {
   readonly fallbackMember: FallbackMember
   /** Universal web_fetch takeover toggle, resolved default true (S15a). */
   readonly fetchTakeover: boolean
+  /** Unified search region (ISO 3166-1 alpha-2, uppercase); absent = not sent (S17 P1, ADR-0015). */
+  readonly searchCountry?: string
+  /** Unified search language (ISO 639-1, lowercase); absent = not sent (S17 P1, ADR-0015). */
+  readonly searchLanguage?: string
   /** Search priority chain; never empty after resolution. */
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
@@ -463,6 +494,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     ),
     fallbackMember,
     fetchTakeover: config.fetchTakeover ?? true,
+    // ADR-0015 canonical forms: country uppercase, language lowercase; blank drops.
+    searchCountry: config.searchCountry?.trim().length ? config.searchCountry.trim().toUpperCase() : undefined,
+    searchLanguage: config.searchLanguage?.trim().length ? config.searchLanguage.trim().toLowerCase() : undefined,
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],

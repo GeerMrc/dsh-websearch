@@ -143,6 +143,20 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     expect(mapTavilyResponse({ answer: '   ', results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
     expect(mapTavilyResponse({ results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
   })
+
+  it('S17 T6: unified language fans out to the wire; country is NOT sent to Tavily in v1 (ADR-0015 格式不匹配防御)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY'  },
+      async () => 'tvly-key',
+      { country: 'CN', language: 'zh' },
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.language).toBe('zh')
+    expect(body).not.toHaveProperty('country')
+  })
 })
 
 describe('dshws-tavily response mapping', () => {

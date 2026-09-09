@@ -120,6 +120,20 @@ describe('dshws-perplexity request mapping', () => {
     expect(body).not.toHaveProperty('web_search_options')
     expect(body).not.toHaveProperty('search_recency_filter')
   })
+
+  it('S17 T6: unified country joins web_search_options.user_location at the single construction point; language lands as language_preference', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolvePerplexityMemberOptions(
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', searchContextSize: 'high' } satisfies PerplexityMemberConfig,
+      async () => 'pplx-key',
+      { country: 'CN', language: 'zh' },
+    )
+    await new PerplexitySearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.web_search_options).toEqual({ search_context_size: 'high', user_location: { country: 'CN' } })
+    expect(body.language_preference).toBe('zh')
+  })
 })
 
 describe('dshws-perplexity response mapping', () => {

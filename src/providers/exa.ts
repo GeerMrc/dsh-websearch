@@ -20,6 +20,7 @@
  * @module dsh-websearch/providers/exa
  */
 import type { ExaMemberConfig } from '../config.ts'
+import type { UnifiedSearchGeo } from '../config.ts'
 import { MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -96,6 +97,8 @@ export interface ExaMemberOptions {
   readonly textFallback: boolean
   /** Publication-date floor, normalized to date-time; absent = not sent (S17 P1). */
   readonly startPublishedDate?: string
+  /** Unified search region (ISO 3166-1 alpha-2) as Exa's `userLocation`; absent = not sent (S17 P1, ADR-0015). */
+  readonly userLocation?: string
 }
 
 /**
@@ -105,6 +108,7 @@ export interface ExaMemberOptions {
 export function resolveExaMemberOptions(
   config: ExaMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  geo?: UnifiedSearchGeo,
 ): ExaMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -116,6 +120,7 @@ export function resolveExaMemberOptions(
     startPublishedDate: config.startPublishedDate !== undefined
       ? normalizeStartPublishedDate(config.startPublishedDate)
       : undefined,
+    userLocation: geo?.country,
   }
 }
 
@@ -189,6 +194,7 @@ export class ExaSearchProvider implements WebSearchProvider {
           },
           ...numResults !== undefined ? { numResults } : {},
           ...this.options.startPublishedDate !== undefined ? { startPublishedDate: this.options.startPublishedDate } : {},
+          ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

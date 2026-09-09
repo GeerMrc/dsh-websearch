@@ -73,6 +73,23 @@ describe('dshws-firecrawl S17 P1 parameter wire', () => {
     expect(body).not.toHaveProperty('tbs')
     expect(body).not.toHaveProperty('location')
   })
+
+  it('S17 T6: unified country fans out to the search wire; absent → not sent', async () => {
+    const withCountry = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
+      async () => 'fc-key',
+      { country: 'CN' },
+    )
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await new FirecrawlProvider(withCountry).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.country).toBe('CN')
+
+    await searchProvider().search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('country')
+  })
 })
 
 describe('dshws-firecrawl availability and id (local checks only)', () => {
