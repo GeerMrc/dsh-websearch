@@ -40,6 +40,19 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     configured: true,
     keySelection: 'round-robin',
     baseURL: undefined,
+    // S17 P1 raw values (undefined = provider default).
+    topic: undefined,
+    timeRange: undefined,
+    searchDepth: undefined,
+    includeAnswer: undefined,
+    type: undefined,
+    textFallback: true,
+    startPublishedDate: undefined,
+    maxTokens: undefined,
+    searchRecencyFilter: undefined,
+    searchContextSize: undefined,
+    tbs: undefined,
+    location: undefined,
     source: undefined,
     writable: true,
     ...overrides,
@@ -70,6 +83,8 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     fallbackDeepseekEligible: false,
     readyToolMembers: [...ORDERABLE],
     fetchTakeover: true,
+    searchCountry: undefined,
+    searchLanguage: undefined,
     revision: 0,
     writable: true,
   }
@@ -87,6 +102,9 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetFallbackMember: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetFetchTakeover: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetBaseURL: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetMemberOption: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetSearchCountry: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetSearchLanguage: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -854,4 +872,91 @@ describe('WebSearchSettingsSection', () => {
   })
 
 
+})
+
+describe('S17 P1 member parameter controls', () => {
+  it('tavily: four selects render with resolved defaults and forward changes (topic news commit)', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('tavily')
+    // All four controls are present with their resolved display defaults.
+    expect((screen.getByTestId('dshws-param-tavily-topic') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-timeRange') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-searchDepth') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-includeAnswer') as HTMLSelectElement).value).toBe('basic')
+
+    fireEvent.change(screen.getByTestId('dshws-param-tavily-topic'), { target: { value: 'news' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'topic', 'news'))
+    // The saved note appears next to the control and auto-dismisses.
+    expect(screen.getByTestId('dshws-param-tavily-topic-feedback').textContent).toBe(en.saved)
+  })
+
+  it('exa: type select defaults auto; the text-fallback toggle forwards the inverted value', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('exa')
+    expect((screen.getByTestId('dshws-param-exa-type') as HTMLSelectElement).value).toBe('auto')
+    expect((screen.getByTestId('dshws-param-exa-textFallback') as HTMLButtonElement).getAttribute('aria-checked')).toBe('true')
+
+    fireEvent.click(screen.getByTestId('dshws-param-exa-textFallback'))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'textFallback', false))
+
+    fireEvent.change(screen.getByTestId('dshws-param-exa-type'), { target: { value: 'deep' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'type', 'deep'))
+  })
+
+  it('perplexity: maxTokens stages a draft (save disabled until changed, bounds enforced) and commits the number', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const members = defaultMembers()
+    members[2] = member('perplexity', 'Perplexity', { maxTokens: 2048 })
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption, snapshot: makeSnapshot(members) })} t={t} />)
+    expand('perplexity')
+    const input = screen.getByTestId('dshws-param-perplexity-maxTokens') as HTMLInputElement
+    expect(input.value).toBe('2048')
+    const save = screen.getByRole('button', { name: `Perplexity ${en.pplxMaxTokensLabel} ${en.save}` }) as HTMLButtonElement
+    expect(save.disabled).toBe(true)
+
+    fireEvent.change(input, { target: { value: '999999' } })
+    expect(save.disabled).toBe(true)
+    fireEvent.change(input, { target: { value: '4096' } })
+    expect(save.disabled).toBe(false)
+    fireEvent.click(save)
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('perplexity', 'maxTokens', 4096))
+  })
+
+  it('firecrawl: tbs select and location staged text field forward their values', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('firecrawl')
+    fireEvent.change(screen.getByTestId('dshws-param-firecrawl-tbs'), { target: { value: 'qdr:w' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'tbs', 'qdr:w'))
+
+    const location = screen.getByTestId('dshws-param-firecrawl-location') as HTMLInputElement
+    fireEvent.change(location, { target: { value: 'Beijing,China' } })
+    fireEvent.click(screen.getByRole('button', { name: `Firecrawl ${en.fcLocationLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'location', 'Beijing,China'))
+  })
+
+  it('members without S17 params (anysearch/deepseek rows) render no param controls', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expect(screen.queryByTestId('dshws-param-anysearch-zone')).toBeNull()
+  })
+
+  it('the unified region/language fields sit in the global card and commit staged drafts', async () => {
+    const onSetSearchCountry = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const onSetSearchLanguage = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetSearchCountry, onSetSearchLanguage })} t={t} />)
+    const country = screen.getByTestId('dshws-search-country') as HTMLInputElement
+    const language = screen.getByTestId('dshws-search-language') as HTMLInputElement
+    expect(country.value).toBe('')
+    expect(language.value).toBe('')
+
+    fireEvent.change(country, { target: { value: 'CN' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.searchCountryLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetSearchCountry).toHaveBeenCalledWith('CN'))
+
+    fireEvent.change(language, { target: { value: 'zh' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.searchLanguageLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetSearchLanguage).toHaveBeenCalledWith('zh'))
+  })
 })

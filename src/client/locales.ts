@@ -69,6 +69,48 @@ export type DshWsLocaleKey =
   | 'chainRolePrimary'
   | 'chainRoleStandby'
   | 'chainNoUsableWarning'
+  | 'searchCountryLabel'
+  | 'searchCountryNote'
+  | 'searchLanguageLabel'
+  | 'searchLanguageNote'
+  | 'optDefault'
+  | 'optOff'
+  | 'recencyHour'
+  | 'recencyDay'
+  | 'recencyWeek'
+  | 'recencyMonth'
+  | 'recencyYear'
+  | 'tavilyTopicLabel'
+  | 'topicNews'
+  | 'topicFinance'
+  | 'tavilyTimeRangeLabel'
+  | 'tavilyDepthLabel'
+  | 'depthAdvanced'
+  | 'depthFast'
+  | 'depthUltraFast'
+  | 'tavilyAnswerLabel'
+  | 'answerBasic'
+  | 'answerAdvanced'
+  | 'exaTypeLabel'
+  | 'typeInstant'
+  | 'typeFast'
+  | 'typeAuto'
+  | 'typeDeepLite'
+  | 'typeDeep'
+  | 'typeDeepReasoning'
+  | 'exaTextFallbackLabel'
+  | 'exaTextFallbackNote'
+  | 'exaDateFloorLabel'
+  | 'pplxMaxTokensLabel'
+  | 'pplxMaxTokensNote'
+  | 'pplxRecencyLabel'
+  | 'pplxContextLabel'
+  | 'ctxLow'
+  | 'ctxMedium'
+  | 'ctxHigh'
+  | 'fcTbsLabel'
+  | 'fcLocationLabel'
+  | 'fcLocationNote'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -112,7 +154,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackInfo: 'DeepSeek fallback details',
   fallbackRowLabel: 'Fallback search',
   endpointLabel: 'Endpoint',
-  endpointNote: 'Leave empty for the provider default. Applies at the next launch.',
+  endpointNote: 'Leave empty for the provider default. Applies to the next search.',
   fallbackNote: 'The fallback tool: with two or more ready tools, pick one to hold the chain-tail fallback slot (it leaves the normal rotation and only serves when every other tool failed — its own multi-key retries apply). With zero or one ready tool you may instead select the paid DeepSeek floor (Models-page DEEPSEEK_API_KEY, shared with chat; edits on either side overwrite the other; budget via Max searches per request). Auto = the last tool in the chain order is the fallback. Effective on the next search.',
   chainNoUsableWarning: 'No usable search tool and no working fallback — the next web_search will fail. Enable or configure a tool member, or select the DeepSeek paid fallback (needs the Models-page key, offered with fewer than two ready tools).',
   maxUsesLabel: 'Max searches per request',
@@ -132,6 +174,48 @@ export const en: Record<DshWsLocaleKey, string> = {
   chainRolePrimary: 'Primary',
   chainRoleStandby: 'Standby',
   maskedKey: '••••••••',
+  searchCountryLabel: 'Search region',
+  searchCountryNote: 'One ISO country code (e.g. CN) for every tool that accepts a region — Exa, Perplexity, Firecrawl (whose API otherwise defaults to US). Applies to the next search; leave empty to send none.',
+  searchLanguageLabel: 'Search language',
+  searchLanguageNote: 'One ISO language code (e.g. zh) for the tools with a search-level language parameter — Tavily and Perplexity. Applies to the next search; leave empty to send none.',
+  optDefault: 'Default',
+  optOff: 'No limit',
+  recencyHour: 'Past hour',
+  recencyDay: 'Past day',
+  recencyWeek: 'Past week',
+  recencyMonth: 'Past month',
+  recencyYear: 'Past year',
+  tavilyTopicLabel: 'Topic',
+  topicNews: 'News',
+  topicFinance: 'Finance',
+  tavilyTimeRangeLabel: 'Time range',
+  tavilyDepthLabel: 'Search depth',
+  depthAdvanced: 'Advanced (2× credits)',
+  depthFast: 'Fast',
+  depthUltraFast: 'Ultra-fast',
+  tavilyAnswerLabel: 'Generated answer',
+  answerBasic: 'Basic',
+  answerAdvanced: 'Advanced (more detail)',
+  exaTypeLabel: 'Search type',
+  typeInstant: 'Instant',
+  typeFast: 'Fast',
+  typeAuto: 'Auto',
+  typeDeepLite: 'Deep lite',
+  typeDeep: 'Deep',
+  typeDeepReasoning: 'Deep reasoning',
+  exaTextFallbackLabel: 'Text fallback',
+  exaTextFallbackNote: 'ON: also request each result page\u2019s text so results without highlights keep a snippet instead of being dropped. Default ON.',
+  exaDateFloorLabel: 'Published after',
+  pplxMaxTokensLabel: 'Max answer tokens',
+  pplxMaxTokensNote: 'Cap on the generated answer length. Default 1024 — raise it when long answers get cut off. 1–128000.',
+  pplxRecencyLabel: 'Time filter',
+  pplxContextLabel: 'Search context',
+  ctxLow: 'Low',
+  ctxMedium: 'Medium',
+  ctxHigh: 'High',
+  fcTbsLabel: 'Time filter',
+  fcLocationLabel: 'Location',
+  fcLocationNote: 'Free-text place (e.g. Beijing,China) for city-level geo-targeting; pairs best with a region code above.',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -170,7 +254,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackInfo: 'DeepSeek 兜底说明',
   fallbackRowLabel: '兜底搜索',
   endpointLabel: '接口地址',
-  endpointNote: '留空使用提供方默认地址；下次启动生效。',
+  endpointNote: '留空使用提供方默认地址；下一次搜索生效。',
   fallbackNote: '兜底工具：两家及以上工具就绪时，可指定一家专职链尾兜底（它退出常规轮换，仅在其余工具全部失败后接手——含其自身多 key 重试规则）；零家或一家就绪时可改选付费 DeepSeek 地板（经模型设置页 DEEPSEEK_API_KEY，与聊天共用同一把 key，两处后写覆盖先写；预算见「单次请求最多搜索次数」）。自动 = 链序末位工具即兜底。下一次搜索生效。',
   chainNoUsableWarning: '没有可用搜索工具，也没有可用兜底——下一次 web_search 将失败。请启用或配置工具成员，或选择 DeepSeek 付费兜底（需模型页 key，两家及以上工具就绪时不提供）。',
   maxUsesLabel: '单次请求最多搜索次数',
@@ -190,4 +274,46 @@ export const zh: Record<DshWsLocaleKey, string> = {
   chainRolePrimary: '主搜索',
   chainRoleStandby: '兜底位',
   maskedKey: '••••••••',
+  searchCountryLabel: '搜索区域',
+  searchCountryNote: '一个 ISO 国家码（如 CN），作用于所有支持区域的工具——Exa、Perplexity、Firecrawl（其 API 缺省固定美国）。下一次搜索生效；留空不发送。',
+  searchLanguageLabel: '搜索语言',
+  searchLanguageNote: '一个 ISO 语言码（如 zh），作用于有搜索级语言参数的工具——Tavily 与 Perplexity。下一次搜索生效；留空不发送。',
+  optDefault: '默认',
+  optOff: '不限',
+  recencyHour: '1 小时内',
+  recencyDay: '24 小时内',
+  recencyWeek: '1 周内',
+  recencyMonth: '1 个月内',
+  recencyYear: '1 年内',
+  tavilyTopicLabel: '主题',
+  topicNews: '新闻',
+  topicFinance: '财经',
+  tavilyTimeRangeLabel: '时间范围',
+  tavilyDepthLabel: '搜索深度',
+  depthAdvanced: '增强（2× 消耗）',
+  depthFast: '快速',
+  depthUltraFast: '极速',
+  tavilyAnswerLabel: '生成答案',
+  answerBasic: '基础',
+  answerAdvanced: '高级（更详细）',
+  exaTypeLabel: '搜索类型',
+  typeInstant: '即时',
+  typeFast: '快速',
+  typeAuto: '自动',
+  typeDeepLite: '深度精简',
+  typeDeep: '深度',
+  typeDeepReasoning: '深度推理',
+  exaTextFallbackLabel: '全文回退',
+  exaTextFallbackNote: '开：同时请求每条结果的页面全文——无高亮摘要的结果保留全文摘录而非被丢弃。默认开。',
+  exaDateFloorLabel: '发布日期下限',
+  pplxMaxTokensLabel: '答案 token 上限',
+  pplxMaxTokensNote: '生成答案的长度上限。默认 1024——长答案被截断时调高。范围 1–128000。',
+  pplxRecencyLabel: '时效过滤',
+  pplxContextLabel: '搜索上下文',
+  ctxLow: '低',
+  ctxMedium: '中',
+  ctxHigh: '高',
+  fcTbsLabel: '时效过滤',
+  fcLocationLabel: '位置',
+  fcLocationNote: '自由文本地点（如 Beijing,China），城市级地理定向；与上方区域码搭配效果最好。',
 }

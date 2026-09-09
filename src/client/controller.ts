@@ -66,13 +66,41 @@ interface MemberSectionValue {
   keySelection?: 'order' | 'round-robin' | 'random'
   /** DeepSeek-only (S14c): server-tool search budget per request, host parity. */
   maxUses?: number
-  /** Endpoint override (S14k, host-parity「接口地址」); empty = provider default. Launch-static. */
+  /** Endpoint override (S14k, host-parity「接口地址」); empty = provider default. Hot (S17 D1). */
   baseURL?: string
+  /** Tavily S17 P1: search category. */
+  topic?: 'general' | 'news' | 'finance'
+  /** Tavily S17 P1: publication-recency filter. */
+  timeRange?: 'day' | 'week' | 'month' | 'year'
+  /** Tavily S17 P1: search depth tier. */
+  searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
+  /** Tavily S17 P1: generated-answer tier (resolved default 'basic'). */
+  includeAnswer?: 'basic' | 'advanced'
+  /** Exa S17 P1: search type (current official 6-value enum). */
+  type?: 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
+  /** Exa S17 P1: text fallback (resolved default true). */
+  textFallback?: boolean
+  /** Exa S17 P1: publication-date floor (YYYY-MM-DD). */
+  startPublishedDate?: string
+  /** Perplexity S17 P1: response token cap (resolved default 1024). */
+  maxTokens?: number
+  /** Perplexity S17 P1: publication-recency filter. */
+  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
+  /** Perplexity S17 P1: search context tier. */
+  searchContextSize?: 'low' | 'medium' | 'high'
+  /** Firecrawl S17 P1: time-based search filter. */
+  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Firecrawl S17 P1: free-text geo location. */
+  location?: string
 }
 
 interface SectionValue {
   /** Universal web_fetch takeover toggle (S15a). */
   fetchTakeover?: boolean
+  /** Unified search region, ISO 3166-1 alpha-2 (S17 P1, ADR-0015). */
+  searchCountry?: string
+  /** Unified search language, ISO 639-1 (S17 P1, ADR-0015). */
+  searchLanguage?: string
   /** Designated fallback (ADR-0014 canonical field; the GUI writes only this). */
   fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
   /** @deprecated Legacy pre-0.2 alias (ADR-0014), read-only input. */
@@ -98,8 +126,24 @@ export interface MemberSnapshot {
   readonly configured: boolean
   /** Pool selection policy, defaulted to `round-robin` (S14n user ruling; ADR-0008). */
   readonly keySelection: 'order' | 'round-robin' | 'random'
-  /** Endpoint override; `undefined` = provider default (launch-static, S14k). */
+  /** Endpoint override; `undefined` = provider default (hot since S17 D1). */
   readonly baseURL: string | undefined
+  /** Tavily S17 P1: raw section values, `undefined` = provider default. */
+  readonly topic: string | undefined
+  readonly timeRange: string | undefined
+  readonly searchDepth: string | undefined
+  readonly includeAnswer: string | undefined
+  /** Exa S17 P1: raw section values, `undefined` = provider default. */
+  readonly type: string | undefined
+  readonly textFallback: boolean
+  readonly startPublishedDate: string | undefined
+  /** Perplexity S17 P1: raw section values, `undefined` = provider default. */
+  readonly maxTokens: number | undefined
+  readonly searchRecencyFilter: string | undefined
+  readonly searchContextSize: string | undefined
+  /** Firecrawl S17 P1: raw section values, `undefined` = provider default. */
+  readonly tbs: string | undefined
+  readonly location: string | undefined
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -123,6 +167,10 @@ export interface SectionSnapshot {
   readonly readyToolMembers: readonly string[]
   /** Universal web_fetch takeover toggle (S15a); resolved default true. */
   readonly fetchTakeover: boolean
+  /** Unified search region (ISO 3166-1 alpha-2); `undefined` = not sent (S17 P1, ADR-0015). */
+  readonly searchCountry: string | undefined
+  /** Unified search language (ISO 639-1); `undefined` = not sent (S17 P1, ADR-0015). */
+  readonly searchLanguage: string | undefined
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -155,6 +203,21 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       configured: fact?.configured === true,
       keySelection: section?.keySelection ?? 'round-robin',
       baseURL: section?.baseURL,
+      // S17 P1 raw values (undefined = provider default; '' is the GUI clear
+      // sentinel the node half's resolveConfig normalizes away).
+      topic: section?.topic,
+      timeRange: section?.timeRange,
+      searchDepth: section?.searchDepth,
+      includeAnswer: section?.includeAnswer,
+      type: section?.type,
+      // S17 D4 client mirror: the text fallback defaults ON.
+      textFallback: section?.textFallback ?? true,
+      startPublishedDate: section?.startPublishedDate,
+      maxTokens: section?.maxTokens,
+      searchRecencyFilter: section?.searchRecencyFilter,
+      searchContextSize: section?.searchContextSize,
+      tbs: section?.tbs,
+      location: section?.location,
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -185,6 +248,8 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     fallbackDeepseekEligible: readyToolMembers.length <= 1 && facts.get(deepseekRef)?.configured === true,
     readyToolMembers,
     fetchTakeover: value.fetchTakeover ?? true,
+    searchCountry: value.searchCountry,
+    searchLanguage: value.searchLanguage,
     revision,
     writable,
   }
@@ -290,13 +355,47 @@ export class WebSearchSettingsController {
 
   /**
    * Set a member's endpoint override (S14k, host-parity「接口地址」). Empty
-   * string clears the override (back to provider default). Launch-static:
-   * applies at next launch — the GUI states this next to the field.
+   * string clears the override (back to provider default). Hot since S17 D1:
+   * applies to the next search.
    */
   async setBaseURL(memberKey: string, baseURL: string): Promise<ActionResult> {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { baseURL: baseURL.trim() } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /**
+   * Set one S17 P1 member option through the settings remote (hot: the next
+   * search). `''` is the enum/date clear sentinel the node half's
+   * `resolveConfig` normalizes to "not sent".
+   */
+  async setMemberOption(
+    memberKey: string,
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'maxTokens' | 'searchRecencyFilter' | 'searchContextSize' | 'tbs' | 'location',
+    value: string | number | boolean,
+  ): Promise<ActionResult> {
+    const member = MEMBERS.find((candidate) => candidate.key === memberKey)
+    if (!member) return { ok: false }
+    const result = await this.#ports.updateSettings(NS, { [member.key]: { [option]: value } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /** Set the unified search region (S17 P1, ADR-0015). Empty string clears. Hot: the next search. */
+  async setSearchCountry(country: string): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { searchCountry: country.trim() }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /** Set the unified search language (S17 P1, ADR-0015). Empty string clears. Hot: the next search. */
+  async setSearchLanguage(language: string): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { searchLanguage: language.trim() }, this.#revision)
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }
@@ -321,7 +420,7 @@ export class WebSearchSettingsController {
   /**
    * Set the DeepSeek fallback `maxUses` (S14c, host-parity knob). Patched under
    * the deepseek member key — deep-merge keeps sibling fields; the provider
-   * reads it launch-static (D2 discipline note).
+   * reads it hot (S17 D1).
    */
   async setDeepseekMaxUses(maxUses: number): Promise<ActionResult> {
     // S14g: mirror the GUI bounds [5, 100].
