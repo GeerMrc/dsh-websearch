@@ -71,6 +71,8 @@ interface MemberSectionValue {
 }
 
 interface SectionValue {
+  /** Universal web_fetch takeover toggle (S15a). */
+  fetchTakeover?: boolean
   /** Designated fallback (ADR-0014 canonical field; the GUI writes only this). */
   fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
   /** @deprecated Legacy pre-0.2 alias (ADR-0014), read-only input. */
@@ -119,6 +121,8 @@ export interface SectionSnapshot {
   readonly fallbackDeepseekEligible: boolean
   /** Ready tool members (configured && enabled), excluding DeepSeek — the ADR-0014 count. */
   readonly readyToolMembers: readonly string[]
+  /** Universal web_fetch takeover toggle (S15a); resolved default true. */
+  readonly fetchTakeover: boolean
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -180,6 +184,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       && members.some((m) => m.memberId === fallbackSelection && m.configured && m.enabled),
     fallbackDeepseekEligible: readyToolMembers.length <= 1 && facts.get(deepseekRef)?.configured === true,
     readyToolMembers,
+    fetchTakeover: value.fetchTakeover ?? true,
     revision,
     writable,
   }
@@ -292,6 +297,14 @@ export class WebSearchSettingsController {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
     if (!member) return { ok: false }
     const result = await this.#ports.updateSettings(NS, { [member.key]: { baseURL: baseURL.trim() } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /** Toggle the universal web_fetch takeover (S15a): hot on the next call. */
+  async setFetchTakeover(active: boolean): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { fetchTakeover: active }, this.#revision)
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }

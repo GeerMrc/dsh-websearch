@@ -61,6 +61,8 @@ export type DshWsLocaleKey =
   | 'fallbackDeepseekKeylessNote'
   | 'fallbackDesignationLostNote'
   | 'chainLockedNote'
+  | 'fetchTakeoverLabel'
+  | 'fetchTakeoverNote'
   | 'keyPlaceholder'
   | 'maskedKey'
   | 'chainOrderHint'
@@ -123,6 +125,8 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackDeepseekKeylessNote: 'DeepSeek paid is selected but its key is not configured (Models page); until then the chain runs without a paid floor.',
   fallbackDesignationLostNote: 'The designated fallback tool is not ready (missing key or disabled); the chain-order last tool serves as the fallback meanwhile.',
   chainLockedNote: 'locked fallback',
+  fetchTakeoverLabel: 'Take over web_fetch (all modes)',
+  fetchTakeoverNote: 'ON: new sessions compose search-only preset copies (standard/PTC/creative) and web_fetch calls receive guidance toward web_search. OFF: presets restore to the shipped originals and web_fetch goes through plain HTTP. Switch active sessions back before turning OFF — their preset directories are removed.',
   keyPlaceholder: '{ref} — multiple keys: APIKEY1,APIKEY2,… (max 10)',
   chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last ready member is the in-chain standby (or the designated fallback tool, locked at the tail). Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch.',
   chainRolePrimary: 'Primary',
@@ -177,6 +181,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackDeepseekKeylessNote: '已选择 DeepSeek 付费但模型页 key 未配置；在此之前链上没有付费兜底。',
   fallbackDesignationLostNote: '指定的兜底工具未就绪（缺 key 或已停用）；期间由链序末位工具承担兜底。',
   chainLockedNote: '锁定兜底',
+  fetchTakeoverLabel: '接管 web_fetch（全模式）',
+  fetchTakeoverNote: '开：新会话使用仅搜索预设副本（标准/PTC/创造），web_fetch 调用得到指向 web_search 的指引。关：预设恢复官方原版，web_fetch 走正常 HTTP。关闭前请先切换在用会话的预设——其目录会被清除。',
   chainTailHint: '被指定的兜底工具固定链尾、不可排序；自动 = 链序末位即兜底。',
   configure: '配置',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',

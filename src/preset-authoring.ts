@@ -39,11 +39,11 @@ function copyIdFor(shippedId: string): string {
 /** Map shipped preset id → display name for the copy's preset.yml. */
 function copyNameFor(shippedId: string): string {
   const names: Record<string, string> = {
-    standard: '标准·仅插件搜索',
-    ptc: 'PTC·仅插件搜索',
-    cordis: '创造·仅插件搜索',
+    standard: '\u6807\u51c6\u00b7\u4ec5\u63d2\u4ef6\u641c\u7d22',
+    ptc: 'PTC\u00b7\u4ec5\u63d2\u4ef6\u641c\u7d22',
+    cordis: '\u521b\u9020\u00b7\u4ec5\u63d2\u4ef6\u641c\u7d22',
   }
-  return names[shippedId] ?? `${shippedId}·仅插件搜索`
+  return names[shippedId] ?? `${shippedId}\u00b7\u4ec5\u63d2\u4ef6\u641c\u7d22`
 }
 
 /** Display order in the picker: after every shipped preset (they are 1-4). */
@@ -87,7 +87,7 @@ function dshHome(): string {
 function presetYmlFor(shippedId: string): string {
   return `${MARKER}
 name: ${copyNameFor(shippedId)}
-description: ${copyNameFor(shippedId)}——web_fetch 不注册，网页信息入口仅 dsh-websearch 接管的 web_search（多工具/多 key/兜底链）。由 dsh-websearch 插件维护；切换回官方行为请在设置页关闭「接管 web_fetch」。
+description: ${copyNameFor(shippedId)}\u2014\u2014web_fetch \u4e0d\u6ce8\u518c\uff0c\u7f51\u9875\u4fe1\u606f\u5165\u53e3\u4ec5 dsh-websearch \u63a5\u7ba1\u7684 web_search\uff08\u591a\u5de5\u5177/\u591a key/\u515c\u5e95\u94fe\uff09\u3002\u7531 dsh-websearch \u63d2\u4ef6\u7ef4\u62a4\uff1b\u5207\u6362\u56de\u5b98\u65b9\u884c\u4e3a\u8bf7\u5728\u8bbe\u7f6e\u9875\u5173\u95ed\u300c\u63a5\u7ba1 web_fetch\u300d\u3002
 order: ${COPY_ORDER}
 `
 }
