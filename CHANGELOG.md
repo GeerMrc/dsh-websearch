@@ -12,6 +12,21 @@
 
 ---
 
+## 2026-09-09 — web_fetch 移除 + 链路文件日志（Session 14z，用户默认裁定）
+
+**新增**
+- **链路文件日志** `<dshHome>/logs/dsh-websearch.log`：宿主 CLI 无 info 级导出器、链路语句原本发射即沉没——现每次搜索的 draw（key 尾 4 字符）/轮换/降级/兜底接手/served-by 全程可 `tail` 回溯；>1MB 启动轮转 .old；append 失败静默降级永不伤链；`chainLogFile` 配置默认 true
+- **web_fetch 退役**（用户裁定「只使用本插件接管搜索」）：插件停注自有 fetch 链（chain-fetch + firecrawl scrape 面，死代码清除）；工具存在性归预设层——实例侧 `.agent-presets/plugin-search-only/`（standard 副本 `fetch: false`）实测：模型工具面无 web_fetch
+
+**诚实标注**
+- 默认裁定披露：AskUserQuestion 未获答，按消息正文默认（A 移除 + 立即做文件日志）推进
+- seam 的 fetchProvider 留 http（工具已不存在，指向无害）；fetchChain 配置字段保留读入不再消费
+
+**跟踪**
+- 基线 333→**337 passed | 9 skipped (346)**；🟢 轨迹页 key 级可见列 v2
+
+---
+
 ## 2026-09-09 — 混合 key 池治愈：确定性 4xx 二分（Session 14y，真实 key 池实测触发）
 
 **新增**
