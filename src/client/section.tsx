@@ -34,6 +34,8 @@ export interface SectionProps {
   onSetBaseURL: (memberKey: string, baseURL: string) => Promise<ActionResult>
   /** Designated fallback (ADR-0014): 'auto' = chain-order last position. */
   onSetFallbackMember: (member: SectionSnapshot['fallbackSelection']) => Promise<ActionResult>
+  /** Universal web_fetch takeover toggle (S15a). */
+  onSetFetchTakeover: (active: boolean) => Promise<ActionResult>
 }
 
 /**
@@ -59,6 +61,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetKeySelection={(key, selection) => controller.setKeySelection(key, selection)}
         onSetMaxUses={(maxUses) => controller.setDeepseekMaxUses(maxUses)}
         onSetFallbackMember={(member) => controller.setFallbackMember(member)}
+        onSetFetchTakeover={(active) => controller.setFetchTakeover(active)}
         onSetBaseURL={(key, url) => controller.setBaseURL(key, url)}
       />
     )
@@ -243,7 +246,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetBaseURL } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -429,6 +432,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           />
         ))}
         <FallbackToolRow key="dshws-fallback-tool" snapshot={snapshot} t={t} onChoose={onSetFallbackMember} />
+        <FetchTakeoverRow t={t} active={snapshot.fetchTakeover} onSet={onSetFetchTakeover} />
       </div>
     </div>
   )
@@ -657,6 +661,48 @@ function FallbackToolRow(props: {
       {feedback !== undefined ? (
         <p role="status" data-testid="dshws-fallback-feedback" style={{ ...hintStyle, margin: 0, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</p>
       ) : null}
+    </div>
+  )
+}
+
+/** Universal web_fetch takeover toggle (S15a): a switch row with guidance note. */
+function FetchTakeoverRow(props: {
+  t: (key: DshWsLocaleKey) => string
+  active: boolean
+  onSet: (active: boolean) => Promise<ActionResult>
+}) {
+  const { t, active, onSet } = props
+  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
+    return () => clearTimeout(timer)
+  }, [feedback])
+  return (
+    <div data-testid="dshws-fetch-takeover" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <strong style={nameStyle}>{t('fetchTakeoverLabel')}</strong>
+        <Tooltip label={t('fetchTakeoverNote')} side="bottom" delayMs={400} maxWidth={380}>
+          <button type="button" aria-label={t('fetchTakeoverNote')} style={infoButtonStyle}>
+            <IconQuestionOutline14 />
+          </button>
+        </Tooltip>
+        <span style={{ flex: 1 }} />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={active}
+          aria-label={t('fetchTakeoverLabel')}
+          data-testid="dshws-fetch-takeover-toggle"
+          onClick={() => { void onSet(!active).then((result) => setFeedback(result.ok ? 'saved' : 'failed')) }}
+          style={{ ...switchStyle(active, active), cursor: 'pointer' }}
+        >
+          <span style={thumbStyle(active)} />
+        </button>
+        {feedback !== undefined ? (
+          <span role="status" data-testid="dshws-fetch-takeover-feedback" style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
+        ) : null}
+      </div>
     </div>
   )
 }

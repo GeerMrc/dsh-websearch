@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
  * Bundle patch content contract (ADR-0013): the shipped cordis.patch.yml is
  * load-bearing install behavior, not documentation — installing the plugin
  * must take over web_search (`searchProvider: dshws-chain`) while explicitly
- * restating `fetchProvider: http` (the fetch chain is single-member firecrawl
+ * restating `fetchProvider: dshws-fetch-gate` (the fetch chain is single-member firecrawl
  * and must stay a documented manual opt-in), and must not carry a `name` guard
  * (a mismatched guard makes the host skip the entry silently).
  */
@@ -22,7 +22,7 @@ describe('bundle patch content (ADR-0013 装即接管)', () => {
     expect(patch).toContain('searchProvider: dshws-chain')
     // Whole-config replacement semantics: every shipped key must be restated,
     // so the http fetch default is carried explicitly, not inherited.
-    expect(patch).toContain('fetchProvider: http')
+    expect(patch).toContain('fetchProvider: dshws-fetch-gate')
     // A `name` guard on the web entry would skip silently on mismatch.
     expect(patch).not.toMatch(/- id: web\n\s+name:/)
   })

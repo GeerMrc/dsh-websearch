@@ -4,6 +4,6 @@
 - id: web
   config:
     searchProvider: dshws-chain
-    fetchProvider: http
+    fetchProvider: dshws-fetch-gate
 - id: web-search-deepseek
   disabled: true

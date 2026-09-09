@@ -69,6 +69,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     fallbackDesignationReady: false,
     fallbackDeepseekEligible: false,
     readyToolMembers: [...ORDERABLE],
+    fetchTakeover: true,
     revision: 0,
     writable: true,
   }
@@ -84,6 +85,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetFallbackMember: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetFetchTakeover: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetBaseURL: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
@@ -95,12 +97,13 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    expect(cards.length).toBe(6)
+    expect(cards.length).toBe(7)
     // Card testids, not brand text: the fallback selector's options also
     // carry brand names inside this container (ADR-0014).
     expect(screen.getByTestId('dshws-member-tavily')).toBeTruthy()
     expect(screen.getByTestId('dshws-member-anysearch')).toBeTruthy()
     expect(screen.getByTestId('dshws-fallback-tool')).toBeTruthy()
+    expect(screen.getByTestId('dshws-fetch-takeover')).toBeTruthy()
   })
 
   it('renders localized heading and description through the t seat', () => {
@@ -430,6 +433,15 @@ describe('WebSearchSettingsSection', () => {
     expect(within(rows[0] as HTMLElement).queryByTestId('dshws-chain-role-standby')).toBeNull()
   })
 
+  it('the takeover toggle fires onSetFetchTakeover with the inverted value (S15a)', async () => {
+    const onSetFetchTakeover = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetFetchTakeover })} t={t} />)
+    const toggle = screen.getByTestId('dshws-fetch-takeover-toggle') as HTMLButtonElement
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(toggle)
+    await waitFor(() => expect(onSetFetchTakeover).toHaveBeenCalledWith(false))
+  })
+
   it('key field placeholders, masking, and the {N} hint interpolate live values (S14d D3/T1, stage45 🟡-B 清偿)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')
@@ -728,8 +740,8 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const members = container.querySelector('[data-testid="dshws-members"]')!
     const children = Array.from(members.children)
-    expect(children.length).toBe(6)
-    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fallback-tool')
+    expect(children.length).toBe(7)
+    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
   })
 
   it('maxUses save patches the deepseek member key (S14c T4)', async () => {
