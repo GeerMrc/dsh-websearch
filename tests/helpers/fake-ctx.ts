@@ -27,7 +27,11 @@ export interface FakeCtx {
     describe: (ref: CredentialRef) => Promise<CredentialInfo>
     resolve: (ref: CredentialRef) => Promise<{ value: string; source: string } | undefined>
   }
-  inject: (names: readonly string[], cb: (sctx: { settings: { installSection: (...args: never[]) => void } }) => void) => void
+  inject: (names: readonly string[], cb: (sctx: { settings: {
+    installSection: (...args: never[]) => void
+    describe: () => { ns: string; value?: Record<string, unknown> }[]
+    update: (ns: string, patch: Record<string, unknown>) => Promise<void>
+  } }) => void) => void
   on: (event: string, handler: (ref: CredentialRef) => void) => () => void
 }
 

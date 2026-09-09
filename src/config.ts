@@ -200,6 +200,14 @@ export interface Config {
    * best-effort — a failing append disables the sink, never the chain.
    */
   chainLogFile?: boolean
+  /**
+   * Universal web_fetch takeover (S15a): true = the fetch-gate provider
+   * rejects web_fetch calls with guidance toward web_search AND search-only
+   * preset copies are authored for standard/ptc/cordis; false = the gate
+   * delegates to plain HTTP and the copies are cleared. Default true.
+   * Hot: applies to the next web_fetch call and the next load's presets.
+   */
+  fetchTakeover?: boolean
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -220,6 +228,7 @@ export const Config: z<Config> = z.object({
   fallbackMember: z.union(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-deepseek']),
   fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
   chainLogFile: z.boolean(),
+  fetchTakeover: z.boolean(),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -322,6 +331,8 @@ export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings
 export interface ResolvedWebSearchConfig {
   /** Canonical designated fallback (legacy `fallbackProvider` normalized away; ADR-0014). */
   readonly fallbackMember: FallbackMember
+  /** Universal web_fetch takeover toggle, resolved default true (S15a). */
+  readonly fetchTakeover: boolean
   /** Search priority chain; never empty after resolution. */
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
@@ -355,6 +366,7 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       fallbackMember,
     ),
     fallbackMember,
+    fetchTakeover: config.fetchTakeover ?? true,
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],

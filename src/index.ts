@@ -19,7 +19,8 @@ import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
 import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { createChainFileLog } from './chain-log.ts'
-import { ensureSearchOnlyPreset, SEARCH_ONLY_PRESET_ID } from './preset-authoring.ts'
+import { clearAllSearchOnlyPresets, ensureAllSearchOnlyPresets, SEARCH_ONLY_PRESET_ID } from './preset-authoring.ts'
+import { FetchGateProvider, FETCH_GATE_PROVIDER_ID } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 import { CredentialGate } from './credentials.ts'
@@ -101,20 +102,32 @@ export function apply(ctx: Context, config: Config): void {
   const resolved = resolveConfig(config)
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
-  // Install-time web_fetch removal (S14z2): author the search-only preset
-  // first; only a successful write earns the roster-default switch, and only
-  // when the current default is still `standard` (a user's own choice is
-  // never overridden). The default is switched through the settings service —
-  // hot on the next session — never through a static patch, because a default
-  // id without a preset makes session creation throw.
+  // S15a universal web_fetch takeover: a fetch-gate provider pinned by the
+  // patch (fetchProvider), hot-flipping between guidance-error (ON) and HTTP
+  // delegation (OFF) — the review's M1+M2 ruling. The preset copies (Layer B)
+  // regenerate on every load; the default switch follows the S14z2 safe order.
+  const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
+  ctx.web.registerFetchProvider(new FetchGateProvider(fetchTakeoverActive))
+
   ctx.inject(['settings'], (settingsCtx) => {
+    if (!fetchTakeoverActive()) {
+      // Toggle OFF: restore the default FIRST (a default pointing at a
+      // deleted preset makes session creation throw — review M1/S1), then
+      // remove the authored copies.
+      void settingsCtx.settings.update('agent-presets', { default: 'standard' })
+        .then(() => { clearAllSearchOnlyPresets() })
+        .catch(() => {})
+      return
+    }
+    // Toggle ON (default): S14z2 safe order — ensure copies exist, then switch
+    // the default only when it is still `standard' (or already ours).
     const presets = settingsCtx.settings.describe().find((descriptor) => descriptor.ns === 'agent-presets')
     const current = (presets?.value as { default?: string } | undefined)?.default ?? 'standard'
-    if (current !== 'standard') return
-    if (ensureSearchOnlyPreset() === undefined) return
-    // Fire-and-forget by design: a failed switch leaves the default on the
-    // working  — the safe direction — and the next load retries.
-    void settingsCtx.settings.update('agent-presets', { default: SEARCH_ONLY_PRESET_ID }).catch(() => {})
+    if (current !== 'standard' && current !== SEARCH_ONLY_PRESET_ID) return
+    if (ensureAllSearchOnlyPresets() === undefined) return
+    if (current === 'standard') {
+      void settingsCtx.settings.update('agent-presets', { default: SEARCH_ONLY_PRESET_ID }).catch(() => {})
+    }
   })
   const log = (message: string) => {
     ctx.logger.info(message)

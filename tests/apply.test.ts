@@ -9,9 +9,9 @@ describe('apply assembly', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
-    // S14z: nothing registers a fetch provider — web_fetch is removed at the
-    // preset layer and the seam keeps the official http provider.
-    expect(fetch).toEqual([])
+    // S15a: the fetch-gate provider is the ONLY fetch registration — pinned
+    // by the patch, hot-flipping between guidance and HTTP delegation.
+    expect(fetch).toEqual(['dshws-fetch-gate'])
   })
 
   it('a model key alone grants NO paid reach — the floor joins only when designated (ADR-0014, was the S14u auto quadrant)', async () => {
