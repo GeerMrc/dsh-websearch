@@ -78,13 +78,14 @@
 | 14z2 | 2026-09-09 | 装即接管：运行时自动生成仅搜索预设 + settings 切默认（替代手动预设切换，用户裁定预设方式不专业） | ✅ | 静态钉 default 有砖机风险（缺预设→会话创建抛错）已排除；实测：不动选择器新会话即仅插件搜索、无 web_fetch；343\|9(352) | 卸载残留（settings 默认+预设目录）诚实披露；用户自撰同名目录永不覆写 |
 | 15a | 2026-09-09 | 全模式 web_fetch 接管 0.2.1：多预设副本 + fetch-gate 网关 | ✅ | （已被 15b 简化取代——副本层移除，网关独立承担） | — |
 | 15b | 2026-09-09 | 网关-only 接管 0.2.2 | ✅ | （已被 15c 取代——网关拦截层退役，restrict 在更前端面隐藏工具） | — |
+| 16-p0 | 2026-09-10 | API 对齐 P0 修复级：Exa highlights 迁移 + Firecrawl timeout + 6 UA 统一 + web_fetch 债务标记 | ✅ | master d996d3d；357\|9(366) exit0 | web_fetch 🟡 登记；P1 为下一棒（roadmap S17 ⏳） |
 | 15c | 2026-09-09 | web_fetch 彻底隐藏 via 官方 tools.restrict() API（终版） | ✅ | 实测：标准模式新会话模型确认"没有 web_fetch"、零报错零引导、仅调 web_search；354\|9(363) | 官方 API 零维护开销；对全部预设/模式自动生效 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 15c ✅ 2026-09-09 收官——web_fetch 彻底隐藏 via tools.restrict 官方 API（终版）；3423 已部署并实测）
+- **当前 session**: 无进行中（Session 16-P0 ✅ 2026-09-10 收官——API 对齐修复级 + web_fetch 债务标记；下一棒 = S17 P1 高价值参数批）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 14x — 记录：docs/sessions/2026-09-09-session-14x.md
-- **下一棒**: S15 README + 迁移 + 升级手册（M5 文档腿收官；含 ADR-0008/0011/0012 勘注与架构 §4/§5 重试段——S14u 语义表为正素材）→ S16 上游验收准备
+- **下一棒**: S17 P1 高价值参数批（roadmap ⏳ 行；14 参数 / 4-7 天 / 2-3 治理 session）→ S15 README 手册 → S16 上游验收准备
 - **活跃债务**: 🔴×0 🟡×1（web_fetch 完整替代——S15c 隐藏态，P1 对齐后评估恢复路径）🟢×4 维持 + L-2 + 观察（badge 超长 id/fetchChain 显式不过滤对称注记/architecture D7 面→S15/AMBIGUOUS→S15 手册/发版清单→S15-S16/宿主闲置卡措辞〔已退役〕→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15）+ v2 backlog——正本：progress-M7 台账
 - **更新时间**: 2026-09-09（14x 阶段 6 收尾）
