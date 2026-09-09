@@ -46,7 +46,7 @@ export const FIRECRAWL_DEFAULT_BASE_URL = 'https://api.firecrawl.dev'
 const codes = MEMBER_ERROR_CODES.firecrawl
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
+const USER_AGENT = 'dsh-websearch/0.2.2'
 
 /** Wire type of one Firecrawl `data.web[]` search entry (optional fields read tolerantly). */
 export interface FirecrawlWebResult {
@@ -199,7 +199,14 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         method: 'POST',
         redirect: 'error',
         headers: this.#headers(apiKey),
-        body: JSON.stringify({ url: request.url, formats: ['markdown'] }),
+        body: JSON.stringify({
+          url: request.url,
+          formats: ['markdown'],
+          // The upstream default is 60s, but the tool-level budget is 30s —
+          // without an explicit cap the client aborts while the server keeps
+          // burning credits (S16 P0-2).
+          timeout: 20_000,
+        }),
         ...(signal !== undefined ? { signal } : {}),
       })
     } catch (error: unknown) {

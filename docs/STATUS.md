@@ -86,5 +86,5 @@
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 14x — 记录：docs/sessions/2026-09-09-session-14x.md
 - **下一棒**: S15 README + 迁移 + 升级手册（M5 文档腿收官；含 ADR-0008/0011/0012 勘注与架构 §4/§5 重试段——S14u 语义表为正素材）→ S16 上游验收准备
-- **活跃债务**: 🔴×0 🟡×0（阶段 4/5 审定+清偿）🟢×4 维持 + L-2 + 观察（badge 超长 id/fetchChain 显式不过滤对称注记/architecture D7 面→S15/AMBIGUOUS→S15 手册/发版清单→S15-S16/宿主闲置卡措辞〔已退役〕→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15）+ v2 backlog——正本：progress-M7 台账
+- **活跃债务**: 🔴×0 🟡×1（web_fetch 完整替代——S15c 隐藏态，P1 对齐后评估恢复路径）🟢×4 维持 + L-2 + 观察（badge 超长 id/fetchChain 显式不过滤对称注记/architecture D7 面→S15/AMBIGUOUS→S15 手册/发版清单→S15-S16/宿主闲置卡措辞〔已退役〕→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15）+ v2 backlog——正本：progress-M7 台账
 - **更新时间**: 2026-09-09（14x 阶段 6 收尾）
