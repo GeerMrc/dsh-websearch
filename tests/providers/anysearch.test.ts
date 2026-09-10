@@ -35,6 +35,51 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+describe('S22 T4: unified searchLanguage fans out to AnySearch (BCP-47)', () => {
+  it('zh maps to the zh-CN default region; an already-regional lower-case value is upper-cased, not re-mapped', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ code: 0, data: { results: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const provider = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', keySelection: 'order' },
+      async () => 'anysearch-fake-key',
+      { language: 'zh' },
+    ))
+    await provider.search({ query: 'q' })
+    let [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).language).toBe('zh-CN')
+
+    const regional = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', keySelection: 'order' },
+      async () => 'anysearch-fake-key',
+      { language: 'zh-tw' },
+    ))
+    await regional.search({ query: 'q' })
+    ;[, init] = fetchMock.mock.calls[1] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).language).toBe('zh-TW')
+  })
+
+  it('a region-less non-zh language passes through; no fan-out language = not sent', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ code: 0, data: { results: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const provider = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', keySelection: 'order' },
+      async () => 'anysearch-fake-key',
+      { language: 'en' },
+    ))
+    await provider.search({ query: 'q' })
+    let [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).language).toBe('en')
+
+    const bare = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY', keySelection: 'order' },
+      async () => 'anysearch-fake-key',
+    ))
+    await bare.search({ query: 'q' })
+    ;[, init] = fetchMock.mock.calls[1] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).not.toHaveProperty('language')
+  })
+})
+
 describe('dshws-anysearch mapping', () => {
   it('maps envelope results to normalized sources', () => {
     const result = mapAnysearchResponse({

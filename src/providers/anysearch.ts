@@ -15,7 +15,7 @@
  *
  * @module dsh-websearch/providers/anysearch
  */
-import type { AnysearchMemberConfig } from '../config.ts'
+import type { AnysearchMemberConfig, UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebFetchProvider, WebFetchRequest, WebFetchResult, WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -71,6 +71,8 @@ export interface AnysearchMemberOptions {
   readonly baseURL: string
   /** Regional zone; sent in the request body only when configured. */
   readonly zone?: 'cn' | 'intl'
+  /** Result-language preference in BCP-47 form, mapped from the unified entry; absent = not sent (S22 P3). */
+  readonly language?: string
 }
 
 /**
@@ -80,13 +82,27 @@ export interface AnysearchMemberOptions {
 export function resolveAnysearchMemberOptions(
   config: AnysearchMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
+  fanout?: UnifiedSearchFanout,
 ): AnysearchMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
     resolveApiKey,
     baseURL: config.baseURL ?? ANYSEARCH_DEFAULT_BASE_URL,
     zone: config.zone,
+    language: fanout?.language !== undefined ? toAnysearchLanguage(fanout.language) : undefined,
   }
+}
+
+/**
+ * Map the unified entry's region-less ISO 639-1 value (stored lower-case) to
+ * the BCP-47 form the API expects: `zh` gains the default `CN` region, any
+ * other value keeps its subtag but the region part is re-cased to upper
+ * (`zh-tw` -> `zh-TW`); a bare language passes through unchanged (S22 P3).
+ */
+export function toAnysearchLanguage(language: string): string {
+  if (language === 'zh') return 'zh-CN'
+  const [primary, region] = language.split('-')
+  return region !== undefined ? `${primary}-${region.toUpperCase()}` : primary
 }
 
 /**
@@ -164,6 +180,7 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
           query: request.query,
           ...maxResults !== undefined ? { max_results: maxResults } : {},
           ...this.options.zone !== undefined ? { zone: this.options.zone } : {},
+          ...this.options.language !== undefined ? { language: this.options.language } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })
