@@ -12,6 +12,28 @@
 
 ---
 
+## 2026-09-10 — 移除 dshws-perplexity 成员 0.4.0 + 成员准入标准（Session 19，用户终裁 + ADR-0017）
+
+**Breaking 变更（0.3.1 → 0.4.0）**
+- **完整移除 `dshws-perplexity` 成员**（前后端 + 测试 + 文档）：provider/config 节/GUI 卡与参数控件/errors 码族/e2e 场景；链默认序 5→4（Tavily → Exa → Firecrawl → AnySearch）；导出面收敛（PERPLEXITY_* 四导出全消）
+- **动因（事实核证，官方出处在案）**：Perplexity API 无任何免费途径——纯预充值绑卡、Pro/Max 订阅不含 API 额度（历史 $5/月 credit 已取消）、学生计划不含 API、唯创业公司 Startups 计划（$5000 需审核）
+- **ADR-0017 成员准入标准**（此后新成员第一道门）：①高可用 ②**有免费额度（硬门槛）** ③多 APIKEY 池 ④功能对齐上游；现役复核 Tavily/Exa/Firecrawl/AnySearch ✓（DeepSeek 为显式付费 opt-in 兜底不受 ② 约束）；ADR-0016 → superseded（S18 迁移转历史档——决策时点信息不同非浪费）；ADR-0015 fan-out 语言面剩 Tavily、region 面剩 Exa/Firecrawl
+- **存量配置兼容**：`fallbackMember: 'dshws-perplexity'` legacy 别名双点归一 'auto'（schema 宽容 + resolveConfig/controller）；残留 `perplexity:` 节静默忽略（schemastery 探针实测）；searchChain 死 id 运行时跳过
+
+**治理**
+- 阶段 0 精简 PASS（探针 + 免费额度调研附档）；plan 019 两轮 APPROVED；2.5 = 用户直接指令；阶段 4 **R1-R5 全 PASS**（R1 grep 逐行分类零非豁免残留 + 探针双红绿）；阶段 5 **COMPLETE**（4 前瞻项全清偿）；audit-log ×4 入库
+
+**诚实标注（遗留项）**
+- 残尸 `perplexity:` 节静默无害——README（S15）将提示手动清理（🟢 在档）
+- 恢复路径为方向性声明（整棒重放而非纯 git revert——移除横跨 4 commits + 测试承载改写）；controller 宽 union 内联重复 🟢（后续棒收口 import type）
+- S18 观察×2（search_results 边界/title 空白）随成员移除 moot 翻账
+
+**跟踪（观察期）**
+- 基线 **377 passed | 11 skipped (388) exit0**（401→377，perplexity 测试删除）/ tc 0 / lint 0w0e 54f / build 77.20+34.02+93.18（净缩）/ pack 五件 51.7kB / i18n 92 keys / UA dsh-websearch/0.4.0 ×5
+- 下一棒：S15 README 手册（新增素材：ADR-0017 准入口径 + 残尸配置清理提示）——正本 session-19 记录★节
+
+---
+
 ## 2026-09-10 — Perplexity Agent API 迁移 0.3.1（Session 18，Sonar 日落应对 + 阶段 0 🟡 处置）
 
 **迁移级变更（用户透明：config/GUI/locale 零改动）**

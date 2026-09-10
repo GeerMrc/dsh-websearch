@@ -1,6 +1,6 @@
 ---
 title: "ADR-0016: Perplexity Agent API 迁移——/v1/agent responses 形态、web_search 工具恒含、模型前缀归一（config 零改动）"
-status: accepted
+status: superseded by ADR-0017
 date: 2026-09-10
 type: feat
 origin: Sonar 全线 2026-09-27 日落（官方迁移横幅，S17 阶段 1 调研发现）；roadmap S18 行 + plan 018 阶段 2 两轮审核 + 2.5 默认批准
@@ -9,6 +9,8 @@ origin: Sonar 全线 2026-09-27 日落（官方迁移横幅，S17 阶段 1 调�
 # ADR-0016: Perplexity Agent API 迁移
 
 ## Status
+
+superseded by [ADR-0017](adr-0017-member-admission-and-perplexity-removal.md)（2026-09-10——成员依准入标准移除，本迁移 ADR 转历史档；决策时点信息不同非浪费）
 
 accepted（2026-09-10；amends ADR-0015 的 Perplexity fan-out 落点——见勘注）
 

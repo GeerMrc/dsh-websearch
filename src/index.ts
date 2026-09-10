@@ -39,7 +39,6 @@ import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './provider
 import { DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER } from './config.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
-import { PerplexitySearchProvider, resolvePerplexityMemberOptions } from './providers/perplexity.ts'
 import { TavilySearchProvider, resolveTavilyMemberOptions } from './providers/tavily.ts'
 import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
 
@@ -48,7 +47,6 @@ export type {
   DeepSeekSettings,
   ExaSettings,
   FirecrawlSettings,
-  PerplexitySettings,
   ResolvedWebSearchConfig,
   TavilySettings,
 } from './config.ts'
@@ -76,11 +74,6 @@ export {
   resolveExaMemberOptions,
 } from './providers/exa.ts'
 export {
-  PERPLEXITY_MEMBER_ID,
-  PerplexitySearchProvider,
-  resolvePerplexityMemberOptions,
-} from './providers/perplexity.ts'
-export {
   FIRECRAWL_MEMBER_ID,
   FirecrawlProvider,
   resolveFirecrawlMemberOptions,
@@ -96,7 +89,7 @@ export const inject = ['web', 'credentials']
 export { Config }
 
 /** The bundled members, keyed by their config section. */
-type MemberKey = 'tavily' | 'exa' | 'perplexity' | 'firecrawl' | 'deepseek' | 'anysearch'
+type MemberKey = 'tavily' | 'exa' | 'firecrawl' | 'deepseek' | 'anysearch'
 
 /**
  * Plugin entry point: build the priority chains and the five bundled members,
@@ -182,7 +175,7 @@ export function apply(ctx: Context, config: Config): void {
   // configured extras. Entry-config names outside the credential grammar
   // fail the load here; settings-sourced names are grammar-checked at resolve
   // time and re-primed on every settings commit (see attachSettingsSection).
-  for (const member of [resolved.tavily, resolved.exa, resolved.perplexity, resolved.firecrawl, resolved.deepseek, resolved.anysearch]) {
+  for (const member of [resolved.tavily, resolved.exa, resolved.firecrawl, resolved.deepseek, resolved.anysearch]) {
     credentialRef(member.apiKeyEnv)
   }
 
@@ -226,7 +219,6 @@ export function apply(ctx: Context, config: Config): void {
   const pools = {
     tavily: keyPool('tavily', 'Tavily', MEMBER_ERROR_CODES.tavily),
     exa: keyPool('exa', 'Exa', MEMBER_ERROR_CODES.exa),
-    perplexity: keyPool('perplexity', 'Perplexity', MEMBER_ERROR_CODES.perplexity),
     firecrawl: keyPool('firecrawl', 'Firecrawl', MEMBER_ERROR_CODES.firecrawl),
     deepseek: keyPool('deepseek', 'DeepSeek', MEMBER_ERROR_CODES.deepseek),
     anysearch: keyPool('anysearch', 'Anysearch', MEMBER_ERROR_CODES.anysearch),
@@ -235,7 +227,6 @@ export function apply(ctx: Context, config: Config): void {
   const traced = {
     tavily: tracedPool('tavily', pools.tavily),
     exa: tracedPool('exa', pools.exa),
-    perplexity: tracedPool('perplexity', pools.perplexity),
     firecrawl: tracedPool('firecrawl', pools.firecrawl),
     deepseek: tracedPool('deepseek', pools.deepseek),
     anysearch: tracedPool('anysearch', pools.anysearch),
@@ -331,13 +322,6 @@ export function apply(ctx: Context, config: Config): void {
       ),
       memberKey: 'exa',
       pool: pools.exa,
-    },
-    {
-      provider: new PerplexitySearchProvider(
-        hotMemberOptions(() => resolvePerplexityMemberOptions(live.current().perplexity, () => traced.perplexity.resolveApiKey(), geoOf())),
-      ),
-      memberKey: 'perplexity',
-      pool: pools.perplexity,
     },
     { provider: firecrawl, memberKey: 'firecrawl', pool: pools.firecrawl },
     {

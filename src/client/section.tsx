@@ -35,7 +35,7 @@ export interface SectionProps {
   /** One S17 P1 member option (selects/toggles/text/number controls); '' clears enum/date fields. */
   onSetMemberOption: (
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'maxTokens' | 'searchRecencyFilter' | 'searchContextSize' | 'tbs' | 'location',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location',
     value: string | number | boolean,
   ) => Promise<ActionResult>
   /** Unified search region (S17 P1, ADR-0015). */
@@ -784,7 +784,7 @@ function MemberEndpointField(props: {
 type MemberParamControl =
   | {
     kind: 'select'
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'searchRecencyFilter' | 'searchContextSize' | 'tbs'
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'tbs'
     labelKey: DshWsLocaleKey
     noteKey?: DshWsLocaleKey
     /** Resolved display default when the section value is unset ('' options are clear sentinels). */
@@ -793,7 +793,6 @@ type MemberParamControl =
   }
   | { kind: 'toggle', option: 'textFallback', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
   | { kind: 'text', option: 'location' | 'startPublishedDate', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, inputType: 'text' | 'date', placeholder?: string }
-  | { kind: 'number', option: 'maxTokens', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, min: number, max: number, fallback: number }
 
 /** The S17 P1 controls per member, in card order (ADR-0015 mapping; deepseek/anysearch expose none). */
 const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberParamControl[]>>> = {
@@ -812,13 +811,6 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
       { value: 'auto', labelKey: 'typeAuto' }, { value: 'instant', labelKey: 'typeInstant' }, { value: 'fast', labelKey: 'typeFast' }, { value: 'deep-lite', labelKey: 'typeDeepLite' }, { value: 'deep', labelKey: 'typeDeep' }, { value: 'deep-reasoning', labelKey: 'typeDeepReasoning' }] },
     { kind: 'toggle', option: 'textFallback', labelKey: 'exaTextFallbackLabel', noteKey: 'exaTextFallbackNote' },
     { kind: 'text', option: 'startPublishedDate', labelKey: 'exaDateFloorLabel', inputType: 'date' },
-  ],
-  perplexity: [
-    { kind: 'number', option: 'maxTokens', labelKey: 'pplxMaxTokensLabel', noteKey: 'pplxMaxTokensNote', min: 1, max: 128000, fallback: 1024 },
-    { kind: 'select', option: 'searchRecencyFilter', labelKey: 'pplxRecencyLabel', options: [
-      { value: '', labelKey: 'optOff' }, { value: 'hour', labelKey: 'recencyHour' }, { value: 'day', labelKey: 'recencyDay' }, { value: 'week', labelKey: 'recencyWeek' }, { value: 'month', labelKey: 'recencyMonth' }, { value: 'year', labelKey: 'recencyYear' }] },
-    { kind: 'select', option: 'searchContextSize', labelKey: 'pplxContextLabel', options: [
-      { value: '', labelKey: 'optDefault' }, { value: 'low', labelKey: 'ctxLow' }, { value: 'medium', labelKey: 'ctxMedium' }, { value: 'high', labelKey: 'ctxHigh' }] },
   ],
   firecrawl: [
     { kind: 'select', option: 'tbs', labelKey: 'fcTbsLabel', options: [
@@ -929,25 +921,19 @@ function MemberParamField(props: {
     )
   }
 
-  // text | number: staged draft with a Save button (the endpoint-field pattern).
-  const current = control.kind === 'number'
-    ? (typeof stored === 'number' ? String(stored) : String(control.fallback))
-    : (typeof stored === 'string' ? stored : '')
+  // text: staged draft with a Save button (the endpoint-field pattern).
+  const current = typeof stored === 'string' ? stored : ''
   const value = draft ?? current
-  const valid = control.kind === 'number'
-    ? Number.isInteger(Number(value)) && Number(value) >= control.min && Number(value) <= control.max
-    : true
+  const valid = true
   return (
     <div style={fieldStyle}>
       <FieldLabel t={t} labelKey={control.labelKey} noteKey={control.noteKey} ariaLabel={ariaLabel} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         <input
-          type={control.kind === 'number' ? 'number' : control.inputType}
-          min={control.kind === 'number' ? control.min : undefined}
-          max={control.kind === 'number' ? control.max : undefined}
+          type={control.inputType}
           aria-label={ariaLabel}
           data-testid={testid}
-          placeholder={control.kind === 'text' ? control.placeholder : control.kind === 'number' ? String(control.fallback) : undefined}
+          placeholder={control.kind === 'text' ? control.placeholder : undefined}
           value={value}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
           style={{ ...fieldInputStyle, flex: 1, minWidth: 0 }}
@@ -958,7 +944,7 @@ function MemberParamField(props: {
           disabled={!valid || draft === null || draft === current}
           aria-label={`${ariaLabel} ${t('save')}`}
           onClick={() => {
-            void commit(control.kind === 'number' ? Number(value) : value).then(() => setDraft(null))
+            void commit(value).then(() => setDraft(null))
           }}
         >
           {t('save')}

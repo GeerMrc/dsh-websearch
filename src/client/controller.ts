@@ -43,7 +43,6 @@ export interface WebSearchSettingsPorts {
 export const MEMBERS = [
   { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY', defaultBaseURL: 'https://api.tavily.com' },
   { key: 'exa', label: 'Exa', memberId: 'dshws-exa', defaultRef: 'EXA_API_KEY', defaultBaseURL: 'https://api.exa.ai' },
-  { key: 'perplexity', label: 'Perplexity', memberId: 'dshws-perplexity', defaultRef: 'PERPLEXITY_API_KEY', defaultBaseURL: 'https://api.perplexity.ai' },
   { key: 'firecrawl', label: 'Firecrawl', memberId: 'dshws-firecrawl', defaultRef: 'FIRECRAWL_API_KEY', defaultBaseURL: 'https://api.firecrawl.dev' },
   { key: 'deepseek', label: 'DeepSeek', memberId: 'dshws-deepseek', defaultRef: 'DEEPSEEK_API_KEY', defaultBaseURL: 'https://api.deepseek.com/anthropic/v1' },
   { key: 'anysearch', label: 'AnySearch', memberId: 'dshws-anysearch', defaultRef: 'ANYSEARCH_API_KEY', defaultBaseURL: 'https://api.anysearch.com' },
@@ -82,12 +81,6 @@ interface MemberSectionValue {
   textFallback?: boolean
   /** Exa S17 P1: publication-date floor (YYYY-MM-DD). */
   startPublishedDate?: string
-  /** Perplexity S17 P1: response token cap (resolved default 1024). */
-  maxTokens?: number
-  /** Perplexity S17 P1: publication-recency filter. */
-  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
-  /** Perplexity S17 P1: search context tier. */
-  searchContextSize?: 'low' | 'medium' | 'high'
   /** Firecrawl S17 P1: time-based search filter. */
   tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
   /** Firecrawl S17 P1: free-text geo location. */
@@ -102,14 +95,14 @@ interface SectionValue {
   /** Unified search language, ISO 639-1 (S17 P1, ADR-0015). */
   searchLanguage?: string
   /** Designated fallback (ADR-0014 canonical field; the GUI writes only this). */
-  fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
+  fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek' // 'dshws-perplexity' = S19 legacy input, normalized to 'auto'
   /** @deprecated Legacy pre-0.2 alias (ADR-0014), read-only input. */
   fallbackProvider?: 'deepseek' | 'none' | 'auto' | 'fetch'
+  /** S19 legacy alias: a stored value naming the removed member normalizes to 'auto' in the snapshot. */
   searchChain?: string[]
   perMemberTimeoutMs?: number
   tavily?: MemberSectionValue
   exa?: MemberSectionValue
-  perplexity?: MemberSectionValue
   firecrawl?: MemberSectionValue
   deepseek?: MemberSectionValue
   anysearch?: MemberSectionValue
@@ -137,10 +130,6 @@ export interface MemberSnapshot {
   readonly type: string | undefined
   readonly textFallback: boolean
   readonly startPublishedDate: string | undefined
-  /** Perplexity S17 P1: raw section values, `undefined` = provider default. */
-  readonly maxTokens: number | undefined
-  readonly searchRecencyFilter: string | undefined
-  readonly searchContextSize: string | undefined
   /** Firecrawl S17 P1: raw section values, `undefined` = provider default. */
   readonly tbs: string | undefined
   readonly location: string | undefined
@@ -158,7 +147,7 @@ export interface SectionSnapshot {
   /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
   readonly deepseekMaxUses: number | undefined
   /** Canonical designated fallback (ADR-0014); legacy values normalized away. */
-  readonly fallbackSelection: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
+  readonly fallbackSelection: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
   /** True when a DESIGNATED TOOL member is ready (configured && enabled). */
   readonly fallbackDesignationReady: boolean
   /** True when the paid DeepSeek option exists at all: at most one ready tool member AND its key configured. */
@@ -213,9 +202,6 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       // S17 D4 client mirror: the text fallback defaults ON.
       textFallback: section?.textFallback ?? true,
       startPublishedDate: section?.startPublishedDate,
-      maxTokens: section?.maxTokens,
-      searchRecencyFilter: section?.searchRecencyFilter,
-      searchContextSize: section?.searchContextSize,
       tbs: section?.tbs,
       location: section?.location,
       source: fact?.source,
@@ -227,9 +213,12 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
   const readyToolMembers = members
     .filter((m) => m.key !== 'deepseek' && m.configured && m.enabled)
     .map((m) => m.memberId)
-  const fallbackSelection: SectionSnapshot['fallbackSelection'] = value.fallbackMember !== undefined
-    ? value.fallbackMember
-    : (value.fallbackProvider === 'deepseek' ? 'dshws-deepseek' : 'auto')
+  const fallbackSelection: SectionSnapshot['fallbackSelection'] = value.fallbackMember === 'dshws-perplexity'
+    // S19 legacy alias: the removed member's designation degrades to auto.
+    ? 'auto'
+    : value.fallbackMember !== undefined
+      ? value.fallbackMember
+      : (value.fallbackProvider === 'deepseek' ? 'dshws-deepseek' : 'auto')
   const deepseekRef = value.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY'
   return {
     members,
@@ -374,7 +363,7 @@ export class WebSearchSettingsController {
    */
   async setMemberOption(
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'maxTokens' | 'searchRecencyFilter' | 'searchContextSize' | 'tbs' | 'location',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location',
     value: string | number | boolean,
   ): Promise<ActionResult> {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)

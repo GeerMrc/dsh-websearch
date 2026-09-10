@@ -8,7 +8,7 @@ describe('apply assembly', () => {
   it('registers the search chain and all six members; the fetch chain is RETIRED (S14z, ADR-0014 −fetch-search −fetch-face)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
-    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
+    expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])
     // S15a: the fetch-gate provider is the ONLY fetch registration — pinned
     // by the patch, hot-flipping between guidance and HTTP delegation.
     expect(fetch).toEqual(['dshws-fetch-gate'])

@@ -70,8 +70,8 @@ describe('LiveResolvedConfig', () => {
     const live = new LiveResolvedConfig({})
     live.setSource(() => ({}))
     expect(live.current().perMemberTimeoutMs).toBe(30000)
-    expect(live.current().perplexity.enabled).toBe(true)
-    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'])
+    expect(live.current().firecrawl.enabled).toBe(true)
+    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-firecrawl', 'dshws-anysearch'])
   })
 })
 

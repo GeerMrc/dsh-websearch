@@ -101,10 +101,6 @@ export type DshWsLocaleKey =
   | 'exaTextFallbackLabel'
   | 'exaTextFallbackNote'
   | 'exaDateFloorLabel'
-  | 'pplxMaxTokensLabel'
-  | 'pplxMaxTokensNote'
-  | 'pplxRecencyLabel'
-  | 'pplxContextLabel'
   | 'ctxLow'
   | 'ctxMedium'
   | 'ctxHigh'
@@ -170,14 +166,14 @@ export const en: Record<DshWsLocaleKey, string> = {
   fetchTakeoverLabel: 'Take over web_fetch (all modes)',
   fetchTakeoverNote: 'ON: the web_fetch tool is hidden from the model entirely — it never appears in the tool list, so the model uses web_search for everything. OFF: web_fetch is visible and works normally. Uninstalling the plugin restores the official behavior.',
   keyPlaceholder: '{ref} — multiple keys: APIKEY1,APIKEY2,… (max 10)',
-  chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last ready member is the in-chain standby (or the designated fallback tool, locked at the tail). Built-in default order: Tavily → Exa → Perplexity → Firecrawl → AnySearch.',
+  chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last ready member is the in-chain standby (or the designated fallback tool, locked at the tail). Built-in default order: Tavily → Exa → Firecrawl → AnySearch.',
   chainRolePrimary: 'Primary',
   chainRoleStandby: 'Standby',
   maskedKey: '••••••••',
   searchCountryLabel: 'Search region',
-  searchCountryNote: 'One ISO country code (e.g. CN) for every tool that accepts a region — Exa, Perplexity, Firecrawl (whose API otherwise defaults to US). Applies to the next search; leave empty to send none.',
+  searchCountryNote: 'One ISO country code (e.g. CN) for every tool that accepts a region — Exa and Firecrawl (whose API otherwise defaults to US). Applies to the next search; leave empty to send none.',
   searchLanguageLabel: 'Search language',
-  searchLanguageNote: 'One ISO language code (e.g. zh) for the tools with a search-level language parameter — Tavily and Perplexity. Applies to the next search; leave empty to send none.',
+  searchLanguageNote: 'One ISO language code (e.g. zh) for the tool with a search-level language parameter — Tavily. Applies to the next search; leave empty to send none.',
   optDefault: 'Default',
   optOff: 'No limit',
   recencyHour: 'Past hour',
@@ -206,10 +202,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   exaTextFallbackLabel: 'Text fallback',
   exaTextFallbackNote: 'ON: also request each result page\u2019s text so results without highlights keep a snippet instead of being dropped. Default ON.',
   exaDateFloorLabel: 'Published after',
-  pplxMaxTokensLabel: 'Max answer tokens',
-  pplxMaxTokensNote: 'Cap on the generated answer length. Default 1024 — raise it when long answers get cut off. 1–128000.',
-  pplxRecencyLabel: 'Time filter',
-  pplxContextLabel: 'Search context',
   ctxLow: 'Low',
   ctxMedium: 'Medium',
   ctxHigh: 'High',
@@ -270,14 +262,14 @@ export const zh: Record<DshWsLocaleKey, string> = {
   chainTailHint: '被指定的兜底工具固定链尾、不可排序；自动 = 链序末位即兜底。',
   configure: '配置',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',
-  chainOrderHint: '链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Perplexity → Firecrawl → AnySearch。',
+  chainOrderHint: '链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Firecrawl → AnySearch。',
   chainRolePrimary: '主搜索',
   chainRoleStandby: '兜底位',
   maskedKey: '••••••••',
   searchCountryLabel: '搜索区域',
-  searchCountryNote: '一个 ISO 国家码（如 CN），作用于所有支持区域的工具——Exa、Perplexity、Firecrawl（其 API 缺省固定美国）。下一次搜索生效；留空不发送。',
+  searchCountryNote: '一个 ISO 国家码（如 CN），作用于所有支持区域的工具——Exa、Firecrawl（其 API 缺省固定美国）。下一次搜索生效；留空不发送。',
   searchLanguageLabel: '搜索语言',
-  searchLanguageNote: '一个 ISO 语言码（如 zh），作用于有搜索级语言参数的工具——Tavily 与 Perplexity。下一次搜索生效；留空不发送。',
+  searchLanguageNote: '一个 ISO 语言码（如 zh），作用于有搜索级语言参数的工具——Tavily。下一次搜索生效；留空不发送。',
   optDefault: '默认',
   optOff: '不限',
   recencyHour: '1 小时内',
@@ -306,10 +298,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   exaTextFallbackLabel: '全文回退',
   exaTextFallbackNote: '开：同时请求每条结果的页面全文——无高亮摘要的结果保留全文摘录而非被丢弃。默认开。',
   exaDateFloorLabel: '发布日期下限',
-  pplxMaxTokensLabel: '答案 token 上限',
-  pplxMaxTokensNote: '生成答案的长度上限。默认 1024——长答案被截断时调高。范围 1–128000。',
-  pplxRecencyLabel: '时效过滤',
-  pplxContextLabel: '搜索上下文',
   ctxLow: '低',
   ctxMedium: '中',
   ctxHigh: '高',

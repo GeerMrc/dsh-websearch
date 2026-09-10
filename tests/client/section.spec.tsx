@@ -13,7 +13,7 @@ import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 // which this stub pins to the own dictionary.
 const t: TranslateNS<'dsh-websearch'> = (key) => en[key as DshWsLocaleKey] ?? key
 
-const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch']
+const BUILT_IN = ['dshws-tavily', 'dshws-exa', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch']
 
 
 /** S14c: cards default collapsed — expand before driving the key surface. */
@@ -28,7 +28,7 @@ function focusKey(label: string): HTMLInputElement {
   fireEvent.focus(input)
   return input
 }
-const BRANDS = ['Tavily', 'Exa', 'Perplexity', 'Firecrawl', 'DeepSeek', 'AnySearch']
+const BRANDS = ['Tavily', 'Exa', 'Firecrawl', 'DeepSeek', 'AnySearch']
 
 function member(key: string, label: string, overrides: Partial<MemberSnapshot> = {}): MemberSnapshot {
   return {
@@ -48,9 +48,6 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     type: undefined,
     textFallback: true,
     startPublishedDate: undefined,
-    maxTokens: undefined,
-    searchRecencyFilter: undefined,
-    searchContextSize: undefined,
     tbs: undefined,
     location: undefined,
     source: undefined,
@@ -63,7 +60,6 @@ function defaultMembers(): MemberSnapshot[] {
   return [
     member('tavily', 'Tavily'),
     member('exa', 'Exa'),
-    member('perplexity', 'Perplexity'),
     member('firecrawl', 'Firecrawl'),
     member('deepseek', 'DeepSeek'),
     member('anysearch', 'AnySearch'),
@@ -115,7 +111,7 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    expect(cards.length).toBe(7)
+    expect(cards.length).toBe(6)
     // Card testids, not brand text: the fallback selector's options also
     // carry brand names inside this container (ADR-0014).
     expect(screen.getByTestId('dshws-member-tavily')).toBeTruthy()
@@ -232,9 +228,9 @@ describe('WebSearchSettingsSection', () => {
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
     const upButtons = searchList.querySelectorAll('button[aria-label$="Move up"]')
     const downButtons = searchList.querySelectorAll('button[aria-label$="Move down"]')
-    // S14c: five orderable rows.
-    expect(upButtons.length).toBe(5)
-    expect(downButtons.length).toBe(5)
+    // S14c: four orderable rows (S19: perplexity removed).
+    expect(upButtons.length).toBe(4)
+    expect(downButtons.length).toBe(4)
     expect(screen.getByRole('button', { name: 'Tavily Move up' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Exa Move down' })).toBeTruthy()
   })
@@ -323,12 +319,12 @@ describe('WebSearchSettingsSection', () => {
     // Action feedback is a polite live region (host savedNotice convention);
     // verified on the save leg — toggling has never rendered member feedback.
     // The save leg runs on a full member card (deepseek has no key surface).
-    expand('perplexity')
-    const input = focusKey('Perplexity API Key')
-    fireEvent.change(input, { target: { value: 'sk-fake-px' } })
-    fireEvent.click(within(screen.getByTestId('dshws-member-perplexity')).getByRole('button', { name: 'Perplexity Save' }))
+    expand('firecrawl')
+    const input = focusKey('Firecrawl API Key')
+    fireEvent.change(input, { target: { value: 'sk-fake-fc' } })
+    fireEvent.click(within(screen.getByTestId('dshws-member-firecrawl')).getByRole('button', { name: 'Firecrawl Save' }))
     await waitFor(() =>
-      expect(screen.getByTestId('dshws-feedback-perplexity').getAttribute('role')).toBe('status'),
+      expect(screen.getByTestId('dshws-feedback-firecrawl').getAttribute('role')).toBe('status'),
     )
   })
 
@@ -362,7 +358,7 @@ describe('WebSearchSettingsSection', () => {
     const select = within(row).getByTestId('dshws-fallback-select') as HTMLSelectElement
     // Five ready tools: Auto + the five tool members; NO paid DeepSeek option.
     const values = Array.from(select.options).map((option) => option.value)
-    expect(values).toEqual(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'])
+    expect(values).toEqual(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-firecrawl', 'dshws-anysearch'])
     expect(select.value).toBe('auto')
     expect(within(row).queryByTestId('dshws-fallback-note')).toBeNull()
   })
@@ -426,14 +422,14 @@ describe('WebSearchSettingsSection', () => {
 
   it('marks the first ready member as primary and the last as the standby slot (S14w 主备显式化)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    // Five ready members: tavily heads the chain (primary), anysearch closes
+    // Four ready members: tavily heads the chain (primary), anysearch closes
     // it (the in-chain standby slot).
     const rows = screen.getAllByTestId(/^dshws-chain-item-/)
-    expect(rows).toHaveLength(5)
+    expect(rows).toHaveLength(4)
     expect(within(rows[0] as HTMLElement).getByTestId('dshws-chain-role-primary')).toBeTruthy()
-    expect(within(rows[4] as HTMLElement).getByTestId('dshws-chain-role-standby')).toBeTruthy()
+    expect(within(rows[3] as HTMLElement).getByTestId('dshws-chain-role-standby')).toBeTruthy()
     // Role badges exist only on the two ends — the middle members carry none.
-    for (const row of rows.slice(1, 4)) {
+    for (const row of rows.slice(1, 3)) {
       expect(within(row as HTMLElement).queryByTestId('dshws-chain-role-primary')).toBeNull()
       expect(within(row as HTMLElement).queryByTestId('dshws-chain-role-standby')).toBeNull()
     }
@@ -497,7 +493,6 @@ describe('WebSearchSettingsSection', () => {
     const defaults: Record<string, string> = {
       tavily: 'https://api.tavily.com',
       exa: 'https://api.exa.ai',
-      perplexity: 'https://api.perplexity.ai',
       firecrawl: 'https://api.firecrawl.dev',
       anysearch: 'https://api.anysearch.com',
     }
@@ -573,7 +568,7 @@ describe('WebSearchSettingsSection', () => {
     members[1] = member('exa', 'Exa', { configured: false })
     const snapshot = {
       ...makeSnapshot(members),
-      readyToolMembers: ['dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'],
+      readyToolMembers: ['dshws-tavily', 'dshws-firecrawl', 'dshws-anysearch'],
       fallbackSelection: 'dshws-exa' as const,
       fallbackDesignationReady: false,
     }
@@ -646,12 +641,12 @@ describe('WebSearchSettingsSection', () => {
   it('unconfigured members are hidden from the priority list and the visible end is disabled (过滤未配置——S11 🟡1 清偿 + 边界修复)', () => {
     const members = defaultMembers()
     members[1] = member('exa', 'Exa', { configured: false })
-    members[5] = member('anysearch', 'AnySearch', { configured: false })
+    members[4] = member('anysearch', 'AnySearch', { configured: false })
     const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
     const visible = [...searchList.querySelectorAll('[data-dshws-chain-label]')].map((span) => span.textContent)
     // S14c: DeepSeek is not a row — the visible span ends at Firecrawl.
-    expect(visible).toEqual(['Tavily', 'Perplexity', 'Firecrawl'])
+    expect(visible).toEqual(['Tavily', 'Firecrawl'])
     // The disabled boundary must follow the FILTERED list: the last visible
     // item's down button is disabled (previously computed against the full
     // chain length, so it stayed clickable and reported a bogus failure).
@@ -687,7 +682,6 @@ describe('WebSearchSettingsSection', () => {
     const keyed = [
       ['tavily', 'Tavily'],
       ['exa', 'Exa'],
-      ['perplexity', 'Perplexity'],
       ['firecrawl', 'Firecrawl'],
       ['anysearch', 'AnySearch'],
     ] as const
@@ -758,7 +752,7 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const members = container.querySelector('[data-testid="dshws-members"]')!
     const children = Array.from(members.children)
-    expect(children.length).toBe(7)
+    expect(children.length).toBe(6)
     expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
   })
 
@@ -905,24 +899,6 @@ describe('S17 P1 member parameter controls', () => {
     await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'type', 'deep'))
   })
 
-  it('perplexity: maxTokens stages a draft (save disabled until changed, bounds enforced) and commits the number', async () => {
-    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
-    const members = defaultMembers()
-    members[2] = member('perplexity', 'Perplexity', { maxTokens: 2048 })
-    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption, snapshot: makeSnapshot(members) })} t={t} />)
-    expand('perplexity')
-    const input = screen.getByTestId('dshws-param-perplexity-maxTokens') as HTMLInputElement
-    expect(input.value).toBe('2048')
-    const save = screen.getByRole('button', { name: `Perplexity ${en.pplxMaxTokensLabel} ${en.save}` }) as HTMLButtonElement
-    expect(save.disabled).toBe(true)
-
-    fireEvent.change(input, { target: { value: '999999' } })
-    expect(save.disabled).toBe(true)
-    fireEvent.change(input, { target: { value: '4096' } })
-    expect(save.disabled).toBe(false)
-    fireEvent.click(save)
-    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('perplexity', 'maxTokens', 4096))
-  })
 
   it('firecrawl: tbs select and location staged text field forward their values', async () => {
     const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
