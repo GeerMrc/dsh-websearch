@@ -99,6 +99,7 @@ const SECTION_STYLE_CSS = `
 [data-dshws-card]:hover { border-color: var(--dsw-alias-label-dimmed); }
 [data-dshws-card][data-open='true'] { background: var(--dsw-alias-bg-layer-2); border-color: var(--dsw-alias-label-dimmed); }
 [data-dshws-card-body] { border-top: 1px solid var(--dsw-alias-border-l2); margin: 0 2px; padding-top: 8px; }
+[data-dshws-input]:focus { border-color: var(--dsw-alias-brand-primary); outline: none; }
 [data-dshws-focusable]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -2px; }
 @media (prefers-reduced-motion: reduce) {
   [data-dshws-card] { transition: none; }
@@ -411,6 +412,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"
+                  data-dshws-focusable=""
                   aria-label={`${labelOf(id)} ${t('moveUp')}`}
                   disabled={index === 0}
                   onClick={() => void move(id, -1)}
@@ -420,6 +422,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 </button>
                 <button
                   type="button"
+                  data-dshws-focusable=""
                   aria-label={`${labelOf(id)} ${t('moveDown')}`}
                   disabled={index === orderableSearch.length - 1 && !showLockedTail}
                   onClick={() => void move(id, 1)}
@@ -466,6 +469,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <button
             type="button"
             data-testid="dshws-advanced-disclosure"
+            data-dshws-focusable=""
             aria-expanded={advancedOpen}
             aria-label={t('advancedConfigLabel')}
             onClick={() => { setAdvancedOpen((value) => !value) }}
@@ -584,6 +588,7 @@ function MaxUsesRow(props: {
           step={5}
           aria-label={t('maxUsesLabel')}
           data-testid="dshws-max-uses-input"
+          data-dshws-input=""
           style={{ width: 52, height: 28, padding: '0 6px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
           value={draft === '' ? String(current) : draft}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -765,6 +770,7 @@ function FetchTakeoverRow(props: {
         <button
           type="button"
           data-testid="dshws-fetch-takeover-disclosure"
+          data-dshws-focusable=""
           aria-expanded={open}
           aria-label={`${t('fetchTakeoverLabel')} ${t('configure')}`}
           onClick={() => { setOpen((value) => !value) }}
@@ -785,6 +791,7 @@ function FetchTakeoverRow(props: {
         <button
           type="button"
           role="switch"
+          data-dshws-focusable=""
           aria-checked={active}
           aria-label={t('fetchTakeoverLabel')}
           data-testid="dshws-fetch-takeover-toggle"
@@ -850,8 +857,8 @@ function FetchChainRows(props: {
               {labelOf(id)}
               {index === 0 ? <span data-testid="dshws-fetch-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span> : null}
             </span>
-            <button type="button" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
-            <button type="button" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
+            <button type="button" data-dshws-focusable="" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
+            <button type="button" data-dshws-focusable="" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
           </li>
         ))}
       </ol>
@@ -889,6 +896,7 @@ function MemberEndpointField(props: {
       <input
         aria-label={`${member.label} ${t('endpointLabel')}`}
         data-testid={`dshws-endpoint-${member.key}`}
+        data-dshws-input=""
         placeholder={MEMBERS.find((entry) => entry.key === member.key)?.defaultBaseURL ?? 'https://…'}
         value={value}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1099,6 +1107,7 @@ function MemberParamField(props: {
           max={control.kind === 'number' ? control.max : undefined}
           aria-label={ariaLabel}
           data-testid={testid}
+          data-dshws-input=""
           placeholder={control.kind === 'text' ? control.placeholder : undefined}
           value={value}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1188,6 +1197,7 @@ function DomainField(props: {
       <input
         aria-label={t(labelKey)}
         data-testid={`dshws-search-domains-${kind}`}
+        data-dshws-input=""
         placeholder="example.com,foo.org"
         value={shown}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1247,6 +1257,7 @@ function GeoField(props: {
       <input
         aria-label={t(labelKey)}
         data-testid={testid}
+        data-dshws-input=""
         placeholder={placeholder}
         value={shown}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1331,6 +1342,7 @@ function MemberCard(props: {
         <button
           type="button"
           data-testid={`dshws-member-toggle-${member.key}`}
+          data-dshws-focusable=""
           aria-expanded={open}
           aria-label={`${member.label} ${t('configure')}`}
           onClick={() => { setOpen((value) => !value) }}
@@ -1347,6 +1359,7 @@ function MemberCard(props: {
         <button
           type="button"
           role="switch"
+          data-dshws-focusable=""
           aria-checked={member.enabled}
           aria-label={`${member.label} ${t('enabled')}`}
           disabled={!member.configured}
@@ -1387,6 +1400,7 @@ function MemberCard(props: {
         <input
           type="text"
           autoComplete="off"
+          data-dshws-input=""
           aria-label={`${member.label} ${t('apiKey')}`}
           placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
           value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
