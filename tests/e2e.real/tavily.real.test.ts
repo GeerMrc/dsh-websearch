@@ -37,6 +37,17 @@ maybe('dshws-tavily real API', () => {
     expect(result.content).toBeDefined()
     expect(result.content!.length).toBeGreaterThan(0)
   }, 30_000)
+
+  it('S21: extract face fetches a live URL as markdown', async () => {
+    const provider = new TavilySearchProvider(resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY'  },
+      async () => apiKey,
+    ))
+    const result = await provider.fetch({ url: 'https://example.com' })
+    expect(result.statusCode).toBe(200)
+    expect(result.body.kind).toBe('text')
+    if (result.body.kind === 'text') expect(result.body.content).toContain('Example Domain')
+  }, 30_000)
 })
 
 describe('dshws-tavily real-API default anchors', () => {

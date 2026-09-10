@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { MEMBER_ERROR_CODES } from '../../src/errors.ts'
 import {
   ANYSEARCH_DEFAULT_BASE_URL,
   AnysearchSearchProvider,
   mapAnysearchResponse,
   resolveAnysearchMemberOptions,
 } from '../../src/providers/anysearch.ts'
+
+const codes = MEMBER_ERROR_CODES.anysearch
 
 /**
  * Mock-HTTP unit face for the `dshws-anysearch` member (S04/S05a pattern):
@@ -74,7 +77,7 @@ describe('dshws-anysearch wire behavior (mock HTTP)', () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('https://anysearch.example/v1/search')
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer anysearch-fake-key')
-    expect(new Headers(init.headers).get('user-agent')).toBe('dsh-websearch/0.5.0')
+    expect(new Headers(init.headers).get('user-agent')).toBe('dsh-websearch/0.6.0')
     expect(JSON.parse(String(init.body))).toEqual({ query: 'hello', zone: 'cn' })
 
     const unzoned = makeProvider()
@@ -162,3 +165,50 @@ describe('dshws-anysearch availability and anchors', () => {
     expect(ANYSEARCH_DEFAULT_BASE_URL).toBe('https://api.anysearch.com')
   })
 })
+describe('S21 T3: AnySearch extract face (web_fetch member, probe-backed contract)', () => {
+  it('posts the single URL to /v1/extract and maps data.content to a text body (markdown)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({
+      code: 0, message: 'success', request_id: 'r1',
+      data: { url: 'https://a.test', title: 'A', content: '# Extracted\n\nBody.' },
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await makeProvider().fetch({ url: 'https://a.test' })
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe(`${ANYSEARCH_DEFAULT_BASE_URL}/v1/extract`)
+    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://a.test' })
+    expect(result).toEqual({
+      url: 'https://a.test',
+      statusCode: 200,
+      body: { kind: 'text', content: '# Extracted\n\nBody.' },
+      truncated: false,
+    })
+  })
+
+  it('content at the ~50k probe cap maps truncated: true (defensive band 49900)', async () => {
+    const big = 'x'.repeat(49_934)
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      code: 0, message: 'success',
+      data: { url: 'https://a.test', content: big },
+    })))
+    const result = await makeProvider().fetch({ url: 'https://a.test' })
+    expect(result.truncated).toBe(true)
+  })
+
+  it('business error code!==0 maps to the member error (chain degradation): extract_failed', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      code: -1, message: 'Unable to extract content from the URL.', error_code: 'extract_failed',
+    })))
+    const caught = await makeProvider().fetch({ url: 'https://b.test' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError })
+    expect((caught as Error).message).toContain('Unable to extract')
+  })
+
+  it('missing data.content on code 0 is a bad response (fail-loud)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ code: 0, message: 'success', data: {} })))
+    await expect(makeProvider().fetch({ url: 'https://c.test' }))
+      .rejects.toMatchObject({ code: codes.badResponse })
+  })
+})
+

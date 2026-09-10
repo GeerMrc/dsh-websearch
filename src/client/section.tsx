@@ -32,6 +32,8 @@ export interface SectionProps {
   onSetMaxUses: (maxUses: number) => Promise<ActionResult>
   /** Per-member endpoint override (S14k, host-parity「接口地址」). */
   onSetBaseURL: (memberKey: string, baseURL: string) => Promise<ActionResult>
+  /** Fetch-chain reorder (S21, ADR-0019): independent of the search order. */
+  onMoveFetch: (id: string, delta: -1 | 1) => Promise<ActionResult>
   /** One S17 P1 member option (selects/toggles/text/number controls); '' clears enum/date fields. */
   onSetMemberOption: (
     memberKey: string,
@@ -79,6 +81,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetSearchCountry={(country) => controller.setSearchCountry(country)}
         onSetSearchLanguage={(language) => controller.setSearchLanguage(language)}
         onSetSearchDomains={(kind, domains) => controller.setSearchDomains(kind, domains)}
+        onMoveFetch={(id, delta) => controller.moveFetchChainEntry(id, delta)}
       />
     )
   }
@@ -262,7 +265,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -433,6 +436,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
           <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
           <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
+          <FetchChainRows t={t} snapshot={snapshot} onMove={onMoveFetch} />
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
         </section>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -701,8 +705,8 @@ function FetchTakeoverRow(props: {
     <div data-testid="dshws-fetch-takeover" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <strong style={nameStyle}>{t('fetchTakeoverLabel')}</strong>
-        <Tooltip label={t('fetchTakeoverNote')} side="bottom" delayMs={400} maxWidth={380}>
-          <button type="button" aria-label={t('fetchTakeoverNote')} style={infoButtonStyle}>
+        <Tooltip label={t('fetchTakeoverNoteS21')} side="bottom" delayMs={400} maxWidth={380}>
+          <button type="button" aria-label={t('fetchTakeoverNoteS21')} style={infoButtonStyle}>
             <IconQuestionOutline14 />
           </button>
         </Tooltip>
@@ -722,6 +726,58 @@ function FetchTakeoverRow(props: {
           <span role="status" data-testid="dshws-fetch-takeover-feedback" style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
         ) : null}
       </div>
+    </div>
+  )
+}
+
+/** Fetch-chain rows (S21, ADR-0019): the web_fetch degradation order — visible
+ * once any fetch-capable member is configured; Firecrawl leads by default. */
+function FetchChainRows(props: {
+  t: (key: DshWsLocaleKey) => string
+  snapshot: SectionSnapshot
+  onMove: (id: string, delta: -1 | 1) => Promise<ActionResult>
+}) {
+  const { t, snapshot, onMove } = props
+  const [feedback, setFeedback] = useState<'failed' | undefined>(undefined)
+  const visible = snapshot.fetchChain.filter((id) =>
+    snapshot.members.some((m) => m.memberId === id && m.configured && m.enabled),
+  )
+  if (visible.length === 0) return null
+  const move = async (id: string, delta: -1 | 1): Promise<void> => {
+    const result = await onMove(id, delta)
+    setFeedback(result.ok ? undefined : 'failed')
+  }
+  return (
+    <div data-testid="dshws-fetch-chain" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('fetchChainLabel')}</h4>
+        <Tooltip label={t('fetchChainHint')} side="bottom" delayMs={200} maxWidth={360}>
+          <button
+            type="button"
+            aria-label={t('fetchChainHint')}
+            data-testid="dshws-fetch-chain-info"
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0,
+              border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent',
+              color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6,
+            }}
+          >
+            !
+          </button>
+        </Tooltip>
+        {feedback ? <span role="status" data-testid="dshws-fetch-chain-feedback" style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }}>{t(feedback)}</span> : null}
+      </div>
+      <ol data-testid="dshws-fetch-chain-list" style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {visible.map((id, index) => (
+          <li key={id} data-testid={`dshws-fetch-chain-item-${id}`} style={chainRowStyle}>
+            <span style={chainIndexStyle}>{index + 1}</span>
+            <span data-dshws-chain-label="">{labelOf(id)}</span>
+            {index === 0 ? <span data-testid="dshws-fetch-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span> : null}
+            <button type="button" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
+            <button type="button" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
+          </li>
+        ))}
+      </ol>
     </div>
   )
 }

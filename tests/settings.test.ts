@@ -71,7 +71,7 @@ describe('LiveResolvedConfig', () => {
     live.setSource(() => ({}))
     expect(live.current().perMemberTimeoutMs).toBe(30000)
     expect(live.current().firecrawl.enabled).toBe(true)
-    expect(live.current().fetchChain).toEqual(['dshws-tavily', 'dshws-exa', 'dshws-firecrawl', 'dshws-anysearch'])
+    expect(live.current().fetchChain).toEqual(['dshws-firecrawl', 'dshws-tavily', 'dshws-anysearch'])
   })
 })
 

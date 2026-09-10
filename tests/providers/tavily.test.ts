@@ -77,7 +77,7 @@ describe('dshws-tavily request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer tvly-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.5.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.6.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5, include_answer: 'basic' })
   })
 
@@ -323,3 +323,48 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     expect((caught as Error).message).toContain('credential resolution failed')
   })
 })
+describe('S21 T2: Tavily extract face (web_fetch member)', () => {
+  const fetchFace = () => new TavilySearchProvider(options)
+
+  it('posts the single URL to /extract with markdown format and maps raw_content to a text body', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({
+      results: [{ url: 'https://a.test', raw_content: '# Page Title\n\nBody text.' }],
+      failed_results: [],
+    }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await fetchFace().fetch({ url: 'https://a.test' })
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe(`${TAVILY_DEFAULT_BASE_URL}/extract`)
+    expect(JSON.parse(init.body as string)).toEqual({ urls: ['https://a.test'], format: 'markdown' })
+    expect(result).toEqual({
+      url: 'https://a.test',
+      statusCode: 200,
+      body: { kind: 'text', content: '# Page Title\n\nBody text.' },
+      truncated: false,
+    })
+  })
+
+  it('a failed_results entry maps to a member error (chain degradation, not a fake success)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      results: [],
+      failed_results: [{ url: 'https://b.test', error: '404' }],
+    })))
+    const caught = await fetchFace().fetch({ url: 'https://b.test' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError })
+    expect((caught as Error).message).toContain('b.test')
+  })
+
+  it('an empty results array with no failed entry is a bad response (fail-loud)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ results: [], failed_results: [] })))
+    await expect(fetchFace().fetch({ url: 'https://c.test' }))
+      .rejects.toMatchObject({ code: codes.badResponse })
+  })
+
+  it('implements the WebFetchProvider interface alongside search', () => {
+    const provider = fetchFace() as { fetch?: (request: { url: string }) => Promise<unknown> }
+    expect(typeof provider.fetch).toBe('function')
+  })
+})
+

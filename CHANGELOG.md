@@ -12,6 +12,29 @@
 
 ---
 
+## 2026-09-10 — web_fetch 全模式多链接管 0.6.0（Session 21，用户主计划重排 + ADR-0019；🟡 债务翻账）
+
+**新增（0.5.0 → 0.6.0，功能批 minor）**
+- **多成员 fetch 链**：Firecrawl（/v2/scrape）→ Tavily（/extract）→ AnySearch（/v1/extract）降级链——云端提取**完全绕开本机 fake-ip × 宿主 SSRF 限制**（S14v 顽疾）；全败诚实报错（无 http 回退尾，用户决策）
+- **gate 运行时路由器**（patch 零改动）：ON = web_fetch 可见、插件链服务；OFF = gate 内置 http 直抓（官方行为等价近似——patch 钉死下官方实例永不被选）。**S15c restrict 隐藏态退役**（agent/created 监听整体删除）
+- **fetch 链独立配置**：`fetchChain` 字段复活（默认 FETCH_CHAIN_DEFAULT_ORDER 三家——Exa 永不进，上游无 fetch 能力）+ GUI FetchChainRows 排序行组（与搜索链独立）+ moveFetchChainEntry；成员启停跨链共享（最小配置面，ADR-0019）
+- **AnySearch extract face（探针定案）**：/v1/extract 单 URL body、去噪 Markdown、50k 截断（truncated 标记，防御带 49900）、信封错误三形态——真实 API 实测 1,048ms
+- **Tavily extract face**：urls/format:markdown/failed_results→链降级/PDF URL 支持（无 key 披露）
+- web_fetch 完整替代 🟡 债务**翻账**（S16-P0 登记 → S21 落地）；ADR-0019 accepted；roadmap 重排 S21→S22→S23→S15 收尾
+
+**治理**
+- 阶段 0 PASS（fetch 链可行性背书）；plan 021 两轮 APPROVED（B1 构造序 lazy thunk/B2 内部 registry/B3 启停语义写死）；2.5 用户主计划批准+四决策获答；阶段 4 R1-R4 PASS + R5 FAIL→T9 清偿（🟡 翻账/CHANGELOG/浏览器亲验 + 5 项陈旧文案/注释缺陷当场修复）
+
+**诚实标注（遗留项）**
+- Tavily extract 真实面无 key（mock 全链路 + 规格全公开；AnySearch 探针+实测 + Firecrawl 代码在档背书）；AnySearch 50k 截断（truncated 标记）
+- OFF 态为 gate 内置 http 而非官方实例（行为等价近似，ADR-0019 措辞正位）
+
+**跟踪（观察期）**
+- 全量 **415 passed | 13 skipped (428) exit0**（398→415）/ tc 0 / lint 0w0e / build 90.85+40.32+110.94 / pack 五件 59.3kB / i18n 122 keys（修复批 -1 死键）/ UA 0.6.0 ×5
+- 下一棒：S22 P3 对齐批——正本 session-21 记录★节
+
+---
+
 ## 2026-09-10 — P2 中价值参数批 0.5.0：统一域名入口 + 10 参数 + Firecrawl search timeout 修复（Session 20，用户裁定先于 S15 + ADR-0018）
 
 **新增（0.4.0 → 0.5.0，功能批 minor）**

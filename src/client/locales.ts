@@ -62,7 +62,6 @@ export type DshWsLocaleKey =
   | 'fallbackDesignationLostNote'
   | 'chainLockedNote'
   | 'fetchTakeoverLabel'
-  | 'fetchTakeoverNote'
   | 'keyPlaceholder'
   | 'maskedKey'
   | 'chainOrderHint'
@@ -136,6 +135,9 @@ export type DshWsLocaleKey =
   | 'maxAgeHoursLabel'
   | 'maxAgeHoursNote'
   | 'sourcesLabel'
+  | 'fetchChainLabel'
+  | 'fetchChainHint'
+  | 'fetchTakeoverNoteS21'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -147,7 +149,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const en: Record<DshWsLocaleKey, string> = {
   nav: 'Web Search',
   title: 'Web Search',
-  description: 'Manage search provider priority, API keys, and member toggles. Configured members are tried in chain order and the next one takes over on failure. Installing this plugin takes over web_search (removing it restores the host default); installing hides web_fetch from the model (toggle below).',
+  description: 'Manage search provider priority, API keys, member toggles, and the web_fetch chain. Configured members are tried in chain order and the next one takes over on failure. Installing this plugin takes over web_search and web_fetch (removing it restores the host defaults); when the takeover is on, web_fetch is served by the plugin fetch chain (toggle below).',
   apiKey: 'API Key',
   save: 'Save',
   clear: 'Clear',
@@ -192,8 +194,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   fallbackDeepseekKeylessNote: 'DeepSeek paid is selected but its key is not configured (Models page); until then the chain runs without a paid floor.',
   fallbackDesignationLostNote: 'The designated fallback tool is not ready (missing key or disabled); the chain-order last tool serves as the fallback meanwhile.',
   chainLockedNote: 'locked fallback',
-  fetchTakeoverLabel: 'Take over web_fetch (all modes)',
-  fetchTakeoverNote: 'ON: the web_fetch tool is hidden from the model entirely — it never appears in the tool list, so the model uses web_search for everything. OFF: web_fetch is visible and works normally. Uninstalling the plugin restores the official behavior.',
+  fetchTakeoverLabel: 'Take over web_fetch (plugin chain)',
   keyPlaceholder: '{ref} — multiple keys: APIKEY1,APIKEY2,… (max 10)',
   chainOrderHint: 'The order IS the primary/standby order: the first member is the primary — on failure it retries across its own keys first (up to 3 attempts), then the chain degrades in order; the last ready member is the in-chain standby (or the designated fallback tool, locked at the tail). Built-in default order: Tavily → Exa → Firecrawl → AnySearch.',
   chainRolePrimary: 'Primary',
@@ -266,13 +267,16 @@ export const en: Record<DshWsLocaleKey, string> = {
   maxAgeHoursLabel: 'Cache freshness (h)',
   maxAgeHoursNote: 'Content cache age in hours (-1 = always cached, 0 = fresh crawl, up to 720).',
   sourcesLabel: 'Sources',
+  fetchChainLabel: 'Fetch chain',
+  fetchChainHint: 'The web_fetch degradation order: Firecrawl → Tavily → AnySearch, each with its own multi-key retries. Independent of the search order; member toggles apply to both chains.',
+  fetchTakeoverNoteS21: 'ON: web_fetch stays visible and is served by the plugin fetch chain (Firecrawl/Tavily/AnySearch — cloud-side extraction, unaffected by local network limits). OFF: plain local HTTP fetch. Uninstalling restores the official provider.',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
 export const zh: Record<DshWsLocaleKey, string> = {
   nav: '网页搜索',
   title: '网页搜索',
-  description: '管理搜索引擎优先级、API key 与成员启停。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search（卸载自动复原宿主默认）；安装即隐藏 web_fetch（下方开关控制）。',
+  description: '管理搜索引擎优先级、API key、成员启停与全文抓取链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。',
   apiKey: 'API Key',
   save: '保存',
   clear: '清除',
@@ -315,8 +319,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackDeepseekKeylessNote: '已选择 DeepSeek 付费但模型页 key 未配置；在此之前链上没有付费兜底。',
   fallbackDesignationLostNote: '指定的兜底工具未就绪（缺 key 或已停用）；期间由链序末位工具承担兜底。',
   chainLockedNote: '锁定兜底',
-  fetchTakeoverLabel: '接管 web_fetch（全模式）',
-  fetchTakeoverNote: '开：web_fetch 工具从模型列表中彻底隐藏——模型不会看到它，所有网页信息通过 web_search 获取。关：web_fetch 正常显示和可用。卸载插件后自动恢复官方行为。',
+  fetchTakeoverLabel: '接管 web_fetch（插件链）',
   chainTailHint: '被指定的兜底工具固定链尾、不可排序；自动 = 链序末位即兜底。',
   configure: '配置',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',
@@ -391,4 +394,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   maxAgeHoursLabel: '缓存新鲜度（小时）',
   maxAgeHoursNote: '内容缓存时长小时数（-1 = 永用缓存，0 = 强制新抓，最大 720）。',
   sourcesLabel: '结果来源',
+  fetchChainLabel: '全文抓取链',
+  fetchChainHint: 'web_fetch 降级序：Firecrawl → Tavily → AnySearch，各含自身多 key 重试。与搜索序相互独立；成员启停对两条链同时生效。',
+  fetchTakeoverNoteS21: '开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。',
 }

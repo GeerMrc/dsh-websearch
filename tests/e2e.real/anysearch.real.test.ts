@@ -27,6 +27,18 @@ maybe('dshws-anysearch real API', () => {
     expect(result.sources.length).toBeGreaterThan(0)
     for (const source of result.sources) expect(source.url).toMatch(/^https?:\/\//u)
   }, 30_000)
+
+  it('S21: extract face fetches a live URL as denoised markdown (probe contract live re-verification)', async () => {
+    const provider = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY'  },
+      async () => apiKey,
+    ))
+    const result = await provider.fetch({ url: 'https://example.com' })
+    expect(result.statusCode).toBe(200)
+    expect(result.body.kind).toBe('text')
+    if (result.body.kind === 'text') expect(result.body.content).toContain('Example Domain')
+    expect(result.truncated).toBe(false)
+  }, 40_000)
 })
 
 describe('dshws-anysearch real-API default anchors', () => {

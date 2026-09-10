@@ -5,7 +5,7 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 describe('apply assembly', () => {
-  it('registers the search chain and all six members; the fetch chain is RETIRED (S14z, ADR-0014 −fetch-search −fetch-face)', () => {
+  it('registers the search chain and all members; the fetch face stays INTERNAL (only the gate registers on ctx.web, S21 ADR-0019)', () => {
     const { ctx, search, fetch } = fakeCtx()
     apply(ctx as unknown as Context, { deepseek: { enabled: true } })
     expect(search).toEqual(['dshws-chain', 'dshws-tavily', 'dshws-exa', 'dshws-firecrawl', 'dshws-deepseek', 'dshws-anysearch'])

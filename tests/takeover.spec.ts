@@ -4,13 +4,12 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 /**
- * S15c takeover unit tests: the plugin's agent/created listener must call
- * tools.restrict({deny:['web_fetch']}) and register a shadow prompt section
- * for every agent when the takeover toggle is ON — and do neither when OFF.
+ * S21 takeover unit tests: the S15c agent/created listener (restrict +
+ * prompt shadow) is RETIRED — web_fetch stays visible and is served by the
+ * plugin fetch chain when ON. Both toggle states must subscribe nothing.
  *
- * The fake ctx below stubs the three host services the listener touches
- * (event bus, tools registry, systemPrompt registry) at the minimum surface
- * the plugin reads.
+ * The fake ctx below stubs the host event bus at the minimum surface the
+ * plugin reads.
  */
 
 interface RestrictCall { readonly deny: readonly string[] }
@@ -63,25 +62,18 @@ function takeoverCtx(): { ctx: Context; agents: AgentCall[]; createAgent: () => 
   return { ctx: c as unknown as Context, agents, createAgent }
 }
 
-describe('S15c takeover: tools.restrict on agent/created', () => {
-  it('takeover ON (default): every new agent gets web_fetch denied and prompt shadowed', async () => {
+describe('S21 takeover semantics: restrict listener retired (ADR-0019)', () => {
+  it('S21: no agent/created subscription exists — web_fetch stays visible and is served by the chain when ON', async () => {
     const { ctx, agents, createAgent } = takeoverCtx()
     apply(ctx, {})
     await flushGate()
 
-    // Simulate two agents being created
+    // S15c's restrict/prompt-shadow listener is RETIRED (ADR-0019): agents
+    // get no deny and no shadow section; the gate serves web_fetch instead.
     createAgent()
-    createAgent()
-
-    expect(agents).toHaveLength(2)
-    for (const agent of agents) {
-      expect(agent.restrictCalls).toHaveLength(1)
-      expect(agent.restrictCalls[0]!.deny).toContain('web_fetch')
-      expect(agent.sectionCalls).toHaveLength(1)
-      expect(agent.sectionCalls[0]!.name).toBe('tool:web_fetch')
-      expect(agent.sectionCalls[0]!.text).toBe('')
-      expect(agent.sectionCalls[0]!.order).toBe(2100)
-    }
+    expect(agents).toHaveLength(1)
+    expect(agents[0]!.restrictCalls).toHaveLength(0)
+    expect(agents[0]!.sectionCalls).toHaveLength(0)
   })
 
   it('takeover OFF: no restrict call, no prompt shadow', async () => {

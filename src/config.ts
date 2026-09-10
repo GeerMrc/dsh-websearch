@@ -64,6 +64,16 @@ export type LegacyFallbackProvider = 'deepseek' | 'none' | 'auto' | 'fetch'
 export const BUILT_IN_MEMBER_ORDER: readonly string[] = [...ORDERABLE_SEARCH_MEMBER_ORDER]
 
 /**
+ * Effective built-in fetch order (S21, ADR-0019): the fetch-capable members
+ * only — Exa has no upstream URL-fetch capability and never joins this chain.
+ */
+export const FETCH_CHAIN_DEFAULT_ORDER: readonly string[] = [
+  'dshws-firecrawl',
+  'dshws-tavily',
+  'dshws-anysearch',
+]
+
+/**
  * Compose the search chain for the designated fallback (ADR-0014): a
  * designated TOOL member is stripped from the orderable span and pinned at
  * the tail — its only role is fallback. `'auto'` keeps the span as ordered;
@@ -555,7 +565,7 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     searchExcludeDomains: splitDomainList(config.searchExcludeDomains),
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
-      : [...ORDERABLE_SEARCH_MEMBER_ORDER],
+      : [...FETCH_CHAIN_DEFAULT_ORDER],
     perMemberTimeoutMs: config.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseek: {
       // S14d (user ruling): the paid fallback is OPT-IN — default off keeps the

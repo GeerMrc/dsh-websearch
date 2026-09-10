@@ -516,3 +516,33 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     }
   })
 })
+
+  it('S21: web_fetch rides the fetch chain — firecrawl scrape fails, tavily extract serves (降级链端到端)', async () => {
+    const { server, handle } = await assemble(
+      {
+        '/firecrawl/v2/scrape': { kind: 'status', status: 500, body: { error: 'scrape down' } },
+        '/tavily/extract': {
+          kind: 'success',
+          body: { results: [{ url: 'https://fc.test/page', raw_content: '# Fetched Page\n\nChain markdown.' }], failed_results: [] },
+        },
+      },
+      {
+        firecrawlAtLoopback: true,
+        // Point tavily at this loopback server too (its extract face must be reachable to fail).
+        configuredRefs: ['TAVILY_API_KEY', 'FIRECRAWL_API_KEY'],
+      },
+    )
+    try {
+      const gate = handle.providers.get('dshws-fetch-gate') as unknown as {
+        fetch: (req: { url: string }) => Promise<{ body: { kind: string; content: string } }>
+      }
+      expect(gate).toBeDefined()
+      const result = await gate.fetch({ url: 'https://fc.test/page' })
+      expect(result.body.kind).toBe('text')
+      expect(result.body.content).toContain('Chain markdown')
+      expect(server.arrivals).toContain('POST /tavily/extract')
+      expect(server.arrivals).toContain('POST /firecrawl/v2/scrape')
+    } finally {
+      await server.close()
+    }
+  })
