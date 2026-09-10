@@ -120,6 +120,19 @@ describe('attachSettingsSection', () => {
     captured.hooks!.onChange()
     expect(live.current().searchChain).toEqual(['dshws-tavily'])
   })
+
+  it('S20 T1: the domain exclusivity validator rides the validate hook (rejects before persist, ADR-0018)', () => {
+    const { ctx, captured } = fakeSettingsCtx()
+    const live = new LiveResolvedConfig({})
+    attachSettingsSection(ctx, Config, {}, live)
+    const hooks = captured.hooks as { validate?: (value: unknown) => void }
+    expect(hooks.validate).toBeTypeOf('function')
+    const validate = hooks.validate!
+    // The legal single-list states pass; both-at-once is the rejected state.
+    expect(() => validate({ searchIncludeDomains: 'a.test' })).not.toThrow()
+    expect(() => validate({ searchExcludeDomains: 'b.test' })).not.toThrow()
+    expect(() => validate({ searchIncludeDomains: 'a.test', searchExcludeDomains: 'b.test' })).toThrow(/mutually exclusive/)
+  })
 })
 
 describe('attachSettingsSection against the real settings service (S-1 真实 seam)', () => {

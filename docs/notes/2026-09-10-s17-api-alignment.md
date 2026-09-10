@@ -69,3 +69,19 @@ S17 config 面按可迁移形态设计：S18 迁移时用户可见配置零改�
   联合含 `''` 是有意设计，勿"清理"。
 - **web_search_options 单一构造点**：perplexity.ts 的嵌套对象只在 search() 一处构造
   （searchContextSize + user_location.country 同栖），新增嵌套字段进同点，防互相覆写。
+## 6. S20 P2 批增补（2026-09-10，正本 = plan 020 附录 A）
+
+- **漂移修正**：Exa `crawlingOptions`/`livecrawl`/`startCrawlDate`/`endCrawlDate` 已废弃——现行
+  缓存新鲜度 = `contents.maxAgeHours`（-1..720）；Firecrawl `sources` 为**对象数组** [{type}]
+  （web|images|news），`limit` 每-source；Tavily 域名上限 include 300/exclude 150 +
+  `include_domains_mode`（filter|boost）。
+- **组合限制守卫在案**（漏一条即生产 400）：Exa category∈{company,people} × startPublishedDate/
+  excludeDomains = 400（dateFloor/excludeDomains 守卫变量）；Tavily filter_by_language × language
+  未设 = 400（守卫）；ultra-fast × chunks_per_source（守卫抑制）；Firecrawl include/exclude 互斥
+  （全局二选一 validate-hook + resolveConfig throw 双路径，ADR-0018）；通配 × Firecrawl
+  hostname-only（整体跳过 fan-out）。
+- **P2 未做项**（显式边界，plan 020 §0）：include_raw_content/subpages/summary/scrapeOptions/
+  maxAge（seam 无槽或成本面）；auto_parameters（计费不可控）；safe（低价值）。
+- **P3 候选清单**（后续棒）：Tavily exact_match/start_date/end_date//extract 端点；Exa
+  contents.text.verbosity/includeSections/additionalQueries（deep 系）；Firecrawl tbs 组合形态
+  （sbd:1/cdr 日期区间）。

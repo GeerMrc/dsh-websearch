@@ -85,6 +85,20 @@ interface MemberSectionValue {
   tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
   /** Firecrawl S17 P1: free-text geo location. */
   location?: string
+  /** Tavily S20 P2: content chunks per source (1-3). */
+  chunksPerSource?: number
+  /** Tavily S20 P2: hard language filter (needs the unified language set). */
+  filterByLanguage?: boolean
+  /** Tavily S20 P2: include-list semantics filter/boost. */
+  includeDomainsMode?: 'filter' | 'boost'
+  /** Exa S20 P2: vertical category. */
+  category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people'
+  /** Exa S20 P2: content cache freshness hours. */
+  maxAgeHours?: number
+  /** Firecrawl S20 P2: result sources news/web+news. */
+  sources?: 'news' | 'web+news'
+  /** Firecrawl S20 P2: result category. */
+  categories?: 'developer' | 'research' | 'pdf'
 }
 
 interface SectionValue {
@@ -94,6 +108,10 @@ interface SectionValue {
   searchCountry?: string
   /** Unified search language, ISO 639-1 (S17 P1, ADR-0015). */
   searchLanguage?: string
+  /** Unified include-domain allowlist, comma string (S20 P1, ADR-0018; mutually exclusive with exclude). */
+  searchIncludeDomains?: string
+  /** Unified exclude-domain blocklist, comma string (S20 P1, ADR-0018). */
+  searchExcludeDomains?: string
   /** Designated fallback (ADR-0014 canonical field; the GUI writes only this). */
   fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek' // 'dshws-perplexity' = S19 legacy input, normalized to 'auto'
   /** @deprecated Legacy pre-0.2 alias (ADR-0014), read-only input. */
@@ -133,6 +151,14 @@ export interface MemberSnapshot {
   /** Firecrawl S17 P1: raw section values, `undefined` = provider default. */
   readonly tbs: string | undefined
   readonly location: string | undefined
+  /** S20 P2 raw values, `undefined` = provider default. */
+  readonly chunksPerSource: number | undefined
+  readonly filterByLanguage: boolean | undefined
+  readonly includeDomainsMode: string | undefined
+  readonly category: string | undefined
+  readonly maxAgeHours: number | undefined
+  readonly sources: string | undefined
+  readonly categories: string | undefined
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -160,6 +186,10 @@ export interface SectionSnapshot {
   readonly searchCountry: string | undefined
   /** Unified search language (ISO 639-1); `undefined` = not sent (S17 P1, ADR-0015). */
   readonly searchLanguage: string | undefined
+  /** Unified include-domain allowlist (comma string); `undefined` = not sent (S20 P1, ADR-0018). */
+  readonly searchIncludeDomains: string | undefined
+  /** Unified exclude-domain blocklist; `undefined` = not sent (S20 P1, ADR-0018). */
+  readonly searchExcludeDomains: string | undefined
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -204,6 +234,13 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       startPublishedDate: section?.startPublishedDate,
       tbs: section?.tbs,
       location: section?.location,
+      chunksPerSource: section?.chunksPerSource,
+      filterByLanguage: section?.filterByLanguage,
+      includeDomainsMode: section?.includeDomainsMode,
+      category: section?.category,
+      maxAgeHours: section?.maxAgeHours,
+      sources: section?.sources,
+      categories: section?.categories,
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -239,6 +276,8 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     fetchTakeover: value.fetchTakeover ?? true,
     searchCountry: value.searchCountry,
     searchLanguage: value.searchLanguage,
+    searchIncludeDomains: value.searchIncludeDomains,
+    searchExcludeDomains: value.searchExcludeDomains,
     revision,
     writable,
   }
@@ -363,7 +402,7 @@ export class WebSearchSettingsController {
    */
   async setMemberOption(
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories',
     value: string | number | boolean,
   ): Promise<ActionResult> {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)
@@ -385,6 +424,21 @@ export class WebSearchSettingsController {
   /** Set the unified search language (S17 P1, ADR-0015). Empty string clears. Hot: the next search. */
   async setSearchLanguage(language: string): Promise<ActionResult> {
     const result = await this.#ports.updateSettings(NS, { searchLanguage: language.trim() }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /**
+   * Set one unified domain list (S20 P1, ADR-0018). Empty string clears. The
+   * two lists are mutually exclusive — setting one clears the other in the
+   * same patch, mirroring the validate-hook rule client-side. Hot: the next search.
+   */
+  async setSearchDomains(kind: 'include' | 'exclude', domains: string): Promise<ActionResult> {
+    const patch = kind === 'include'
+      ? { searchIncludeDomains: domains.trim(), searchExcludeDomains: '' }
+      : { searchExcludeDomains: domains.trim(), searchIncludeDomains: '' }
+    const result = await this.#ports.updateSettings(NS, patch, this.#revision)
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }

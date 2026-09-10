@@ -107,6 +107,35 @@ export type DshWsLocaleKey =
   | 'fcTbsLabel'
   | 'fcLocationLabel'
   | 'fcLocationNote'
+  | 'searchIncludeDomainsLabel'
+  | 'searchIncludeDomainsNote'
+  | 'searchExcludeDomainsLabel'
+  | 'searchExcludeDomainsNote'
+  | 'domainsLabel'
+  | 'domainsNote'
+  | 'modeFilter'
+  | 'modeBoost'
+  | 'catCompany'
+  | 'catPublication'
+  | 'catNews'
+  | 'catPersonalSite'
+  | 'catFinancialReport'
+  | 'catPeople'
+  | 'srcNews'
+  | 'srcWebNews'
+  | 'fcCatDeveloper'
+  | 'fcCatResearch'
+  | 'fcCatPdf'
+  | 'chunksPerSourceLabel'
+  | 'chunksOne'
+  | 'chunksTwo'
+  | 'chunksThree'
+  | 'filterByLanguageLabel'
+  | 'filterByLanguageNote'
+  | 'categoryLabel'
+  | 'maxAgeHoursLabel'
+  | 'maxAgeHoursNote'
+  | 'sourcesLabel'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -208,6 +237,35 @@ export const en: Record<DshWsLocaleKey, string> = {
   fcTbsLabel: 'Time filter',
   fcLocationLabel: 'Location',
   fcLocationNote: 'Free-text place (e.g. Beijing,China) for city-level geo-targeting; pairs best with a region code above.',
+  searchIncludeDomainsLabel: 'Include domains',
+  searchIncludeDomainsNote: 'Comma-separated allowlist (e.g. example.com,foo.org) applied to Tavily/Exa/Firecrawl. Wildcards work on Exa only (Tavily and Firecrawl skip the domain lists entirely when one is present). Mutually exclusive with the exclude list — setting one clears the other.',
+  searchExcludeDomainsLabel: 'Exclude domains',
+  searchExcludeDomainsNote: 'Comma-separated blocklist applied to Tavily/Exa/Firecrawl. Mutually exclusive with the include list — setting one clears the other.',
+  domainsLabel: 'Domains',
+  domainsNote: 'Two mutually exclusive lists: include = allowlist only, exclude = blocklist only. Setting one clears the other.',
+  modeFilter: 'Filter',
+  modeBoost: 'Boost (weight)',
+  catCompany: 'Company',
+  catPublication: 'Publication',
+  catNews: 'News',
+  catPersonalSite: 'Personal site',
+  catFinancialReport: 'Financial report',
+  catPeople: 'People',
+  srcNews: 'News only',
+  srcWebNews: 'Web + news',
+  fcCatDeveloper: 'Developer',
+  fcCatResearch: 'Research',
+  fcCatPdf: 'PDF',
+  chunksPerSourceLabel: 'Chunks per source',
+  chunksOne: '1 (compact)',
+  chunksTwo: '2',
+  chunksThree: '3 (default)',
+  filterByLanguageLabel: 'Hard language filter',
+  filterByLanguageNote: 'ON: results must match the search language above (sent only when that language is set). OFF: language stays a ranking boost.',
+  categoryLabel: 'Category',
+  maxAgeHoursLabel: 'Cache freshness (h)',
+  maxAgeHoursNote: 'Content cache age in hours (-1 = always cached, 0 = fresh crawl, up to 720).',
+  sourcesLabel: 'Sources',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -304,4 +362,33 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fcTbsLabel: '时效过滤',
   fcLocationLabel: '位置',
   fcLocationNote: '自由文本地点（如 Beijing,China），城市级地理定向；与上方区域码搭配效果最好。',
+  searchIncludeDomainsLabel: '仅含域名',
+  searchIncludeDomainsNote: '逗号分隔白名单（如 example.com,foo.org），作用于 Tavily/Exa/Firecrawl。通配符仅 Exa 支持（Tavily 与 Firecrawl 在含通配符时整体跳过域名过滤）。与排除列表互斥——设置其一自动清除另一。',
+  searchExcludeDomainsLabel: '排除域名',
+  searchExcludeDomainsNote: '逗号分隔黑名单，作用于 Tavily/Exa/Firecrawl。与仅含列表互斥——设置其一自动清除另一。',
+  domainsLabel: '域名过滤',
+  domainsNote: '两个互斥列表：仅含 = 白名单，排除 = 黑名单。设置其一自动清除另一。',
+  modeFilter: '过滤',
+  modeBoost: '加权（仍搜全网）',
+  catCompany: '公司',
+  catPublication: '出版物',
+  catNews: '新闻',
+  catPersonalSite: '个人站点',
+  catFinancialReport: '财报',
+  catPeople: '人物',
+  srcNews: '仅新闻',
+  srcWebNews: '网页 + 新闻',
+  fcCatDeveloper: '开发者',
+  fcCatResearch: '研究',
+  fcCatPdf: 'PDF',
+  chunksPerSourceLabel: '每源内容块数',
+  chunksOne: '1（紧凑）',
+  chunksTwo: '2',
+  chunksThree: '3（默认）',
+  filterByLanguageLabel: '语言硬过滤',
+  filterByLanguageNote: '开：结果必须匹配上方搜索语言（仅在语言已设时发送）。关：语言仅作排序加权。',
+  categoryLabel: '类目',
+  maxAgeHoursLabel: '缓存新鲜度（小时）',
+  maxAgeHoursNote: '内容缓存时长小时数（-1 = 永用缓存，0 = 强制新抓，最大 720）。',
+  sourcesLabel: '结果来源',
 }

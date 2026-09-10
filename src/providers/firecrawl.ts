@@ -17,7 +17,7 @@
  * @module dsh-websearch/providers/firecrawl
  */
 import type { FirecrawlMemberConfig } from '../config.ts'
-import type { UnifiedSearchGeo } from '../config.ts'
+import type { UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type {
   WebFetchProvider,
@@ -38,6 +38,9 @@ import {
   unfoldHttpErrorDetail,
 } from './shared.ts'
 
+/** Search-face timeout cap: the chain budget is 30s per member, so the server stops at 20s (S20 P2). */
+export const FIRECRAWL_SEARCH_TIMEOUT_MS = 20_000
+
 /** Stable id this member registers under (search + fetch, `dshws-` prefixed). */
 export const FIRECRAWL_MEMBER_ID = 'dshws-firecrawl'
 
@@ -47,7 +50,7 @@ export const FIRECRAWL_DEFAULT_BASE_URL = 'https://api.firecrawl.dev'
 const codes = MEMBER_ERROR_CODES.firecrawl
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.4.0'
+const USER_AGENT = 'dsh-websearch/0.5.0'
 
 /** Wire type of one Firecrawl `data.web[]` search entry (optional fields read tolerantly). */
 export interface FirecrawlWebResult {
@@ -57,10 +60,19 @@ export interface FirecrawlWebResult {
   readonly position?: number
 }
 
+/** Wire type of one Firecrawl `data.news[]` entry (optional fields read tolerantly). */
+export interface FirecrawlNewsResult {
+  readonly url?: string
+  readonly title?: string
+  readonly snippet?: string
+  readonly date?: string
+}
+
 export interface FirecrawlSearchResponse {
   readonly success?: boolean
   readonly data?: {
     readonly web?: readonly FirecrawlWebResult[]
+    readonly news?: readonly FirecrawlNewsResult[]
   }
 }
 
@@ -93,6 +105,43 @@ export interface FirecrawlMemberOptions {
   readonly location?: string
   /** Unified search region (ISO 3166-1 alpha-2); absent = not sent (S17 P1, ADR-0015 — the fix for the API's US default). */
   readonly country?: string
+  /** Unified include-domain allowlist, hostname-normalized; wildcards skip the fan-out (S20 P1, ADR-0018). */
+  readonly includeDomains?: readonly string[]
+  /** Unified exclude-domain blocklist, hostname-normalized; wildcards skip the fan-out (S20 P1, ADR-0018). */
+  readonly excludeDomains?: readonly string[]
+  /** Result sources; absent = not sent (web-only API default) (S20 P2). */
+  readonly sources?: 'news' | 'web+news'
+  /** Result category; absent = not sent (S20 P2). */
+  readonly categories?: 'developer' | 'research' | 'pdf'
+}
+
+/**
+ * Firecrawl accepts bare hostnames only (no protocol/path/wildcard): URL-like
+ * entries collapse to their host; any wildcard entry makes the whole list an
+ * Exa-only capability, so this member's domain fan-out is skipped entirely
+ * (sending it would 400 — the same defensive-skip shape as the Exa category
+ * guard). Evaluated once per options resolution.
+ */
+function normalizeFirecrawlDomains(fanout: UnifiedSearchFanout | undefined): {
+  includeDomains?: readonly string[]
+  excludeDomains?: readonly string[]
+} {
+  const raw = fanout?.includeDomains?.length ? fanout.includeDomains
+    : fanout?.excludeDomains?.length ? fanout.excludeDomains
+    : undefined
+  if (raw === undefined) return {}
+  if (raw.some((entry) => entry.includes('*'))) return {}
+  const normalized = raw.map((entry) => {
+    if (!entry.includes('://') && !entry.includes('/')) return entry
+    try {
+      return new URL(entry.includes('://') ? entry : `https://${entry}`).host
+    } catch {
+      return entry
+    }
+  })
+  return fanout?.includeDomains?.length
+    ? { includeDomains: normalized }
+    : { excludeDomains: normalized }
 }
 
 /**
@@ -102,7 +151,7 @@ export interface FirecrawlMemberOptions {
 export function resolveFirecrawlMemberOptions(
   config: FirecrawlMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
-  geo?: UnifiedSearchGeo,
+  fanout?: UnifiedSearchFanout,
 ): FirecrawlMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -110,7 +159,10 @@ export function resolveFirecrawlMemberOptions(
     baseURL: config.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
     tbs: config.tbs,
     location: config.location,
-    country: geo?.country,
+    country: fanout?.country,
+    ...normalizeFirecrawlDomains(fanout),
+    sources: config.sources || undefined,
+    categories: config.categories || undefined,
   }
 }
 
@@ -125,7 +177,7 @@ export function mapFirecrawlSearchResponse(response: FirecrawlSearchResponse): W
   if (response.success === false) {
     throw new DshwsError(codes.badResponse, 'Firecrawl search reported success:false on a 2xx response')
   }
-  const sources = (response.data?.web ?? [])
+  const webSources = (response.data?.web ?? [])
     .map((item): WebSearchSource | undefined => {
       if (item.url === undefined || item.url.length === 0) return undefined
       return {
@@ -135,7 +187,20 @@ export function mapFirecrawlSearchResponse(response: FirecrawlSearchResponse): W
       }
     })
     .filter((source): source is WebSearchSource => source !== undefined)
-  return { sources, truncated: false }
+  // Merge order: web rows first, news rows appended (ADR-0018) — news is the
+  // time-sorted supplement, not a replacement for the web ranking.
+  const newsSources = (response.data?.news ?? [])
+    .map((item): WebSearchSource | undefined => {
+      if (item.url === undefined || item.url.length === 0) return undefined
+      return {
+        url: item.url,
+        ...item.title != null && item.title.length > 0 ? { title: item.title } : {},
+        ...item.snippet != null && item.snippet.length > 0 ? { snippet: item.snippet } : {},
+        ...item.date != null && item.date.length > 0 ? { publishedAt: item.date } : {},
+      }
+    })
+    .filter((source): source is WebSearchSource => source !== undefined)
+  return { sources: [...webSources, ...newsSources], truncated: false }
 }
 
 /**
@@ -190,9 +255,19 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         body: JSON.stringify({
           query: request.query,
           ...limit !== undefined ? { limit } : {},
+          // The upstream default is 60s vs the chain's 30s per-member budget:
+          // the explicit cap keeps the server from burning credits past our
+          // client abort (the S16-P0 scrape-face fix, applied to search).
+          timeout: FIRECRAWL_SEARCH_TIMEOUT_MS,
+          ...this.options.sources !== undefined
+            ? { sources: this.options.sources === 'news' ? [{ type: 'news' }] : [{ type: 'web' }, { type: 'news' }] }
+            : {},
+          ...this.options.categories !== undefined ? { categories: [{ type: this.options.categories }] } : {},
           ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
           ...this.options.location !== undefined ? { location: this.options.location } : {},
           ...this.options.country !== undefined ? { country: this.options.country } : {},
+          ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
+          ...this.options.excludeDomains !== undefined ? { excludeDomains: [...this.options.excludeDomains] } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

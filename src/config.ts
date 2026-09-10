@@ -139,6 +139,21 @@ export interface TavilySettings {
    * `content` (D4). Hot.
    */
   includeAnswer?: 'basic' | 'advanced'
+  /**
+   * Content chunks per source (S20 P2, 1-3; omitted = API default 3). Suppressed at the wire when
+   * `searchDepth` is `ultra-fast` (that depth ignores the parameter). Hot.
+   */
+  chunksPerSource?: number
+  /**
+   * Hard language filter (S20 P2; default false = language stays a ranking boost). Only sent when
+   * the unified `searchLanguage` is set — the API 400s on the bare flag (official constraint). Hot.
+   */
+  filterByLanguage?: boolean
+  /**
+   * Include-list semantics (S20 P2): `filter` (default) or `boost` (weight, still searches the whole
+   * web). Only sent when the unified include-domain list is non-empty. Hot.
+   */
+  includeDomainsMode?: 'filter' | 'boost'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -161,6 +176,17 @@ export interface FirecrawlSettings {
    * The official docs recommend setting it together with a country. Hot.
    */
   location?: string
+  /**
+   * Result sources (S20 P2; `''` = clear, omitted = not sent, API default web-only): `news` adds
+   * the native time-sorted news feed (the only bundled member with one), `web+news` requests both —
+   * `limit` applies PER SOURCE there (up to 2× results). Hot.
+   */
+  sources?: 'news' | 'web+news' | ''
+  /**
+   * Result category (S20 P2, official enum; `''` = clear): `developer`/`research` target docs and
+   * papers for coding-agent queries. Hot.
+   */
+  categories?: 'developer' | 'research' | 'pdf' | ''
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -191,6 +217,16 @@ export interface ExaSettings {
    * values to the date-time form the API expects. Hot.
    */
   startPublishedDate?: string
+  /**
+   * Vertical category (S20 P2, official 6-value enum; `''` = clear). `company`/`people` disable the
+   * date floor and exclude-domain fan-out at the wire (official 400 combos). Hot.
+   */
+  category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people' | ''
+  /**
+   * Content cache freshness (S20 P2, -1..720 hours; omitted = not sent). The current official name —
+   * the old `livecrawl`/`crawlingOptions` are deprecated. Hot.
+   */
+  maxAgeHours?: number
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -211,14 +247,18 @@ export interface AnysearchSettings {
 }
 
 /**
- * The unified language/region entry (S17 P1, ADR-0015): a single write point
- * fanned out to each member's native wire parameter. Country is an ISO
- * 3166-1 alpha-2 code, language an ISO 639-1 code; both normalize (country
- * uppercase, language lowercase) and blank means "not sent".
+ * The unified fan-out context (S17 P1 ADR-0015 geo entry + S20 P1 ADR-0018
+ * domain entry): single write points fanned out to each member's native wire
+ * parameters. Country is an ISO 3166-1 alpha-2 code, language an ISO 639-1
+ * code; both normalize (country uppercase, language lowercase) and blank means
+ * "not sent". The domain lists arrive pre-split (resolveConfig owns the
+ * comma-string parsing and the include-vs-exclude exclusivity rule).
  */
-export interface UnifiedSearchGeo {
+export interface UnifiedSearchFanout {
   readonly country?: string
   readonly language?: string
+  readonly includeDomains?: readonly string[]
+  readonly excludeDomains?: readonly string[]
 }
 
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
@@ -269,6 +309,19 @@ export interface Config {
    * the members with a search-level language parameter — Tavily `language`. Blank = not sent. Hot: the next search.
    */
   searchLanguage?: string
+  /**
+   * Unified include-domain allowlist (S20 P1, ADR-0018): comma-separated domains fanned out to
+   * Tavily/Exa/Firecrawl (with each member's format guards). Mutually exclusive with
+   * {@link searchExcludeDomains} — a state setting both fails loud (settings path: validate hook
+   * rejects before persist; cordis.yml path: load error). Blank = not sent. Hot: the next search.
+   */
+  searchIncludeDomains?: string
+  /**
+   * Unified exclude-domain blocklist (S20 P1, ADR-0018): comma-separated domains fanned out to
+   * Tavily/Exa/Firecrawl. Mutually exclusive with {@link searchIncludeDomains}. Blank = not sent.
+   * Hot: the next search.
+   */
+  searchExcludeDomains?: string
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -291,6 +344,8 @@ export const Config: z<Config> = z.object({
   fetchTakeover: z.boolean(),
   searchCountry: z.string(),
   searchLanguage: z.string(),
+  searchIncludeDomains: z.string(),
+  searchExcludeDomains: z.string(),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -311,6 +366,9 @@ export const Config: z<Config> = z.object({
     timeRange: z.union(['', 'day', 'week', 'month', 'year']),
     searchDepth: z.union(['', 'basic', 'advanced', 'fast', 'ultra-fast']),
     includeAnswer: z.union(['basic', 'advanced']),
+    chunksPerSource: z.number().step(1).min(1).max(3),
+    filterByLanguage: z.boolean(),
+    includeDomainsMode: z.union(['filter', 'boost']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   firecrawl: z.object({
@@ -319,6 +377,8 @@ export const Config: z<Config> = z.object({
     baseURL: z.string(),
     tbs: z.union(['', 'qdr:h', 'qdr:d', 'qdr:w', 'qdr:m', 'qdr:y']),
     location: z.string(),
+    sources: z.union(['', 'news', 'web+news']),
+    categories: z.union(['', 'developer', 'research', 'pdf']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   exa: z.object({
@@ -329,6 +389,8 @@ export const Config: z<Config> = z.object({
     type: z.union(['instant', 'fast', 'auto', 'deep-lite', 'deep', 'deep-reasoning']),
     textFallback: z.boolean(),
     startPublishedDate: z.string(),
+    category: z.union(['', 'company', 'publication', 'news', 'personal site', 'financial report', 'people']),
+    maxAgeHours: z.number().step(1).min(-1).max(720),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -363,6 +425,12 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
   searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
   /** Generated-answer tier; resolveConfig defaults `'basic'` (S17 P1, D4). */
   includeAnswer?: 'basic' | 'advanced'
+  /** Content chunks per source; absent = not sent (S20 P2). */
+  chunksPerSource?: number
+  /** Hard language filter; absent = not sent (S20 P2). */
+  filterByLanguage?: boolean
+  /** Include-list semantics; absent = not sent (S20 P2). */
+  includeDomainsMode?: 'filter' | 'boost'
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -374,6 +442,10 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
   tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
   /** Free-text geo location; absent = not sent (S17 P1). */
   location?: string
+  /** Result sources; `''` normalizes away at resolve (S20 P2). */
+  sources?: 'news' | 'web+news' | ''
+  /** Result category; `''` normalizes away at resolve (S20 P2). */
+  categories?: 'developer' | 'research' | 'pdf' | ''
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -388,6 +460,10 @@ export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 
   textFallback?: boolean
   /** Publication-date floor; absent = not sent (S17 P1). */
   startPublishedDate?: string
+  /** Vertical category; `''` normalizes away at resolve (S20 P2). */
+  category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people' | ''
+  /** Content cache freshness; absent = not sent (S20 P2). */
+  maxAgeHours?: number
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -411,6 +487,10 @@ export interface ResolvedWebSearchConfig {
   readonly searchCountry?: string
   /** Unified search language (ISO 639-1, lowercase); absent = not sent (S17 P1, ADR-0015). */
   readonly searchLanguage?: string
+  /** Unified include-domain allowlist, pre-split; empty = not sent (S20 P1, ADR-0018). */
+  readonly searchIncludeDomains: readonly string[]
+  /** Unified exclude-domain blocklist, pre-split; empty = not sent (S20 P1, ADR-0018). */
+  readonly searchExcludeDomains: readonly string[]
   /** Search priority chain; never empty after resolution. */
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
@@ -424,6 +504,26 @@ export interface ResolvedWebSearchConfig {
   readonly anysearch: AnysearchMemberConfig
 }
 
+/** Split a comma-separated domain list into trimmed non-blank entries. */
+function splitDomainList(value: string | undefined): readonly string[] {
+  if (value === undefined) return []
+  return value.split(',').map((entry) => entry.trim()).filter((entry) => entry.length > 0)
+}
+
+/**
+ * The include-vs-exclude exclusivity rule (ADR-0018): both lists set at once is
+ * rejected — on the settings path through the installSection validate hook
+ * (before persist, error surfaced to the committer) and on the cordis.yml load
+ * path through this throw. A resolveConfig throw must NOT be relied on for the
+ * settings path: the host swallows watcher throws into a warn, persisting the
+ * invalid value and bricking the plugin on restart (S20 stage-2 M-1 evidence).
+ */
+export function validateUnifiedDomainRule(value: Pick<Config, 'searchIncludeDomains' | 'searchExcludeDomains'>): void {
+  if (value.searchIncludeDomains?.trim().length && value.searchExcludeDomains?.trim().length) {
+    throw new Error('searchIncludeDomains and searchExcludeDomains are mutually exclusive — set only one (ADR-0018)')
+  }
+}
+
 /**
  * Apply every default explicitly: empty chains become the built-in member
  * order, a missing timeout budget becomes 30s, and each member section gets
@@ -432,6 +532,7 @@ export interface ResolvedWebSearchConfig {
  * implementations (S04/S05a); their values pass through untouched.
  */
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
+  validateUnifiedDomainRule(config)
   const fallbackMember: FallbackMember = config.fallbackMember === 'dshws-perplexity'
     // S19 legacy alias: the removed member's designation degrades to auto.
     ? 'auto'
@@ -450,6 +551,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     // ADR-0015 canonical forms: country uppercase, language lowercase; blank drops.
     searchCountry: config.searchCountry?.trim().length ? config.searchCountry.trim().toUpperCase() : undefined,
     searchLanguage: config.searchLanguage?.trim().length ? config.searchLanguage.trim().toLowerCase() : undefined,
+    searchIncludeDomains: splitDomainList(config.searchIncludeDomains),
+    searchExcludeDomains: splitDomainList(config.searchExcludeDomains),
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],
@@ -476,6 +579,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       searchDepth: config.tavily?.searchDepth || undefined,
       // S17 D4: the free generated answer is ON at the basic tier by default.
       includeAnswer: config.tavily?.includeAnswer ?? 'basic',
+      chunksPerSource: config.tavily?.chunksPerSource,
+      filterByLanguage: config.tavily?.filterByLanguage,
+      includeDomainsMode: config.tavily?.includeDomainsMode,
     },
     firecrawl: {
       enabled: config.firecrawl?.enabled ?? true,
@@ -483,6 +589,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.firecrawl?.keySelection ?? 'round-robin',
       baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
       tbs: config.firecrawl?.tbs || undefined,
+      sources: config.firecrawl?.sources || undefined,
+      categories: config.firecrawl?.categories || undefined,
       location: config.firecrawl?.location?.trim() === '' ? undefined : config.firecrawl?.location,
     },
     exa: {
@@ -495,6 +603,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       // S17 D4: text fallback is ON by default — it fixes dropped results.
       textFallback: config.exa?.textFallback ?? true,
       startPublishedDate: config.exa?.startPublishedDate?.trim().length ? config.exa.startPublishedDate.trim() : undefined,
+      category: config.exa?.category || undefined,
+      maxAgeHours: config.exa?.maxAgeHours,
     },
     anysearch: {
       enabled: config.anysearch?.enabled ?? true,

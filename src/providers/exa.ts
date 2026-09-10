@@ -20,7 +20,7 @@
  * @module dsh-websearch/providers/exa
  */
 import type { ExaMemberConfig } from '../config.ts'
-import type { UnifiedSearchGeo } from '../config.ts'
+import type { UnifiedSearchFanout } from '../config.ts'
 import { MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -56,7 +56,7 @@ export type ExaSearchType = 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' |
 const codes = MEMBER_ERROR_CODES.exa
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.4.0'
+const USER_AGENT = 'dsh-websearch/0.5.0'
 
 /**
  * Normalize a stored publication-date floor to the ISO date-time form the API
@@ -99,6 +99,14 @@ export interface ExaMemberOptions {
   readonly startPublishedDate?: string
   /** Unified search region (ISO 3166-1 alpha-2) as Exa's `userLocation`; absent = not sent (S17 P1, ADR-0015). */
   readonly userLocation?: string
+  /** Unified include-domain allowlist (≤1200, hostname/path-prefix/wildcard); empty = not sent (S20 P1, ADR-0018). */
+  readonly includeDomains?: readonly string[]
+  /** Unified exclude-domain blocklist; empty = not sent (S20 P1, ADR-0018). */
+  readonly excludeDomains?: readonly string[]
+  /** Vertical category; absent = not sent (S20 P2). */
+  readonly category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people'
+  /** Content cache freshness; absent = not sent (S20 P2). */
+  readonly maxAgeHours?: number
 }
 
 /**
@@ -108,7 +116,7 @@ export interface ExaMemberOptions {
 export function resolveExaMemberOptions(
   config: ExaMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
-  geo?: UnifiedSearchGeo,
+  fanout?: UnifiedSearchFanout,
 ): ExaMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -120,7 +128,11 @@ export function resolveExaMemberOptions(
     startPublishedDate: config.startPublishedDate !== undefined
       ? normalizeStartPublishedDate(config.startPublishedDate)
       : undefined,
-    userLocation: geo?.country,
+    userLocation: fanout?.country,
+    includeDomains: fanout?.includeDomains?.length ? fanout.includeDomains : undefined,
+    excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
+    category: config.category || undefined,
+    maxAgeHours: config.maxAgeHours,
   }
 }
 
@@ -173,6 +185,16 @@ export class ExaSearchProvider implements WebSearchProvider {
     // A per-request bound wins over the configured default; either may be absent.
     const numResults = request.maxResults ?? this.options.numResults
     let response: Response
+    // Guards evaluated inside this single body construction: the
+    // company/people categories officially reject the date floor and the
+    // exclude-domain list (400), so those parameters are suppressed only
+    // when one of those categories is set.
+    const dateFloor = this.options.category === 'company' || this.options.category === 'people'
+      ? undefined
+      : this.options.startPublishedDate
+    const excludeDomains = this.options.category === 'company' || this.options.category === 'people'
+      ? undefined
+      : this.options.excludeDomains
     try {
       response = await fetch(`${this.options.baseURL}/search`, {
         method: 'POST',
@@ -187,14 +209,18 @@ export class ExaSearchProvider implements WebSearchProvider {
           query: request.query,
           type: this.options.type,
           contents: {
+            ...this.options.maxAgeHours !== undefined ? { maxAgeHours: this.options.maxAgeHours } : {},
             highlights: { query: request.query, maxCharacters: EXA_HIGHLIGHT_MAX_CHARACTERS },
             // S17 D4: text rides along by default so snippet-less results are
             // kept; turning the fallback off restores the highlight-only wire.
             ...this.options.textFallback ? { text: { maxCharacters: EXA_TEXT_FALLBACK_MAX_CHARACTERS } } : {},
           },
           ...numResults !== undefined ? { numResults } : {},
-          ...this.options.startPublishedDate !== undefined ? { startPublishedDate: this.options.startPublishedDate } : {},
+          ...this.options.category !== undefined ? { category: this.options.category } : {},
+          ...dateFloor !== undefined ? { startPublishedDate: dateFloor } : {},
           ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
+          ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
+          ...excludeDomains !== undefined ? { excludeDomains: [...excludeDomains] } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

@@ -22,7 +22,7 @@
  * @module dsh-websearch/providers/tavily
  */
 import type { TavilyMemberConfig } from '../config.ts'
-import type { UnifiedSearchGeo } from '../config.ts'
+import type { UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -45,7 +45,7 @@ export const TAVILY_DEFAULT_BASE_URL = 'https://api.tavily.com'
 const codes = MEMBER_ERROR_CODES.tavily
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.4.0'
+const USER_AGENT = 'dsh-websearch/0.5.0'
 
 /** Wire type of one Tavily `results[]` entry (optional fields read tolerantly). */
 export interface TavilyResultItem {
@@ -82,6 +82,18 @@ export interface TavilyMemberOptions {
   readonly includeAnswer: 'basic' | 'advanced'
   /** Unified search language (ISO 639-1); absent = not sent (S17 P1, ADR-0015). */
   readonly language?: string
+  /** Unified include-domain allowlist; wildcard entries skip the whole domain fan-out for this member (S20 P1, ADR-0018 — Tavily has no wildcard support). */
+  readonly includeDomains?: readonly string[]
+  /** Wildcard guard flag: set when any unified domain entry contains `*` (S20 stage-5 F-1). */
+  readonly domainsHaveWildcard?: boolean
+  /** Unified exclude-domain blocklist; empty = not sent (S20 P1, ADR-0018). */
+  readonly excludeDomains?: readonly string[]
+  /** Content chunks per source; absent = not sent (S20 P2). */
+  readonly chunksPerSource?: number
+  /** Hard language filter; only sent when `language` is set (S20 P2, official 400 constraint). */
+  readonly filterByLanguage?: boolean
+  /** Include-list semantics; only sent with a non-empty include list (S20 P2). */
+  readonly includeDomainsMode?: 'filter' | 'boost'
 }
 
 /**
@@ -94,7 +106,7 @@ export interface TavilyMemberOptions {
 export function resolveTavilyMemberOptions(
   config: TavilyMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
-  geo?: UnifiedSearchGeo,
+  fanout?: UnifiedSearchFanout,
 ): TavilyMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -105,7 +117,14 @@ export function resolveTavilyMemberOptions(
     timeRange: config.timeRange,
     searchDepth: config.searchDepth,
     includeAnswer: config.includeAnswer ?? 'basic',
-    language: geo?.language,
+    language: fanout?.language,
+    includeDomains: fanout?.includeDomains?.length ? fanout.includeDomains : undefined,
+    excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
+    domainsHaveWildcard: (fanout?.includeDomains ?? []).some((entry) => entry.includes('*'))
+      || (fanout?.excludeDomains ?? []).some((entry) => entry.includes('*')),
+    chunksPerSource: config.chunksPerSource,
+    filterByLanguage: config.filterByLanguage,
+    includeDomainsMode: config.includeDomainsMode,
   }
 }
 
@@ -179,6 +198,24 @@ export class TavilySearchProvider implements WebSearchProvider {
           // is 'basic' (S17 D4).
           include_answer: this.options.includeAnswer,
           ...this.options.language !== undefined ? { language: this.options.language } : {},
+          ...this.options.includeDomains !== undefined && !this.options.domainsHaveWildcard
+            ? { include_domains: [...this.options.includeDomains] }
+            : {},
+          ...this.options.excludeDomains !== undefined && !this.options.domainsHaveWildcard
+            ? { exclude_domains: [...this.options.excludeDomains] }
+            : {},
+          // Guards evaluated inside this single body construction: each optional
+          // parameter is suppressed when its official pairing is absent, so the
+          // hot options never produce a 400 from a stale combination.
+          ...this.options.chunksPerSource !== undefined && this.options.searchDepth !== 'ultra-fast'
+            ? { chunks_per_source: this.options.chunksPerSource }
+            : {},
+          ...this.options.filterByLanguage === true && this.options.language !== undefined
+            ? { filter_by_language: true }
+            : {},
+          ...this.options.includeDomainsMode !== undefined && this.options.includeDomains !== undefined
+            ? { include_domains_mode: this.options.includeDomainsMode }
+            : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

@@ -50,6 +50,13 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     startPublishedDate: undefined,
     tbs: undefined,
     location: undefined,
+    chunksPerSource: undefined,
+    filterByLanguage: undefined,
+    includeDomainsMode: undefined,
+    category: undefined,
+    maxAgeHours: undefined,
+    sources: undefined,
+    categories: undefined,
     source: undefined,
     writable: true,
     ...overrides,
@@ -81,6 +88,8 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     fetchTakeover: true,
     searchCountry: undefined,
     searchLanguage: undefined,
+    searchIncludeDomains: undefined,
+    searchExcludeDomains: undefined,
     revision: 0,
     writable: true,
   }
@@ -101,6 +110,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetMemberOption: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetSearchCountry: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetSearchLanguage: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetSearchDomains: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -934,5 +944,39 @@ describe('S17 P1 member parameter controls', () => {
     fireEvent.change(language, { target: { value: 'zh' } })
     fireEvent.click(screen.getByRole('button', { name: `${en.searchLanguageLabel} ${en.save}` }))
     await waitFor(() => expect(onSetSearchLanguage).toHaveBeenCalledWith('zh'))
+  })
+})
+describe('S20 P2 domain entry and member controls', () => {
+  it('the global domain pair renders with the exclusivity note and forwards the chosen list', async () => {
+    const onSetSearchDomains = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetSearchDomains })} t={t} />)
+    const include = screen.getByTestId('dshws-search-domains-include') as HTMLInputElement
+    expect(include.value).toBe('')
+    fireEvent.change(include, { target: { value: 'example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.searchIncludeDomainsLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetSearchDomains).toHaveBeenCalledWith('include', 'example.com'))
+  })
+
+  it('tavily exposes the S20 controls (mode select, chunks select, language-filter toggle); firecrawl exposes sources/categories', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('tavily')
+    expect((screen.getByTestId('dshws-param-tavily-includeDomainsMode') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-chunksPerSource') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-filterByLanguage') as HTMLButtonElement).getAttribute('aria-checked')).toBe('false')
+    fireEvent.change(screen.getByTestId('dshws-param-tavily-chunksPerSource'), { target: { value: '1' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'chunksPerSource', '1'))
+
+    expand('firecrawl')
+    fireEvent.change(screen.getByTestId('dshws-param-firecrawl-sources'), { target: { value: 'web+news' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'sources', 'web+news'))
+  })
+
+  it('exa category select forwards its value (company guard covered at the wire)', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('exa')
+    fireEvent.change(screen.getByTestId('dshws-param-exa-category'), { target: { value: 'people' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'category', 'people'))
   })
 })

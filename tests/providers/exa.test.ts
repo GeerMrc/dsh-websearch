@@ -104,6 +104,75 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     expect(body).not.toHaveProperty('startPublishedDate')
   })
 
+  it('S20 T3: category lands on the wire; company/people suppress startPublishedDate AND excludeDomains (official 400 combos)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const newsCategory = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'news'  } satisfies ExaMemberConfig,
+      async () => 'k',
+    )
+    await new ExaSearchProvider(newsCategory).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.category).toBe('news')
+
+    const companyGuard = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'company', startPublishedDate: '2026-01-01'  } satisfies ExaMemberConfig,
+      async () => 'k',
+      { excludeDomains: ['spam.test'] },
+    )
+    await new ExaSearchProvider(companyGuard).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.category).toBe('company')
+    expect(body).not.toHaveProperty('startPublishedDate')
+    expect(body).not.toHaveProperty('excludeDomains')
+
+    // The guard is category-scoped: without company/people both ride along.
+    const normal = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'news', startPublishedDate: '2026-01-01'  } satisfies ExaMemberConfig,
+      async () => 'k',
+      { excludeDomains: ['spam.test'] },
+    )
+    await new ExaSearchProvider(normal).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.startPublishedDate).toBe('2026-01-01T00:00:00Z')
+    expect(body.excludeDomains).toEqual(['spam.test'])
+  })
+
+  it('S20 T3: maxAgeHours nests under contents.maxAgeHours (current official name)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const configured = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', maxAgeHours: 24  } satisfies ExaMemberConfig,
+      async () => 'k',
+    )
+    await new ExaSearchProvider(configured).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.contents.maxAgeHours).toBe(24)
+
+    await new ExaSearchProvider(options).search({ query: 'q' })
+    const bare = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(bare.contents).not.toHaveProperty('maxAgeHours')
+  })
+
+  it('S20 T1: unified domain lists fan out as includeDomains/excludeDomains', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
+      async () => 'exa-key',
+      { excludeDomains: ['spam.test', 'example.com/docs'] },
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.excludeDomains).toEqual(['spam.test', 'example.com/docs'])
+    expect(body).not.toHaveProperty('includeDomains')
+
+    await new ExaSearchProvider(options).search({ query: 'q' })
+    const bare = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(bare).not.toHaveProperty('includeDomains')
+    expect(bare).not.toHaveProperty('excludeDomains')
+  })
+
   it('S17 T6: unified country fans out as userLocation; absent → not sent', async () => {
     const withCountry = resolveExaMemberOptions(
       { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
@@ -147,7 +216,7 @@ describe('dshws-exa request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer exa-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.4.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.5.0')
     expect(JSON.parse(init.body as string)).toEqual({
       query: 'hello',
       type: 'auto',

@@ -137,6 +137,52 @@ describe('resolveConfig', () => {
       expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
     })
 
+    it("S20 T4: firecrawl member params — sources enum + clear sentinel, categories enum", () => {
+      expect(resolveConfig({}).firecrawl.sources).toBeUndefined()
+      expect(resolveConfig({}).firecrawl.categories).toBeUndefined()
+      const resolved = resolveConfig({ firecrawl: { sources: 'web+news', categories: 'developer' } })
+      expect(resolved.firecrawl.sources).toBe('web+news')
+      expect(resolved.firecrawl.categories).toBe('developer')
+      expect(resolveConfig({ firecrawl: { sources: '', categories: '' } }).firecrawl.sources).toBeUndefined()
+      expect(resolveConfig({ firecrawl: { sources: '', categories: '' } }).firecrawl.categories).toBeUndefined()
+      expect(() => Config({ firecrawl: { sources: 'images' as never } })).toThrow()
+      expect(() => Config({ firecrawl: { categories: 'banana' as never } })).toThrow()
+    })
+
+    it("S20 T3: exa member params — category enum + clear sentinel, maxAgeHours bounds", () => {
+      expect(resolveConfig({}).exa.category).toBeUndefined()
+      expect(resolveConfig({}).exa.maxAgeHours).toBeUndefined()
+      const resolved = resolveConfig({ exa: { category: 'financial report', maxAgeHours: 720 } })
+      expect(resolved.exa.category).toBe('financial report')
+      expect(resolved.exa.maxAgeHours).toBe(720)
+      expect(resolveConfig({ exa: { category: '' } }).exa.category).toBeUndefined()
+      expect(() => Config({ exa: { category: 'banana' as never } })).toThrow()
+      expect(() => Config({ exa: { maxAgeHours: 721 } })).toThrow()
+      expect(() => Config({ exa: { maxAgeHours: -2 } })).toThrow()
+    })
+
+    it('S20 T2: tavily member params — chunksPerSource bounds, filterByLanguage bool, includeDomainsMode enum', () => {
+      const resolved = resolveConfig({ tavily: { chunksPerSource: 1, filterByLanguage: true, includeDomainsMode: 'boost' } })
+      expect(resolved.tavily.chunksPerSource).toBe(1)
+      expect(resolved.tavily.filterByLanguage).toBe(true)
+      expect(resolved.tavily.includeDomainsMode).toBe('boost')
+      expect(resolveConfig({}).tavily.chunksPerSource).toBeUndefined()
+      expect(() => Config({ tavily: { chunksPerSource: 4 as never } })).toThrow()
+      expect(() => Config({ tavily: { chunksPerSource: 0 } })).toThrow()
+      expect(() => Config({ tavily: { includeDomainsMode: 'banana' as never } })).toThrow()
+    })
+
+    it('S20 T1: unified domain entry — comma strings parse to arrays; both set fails loud; blanks drop (ADR-0018)', () => {
+      expect(resolveConfig({}).searchIncludeDomains).toEqual([])
+      expect(resolveConfig({}).searchExcludeDomains).toEqual([])
+      const resolved = resolveConfig({ searchIncludeDomains: ' example.com, *.foo.org , ' })
+      expect(resolved.searchIncludeDomains).toEqual(['example.com', '*.foo.org'])
+      expect(resolveConfig({ searchExcludeDomains: 'spam.test' }).searchExcludeDomains).toEqual(['spam.test'])
+      // The two-lists-at-once state is rejected at the load boundary (cordis.yml path);
+      // the settings path rejects it before persist through the validate hook.
+      expect(() => resolveConfig({ searchIncludeDomains: 'a.test', searchExcludeDomains: 'b.test' })).toThrow(/include.*exclude|exclude.*include/i)
+    })
+
     it('unified geo entry: absent by default; passthrough canonicalizes casing and drops blanks (ADR-0015)', () => {
       expect(resolveConfig({}).searchCountry).toBeUndefined()
       expect(resolveConfig({}).searchLanguage).toBeUndefined()

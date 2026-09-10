@@ -27,6 +27,26 @@
 
 ## 已完成
 
+### S20 P2 中价值参数批（2026-09-10，分支 feat/s20-p2-params，用户裁定先于 S15）
+
+阶段 0 PASS → plan 020 两轮（M-1：resolveConfig throw 在 settings 路径 = warn 吞 + brick——正位 validate-hook）→ 2.5 用户排期裁定+默认 → T0-T7 → 阶段 4 R1-R3/R5 PASS + **R4 FAIL→清偿** → 阶段 5 COMPLETE + **F-1/F-3→清偿** → 收官。
+
+| 任务 | 结果 |
+|---|---|
+| T0 治理批+裁定落案 | `018a55a` |
+| T1 全局域名入口+ADR-0018 | `5c6d678`（红 4f\|121p） |
+| T2 Tavily 三守卫 | `becdd0b`（红 3f\|50p） |
+| T3 Exa category/maxAgeHours | `a9fe63c`（红 2f\|24p；类型漏检 amend 一次） |
+| T4 Firecrawl sources/categories/timeout | `6667122`（红 3f\|53p） |
+| T5 client 面+29 键 | `352e6ad`；R4 补强 `d18a4b0`（热锚+互斥双清+行为 spec+toggle 默认缺陷修复） |
+| T6 0.5.0+UA×5+3423 冒烟 | `a79ef66`（firecrawl 4p） |
+| T7 Note s17 §6 | `1397769`；F-1/F-3 清偿 `4cc332a` |
+| 阶段 4/5 | R4 FAIL→清偿 / COMPLETE→F-1→清偿（正本 audit-logs/2026-09-10-s20-stage45-verification.md） |
+
+### S20 门墙（提交态，node v22.23.2；终态全量 = 收官亲跑）
+
+①`pnpm test` 终态 → **398 passed \| 11 skipped (409) exit0**（377→398：+21）②tc 0 ③lint 0w0e 54f ④build 83.58+39.53+104.34 ⑤pack 五件 56.6kB ⑥i18n **121 keys** parity + 20f ⑦clean。3423 = 0.5.0 在跑（pid 28958，boot /tmp/dshws-s20/）。守卫清单六条全测试在档（阶段 4 逐条核）。
+
 ### S19 Perplexity 成员移除（2026-09-10，分支 feat/s19-remove-perplexity，用户终裁插行）
 
 阶段 0 精简版 PASS（schemastery 探针 + 免费 key 事实核证附档）→ plan 019 两轮 APPROVED → 2.5 = 用户直接指令 → T0-T5 逐一执行 → 阶段 4 **R1-R5 全 PASS**（全量 377\|11(388) exit0 亲跑 + 探针双红绿 + R1 逐行分类零非豁免残留）→ 阶段 5 **COMPLETE**（三正交 + 冒烟 149 + 4 条前瞻项归 T7 全清）→ T7 收官。
@@ -463,6 +483,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | ~~S18 新观察×2：search_results 全无 url 边界 / title 空白判定~~ | 🟢→moot | **已翻账（2026-09-10 S19）**：Perplexity 成员移除（ADR-0017），补 key 实测前提永久消失 |
 | 存量 settings.yaml 残留 `perplexity:` 节（schema 静默透传无害；schemastery 探针实测 NO THROW） | 🟢 观察 | S19 登记（2026-09-10）；README（S15）提示手动清理 |
 | controller fallbackMember 宽 union 内联重复（与 config 字面量双维护，删成员时人工同步） | 🟢 观察 | S19 阶段 5 登记（2026-09-10）；后续棒收口 import type 组合 |
+| controller union 内联 6→16 扩面（S19 条目注记升级）+ number kind 控件复活（chunksPerSource/maxAgeHours）的边界口径 | 🟢 观察 | S20 阶段 5 F-2 登记（2026-09-10）；后续棒收口 |
 | 新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归） | 🟢 观察 | S17 阶段 5 登记（2026-09-10）；后续棒顺手补 |
 
 ## 已验锚点（台账）

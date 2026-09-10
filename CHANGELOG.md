@@ -12,6 +12,30 @@
 
 ---
 
+## 2026-09-10 — P2 中价值参数批 0.5.0：统一域名入口 + 10 参数 + Firecrawl search timeout 修复（Session 20，用户裁定先于 S15 + ADR-0018）
+
+**新增（0.4.0 → 0.5.0，功能批 minor）**
+- **统一域名入口（ADR-0018）**：根 `searchIncludeDomains`/`searchExcludeDomains`（逗号串，GUI 双输入）fan-out Tavily/Exa/Firecrawl——**二选一硬约束双路径 fail-loud**：settings 路径宿主 validate-hook persist 前拒写（弃 resolveConfig throw——宿主 watcher 吞 warn + 重启 brick，阶段 2 M-1 实证）；cordis.yml 路径加载面冒错。守卫：Exa company/people×日期/exclude 跳过、Firecrawl hostname 归一 + 通配整体跳过（含 Tavily 同构守卫——阶段 5 F-1 清偿）
+- **Tavily**：`chunksPerSource`（1-3；ultra-fast 抑制）/ `filterByLanguage`（硬语言过滤，须统一语言已设）/ `includeDomainsMode`（filter|boost）
+- **Exa**：`category`（6 值枚举；company/people 守卫）/ `contents.maxAgeHours`（**现行官方名**——crawlingOptions/livecrawl 已废弃）
+- **Firecrawl**：`sources`（**news 原生时效新闻源**——六成员唯一，web+news 双源 limit 每-source）/ `categories`（developer|research|pdf）
+- GUI：全局域名双输入 + 8 成员级控件；locales 92→**121 keys**
+- **修复**：Firecrawl search 面显式 `timeout: 20000`（S16-P0 scrape 修的同构缺口——上游默认 60s vs 链预算 30s）
+
+**治理**
+- 阶段 0 PASS；plan 020 两轮 APPROVED（M-1 必改）；2.5 用户排期裁定+默认；阶段 4 R1-R3/R5 PASS + R4 FAIL→清偿（热锚+行为 spec+toggle 默认缺陷修复）；阶段 5 COMPLETE + F-1/F-3→清偿；audit-log ×3
+
+**诚实标注（遗留项）**
+- Tavily/Exa P2 参数真实 API 实测无 key（firecrawl 实搜 4 passed；断言在档自跳）
+- P3 候选（Note s17 §6）：Tavily exact_match/start_date/end_date//extract；Exa verbosity/includeSections/additionalQueries；Firecrawl tbs 组合形态
+- AnySearch P2 = 零改动（上游契约面仅 query/max_results/zone——本地代码实读实证）
+
+**跟踪（观察期）**
+- 终态 **398 passed | 11 skipped (409) exit0**（377→398）/ tc 0 / lint 0w0e / build 83.58+39.53+104.34 / pack 五件 56.6kB / i18n 121 keys / UA 0.5.0 ×5
+- 下一棒：S15 README 手册——正本 session-20 记录★节
+
+---
+
 ## 2026-09-10 — 移除 dshws-perplexity 成员 0.4.0 + 成员准入标准（Session 19，用户终裁 + ADR-0017）
 
 **Breaking 变更（0.3.1 → 0.4.0）**
