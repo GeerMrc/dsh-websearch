@@ -130,7 +130,8 @@ const fieldStyle = {
 const fieldLabelStyle = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 6,
+  // S23 D14: the Models field label leaves a 10px gap before the ⓘ icon.
+  gap: 10,
   fontSize: 12,
   lineHeight: '18px',
   fontWeight: 500,
@@ -193,7 +194,7 @@ const feedbackColor = (state: 'saved' | 'cleared' | 'failed'): string =>
     ? 'var(--dsw-alias-state-success-primary)'
     : state === 'cleared'
       ? 'var(--dsw-alias-state-warn-label)'
-      : 'var(--dsh-alias-state-error-primary)'
+      : 'var(--dsw-alias-state-error-primary)'
 
 const feedbackStyle = {
   flex: 1,
@@ -432,7 +433,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 {t('chainFloorDeepseekNote')}
               </p>
             ) : (
-              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
+              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }}>
                 {t('chainNoUsableWarning')}
               </p>
             )

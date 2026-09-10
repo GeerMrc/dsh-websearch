@@ -890,7 +890,7 @@ describe('WebSearchSettingsSection', () => {
     const input2 = focusKey('Tavily API Key')
     fireEvent.change(input2, { target: { value: 'sk-2' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.save}` }))
-    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsh-alias-state-error-primary)'))
+    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsw-alias-state-error-primary)'))
   })
 
   it('feedback auto-dismisses after 1.5s (S14s 时序收紧)', async () => {
@@ -1091,6 +1091,18 @@ describe('S21 T6: fetch chain GUI', () => {
 
     fireEvent.click(within(list).getByRole('button', { name: `Tavily ${en.moveUp}` }))
     await waitFor(() => expect(onMoveFetch).toHaveBeenCalledWith('dshws-tavily', -1))
+  })
+
+  it('S23 T1: failure feedback uses the defined error token; no hardcoded fallback colors (D4)', async () => {
+    const onSetMaxUses = vi.fn(async () => ({ ok: false }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMaxUses })} t={t} />)
+    openAdvanced()
+    fireEvent.change(screen.getByLabelText(en.maxUsesLabel), { target: { value: '15' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.maxUsesLabel} ${en.save}` }))
+    // --dsh- (typo) resolves to nothing and #f87171 is a forbidden hardcoded fallback.
+    await waitFor(() => {
+      expect(screen.getByTestId('dshws-max-uses-feedback').style.color).toBe('var(--dsw-alias-state-error-primary)')
+    })
   })
 
   it('S22a T1: role chips ride INSIDE the label cell right after the tool name (no grid wrap)', () => {
