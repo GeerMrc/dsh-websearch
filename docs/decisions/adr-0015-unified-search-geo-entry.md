@@ -27,7 +27,7 @@ accepted（2026-09-10，plan 017 阶段 2 两轮审核 APPROVED + 2.5 默认批�
 
 1. **全局单写入点**：根 config 增 `searchCountry`（ISO 3166-1 alpha-2，归一大写）与 `searchLanguage`（ISO 639-1，归一小写）两字段；GUI 在全局链卡区暴露两个输入（成员卡不复制）。缺省不发送 = 升级零 wire 漂移；区域修正是 opt-in。
 2. **按成员原生形态 fan-out**（resolve 时第三参 `geo`，随 T1 热化逐次读取）：
-   - `searchCountry` → Exa `userLocation`、Perplexity `web_search_options.user_location.country`（并入 T4 单一构造点）、Firecrawl `country`
+   - `searchCountry` → Exa `userLocation`、Perplexity web_search 工具顶层 `user_location.country`（〔勘注 2026-09-10，ADR-0016〕原 `web_search_options.user_location.country` 为 Sonar 形态；Agent API 迁移后落点在 web_search 工具顶层）、Firecrawl `country`
    - `searchLanguage` → Tavily `language`、Perplexity `language_preference`
 3. **v1 不喂 Tavily `country`**：国名字符串与 ISO 码不匹配且兼容性未验证；发送未验证值给 boost 参数可能让链头成员 400。Tavily 只接 `language`。待有实测证据（Tavily 对 ISO 码的真实行为）后再评估扩展——记录于本 ADR，实施于 `resolveTavilyMemberOptions` 的 geo 形参（只取 language）。
 4. **Firecrawl 的 roadmap「country 修 US 偏差」由全局入口承担**，成员级只增 tbs/location（location 为城市级自由文本，仅 Firecrawl 有此粒度，成员级保留）。
