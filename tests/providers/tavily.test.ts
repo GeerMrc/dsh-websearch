@@ -144,6 +144,20 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     expect(mapTavilyResponse({ results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
   })
 
+  it('S20 stage-5 F-1: any wildcard entry skips the whole Tavily domain fan-out (no official wildcard support)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const withWildcard = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY'  },
+      async () => 'k',
+      { includeDomains: ['example.com', '*.foo.org'] },
+    )
+    await new TavilySearchProvider(withWildcard).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('include_domains')
+    expect(body).not.toHaveProperty('exclude_domains')
+  })
+
   it('S20 T2: chunksPerSource lands when set; suppressed under ultra-fast depth (official constraint)', async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
     vi.stubGlobal('fetch', fetchMock)
@@ -198,11 +212,11 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     const resolved = resolveTavilyMemberOptions(
       { enabled: true, apiKeyEnv: 'TAVILY_API_KEY'  },
       async () => 'tvly-key',
-      { includeDomains: ['example.com', '*.foo.org'], excludeDomains: [] },
+      { includeDomains: ['example.com', 'foo.org'], excludeDomains: [] },
     )
     await new TavilySearchProvider(resolved).search({ query: 'q' })
     const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
-    expect(body.include_domains).toEqual(['example.com', '*.foo.org'])
+    expect(body.include_domains).toEqual(['example.com', 'foo.org'])
     expect(body).not.toHaveProperty('exclude_domains')
   })
 

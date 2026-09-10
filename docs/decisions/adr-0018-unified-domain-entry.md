@@ -16,7 +16,7 @@ accepted（2026-09-10）
 
 1. 站点白/黑名单是聚合搜索最常用的精确域控（S16 审计 P2 高价值项）；三家成员原生支持但格式各异：Tavily `include_domains`(≤300)/`exclude_domains`(≤150) + `include_domains_mode`；Exa `includeDomains`/`excludeDomains`(≤1200, hostname/路径前缀/通配)；Firecrawl `includeDomains`/`excludeDomains`（hostname-only，**互斥**——同请求 400）。
 2. **组合限制实锤**（2026-09-10 调研）：Exa `category ∈ {company, people}` × `excludeDomains` = 400；通配（`*.`）仅 Exa 支持，Firecrawl hostname-only 不支持。
-3. **fail-loud 机制陷阱（阶段 2 M-1 实证）**：resolveConfig throw 在 settings 提交路径被宿主 watcher 吞成 logger.warn（`settings/src/index.ts:781-786`）且值已持久化——重启时 LiveResolvedConfig 构造 throw 把插件 brick 到手动改文件；「二选一校验用 resolveConfig throw」在 settings 路径不是 fail-loud 而是 fail-silent+brick。
+3. **fail-loud 机制陷阱（阶段 2 M-1 实证）**：resolveConfig throw 在 settings 提交路径被宿主 watcher 吞成 logger.warn（`settings/src/index.ts watcher 吞错〔阶段 5 勘注：publish catch 现位于 :693-698，行为同述〕`）且值已持久化——重启时 LiveResolvedConfig 构造 throw 把插件 brick 到手动改文件；「二选一校验用 resolveConfig throw」在 settings 路径不是 fail-loud 而是 fail-silent+brick。
 
 ## Decision
 
