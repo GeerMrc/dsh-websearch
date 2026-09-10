@@ -725,10 +725,10 @@ function FallbackToolRow(props: {
             // inset chevron so it keeps its distance from the border.
             appearance: 'none',
             WebkitAppearance: 'none',
-            paddingRight: 30,
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
+            paddingRight: 32,
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2381858C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 10px center',
+            backgroundPosition: 'right 12px center',
           }}
         >
           <option value="auto">{t('fallbackAutoOption')}</option>
@@ -993,10 +993,10 @@ const selectStyle = {
   margin: 0,
   appearance: 'none',
   WebkitAppearance: 'none',
-  paddingRight: 30,
-  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
+  paddingRight: 32,
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2381858C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
   backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 10px center',
+  backgroundPosition: 'right 12px center',
 } as const
 
 /** Field label with an optional ⓘ tooltip carrying the control's semantics. */
