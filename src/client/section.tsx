@@ -87,6 +87,25 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
   }
 }
 
+
+/**
+ * S23 §0.5 B1: pseudo-class rules the inline-style system cannot express,
+ * delivered as one injected <style> block selected by data-dshws-* attributes.
+ * Colors stay tokenized (--dsw-alias-*) so both themes stay correct; host
+ * anchors: PluginCard.module.css (.card:hover/.cardOpen/.header:focus-visible).
+ */
+const SECTION_STYLE_CSS = `
+[data-dshws-card] { transition: border-color .16s, background .16s; }
+[data-dshws-card]:hover { border-color: var(--dsw-alias-label-dimmed); }
+[data-dshws-card][data-open='true'] { background: var(--dsw-alias-bg-layer-2); border-color: var(--dsw-alias-label-dimmed); }
+[data-dshws-card-body] { border-top: 1px solid var(--dsw-alias-border-l2); margin: 0 2px; padding-top: 8px; }
+[data-dshws-focusable]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  [data-dshws-card] { transition: none; }
+  [data-dshws-chevron] { transition: none !important; }
+}
+`
+
 const cardStyle = {
   border: '1px solid var(--dsw-alias-border-l2)',
   borderRadius: 12,
@@ -297,6 +316,9 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
+      {/* S23 §0.5 B1: one injected style block rides the section root (single-file CJS
+          distribution has no CSS channel of its own). */}
+      <style data-dshws-styles="">{SECTION_STYLE_CSS}</style>
       <div>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           {t('title')}
@@ -316,7 +338,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
       always visible; the reorder rows only earn their place once a member is
       configured (S12a rationale), while the tail note, timeout, and the
       host-parity maxUses knob are meaningful in every state. */}
-      <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
+      <section data-testid="dshws-chains" data-dshws-card="" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* S14j (user report fix): the S14h edit accidentally dropped the
             「搜索链」 title itself — this row IS the reorder surface for the
@@ -671,7 +693,7 @@ function FallbackToolRow(props: {
     : effective !== 'auto' ? fallbackDesignationReady : false
   const dotTitle = dotOn ? t('configured') : note !== undefined ? t('notConfigured') : undefined
   return (
-    <div data-testid="dshws-fallback-tool" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div data-testid="dshws-fallback-tool" data-dshws-card="" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
         <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
@@ -738,7 +760,7 @@ function FetchTakeoverRow(props: {
     return () => clearTimeout(timer)
   }, [feedback])
   return (
-    <div data-testid="dshws-fetch-takeover" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div data-testid="dshws-fetch-takeover" data-dshws-card="" data-open={open} style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <button
           type="button"
@@ -756,7 +778,7 @@ function FetchTakeoverRow(props: {
           </Tooltip>
           <span style={{ flex: 1 }} />
           {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
-          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
             <IconChevronDownOutline14 />
           </span>
         </button>
@@ -1300,7 +1322,7 @@ function MemberCard(props: {
   const [open, setOpen] = useState(false)
 
   return (
-    <div data-testid={`dshws-member-${member.key}`} style={cardStyle}>
+    <div data-testid={`dshws-member-${member.key}`} data-dshws-card="" data-open={open} style={cardStyle}>
       {/* S14k (user report): the WHOLE header is the disclosure button — the
       official PluginCard pattern (click anywhere on the head row to expand /
       collapse, chevron rotates). The enable switch stays a separate sibling
@@ -1318,7 +1340,7 @@ function MemberCard(props: {
           <strong style={nameStyle}>{member.label}</strong>
           <span style={{ flex: 1 }} />
           {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
-          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
             <IconChevronDownOutline14 />
           </span>
         </button>
@@ -1406,7 +1428,8 @@ function MemberCard(props: {
       {(MEMBER_PARAM_CONTROLS[member.key] ?? []).map((control) => (
         <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} />
       ))}
-      <div style={footerStyle}>
+      {/* S23 D10: the footer separates from the field stack (host .footer border-top). */}
+      <div data-dshws-card-body="" style={footerStyle}>
         {feedback ? (
           <span role="status" data-testid={`dshws-feedback-${member.key}`} style={{ ...feedbackStyle, color: feedbackColor(feedback) }}>{t(feedback)}</span>
         ) : (
