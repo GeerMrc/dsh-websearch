@@ -85,3 +85,9 @@ S17 config 面按可迁移形态设计：S18 迁移时用户可见配置零改�
 - **P3 候选清单**（后续棒）：Tavily exact_match/start_date/end_date//extract 端点；Exa
   contents.text.verbosity/includeSections/additionalQueries（deep 系）；Firecrawl tbs 组合形态
   （sbd:1/cdr 日期区间）。
+## 7. S21 fetch 面增补（2026-09-10）
+
+- **Tavily /extract**：urls ≤20/failed_results 独立数组/默认 markdown/**PDF URL 支持**/计费 basic 1 credit per 5 URL；face 落地（failed→链降级，空 results→badResponse）。
+- **AnySearch /v1/extract**：探针正本 = docs/notes/2026-09-10-s21-anysearch-extract-probe.md（端点/单 URL body/信封/去噪 Markdown/50k 上限 49,934 实测/三错误形态）。
+- **Firecrawl /v2/scrape**：代码在档（S16 P0 timeout 20s），S21 注册进内部 fetch registry。
+- **Exa 无 fetch 面**（上游无能力）——fetch 链三家定案（ADR-0019）。
