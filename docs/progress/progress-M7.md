@@ -523,3 +523,11 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 - **债务变动**: 🔴 清偿×1（阶段 0 抓获 S21 stage2 正本悬空，719dbfb）；🟢 新登记×1（AnySearch 垂直面 tag/params 待 key 探针——硬规则未触发，Note s17 §8 为正本）；勘正×1（plan 020 §87 AnySearch 契约面过时结论）
 - **已验锚点**: 守卫活体双态浏览器亲证（Exa sections×freshness / Firecrawl tbs 文法；validate hook 拒绝先于落盘）；zh→zh-CN 装配级端到端（loopback bodies）；阶段 4 破坏探针双红（边界反转 / TBS_TOKEN 放开）；清空路径原生事件亲证
 - **正本**: docs/sessions/2026-09-10-session-22.md
+
+## Session 22a（2026-09-11）Web Fetch 链 UI 修正批 0.7.1（用户反馈插行）
+
+- **门墙终态**: test **442|13(455) exit0** / tc 0 / lint 0 / i18n 138 keys
+- **提交链**: 分支 ed49b14 → merge master
+- **债务变动**: 无新增（conflict 重试覆盖面诚实披露 = 链移动写路径）
+- **已验锚点**: 链行单行排版截图亲证；Web Fetch 链 OFF 隐藏/ON 复现两态；连点排序 ×5 ok（原失败场景）；「全文抓取链」字样消失
+- **正本**: docs/sessions/2026-09-11-session-22a.md
