@@ -914,7 +914,9 @@ function MemberParamField(props: {
   }
 
   if (control.kind === 'toggle') {
-    const on = typeof stored === 'boolean' ? stored : true
+    // textFallback defaults ON (S17 D4); filterByLanguage defaults OFF (S20 P2).
+    const fallback = control.option === 'textFallback'
+    const on = typeof stored === 'boolean' ? stored : fallback
     return (
       <div style={fieldStyle}>
         <FieldLabel t={t} labelKey={control.labelKey} noteKey={control.noteKey} ariaLabel={ariaLabel} />

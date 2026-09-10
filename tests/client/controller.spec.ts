@@ -570,3 +570,25 @@ describe('S17 P1 member options and unified geo entry', () => {
     expect(controller.snapshot().searchCountry).toBe('CN')
   })
 })
+describe('S20 P2 unified domain entry', () => {
+  it('setSearchDomains writes one list and clears the other in the same patch (ADR-0018 client mirror)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+
+    await controller.setSearchDomains('include', 'example.com')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ searchIncludeDomains: 'example.com', searchExcludeDomains: '' })
+    await controller.setSearchDomains('exclude', 'spam.test')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ searchExcludeDomains: 'spam.test', searchIncludeDomains: '' })
+  })
+
+  it('the snapshot carries the raw domain strings and the new member option fields', async () => {
+    const remote = new FakeRemote()
+    remote.nsValue = { searchIncludeDomains: 'example.com', tavily: { chunksPerSource: 1 } }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().searchIncludeDomains).toBe('example.com')
+    const tavily = controller.snapshot().members.find((member) => member.key === 'tavily')
+    expect(tavily?.chunksPerSource).toBe(1)
+  })
+})

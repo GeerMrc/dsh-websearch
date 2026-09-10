@@ -335,6 +335,25 @@ describe('apply member-options hot path (S17 D1 统一热化)', () => {
     expect(urlOf()).toContain('proxy.tavily.test')
   })
 
+  it('S20: committed unified searchIncludeDomains reaches the next tavily wire AND clears the exclude list (ADR-0018 hot)', async () => {
+    const { ctx, providers, configured, commitSettings } = fakeCtx()
+    configured.add('TAVILY_API_KEY')
+    apply(ctx as unknown as Context, {})
+    const chain = providers.get('dshws-chain') as WebSearchProvider
+    await flushGate()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ results: [{ url: 'https://tv.test' }] }), { headers: { 'content-type': 'application/json' } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const bodyOf = (): Record<string, unknown> =>
+      JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+
+    await chain.search({ query: 'a' })
+    expect(bodyOf()).not.toHaveProperty('include_domains')
+
+    commitSettings({ searchIncludeDomains: 'example.com,foo.org', searchExcludeDomains: '' })
+    await chain.search({ query: 'b' })
+    expect(bodyOf().include_domains).toEqual(['example.com', 'foo.org'])
+  })
+
   it('a committed unified searchCountry reaches the next exa wire (global entry hot, ADR-0015)', async () => {
     const { ctx, providers, configured, commitSettings } = fakeCtx()
     configured.add('EXA_API_KEY')
