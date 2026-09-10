@@ -366,24 +366,9 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 aria-label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
                 data-testid="dshws-chain-order-info"
                 data-dshws-chain-state={snapshot.searchChainPinned ? 'pinned' : 'default'}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 16,
-                  height: 16,
-                  padding: 0,
-                  border: '1px solid var(--dsw-alias-border-l2)',
-                  borderRadius: 999,
-                  background: 'transparent',
-                  color: 'var(--dsw-alias-label-secondary)',
-                  fontSize: 11,
-                  lineHeight: 1,
-                  cursor: 'help',
-                  opacity: 0.6,
-                }}
+                style={infoButtonStyle}
               >
-                !
+                <IconQuestionOutline14 />
               </button>
             </Tooltip>
             <span style={{ flex: 1 }} />
@@ -547,7 +532,7 @@ function MaxUsesRow(props: {
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
-  // S14i: the saved note auto-clears (2.5s) so the row never looks stuck;
+  // S14i: the saved note auto-clears (1.5s) so the row never looks stuck;
   // with the controller re-describe fix the value itself updates live too.
   useEffect(() => {
     if (feedback === undefined) return
@@ -851,13 +836,9 @@ function FetchChainRows(props: {
             type="button"
             aria-label={t('fetchChainHint')}
             data-testid="dshws-fetch-chain-info"
-            style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0,
-              border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent',
-              color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6,
-            }}
+            style={infoButtonStyle}
           >
-            !
+            <IconQuestionOutline14 />
           </button>
         </Tooltip>
         {feedback ? <span role="status" data-testid="dshws-fetch-chain-feedback" style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }}>{t(feedback)}</span> : null}
@@ -1351,7 +1332,7 @@ function MemberCard(props: {
   // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
   const [editing, setEditing] = useState(false)
   const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
-  // S14o: the saved/cleared note auto-clears (2.5s) like the maxUses and
+  // S14o: the saved/cleared note auto-clears (1.5s) like the maxUses and
   // endpoint rows — a sticky 已清除/已保存 that only a page reload dismisses
   // reads as a stuck state (user report).
   useEffect(() => {
@@ -1447,9 +1428,9 @@ function MemberCard(props: {
               type="button"
               aria-label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
               data-testid={`dshws-keysel-info-${member.key}`}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6 }}
+              style={infoButtonStyle}
             >
-              !
+              <IconQuestionOutline14 />
             </button>
           </Tooltip>
         </span>

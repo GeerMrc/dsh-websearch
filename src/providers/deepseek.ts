@@ -61,7 +61,7 @@ export const DEEPSEEK_DEFAULT_MAX_USES = 10
 const codes = MEMBER_ERROR_CODES.deepseek
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.7.2'
+const USER_AGENT = 'dsh-websearch/0.8.0'
 
 /** Wire types of the Anthropic-compatible Messages response (the subset the mapper reads). */
 export interface DeepSeekCitation {
