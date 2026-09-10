@@ -368,16 +368,21 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 style={chainRowStyle}
               >
                 <span style={chainIndexStyle}>{index + 1}</span>
-                <span data-dshws-chain-label="">{labelOf(id)}</span>
-                {/* S14w: the chain order IS the primary/standby order — the
-                two ends carry explicit role chips (pure presentation). With a
-                designation (ADR-0014) the standby chip moves to the locked tail. */}
-                {index === 0 ? (
-                  <span data-testid="dshws-chain-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span>
-                ) : null}
-                {!showLockedTail && orderableSearch.length > 1 && index === orderableSearch.length - 1 ? (
-                  <span data-testid="dshws-chain-role-standby" style={roleChipStyle}>{t('chainRoleStandby')}</span>
-                ) : null}
+                {/* S22a T1: role chips ride INSIDE the label cell right after the
+                name — the row grid has one button column pair, a chip in its own
+                grid cell pushed the last button onto a second line (user report). */}
+                <span data-dshws-chain-label="" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                  {labelOf(id)}
+                  {/* S14w: the chain order IS the primary/standby order — the
+                  two ends carry explicit role chips (pure presentation). With a
+                  designation (ADR-0014) the standby chip moves to the locked tail. */}
+                  {index === 0 ? (
+                    <span data-testid="dshws-chain-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span>
+                  ) : null}
+                  {!showLockedTail && orderableSearch.length > 1 && index === orderableSearch.length - 1 ? (
+                    <span data-testid="dshws-chain-role-standby" style={roleChipStyle}>{t('chainRoleStandby')}</span>
+                  ) : null}
+                </span>
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"
@@ -436,7 +441,6 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
           <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
           <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
-          <FetchChainRows t={t} snapshot={snapshot} onMove={onMoveFetch} />
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
         </section>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -456,6 +460,10 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         ))}
         <FallbackToolRow key="dshws-fallback-tool" snapshot={snapshot} t={t} onChoose={onSetFallbackMember} />
         <FetchTakeoverRow t={t} active={snapshot.fetchTakeover} onSet={onSetFetchTakeover} />
+        {/* S22a T3 (user ruling): the fetch chain serves web_fetch ONLY while the
+        takeover switch is on — the block lives directly under the switch and is
+        hidden when off, instead of occupying the search-chain card year-round. */}
+        {snapshot.fetchTakeover ? <FetchChainRows t={t} snapshot={snapshot} onMove={onMoveFetch} /> : null}
       </div>
     </div>
   )
@@ -771,8 +779,11 @@ function FetchChainRows(props: {
         {visible.map((id, index) => (
           <li key={id} data-testid={`dshws-fetch-chain-item-${id}`} style={chainRowStyle}>
             <span style={chainIndexStyle}>{index + 1}</span>
-            <span data-dshws-chain-label="">{labelOf(id)}</span>
-            {index === 0 ? <span data-testid="dshws-fetch-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span> : null}
+            {/* S22a T1: same label-cell chip placement as the search chain. */}
+            <span data-dshws-chain-label="" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+              {labelOf(id)}
+              {index === 0 ? <span data-testid="dshws-fetch-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span> : null}
+            </span>
             <button type="button" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
             <button type="button" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
           </li>

@@ -616,6 +616,30 @@ describe('S21 T6: fetch chain controller', () => {
     expect(controller.snapshot().fetchChain).toEqual(['dshws-tavily', 'dshws-anysearch'])
   })
 
+  it('S22a T2: a settings/conflict on a chain move retries once with the refreshed revision (rapid-click race)', async () => {
+    const remote = new FakeRemote()
+    for (const ref of ['FIRECRAWL_API_KEY', 'TAVILY_API_KEY', 'ANYSEARCH_API_KEY']) {
+      remote.creds.set(ref, { configured: true, source: 'file', writable: true })
+    }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    // First write hits the stale-revision conflict the host reports on rapid
+    // consecutive moves; the retry must re-read the descriptor and succeed.
+    let calls = 0
+    const original = remote.updateSettings.bind(remote)
+    remote.updateSettings = (ns: string, patch: Record<string, unknown>, expectedRevision?: number) => {
+      calls += 1
+      if (calls === 1) return Promise.resolve({ ok: false as const, error: { code: 'settings/conflict' } })
+      return original(ns, patch, expectedRevision)
+    }
+    const result = await controller.moveFetchChainEntry('dshws-tavily', -1)
+    expect(result).toEqual({ ok: true })
+    expect(calls).toBe(2)
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({
+      fetchChain: ['dshws-tavily', 'dshws-firecrawl', 'dshws-anysearch'],
+    })
+  })
+
   it('moveFetchChainEntry patches the reordered array with the current revision', async () => {
     const remote = new FakeRemote()
     for (const ref of ['FIRECRAWL_API_KEY', 'TAVILY_API_KEY', 'ANYSEARCH_API_KEY']) {

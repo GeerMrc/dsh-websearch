@@ -2,6 +2,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WebSearchSettingsSection } from '../../src/client/section.tsx'
+
+/** The bare brand of one chain row: role chips nest inside the label cell (S22a T1),
+ * so the name is the label's first text node, not its full textContent. */
+const rowBrand = (span: Element): string => (span.childNodes[0]?.textContent ?? '')
 import type { SectionProps } from '../../src/client/section.tsx'
 import type { ActionResult, MemberSnapshot, SectionSnapshot } from '../../src/client/controller.ts'
 import { en } from '../../src/client/locales.ts'
@@ -131,7 +135,9 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    expect(cards.length).toBe(6)
+    // S22a T3: +1 for the fetch chain block, which moved under the takeover
+    // switch inside this container (ON-only rendering).
+    expect(cards.length).toBe(7)
     // Card testids, not brand text: the fallback selector's options also
     // carry brand names inside this container (ADR-0014).
     expect(screen.getByTestId('dshws-member-tavily')).toBeTruthy()
@@ -225,14 +231,13 @@ describe('WebSearchSettingsSection', () => {
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
     // S21: the fetch chain is now a live reorderable block (ADR-0019) — two
     // lists coexist inside the global card.
-    expect(chains.querySelectorAll('ol').length).toBe(2)
+    expect(chains.querySelectorAll('ol').length).toBe(1)
+    // S22a T3: the fetch chain block left this card for the takeover switch.
+    expect(chains.querySelector('[data-testid="dshws-fetch-chain"]')).toBeNull()
     expect(container.querySelector('[data-testid="dshws-fetch-chain"]')).not.toBeNull()
-    const searchRows = Array.from(chains.querySelector('[data-testid="dshws-search-chain"]')!.querySelectorAll('[data-dshws-chain-label]')).map((span) => span.textContent)
+    const searchRows = Array.from(chains.querySelector('[data-testid="dshws-search-chain"]')!.querySelectorAll('[data-dshws-chain-label]')).map(rowBrand)
     // S14c: four orderable rows only — DeepSeek is the fixed tail, not a row.
     expect(searchRows).toEqual(BRANDS.filter((brand) => brand !== 'DeepSeek'))
-    // S21: the fetch chain block carries the fetch-capable three.
-    const fetchRows = Array.from(chains.querySelector('[data-testid="dshws-fetch-chain-list"]')!.querySelectorAll('[data-dshws-chain-label]')).map((span) => span.textContent)
-    expect(fetchRows).toEqual(['Firecrawl', 'Tavily', 'AnySearch'])
     // The timeout folded into the card hint line.
     expect(chains.textContent).toContain('30000')
   })
@@ -668,7 +673,7 @@ describe('WebSearchSettingsSection', () => {
     members[4] = member('anysearch', 'AnySearch', { configured: false })
     const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
     const searchList = container.querySelector('[data-testid="dshws-search-chain"]')!
-    const visible = [...searchList.querySelectorAll('[data-dshws-chain-label]')].map((span) => span.textContent)
+    const visible = [...searchList.querySelectorAll('[data-dshws-chain-label]')].map(rowBrand)
     // S14c: DeepSeek is not a row — the visible span ends at Firecrawl.
     expect(visible).toEqual(['Tavily', 'Firecrawl'])
     // The disabled boundary must follow the FILTERED list: the last visible
@@ -776,8 +781,11 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const members = container.querySelector('[data-testid="dshws-members"]')!
     const children = Array.from(members.children)
-    expect(children.length).toBe(6)
-    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
+    // S22a T3: the takeover row stays last-but-one — the fetch chain block
+    // (ON-only) renders under the switch inside this container.
+    expect(children.length).toBe(7)
+    expect((children[children.length - 2] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
+    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-chain')
   })
 
   it('maxUses save patches the deepseek member key (S14c T4)', async () => {
@@ -1046,13 +1054,43 @@ describe('S21 T6: fetch chain GUI', () => {
     const onMoveFetch = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onMoveFetch })} t={t} />)
     const list = screen.getByTestId('dshws-fetch-chain-list')
-    const labels = [...list.querySelectorAll('[data-dshws-chain-label]')].map((span) => span.textContent)
+    const labels = [...list.querySelectorAll('[data-dshws-chain-label]')].map(rowBrand)
     // Default fixture: all members configured — the fetch-capable three in default order.
     expect(labels).toEqual(['Firecrawl', 'Tavily', 'AnySearch'])
     expect(screen.getByTestId('dshws-fetch-role-primary')).toBeTruthy()
 
     fireEvent.click(within(list).getByRole('button', { name: `Tavily ${en.moveUp}` }))
     await waitFor(() => expect(onMoveFetch).toHaveBeenCalledWith('dshws-tavily', -1))
+  })
+
+  it('S22a T1: role chips ride INSIDE the label cell right after the tool name (no grid wrap)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const searchChip = screen.getByTestId('dshws-chain-role-primary')
+    expect(searchChip.parentElement?.hasAttribute('data-dshws-chain-label')).toBe(true)
+    expect(searchChip.parentElement?.textContent).toContain('Tavily')
+    const fetchChip = screen.getByTestId('dshws-fetch-role-primary')
+    expect(fetchChip.parentElement?.hasAttribute('data-dshws-chain-label')).toBe(true)
+    expect(fetchChip.parentElement?.textContent).toContain('Firecrawl')
+  })
+
+  it('S22a T3: the fetch chain block sits under the takeover switch and hides when the switch is off', () => {
+    const onMoveFetch = vi.fn(async () => ({ ok: true }) as ActionResult)
+    const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveFetch })} t={t} />)
+    expect(screen.getByTestId('dshws-fetch-chain')).toBeTruthy()
+    // DOM order: the takeover row precedes the fetch chain block (S22a user ruling).
+    const members = container.querySelector('[data-testid="dshws-members"]')
+    const takeoverRow = screen.getByRole('switch', { name: en.fetchTakeoverLabel }).closest('div')
+    const fetchChain = screen.getByTestId('dshws-fetch-chain')
+    if (members && takeoverRow && fetchChain) {
+      expect(members.compareDocumentPosition(fetchChain) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(takeoverRow.compareDocumentPosition(fetchChain) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+
+    cleanup()
+    const off = makeProps({ onMoveFetch })
+    off.snapshot = { ...off.snapshot, fetchTakeover: false }
+    render(<WebSearchSettingsSection {...off} t={t} />)
+    expect(screen.queryByTestId('dshws-fetch-chain')).toBeNull()
   })
 
   it('an all-unconfigured snapshot renders no fetch chain block', () => {

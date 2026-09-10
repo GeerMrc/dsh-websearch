@@ -23,6 +23,11 @@ import { NS } from './locales.ts'
 /** Structural subset of the host `RemoteResult` the controller branches on. */
 type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: unknown }
 
+/** The host settings service classifies a stale-revision rejection as `settings/conflict`. */
+function isSettingsConflict(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { code?: unknown }).code === 'settings/conflict'
+}
+
 /** Narrow remote face the controller consumes; the entry adapters `ctx.remote` onto this. */
 export interface WebSearchSettingsPorts {
   describeSettings(): Promise<RemoteResult<SettingsDescribeValue>>
@@ -534,7 +539,23 @@ export class WebSearchSettingsController {
     while (to >= 0 && to < chain.length && !configuredIds.has(chain[to])) to += delta
     if (to < 0 || to >= chain.length) return { ok: false }
     ;[chain[from], chain[to]] = [chain[to], chain[from]]
-    const result = await this.#ports.updateSettings(NS, { searchChain: chain }, this.#revision)
+    const result = await this.#updateChainPatch({ searchChain: chain })
+    if (!result.ok) return { ok: false }
+    return { ok: true }
+  }
+
+  /**
+   * Patch one chain array, retrying exactly once on a settings/conflict: rapid
+   * consecutive moves fire with the last snapshot's revision and the host's
+   * optimistic lock rejects the second write; re-reading the descriptor and
+   * replaying the patch heals the race (S22a T2 — live「操作失败」report).
+   */
+  async #updateChainPatch(patch: Record<string, unknown>): Promise<ActionResult> {
+    let result = await this.#ports.updateSettings(NS, patch, this.#revision)
+    if (!result.ok && isSettingsConflict(result.error)) {
+      await this.#refreshSection()
+      result = await this.#ports.updateSettings(NS, patch, this.#revision)
+    }
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }
@@ -556,9 +577,8 @@ export class WebSearchSettingsController {
     while (to >= 0 && to < chain.length && !configuredIds.has(chain[to])) to += delta
     if (to < 0 || to >= chain.length) return { ok: false }
     ;[chain[from], chain[to]] = [chain[to], chain[from]]
-    const result = await this.#ports.updateSettings(NS, { fetchChain: chain }, this.#revision)
+    const result = await this.#updateChainPatch({ fetchChain: chain })
     if (!result.ok) return { ok: false }
-    await this.#refreshSection()
     return { ok: true }
   }
 
