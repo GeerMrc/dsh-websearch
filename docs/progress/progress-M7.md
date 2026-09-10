@@ -515,3 +515,11 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | settings 数组 patch 整字段替换：宿主 settings/src/index.ts:277-292 mergeLayers；活动例 = 本仓 controller.ts moveSearchChainEntry 整数组回写 | S09 阶段 1/2 亲读 |
 | schemastery z.union 枚举可用（非法值拒绝、缺省透传不注入默认） | S09 阶段 2 轮 1 审核 Agent 实测（建议 7）；T1 一行确认留痕 |
 | 测试基线 | S07：196\|6(202)；**S08：203\|8(211)**（24 files）；S09 起点自本行 |
+
+## Session 22（2026-09-10）P3 对齐批 0.7.0 + 全功能一致性深度审核
+
+- **门墙终态**: test **439|13(452) exit0** / tc 0 / lint 0w0e / i18n **138 keys**（阶段 5 独立复现；node v22.23.2）
+- **提交链**: master 719dbfb(T0)/b1e9375(plan+audit) + 分支 d7911da→a6d4f24→1b60153→74f3901→684e570→714c613(文案)→3842079(缺陷对) → merge
+- **债务变动**: 🔴 清偿×1（阶段 0 抓获 S21 stage2 正本悬空，719dbfb）；🟢 新登记×1（AnySearch 垂直面 tag/params 待 key 探针——硬规则未触发，Note s17 §8 为正本）；勘正×1（plan 020 §87 AnySearch 契约面过时结论）
+- **已验锚点**: 守卫活体双态浏览器亲证（Exa sections×freshness / Firecrawl tbs 文法；validate hook 拒绝先于落盘）；zh→zh-CN 装配级端到端（loopback bodies）；阶段 4 破坏探针双红（边界反转 / TBS_TOKEN 放开）；清空路径原生事件亲证
+- **正本**: docs/sessions/2026-09-10-session-22.md
