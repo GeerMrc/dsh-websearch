@@ -16,7 +16,6 @@ import z from '@deepseek-ai/schemastery'
 export const ORDERABLE_SEARCH_MEMBER_ORDER: readonly string[] = [
   'dshws-tavily',
   'dshws-exa',
-  'dshws-perplexity',
   'dshws-firecrawl',
   'dshws-anysearch',
 ]
@@ -38,10 +37,17 @@ export type FallbackMember =
   | 'auto'
   | 'dshws-tavily'
   | 'dshws-exa'
-  | 'dshws-perplexity'
   | 'dshws-firecrawl'
   | 'dshws-anysearch'
   | typeof DEEPSEEK_FALLBACK_MEMBER_ID
+
+/**
+ * Legacy fallbackMember value naming the REMOVED `dshws-perplexity` member
+ * (S19, ADR-0017): kept in the input schema so stored sections still load;
+ * `resolveConfig` normalizes it to `'auto'` (degrading to the chain-order tail,
+ * the same intent the dead member held as a designated tool fallback).
+ */
+export type LegacyFallbackMember = 'dshws-perplexity'
 
 /**
  * Legacy pre-0.2 fallback field values (ADR-0014): kept in the input schema so
@@ -189,35 +195,6 @@ export interface ExaSettings {
   keySelection?: KeySelection
 }
 
-/** Perplexity member settings (`dshws-perplexity`). */
-export interface PerplexitySettings {
-  /** Defaults to `true`. Hot: settings changes apply to the next search. */
-  enabled?: boolean
-  /** Defaults to `PERPLEXITY_API_KEY`. Hot: a settings change applies to the next search (S17 D1; keys are configured through the credentials service, not this field). */
-  apiKeyEnv?: string
-  /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
-  baseURL?: string
-  /** Sonar model; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
-  model?: string
-  /**
-   * Response token cap (S17 P1, "1024 腰斩修复"): the resolved default stays the explicit 1024
-   * (no official documented default exists; community-level truncation reports); raise it to let
-   * longer answers through. API hard bound 1..128000. Hot.
-   */
-  maxTokens?: number
-  /**
-   * Publication-recency filter (S17 P1, official 5-value enum incl. `hour`; omitted = not sent).
-   * Hot.
-   */
-  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year' | ''
-  /**
-   * Search context tier (S17 P1, official enum; omitted = not sent, API default `low`). Tiered
-   * per-request cost ($5/$8/$12 per 1k sonar requests). Hot.
-   */
-  searchContextSize?: 'low' | 'medium' | 'high' | ''
-  /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
-  keySelection?: KeySelection
-}
 
 /** Anysearch member settings (`dshws-anysearch`, ADR-0009). */
 export interface AnysearchSettings {
@@ -258,7 +235,7 @@ export interface Config {
    * floor; joins only when at most one tool member is ready and its key is
    * configured). Hot: settings changes apply to the next search.
    */
-  fallbackMember?: FallbackMember
+  fallbackMember?: FallbackMember | LegacyFallbackMember
   /**
    * @deprecated Legacy pre-0.2 alias (ADR-0014), read-only: normalized into
    * {@link fallbackMember} at resolve time; the GUI never writes it. Kept in
@@ -281,16 +258,15 @@ export interface Config {
   fetchTakeover?: boolean
   /**
    * Unified search region (S17 P1, ADR-0015): an ISO 3166-1 alpha-2 code (e.g. `CN`) fanned
-   * out to the members whose native APIs accept a region — Exa `userLocation`, Perplexity
-   * `web_search_options.user_location.country`, Firecrawl `country` (Tavily is excluded in v1:
+   * out to the members whose native APIs accept a region — Exa `userLocation` and Firecrawl
+   * `country` (Tavily is excluded in v1:
    * its `country` expects country-name strings; ISO-code compatibility is unverified). Blank =
    * not sent. Hot: the next search.
    */
   searchCountry?: string
   /**
    * Unified search language (S17 P1, ADR-0015): an ISO 639-1 code (e.g. `zh`) fanned out to
-   * the members with a search-level language parameter — Tavily `language`, Perplexity
-   * `language_preference`. Blank = not sent. Hot: the next search.
+   * the members with a search-level language parameter — Tavily `language`. Blank = not sent. Hot: the next search.
    */
   searchLanguage?: string
   /** DeepSeek member settings. */
@@ -301,8 +277,6 @@ export interface Config {
   firecrawl?: FirecrawlSettings
   /** Exa member settings. */
   exa?: ExaSettings
-  /** Perplexity member settings. */
-  perplexity?: PerplexitySettings
   /** Anysearch member settings (ADR-0009). */
   anysearch?: AnysearchSettings
 }
@@ -310,6 +284,7 @@ export interface Config {
 /** Validation schema the cordis loader applies to the `dsh-websearch` config section. */
 export const Config: z<Config> = z.object({
   searchChain: z.array(z.string()),
+  // 'dshws-perplexity' stays as a legacy alias (S19): stored values load, resolveConfig normalizes to 'auto'.
   fallbackMember: z.union(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-deepseek']),
   fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
   chainLogFile: z.boolean(),
@@ -354,16 +329,6 @@ export const Config: z<Config> = z.object({
     type: z.union(['instant', 'fast', 'auto', 'deep-lite', 'deep', 'deep-reasoning']),
     textFallback: z.boolean(),
     startPublishedDate: z.string(),
-    keySelection: z.union(['order', 'round-robin', 'random']),
-  }),
-  perplexity: z.object({
-    enabled: z.boolean(),
-    apiKeyEnv: z.string(),
-    baseURL: z.string(),
-    model: z.string(),
-    maxTokens: z.number().step(1).min(1).max(128000),
-    searchRecencyFilter: z.union(['', 'hour', 'day', 'week', 'month', 'year']),
-    searchContextSize: z.union(['', 'low', 'medium', 'high']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -436,20 +401,6 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
   keySelection?: KeySelection
 }
 
-/** Fully defaulted settings for one member. */
-export interface PerplexityMemberConfig extends Required<Pick<PerplexitySettings, 'enabled' | 'apiKeyEnv'>> {
-  baseURL?: string
-  model?: string
-  /** Response token cap; absent = provider default 1024 (S17 P1). */
-  maxTokens?: number
-  /** Publication-recency filter; absent = not sent (S17 P1). */
-  searchRecencyFilter?: 'hour' | 'day' | 'week' | 'month' | 'year'
-  /** Search context tier; absent = not sent (S17 P1). */
-  searchContextSize?: 'low' | 'medium' | 'high'
-  /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
-  keySelection?: KeySelection
-}
-
 /** Fully defaulted plugin configuration; the chain providers consume this, not the raw `Config`. */
 export interface ResolvedWebSearchConfig {
   /** Canonical designated fallback (legacy `fallbackProvider` normalized away; ADR-0014). */
@@ -470,7 +421,6 @@ export interface ResolvedWebSearchConfig {
   readonly tavily: TavilyMemberConfig
   readonly firecrawl: FirecrawlMemberConfig
   readonly exa: ExaMemberConfig
-  readonly perplexity: PerplexityMemberConfig
   readonly anysearch: AnysearchMemberConfig
 }
 
@@ -482,11 +432,14 @@ export interface ResolvedWebSearchConfig {
  * implementations (S04/S05a); their values pass through untouched.
  */
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
-  const fallbackMember: FallbackMember = config.fallbackMember !== undefined
-    ? config.fallbackMember
-    // Legacy alias (ADR-0014): 'deepseek' names the paid floor; 'none',
-    // 'auto', and the deleted 'fetch' free floor all mean the chain-order tail.
-    : (config.fallbackProvider === 'deepseek' ? DEEPSEEK_FALLBACK_MEMBER_ID : 'auto')
+  const fallbackMember: FallbackMember = config.fallbackMember === 'dshws-perplexity'
+    // S19 legacy alias: the removed member's designation degrades to auto.
+    ? 'auto'
+    : config.fallbackMember !== undefined
+      ? config.fallbackMember
+      // Legacy alias (ADR-0014): 'deepseek' names the paid floor; 'none',
+      // 'auto', and the deleted 'fetch' free floor all mean the chain-order tail.
+      : (config.fallbackProvider === 'deepseek' ? DEEPSEEK_FALLBACK_MEMBER_ID : 'auto')
   return {
     searchChain: withDesignatedFallback(
       config.searchChain?.length ? [...config.searchChain] : ORDERABLE_SEARCH_MEMBER_ORDER,
@@ -542,16 +495,6 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       // S17 D4: text fallback is ON by default — it fixes dropped results.
       textFallback: config.exa?.textFallback ?? true,
       startPublishedDate: config.exa?.startPublishedDate?.trim().length ? config.exa.startPublishedDate.trim() : undefined,
-    },
-    perplexity: {
-      enabled: config.perplexity?.enabled ?? true,
-      apiKeyEnv: config.perplexity?.apiKeyEnv ?? 'PERPLEXITY_API_KEY',
-      keySelection: config.perplexity?.keySelection ?? 'round-robin',
-      baseURL: config.perplexity?.baseURL?.trim() === '' ? undefined : config.perplexity?.baseURL,
-      model: config.perplexity?.model,
-      maxTokens: config.perplexity?.maxTokens,
-      searchRecencyFilter: config.perplexity?.searchRecencyFilter || undefined,
-      searchContextSize: config.perplexity?.searchContextSize || undefined,
     },
     anysearch: {
       enabled: config.anysearch?.enabled ?? true,

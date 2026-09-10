@@ -52,13 +52,6 @@ export const MEMBER_ERROR_CODES = {
     badResponse: 'DSHWS_EXA_BAD_RESPONSE',
     aborted: 'DSHWS_EXA_ABORTED',
   },
-  perplexity: {
-    credentialMissing: 'DSHWS_PERPLEXITY_CREDENTIAL_MISSING',
-    requestFailed: 'DSHWS_PERPLEXITY_REQUEST_FAILED',
-    httpError: 'DSHWS_PERPLEXITY_HTTP_ERROR',
-    badResponse: 'DSHWS_PERPLEXITY_BAD_RESPONSE',
-    aborted: 'DSHWS_PERPLEXITY_ABORTED',
-  },
   anysearch: {
     credentialMissing: 'DSHWS_ANYSEARCH_CREDENTIAL_MISSING',
     requestFailed: 'DSHWS_ANYSEARCH_REQUEST_FAILED',

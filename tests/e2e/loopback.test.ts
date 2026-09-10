@@ -12,7 +12,7 @@ import type { LoopbackBehavior, LoopbackServer } from './helpers/loopback-server
  * Loopback e2e (plan 008): the full assembly — entry config through the real
  * `apply()` into the real chain — driven against real HTTP round trips to a
  * scripted loopback server. The three REST search members (tavily/exa/
- * perplexity) carry every scenario; chain semantics themselves are member
+ * firecrawl, on demand) carry every scenario; chain semantics themselves are member
  * independent (S03 fake tier). Failure assertions read the observable faces:
  * the chain's logger degrade lines (reason = the member's message) and, where
  * an error object exists (exhaustion, direct pin), the error's `code`.
@@ -21,8 +21,8 @@ import type { LoopbackBehavior, LoopbackServer } from './helpers/loopback-server
  * so a failing assertion cannot leak sockets into the next scenario.
  */
 
-const MEMBERS = ['dshws-tavily', 'dshws-exa', 'dshws-perplexity'] as const
-const REFS = ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY'] as const
+const MEMBERS = ['dshws-tavily', 'dshws-exa', 'dshws-firecrawl'] as const
+const REFS = ['TAVILY_API_KEY', 'EXA_API_KEY'] as const
 
 interface Assembly {
   server: LoopbackServer
@@ -40,7 +40,7 @@ interface AssembleOverrides {
   /** Pin the fallback choice (S14u: keep the chain tail loopback-controlled). */
   fallbackProvider?: 'deepseek'
   /** Designate the fallback member (ADR-0014 canonical field). */
-  fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-perplexity' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
+  fallbackMember?: 'auto' | 'dshws-tavily' | 'dshws-exa' | 'dshws-firecrawl' | 'dshws-anysearch' | 'dshws-deepseek'
   /** Point the deepseek member at THIS scenario's loopback server (the caller cannot know the ephemeral port). */
   deepseekAtLoopback?: boolean
   /** Point the firecrawl member at THIS scenario's loopback server (S14w primary/standby scenario). */
@@ -71,7 +71,6 @@ async function assemble(
         ...(overrides?.tavilyKeySelection !== undefined ? { keySelection: overrides.tavilyKeySelection } : {}),
       },
       exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
-      perplexity: { baseURL: `http://127.0.0.1:${server.port}/perplexity` },
       ...(overrides?.withAnysearch ? { anysearch: { baseURL: `http://127.0.0.1:${server.port}/anysearch` } } : {}),
       ...(overrides?.firecrawlAtLoopback ? { firecrawl: { baseURL: `http://127.0.0.1:${server.port}/firecrawl` } } : {}),
       ...(overrides?.deepseekAtLoopback ? { deepseek: { baseURL: `http://127.0.0.1:${server.port}/deepseek` } } : {}),
@@ -94,7 +93,6 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     const { server, chain, handle } = await assemble(
       {
         '/exa/search': { kind: 'success', body: { results: [{ url: 'https://exa.test/a', title: 'Exa page', highlights: ['exa snippet a'] }] } },
-        '/perplexity/v1/agent': { kind: 'destroy' },
       },
       { tavilyBaseURL: `http://127.0.0.1:${dead}/tavily` },
     )
@@ -165,18 +163,16 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
   })
 
   it('walks the configured order across failures to the winner (顺序保持)', async () => {
-    const { server, chain, handle } = await assemble(
+    const { server, chain } = await assemble(
       {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
-        '/perplexity/v1/agent': {
+        '/firecrawl/v2/search': {
           kind: 'success',
-          body: { output: [
-            { type: 'search_results', queries: ['loopback order'], results: [{ id: 1, url: 'https://pplx.test/a', title: 'A', snippet: 'sa', source: 'web' }] },
-            { type: 'message', content: [{ type: 'output_text', text: 'loopback answer', annotations: [] }] },
-          ] },
+          body: { success: true, data: { web: [{ url: 'https://fc.test/a', title: 'A', description: 'sd' }] } },
         },
       },
+      { firecrawlAtLoopback: true, configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'FIRECRAWL_API_KEY'] },
     )
     try {
       const result = await chain.search({ query: 'loopback order' })
@@ -185,11 +181,9 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
-        'POST /perplexity/v1/agent',
+        'POST /firecrawl/v2/search',
       ])
-      // Perplexity carries content, so the signature is a first line over body text.
-      expect(result.content).toBe('[served-by: dshws-perplexity]\nloopback answer')
-      expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-perplexity')
+      expect(result.sources).toEqual([{ url: 'https://fc.test/a', title: 'A', snippet: 'sd' }])
     } finally {
       await server.close()
     }
@@ -200,22 +194,19 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
-        '/perplexity/v1/agent': {
+        '/firecrawl/v2/search': {
           kind: 'success',
-          body: { output: [
-            { type: 'search_results', queries: ['loopback skip'], results: [{ id: 1, url: 'https://pplx.test/a', source: 'web' }] },
-            { type: 'message', content: [{ type: 'output_text', text: 'answer', annotations: [] }] },
-          ] },
+          body: { success: true, data: { web: [{ url: 'https://fc.test/a' }] } },
         },
       },
-      { exaEnabled: false },
+      { exaEnabled: false, firecrawlAtLoopback: true, configuredRefs: ['TAVILY_API_KEY', 'FIRECRAWL_API_KEY'] },
     )
     try {
       const result = await chain.search({ query: 'loopback skip' })
       // exa sits in the chain but its selection gate skips it: no arrival, no
       // entry in the walk — selection skips are not sequence entries.
-      expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /perplexity/v1/agent'])
-      expect(result.content).toBe('[served-by: dshws-perplexity]\nanswer')
+      expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /firecrawl/v2/search'])
+      expect(result.sources).toEqual([{ url: 'https://fc.test/a' }])
     } finally {
       await server.close()
     }
@@ -226,7 +217,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
-        '/perplexity/v1/agent': { kind: 'status', status: 500, body: { detail: 'backend down' } },
+        '/firecrawl/v2/search': { kind: 'status', status: 500, body: { error: 'backend down' } },
         '/deepseek/messages': { kind: 'status', status: 500, body: { error: { message: 'quota' } } },
       },
       // THREE ready tools + a designated, keyed, loopback-wired DeepSeek: the
@@ -237,7 +228,8 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       {
         fallbackProvider: 'deepseek',
         deepseekAtLoopback: true,
-        configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY', 'DEEPSEEK_API_KEY'],
+        firecrawlAtLoopback: true,
+        configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'FIRECRAWL_API_KEY', 'DEEPSEEK_API_KEY'],
       },
     )
     try {
@@ -249,22 +241,22 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       const message = failure.message
       const tavilyAt = message.indexOf('- dshws-tavily:')
       const exaAt = message.indexOf('- dshws-exa:')
-      const perplexityAt = message.indexOf('- dshws-perplexity:')
+      const firecrawlAt = message.indexOf('- dshws-firecrawl:')
       expect(tavilyAt).toBeGreaterThan(-1)
       expect(exaAt).toBeGreaterThan(tavilyAt)
-      expect(perplexityAt).toBeGreaterThan(exaAt)
+      expect(firecrawlAt).toBeGreaterThan(exaAt)
       expect(message).toContain('HTTP 429')
       expect(message).toContain('all 3 configured chain members failed')
       // ADR-0014: no paid floor with three ready tools — no summary line, no arrival.
       expect(message).not.toContain('- dshws-deepseek:')
       expect(server.arrivals).not.toContain('POST /deepseek/messages')
       // The last member's thrown error rides as cause (ADR-0002 Decision 3).
-      expect(failure.cause?.code).toBe('DSHWS_PERPLEXITY_HTTP_ERROR')
+      expect(failure.cause?.code).toBe('DSHWS_FIRECRAWL_HTTP_ERROR')
       expect(failure.cause?.httpStatus).toBe(500)
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
-        'POST /perplexity/v1/agent',
+        'POST /firecrawl/v2/search',
       ])
     } finally {
       await server.close()
@@ -438,7 +430,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         // Tavily primary NOT configured (omitted from configuredRefs): the chain skips it.
         '/exa/search': { kind: 'success', body: { results: [{ url: 'https://exa.test/gate', highlights: ['gate snippet'] }] } },
       },
-      { configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY', 'PERPLEXITY_API_KEY'].slice(1) },
+      { configuredRefs: ['TAVILY_API_KEY', 'EXA_API_KEY'].slice(1) },
     )
     try {
       const result = await chain.search({ query: 'a' })

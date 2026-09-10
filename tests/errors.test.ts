@@ -53,13 +53,6 @@ describe('error code catalog', () => {
       badResponse: 'DSHWS_ANYSEARCH_BAD_RESPONSE',
       aborted: 'DSHWS_ANYSEARCH_ABORTED',
     })
-    expect(MEMBER_ERROR_CODES.perplexity).toEqual({
-      credentialMissing: 'DSHWS_PERPLEXITY_CREDENTIAL_MISSING',
-      requestFailed: 'DSHWS_PERPLEXITY_REQUEST_FAILED',
-      httpError: 'DSHWS_PERPLEXITY_HTTP_ERROR',
-      badResponse: 'DSHWS_PERPLEXITY_BAD_RESPONSE',
-      aborted: 'DSHWS_PERPLEXITY_ABORTED',
-    })
     expect(MEMBER_ERROR_CODES.firecrawl).toEqual({
       credentialMissing: 'DSHWS_FIRECRAWL_CREDENTIAL_MISSING',
       requestFailed: 'DSHWS_FIRECRAWL_REQUEST_FAILED',

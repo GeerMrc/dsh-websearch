@@ -2,12 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
 
 describe('resolveConfig', () => {
-  it('applies the built-in member order to empty chains — five tools, no appended tail (ADR-0014)', () => {
+  it('applies the built-in member order to empty chains — four tools (S19: perplexity removed), no appended tail (ADR-0014)', () => {
     const resolved = resolveConfig({})
     expect(BUILT_IN_MEMBER_ORDER).toEqual([
       'dshws-tavily',
       'dshws-exa',
-      'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-anysearch',
     ])
@@ -32,7 +31,7 @@ describe('resolveConfig', () => {
 
   it('pins a designated tool member at the tail, stripped from the rotation (ADR-0014)', () => {
     const designated = resolveConfig({ fallbackMember: 'dshws-exa' })
-    expect(designated.searchChain).toEqual(['dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-exa'])
+    expect(designated.searchChain).toEqual(['dshws-tavily', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-exa'])
     // A pinned chain naming the designated member elsewhere: same strip + pin.
     const pinned = resolveConfig({ searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-firecrawl'], fallbackMember: 'dshws-exa' })
     expect(pinned.searchChain).toEqual(['dshws-tavily', 'dshws-firecrawl', 'dshws-exa'])
@@ -53,6 +52,13 @@ describe('resolveConfig', () => {
     expect(resolveConfig({ fallbackMember: 'auto', fallbackProvider: 'deepseek' }).fallbackMember).toBe('auto')
   })
 
+  it('S19: a stored fallbackMember naming the removed perplexity member is a legacy alias that normalizes to auto', () => {
+    const resolved = resolveConfig({ fallbackMember: 'dshws-perplexity' })
+    expect(resolved.fallbackMember).toBe('auto')
+    // The dead id never reaches the chain either.
+    expect(resolved.searchChain).not.toContain('dshws-perplexity')
+  })
+
   it('rejects invalid fallback values fail-loud at the schema (ADR-0014)', () => {
     expect(() => Config({ fallbackMember: 'banana' as never })).toThrow()
     expect(() => Config({ fallbackProvider: 'banana' as never })).toThrow()
@@ -71,7 +77,6 @@ describe('resolveConfig', () => {
     expect(resolved.firecrawl).toEqual({ enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', keySelection: 'round-robin' })
     // S17 D4: exa's text fallback defaults ON (丢结果修复).
     expect(resolved.exa).toEqual({ enabled: true, apiKeyEnv: 'EXA_API_KEY', keySelection: 'round-robin', textFallback: true })
-    expect(resolved.perplexity).toEqual({ enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', keySelection: 'round-robin' })
   })
 
   describe('S17 P1 parameter defaults and passthrough', () => {
@@ -122,28 +127,6 @@ describe('resolveConfig', () => {
       expect(() => Config({ exa: { type: 'banana' as never } })).toThrow()
     })
 
-    it('perplexity: maxTokens/recency/contextSize absent until set (1024 stays the provider default)', () => {
-      const resolved = resolveConfig({})
-      expect(resolved.perplexity.maxTokens).toBeUndefined()
-      expect(resolved.perplexity.searchRecencyFilter).toBeUndefined()
-      expect(resolved.perplexity.searchContextSize).toBeUndefined()
-    })
-
-    it('perplexity: explicit S17 fields pass through (recency 5 值含 hour)', () => {
-      const resolved = resolveConfig({
-        perplexity: { maxTokens: 2048, searchRecencyFilter: 'hour', searchContextSize: 'medium' },
-      })
-      expect(resolved.perplexity.maxTokens).toBe(2048)
-      expect(resolved.perplexity.searchRecencyFilter).toBe('hour')
-      expect(resolved.perplexity.searchContextSize).toBe('medium')
-    })
-
-    it('perplexity: maxTokens bounds and bad enums fail loud at the schema (API 硬约束)', () => {
-      expect(() => Config({ perplexity: { maxTokens: 0 } })).toThrow()
-      expect(() => Config({ perplexity: { maxTokens: 200000 } })).toThrow()
-      expect(() => Config({ perplexity: { searchRecencyFilter: 'decade' as never } })).toThrow()
-      expect(() => Config({ perplexity: { searchContextSize: 'huge' as never } })).toThrow()
-    })
 
     it('firecrawl: tbs/location absent until set; explicit values pass through; bad tbs fails loud', () => {
       expect(resolveConfig({}).firecrawl.tbs).toBeUndefined()
@@ -224,7 +207,6 @@ describe('Config schema', () => {
       tavily: {},
       firecrawl: {},
       exa: {},
-      perplexity: {},
       anysearch: {},
     })
   })
