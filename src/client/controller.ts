@@ -102,6 +102,11 @@ interface MemberSectionValue {
   sources?: 'news' | 'web+news'
   /** Firecrawl S20 P2: result category. */
   categories?: 'developer' | 'research' | 'pdf'
+  /** Tavily S22 P3: publication-date window bounds (`YYYY-MM-DD`). */
+  startDate?: string
+  endDate?: string
+  /** Tavily S22 P3: exact quoted-phrase filter. */
+  exactMatch?: boolean
 }
 
 interface SectionValue {
@@ -164,6 +169,10 @@ export interface MemberSnapshot {
   readonly maxAgeHours: number | undefined
   readonly sources: string | undefined
   readonly categories: string | undefined
+  /** Tavily S22 P3 raw values, `undefined` = not sent. */
+  readonly startDate: string | undefined
+  readonly endDate: string | undefined
+  readonly exactMatch: boolean | undefined
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -248,6 +257,9 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       maxAgeHours: section?.maxAgeHours,
       sources: section?.sources,
       categories: section?.categories,
+      startDate: section?.startDate,
+      endDate: section?.endDate,
+      exactMatch: section?.exactMatch,
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -412,7 +424,7 @@ export class WebSearchSettingsController {
    */
   async setMemberOption(
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch',
     value: string | number | boolean,
   ): Promise<ActionResult> {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)

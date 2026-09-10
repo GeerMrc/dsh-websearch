@@ -164,6 +164,18 @@ export interface TavilySettings {
    * web). Only sent when the unified include-domain list is non-empty. Hot.
    */
   includeDomainsMode?: 'filter' | 'boost'
+  /**
+   * Publication-date window lower bound, `YYYY-MM-DD` (S22 P3; orthogonal to `timeRange`'s relative
+   * windows). `''` clears. Hot.
+   */
+  startDate?: string
+  /** Publication-date window upper bound, `YYYY-MM-DD` (S22 P3). `''` clears. Hot. */
+  endDate?: string
+  /**
+   * Only return results containing the exact quoted phrase(s) of the query, bypassing synonym
+   * expansion (S22 P3; a pure result filter, no credit note in the official spec). Hot.
+   */
+  exactMatch?: boolean
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -379,6 +391,9 @@ export const Config: z<Config> = z.object({
     chunksPerSource: z.number().step(1).min(1).max(3),
     filterByLanguage: z.boolean(),
     includeDomainsMode: z.union(['filter', 'boost']),
+    startDate: z.string(),
+    endDate: z.string(),
+    exactMatch: z.boolean(),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   firecrawl: z.object({
@@ -441,6 +456,12 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
   filterByLanguage?: boolean
   /** Include-list semantics; absent = not sent (S20 P2). */
   includeDomainsMode?: 'filter' | 'boost'
+  /** Publication-date window lower bound (`YYYY-MM-DD`); absent = not sent (S22 P3). */
+  startDate?: string
+  /** Publication-date window upper bound; absent = not sent (S22 P3). */
+  endDate?: string
+  /** Exact quoted-phrase filter; absent = not sent (S22 P3). */
+  exactMatch?: boolean
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -591,6 +612,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       includeAnswer: config.tavily?.includeAnswer ?? 'basic',
       chunksPerSource: config.tavily?.chunksPerSource,
       filterByLanguage: config.tavily?.filterByLanguage,
+      startDate: config.tavily?.startDate?.trim().length ? config.tavily.startDate.trim() : undefined,
+      endDate: config.tavily?.endDate?.trim().length ? config.tavily.endDate.trim() : undefined,
+      exactMatch: config.tavily?.exactMatch,
       includeDomainsMode: config.tavily?.includeDomainsMode,
     },
     firecrawl: {

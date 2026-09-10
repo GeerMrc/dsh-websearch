@@ -37,7 +37,7 @@ export interface SectionProps {
   /** One S17 P1 member option (selects/toggles/text/number controls); '' clears enum/date fields. */
   onSetMemberOption: (
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch',
     value: string | number | boolean,
   ) => Promise<ActionResult>
   /** Unified search region (S17 P1, ADR-0015). */
@@ -851,8 +851,8 @@ type MemberParamControl =
     fallback?: string
     options: readonly { value: string, labelKey: DshWsLocaleKey }[]
   }
-  | { kind: 'toggle', option: 'textFallback' | 'filterByLanguage', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
-  | { kind: 'text', option: 'location' | 'startPublishedDate', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, inputType: 'text' | 'date', placeholder?: string }
+  | { kind: 'toggle', option: 'textFallback' | 'filterByLanguage' | 'exactMatch', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
+  | { kind: 'text', option: 'location' | 'startPublishedDate' | 'startDate' | 'endDate', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, inputType: 'text' | 'date', placeholder?: string }
   | { kind: 'number', option: 'maxAgeHours', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, min: number, max: number, fallback: number }
 
 /** The S17 P1 controls per member, in card order (ADR-0015 mapping; deepseek/anysearch expose none). */
@@ -871,6 +871,9 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
     { kind: 'select', option: 'chunksPerSource', labelKey: 'chunksPerSourceLabel', options: [
       { value: '', labelKey: 'optDefault' }, { value: '1', labelKey: 'chunksOne' }, { value: '2', labelKey: 'chunksTwo' }, { value: '3', labelKey: 'chunksThree' }] },
     { kind: 'toggle', option: 'filterByLanguage', labelKey: 'filterByLanguageLabel', noteKey: 'filterByLanguageNote' },
+    { kind: 'text', option: 'startDate', labelKey: 'tavilyStartDateLabel', inputType: 'date' },
+    { kind: 'text', option: 'endDate', labelKey: 'tavilyEndDateLabel', inputType: 'date' },
+    { kind: 'toggle', option: 'exactMatch', labelKey: 'tavilyExactMatchLabel', noteKey: 'tavilyExactMatchNote' },
   ],
   exa: [
     { kind: 'select', option: 'type', labelKey: 'exaTypeLabel', fallback: 'auto', options: [

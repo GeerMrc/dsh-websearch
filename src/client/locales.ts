@@ -100,6 +100,10 @@ export type DshWsLocaleKey =
   | 'exaTextFallbackLabel'
   | 'exaTextFallbackNote'
   | 'exaDateFloorLabel'
+  | 'tavilyStartDateLabel'
+  | 'tavilyEndDateLabel'
+  | 'tavilyExactMatchLabel'
+  | 'tavilyExactMatchNote'
   | 'ctxLow'
   | 'ctxMedium'
   | 'ctxHigh'
@@ -232,6 +236,10 @@ export const en: Record<DshWsLocaleKey, string> = {
   exaTextFallbackLabel: 'Text fallback',
   exaTextFallbackNote: 'ON: also request each result page\u2019s text so results without highlights keep a snippet instead of being dropped. Default ON.',
   exaDateFloorLabel: 'Published after',
+  tavilyStartDateLabel: 'Published from',
+  tavilyEndDateLabel: 'Published until',
+  tavilyExactMatchLabel: 'Exact match',
+  tavilyExactMatchNote: 'Only return results containing the exact quoted phrase(s) of the query, bypassing synonym expansion.',
   ctxLow: 'Low',
   ctxMedium: 'Medium',
   ctxHigh: 'High',
@@ -359,6 +367,10 @@ export const zh: Record<DshWsLocaleKey, string> = {
   exaTextFallbackLabel: '全文回退',
   exaTextFallbackNote: '开：同时请求每条结果的页面全文——无高亮摘要的结果保留全文摘录而非被丢弃。默认开。',
   exaDateFloorLabel: '发布日期下限',
+  tavilyStartDateLabel: '发布日期起',
+  tavilyEndDateLabel: '发布日期止',
+  tavilyExactMatchLabel: '精确短语匹配',
+  tavilyExactMatchNote: '仅返回包含查询中精确引号短语的结果，绕过同义词扩展。',
   ctxLow: '低',
   ctxMedium: '中',
   ctxHigh: '高',

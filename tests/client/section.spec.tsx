@@ -52,6 +52,9 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     location: undefined,
     chunksPerSource: undefined,
     filterByLanguage: undefined,
+    startDate: undefined,
+    endDate: undefined,
+    exactMatch: undefined,
     includeDomainsMode: undefined,
     category: undefined,
     maxAgeHours: undefined,
@@ -976,6 +979,22 @@ describe('S20 P2 domain entry and member controls', () => {
     expand('firecrawl')
     fireEvent.change(screen.getByTestId('dshws-param-firecrawl-sources'), { target: { value: 'web+news' } })
     await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'sources', 'web+news'))
+  })
+
+  it('S22 T1: tavily exposes the P3 date window and exact_match controls', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('tavily')
+    const start = screen.getByTestId('dshws-param-tavily-startDate') as HTMLInputElement
+    const end = screen.getByTestId('dshws-param-tavily-endDate') as HTMLInputElement
+    expect(start.value).toBe('')
+    expect(end.value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-exactMatch') as HTMLButtonElement).getAttribute('aria-checked')).toBe('false')
+    fireEvent.change(start, { target: { value: '2026-01-01' } })
+    fireEvent.click(screen.getByRole('button', { name: `Tavily ${en.tavilyStartDateLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'startDate', '2026-01-01'))
+    fireEvent.click(screen.getByTestId('dshws-param-tavily-exactMatch'))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'exactMatch', true))
   })
 
   it('exa category select forwards its value (company guard covered at the wire)', async () => {
