@@ -137,6 +137,17 @@ describe('resolveConfig', () => {
       expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
     })
 
+    it('S20 T2: tavily member params — chunksPerSource bounds, filterByLanguage bool, includeDomainsMode enum', () => {
+      const resolved = resolveConfig({ tavily: { chunksPerSource: 1, filterByLanguage: true, includeDomainsMode: 'boost' } })
+      expect(resolved.tavily.chunksPerSource).toBe(1)
+      expect(resolved.tavily.filterByLanguage).toBe(true)
+      expect(resolved.tavily.includeDomainsMode).toBe('boost')
+      expect(resolveConfig({}).tavily.chunksPerSource).toBeUndefined()
+      expect(() => Config({ tavily: { chunksPerSource: 4 as never } })).toThrow()
+      expect(() => Config({ tavily: { chunksPerSource: 0 } })).toThrow()
+      expect(() => Config({ tavily: { includeDomainsMode: 'banana' as never } })).toThrow()
+    })
+
     it('S20 T1: unified domain entry — comma strings parse to arrays; both set fails loud; blanks drop (ADR-0018)', () => {
       expect(resolveConfig({}).searchIncludeDomains).toEqual([])
       expect(resolveConfig({}).searchExcludeDomains).toEqual([])

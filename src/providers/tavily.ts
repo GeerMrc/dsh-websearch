@@ -86,6 +86,12 @@ export interface TavilyMemberOptions {
   readonly includeDomains?: readonly string[]
   /** Unified exclude-domain blocklist; empty = not sent (S20 P1, ADR-0018). */
   readonly excludeDomains?: readonly string[]
+  /** Content chunks per source; absent = not sent (S20 P2). */
+  readonly chunksPerSource?: number
+  /** Hard language filter; only sent when `language` is set (S20 P2, official 400 constraint). */
+  readonly filterByLanguage?: boolean
+  /** Include-list semantics; only sent with a non-empty include list (S20 P2). */
+  readonly includeDomainsMode?: 'filter' | 'boost'
 }
 
 /**
@@ -112,6 +118,9 @@ export function resolveTavilyMemberOptions(
     language: fanout?.language,
     includeDomains: fanout?.includeDomains?.length ? fanout.includeDomains : undefined,
     excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
+    chunksPerSource: config.chunksPerSource,
+    filterByLanguage: config.filterByLanguage,
+    includeDomainsMode: config.includeDomainsMode,
   }
 }
 
@@ -187,6 +196,18 @@ export class TavilySearchProvider implements WebSearchProvider {
           ...this.options.language !== undefined ? { language: this.options.language } : {},
           ...this.options.includeDomains !== undefined ? { include_domains: [...this.options.includeDomains] } : {},
           ...this.options.excludeDomains !== undefined ? { exclude_domains: [...this.options.excludeDomains] } : {},
+          // Guards evaluated inside this single body construction: each optional
+          // parameter is suppressed when its official pairing is absent, so the
+          // hot options never produce a 400 from a stale combination.
+          ...this.options.chunksPerSource !== undefined && this.options.searchDepth !== 'ultra-fast'
+            ? { chunks_per_source: this.options.chunksPerSource }
+            : {},
+          ...this.options.filterByLanguage === true && this.options.language !== undefined
+            ? { filter_by_language: true }
+            : {},
+          ...this.options.includeDomainsMode !== undefined && this.options.includeDomains !== undefined
+            ? { include_domains_mode: this.options.includeDomainsMode }
+            : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

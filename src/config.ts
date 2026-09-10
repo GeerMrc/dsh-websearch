@@ -139,6 +139,21 @@ export interface TavilySettings {
    * `content` (D4). Hot.
    */
   includeAnswer?: 'basic' | 'advanced'
+  /**
+   * Content chunks per source (S20 P2, 1-3; omitted = API default 3). Suppressed at the wire when
+   * `searchDepth` is `ultra-fast` (that depth ignores the parameter). Hot.
+   */
+  chunksPerSource?: number
+  /**
+   * Hard language filter (S20 P2; default false = language stays a ranking boost). Only sent when
+   * the unified `searchLanguage` is set — the API 400s on the bare flag (official constraint). Hot.
+   */
+  filterByLanguage?: boolean
+  /**
+   * Include-list semantics (S20 P2): `filter` (default) or `boost` (weight, still searches the whole
+   * web). Only sent when the unified include-domain list is non-empty. Hot.
+   */
+  includeDomainsMode?: 'filter' | 'boost'
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -330,6 +345,9 @@ export const Config: z<Config> = z.object({
     timeRange: z.union(['', 'day', 'week', 'month', 'year']),
     searchDepth: z.union(['', 'basic', 'advanced', 'fast', 'ultra-fast']),
     includeAnswer: z.union(['basic', 'advanced']),
+    chunksPerSource: z.number().step(1).min(1).max(3),
+    filterByLanguage: z.boolean(),
+    includeDomainsMode: z.union(['filter', 'boost']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   firecrawl: z.object({
@@ -382,6 +400,12 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
   searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
   /** Generated-answer tier; resolveConfig defaults `'basic'` (S17 P1, D4). */
   includeAnswer?: 'basic' | 'advanced'
+  /** Content chunks per source; absent = not sent (S20 P2). */
+  chunksPerSource?: number
+  /** Hard language filter; absent = not sent (S20 P2). */
+  filterByLanguage?: boolean
+  /** Include-list semantics; absent = not sent (S20 P2). */
+  includeDomainsMode?: 'filter' | 'boost'
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -522,6 +546,9 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       searchDepth: config.tavily?.searchDepth || undefined,
       // S17 D4: the free generated answer is ON at the basic tier by default.
       includeAnswer: config.tavily?.includeAnswer ?? 'basic',
+      chunksPerSource: config.tavily?.chunksPerSource,
+      filterByLanguage: config.tavily?.filterByLanguage,
+      includeDomainsMode: config.tavily?.includeDomainsMode,
     },
     firecrawl: {
       enabled: config.firecrawl?.enabled ?? true,

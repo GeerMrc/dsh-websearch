@@ -144,6 +144,54 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     expect(mapTavilyResponse({ results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
   })
 
+  it('S20 T2: chunksPerSource lands when set; suppressed under ultra-fast depth (official constraint)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const configured = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', chunksPerSource: 1  } satisfies TavilyMemberConfig,
+      async () => 'k',
+    )
+    await new TavilySearchProvider(configured).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.chunks_per_source).toBe(1)
+
+    const ultraFast = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', chunksPerSource: 2, searchDepth: 'ultra-fast'  } satisfies TavilyMemberConfig,
+      async () => 'k',
+    )
+    await new TavilySearchProvider(ultraFast).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('chunks_per_source')
+
+    await new TavilySearchProvider(options).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('chunks_per_source')
+  })
+
+  it('S20 T2: filterByLanguage lands only when the unified language is set; includeDomainsMode only with an include list', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const withBoth = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'boost'  } satisfies TavilyMemberConfig,
+      async () => 'k',
+      { language: 'zh', includeDomains: ['example.com'] },
+    )
+    await new TavilySearchProvider(withBoth).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.filter_by_language).toBe(true)
+    expect(body.include_domains_mode).toBe('boost')
+
+    // Guards: no unified language → filter_by_language suppressed; no include list → mode suppressed.
+    const noLanguage = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'boost'  } satisfies TavilyMemberConfig,
+      async () => 'k',
+    )
+    await new TavilySearchProvider(noLanguage).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('filter_by_language')
+    expect(body).not.toHaveProperty('include_domains_mode')
+  })
+
   it('S20 T1: unified domain lists fan out as include_domains/exclude_domains arrays', async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
     vi.stubGlobal('fetch', fetchMock)

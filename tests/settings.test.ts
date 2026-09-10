@@ -125,8 +125,9 @@ describe('attachSettingsSection', () => {
     const { ctx, captured } = fakeSettingsCtx()
     const live = new LiveResolvedConfig({})
     attachSettingsSection(ctx, Config, {}, live)
-    const validate = (captured.hooks as { validate?: (value: unknown) => void }).validate
-    expect(validate).toBeTypeOf('function')
+    const hooks = captured.hooks as { validate?: (value: unknown) => void }
+    expect(hooks.validate).toBeTypeOf('function')
+    const validate = hooks.validate!
     // The legal single-list states pass; both-at-once is the rejected state.
     expect(() => validate({ searchIncludeDomains: 'a.test' })).not.toThrow()
     expect(() => validate({ searchExcludeDomains: 'b.test' })).not.toThrow()
