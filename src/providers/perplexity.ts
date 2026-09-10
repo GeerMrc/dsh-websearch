@@ -57,7 +57,7 @@ export const PERPLEXITY_DEFAULT_MAX_TOKENS = 1024
 const codes = MEMBER_ERROR_CODES.perplexity
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.3.0'
+const USER_AGENT = 'dsh-websearch/0.3.1'
 
 /** Wire type of one structured search result (Agent API `search_results` item entry; tolerant). */
 export interface PerplexitySearchResult {
@@ -222,9 +222,8 @@ export class PerplexitySearchProvider implements WebSearchProvider {
     // recency nests inside `filters`, context size and the unified geo
     // entry's user_location sit on the tool top level — dropping the tool
     // entirely would answer from parametric memory (Agent API opt-in).
-    const webSearchFilters = {
-      ...this.options.searchRecencyFilter !== undefined ? { search_recency_filter: this.options.searchRecencyFilter } : {},
-    }
+    const webSearchFilters: Record<string, string> = {}
+    if (this.options.searchRecencyFilter !== undefined) webSearchFilters.search_recency_filter = this.options.searchRecencyFilter
     const webSearchTool = {
       type: 'web_search' as const,
       ...Object.keys(webSearchFilters).length > 0 ? { filters: webSearchFilters } : {},
