@@ -103,6 +103,10 @@ export interface ExaMemberOptions {
   readonly includeDomains?: readonly string[]
   /** Unified exclude-domain blocklist; empty = not sent (S20 P1, ADR-0018). */
   readonly excludeDomains?: readonly string[]
+  /** Vertical category; absent = not sent (S20 P2). */
+  readonly category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people'
+  /** Content cache freshness; absent = not sent (S20 P2). */
+  readonly maxAgeHours?: number
 }
 
 /**
@@ -127,6 +131,8 @@ export function resolveExaMemberOptions(
     userLocation: fanout?.country,
     includeDomains: fanout?.includeDomains?.length ? fanout.includeDomains : undefined,
     excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
+    category: config.category || undefined,
+    maxAgeHours: config.maxAgeHours,
   }
 }
 
@@ -179,6 +185,16 @@ export class ExaSearchProvider implements WebSearchProvider {
     // A per-request bound wins over the configured default; either may be absent.
     const numResults = request.maxResults ?? this.options.numResults
     let response: Response
+    // Guards evaluated inside this single body construction: the
+    // company/people categories officially reject the date floor and the
+    // exclude-domain list (400), so those parameters are suppressed only
+    // when one of those categories is set.
+    const dateFloor = this.options.category === 'company' || this.options.category === 'people'
+      ? undefined
+      : this.options.startPublishedDate
+    const excludeDomains = this.options.category === 'company' || this.options.category === 'people'
+      ? undefined
+      : this.options.excludeDomains
     try {
       response = await fetch(`${this.options.baseURL}/search`, {
         method: 'POST',
@@ -193,16 +209,18 @@ export class ExaSearchProvider implements WebSearchProvider {
           query: request.query,
           type: this.options.type,
           contents: {
+            ...this.options.maxAgeHours !== undefined ? { maxAgeHours: this.options.maxAgeHours } : {},
             highlights: { query: request.query, maxCharacters: EXA_HIGHLIGHT_MAX_CHARACTERS },
             // S17 D4: text rides along by default so snippet-less results are
             // kept; turning the fallback off restores the highlight-only wire.
             ...this.options.textFallback ? { text: { maxCharacters: EXA_TEXT_FALLBACK_MAX_CHARACTERS } } : {},
           },
           ...numResults !== undefined ? { numResults } : {},
-          ...this.options.startPublishedDate !== undefined ? { startPublishedDate: this.options.startPublishedDate } : {},
+          ...this.options.category !== undefined ? { category: this.options.category } : {},
+          ...dateFloor !== undefined ? { startPublishedDate: dateFloor } : {},
           ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
           ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
-          ...this.options.excludeDomains !== undefined ? { excludeDomains: [...this.options.excludeDomains] } : {},
+          ...excludeDomains !== undefined ? { excludeDomains: [...excludeDomains] } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

@@ -206,6 +206,16 @@ export interface ExaSettings {
    * values to the date-time form the API expects. Hot.
    */
   startPublishedDate?: string
+  /**
+   * Vertical category (S20 P2, official 6-value enum; `''` = clear). `company`/`people` disable the
+   * date floor and exclude-domain fan-out at the wire (official 400 combos). Hot.
+   */
+  category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people' | ''
+  /**
+   * Content cache freshness (S20 P2, -1..720 hours; omitted = not sent). The current official name —
+   * the old `livecrawl`/`crawlingOptions` are deprecated. Hot.
+   */
+  maxAgeHours?: number
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -366,6 +376,8 @@ export const Config: z<Config> = z.object({
     type: z.union(['instant', 'fast', 'auto', 'deep-lite', 'deep', 'deep-reasoning']),
     textFallback: z.boolean(),
     startPublishedDate: z.string(),
+    category: z.union(['', 'company', 'publication', 'news', 'personal site', 'financial report', 'people']),
+    maxAgeHours: z.number().step(1).min(-1).max(720),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -431,6 +443,10 @@ export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 
   textFallback?: boolean
   /** Publication-date floor; absent = not sent (S17 P1). */
   startPublishedDate?: string
+  /** Vertical category; `''` normalizes away at resolve (S20 P2). */
+  category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people' | ''
+  /** Content cache freshness; absent = not sent (S20 P2). */
+  maxAgeHours?: number
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -568,6 +584,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       // S17 D4: text fallback is ON by default — it fixes dropped results.
       textFallback: config.exa?.textFallback ?? true,
       startPublishedDate: config.exa?.startPublishedDate?.trim().length ? config.exa.startPublishedDate.trim() : undefined,
+      category: config.exa?.category || undefined,
+      maxAgeHours: config.exa?.maxAgeHours,
     },
     anysearch: {
       enabled: config.anysearch?.enabled ?? true,

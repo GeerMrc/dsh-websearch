@@ -137,6 +137,18 @@ describe('resolveConfig', () => {
       expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
     })
 
+    it("S20 T3: exa member params — category enum + clear sentinel, maxAgeHours bounds", () => {
+      expect(resolveConfig({}).exa.category).toBeUndefined()
+      expect(resolveConfig({}).exa.maxAgeHours).toBeUndefined()
+      const resolved = resolveConfig({ exa: { category: 'financial report', maxAgeHours: 720 } })
+      expect(resolved.exa.category).toBe('financial report')
+      expect(resolved.exa.maxAgeHours).toBe(720)
+      expect(resolveConfig({ exa: { category: '' } }).exa.category).toBeUndefined()
+      expect(() => Config({ exa: { category: 'banana' as never } })).toThrow()
+      expect(() => Config({ exa: { maxAgeHours: 721 } })).toThrow()
+      expect(() => Config({ exa: { maxAgeHours: -2 } })).toThrow()
+    })
+
     it('S20 T2: tavily member params — chunksPerSource bounds, filterByLanguage bool, includeDomainsMode enum', () => {
       const resolved = resolveConfig({ tavily: { chunksPerSource: 1, filterByLanguage: true, includeDomainsMode: 'boost' } })
       expect(resolved.tavily.chunksPerSource).toBe(1)
