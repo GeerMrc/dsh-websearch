@@ -320,6 +320,8 @@ describe('S22 T3: Firecrawl tbs combo guard (dual-path)', () => {
     expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'cdr:1,cd_min:01/01/2026,cd_max:06/30/2026' } })).not.toThrow()
     expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'banana' } })).toThrow(/tbs/)
     expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'cdr:1,cd_min:01/01/2026' } })).toThrow(/tbs/)
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'cd_min:01/01/2026' } })).toThrow(/cdr:1/)
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'qdr:w,cd_max:06/30/2026' } })).toThrow(/cdr:1/)
   })
   it('resolveConfig throws on the same mismatch (cordis.yml load path)', () => {
     expect(() => resolveConfig({ firecrawl: { tbs: 'banana' } } as never)).toThrow(/tbs/)

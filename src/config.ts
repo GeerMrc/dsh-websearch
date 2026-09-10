@@ -619,12 +619,16 @@ export function validateFirecrawlTbsRule(value: Pick<Config, 'firecrawl'>): void
   if (tokens.length === 0 || tokens.some((token) => !TBS_TOKEN.test(token))) {
     throw new Error(`firecrawl.tbs "${raw}" is not a valid tbs expression — combine qdr:* presets, sbd:1, and cdr:1 with cd_min/cd_max MM/DD/YYYY bounds`)
   }
-  if (tokens.includes('cdr:1')) {
-    const hasMin = tokens.some((token) => token.startsWith('cd_min:'))
-    const hasMax = tokens.some((token) => token.startsWith('cd_max:'))
-    if (!hasMin || !hasMax) {
-      throw new Error('firecrawl.tbs cdr:1 requires both cd_min:MM/DD/YYYY and cd_max:MM/DD/YYYY bounds')
-    }
+  const hasCdr = tokens.includes('cdr:1')
+  const hasMin = tokens.some((token) => token.startsWith('cd_min:'))
+  const hasMax = tokens.some((token) => token.startsWith('cd_max:'))
+  // The date-bound tokens exist only inside a cdr custom range; a lone bound
+  // without cdr:1 is not an official expression and is rejected with it.
+  if (hasCdr && (!hasMin || !hasMax)) {
+    throw new Error('firecrawl.tbs cdr:1 requires both cd_min:MM/DD/YYYY and cd_max:MM/DD/YYYY bounds')
+  }
+  if (!hasCdr && (hasMin || hasMax)) {
+    throw new Error('firecrawl.tbs cd_min/cd_max bounds are only valid together with cdr:1')
   }
 }
 

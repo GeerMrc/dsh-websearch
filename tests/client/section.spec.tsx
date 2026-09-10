@@ -1017,6 +1017,22 @@ describe('S20 P2 domain entry and member controls', () => {
     await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'exactMatch', true))
   })
 
+  it('S22 T2: exa exposes the P3 controls (date ceiling, verbosity select, section filters)', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('exa')
+    fireEvent.change(screen.getByTestId('dshws-param-exa-textVerbosity'), { target: { value: 'standard' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'textVerbosity', 'standard'))
+    const ceiling = screen.getByTestId('dshws-param-exa-endPublishedDate') as HTMLInputElement
+    fireEvent.change(ceiling, { target: { value: '2026-06-30' } })
+    fireEvent.click(screen.getByRole('button', { name: `Exa ${en.exaDateCeilingLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'endPublishedDate', '2026-06-30'))
+    const sections = screen.getByTestId('dshws-param-exa-includeSections') as HTMLInputElement
+    fireEvent.change(sections, { target: { value: 'header,body' } })
+    fireEvent.click(screen.getByRole('button', { name: `Exa ${en.exaIncludeSectionsLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'includeSections', 'header,body'))
+  })
+
   it('exa category select forwards its value (company guard covered at the wire)', async () => {
     const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
