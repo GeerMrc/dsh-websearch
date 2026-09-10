@@ -12,6 +12,28 @@
 
 ---
 
+## 2026-09-10 — Perplexity Agent API 迁移 0.3.1（Session 18，Sonar 日落应对 + 阶段 0 🟡 处置）
+
+**迁移级变更（用户透明：config/GUI/locale 零改动）**
+- `dshws-perplexity` wire 从 Sonar `/chat/completions` → Agent API **`POST /v1/agent`**（responses 形态）——官方公告 Sonar 全线 2026-09-27 停止支持，本迁移解除该死线
+- 请求面：query→顶层 `input`；`max_tokens`→`max_output_tokens`；**web_search 工具恒包含**（Agent API 下 opt-in，缺工具=纯参数记忆作答）；`search_recency_filter` 入工具 `filters`、`search_context_size`/`user_location` 在工具顶层；**裸模型名自动补 `perplexity/` 前缀**（存量 `sonar`/`sonar-pro` 配置零变化）
+- 响应面：`output[]` trace——message item 文本→content、search_results item→结构化来源（url/title/snippet/date，比旧 citations 平铺更丰富）；回退链 annotations `url_citation` → 旧 `citations` 终兜底；`truncated` 恒 false 维持（S17 B3 所有权裁定延续）
+- ADR-0016 accepted（amends ADR-0015 Perplexity fan-out 落点）
+
+**治理**
+- 阶段 0 PASS（S17 增量子集 170+32 全绿 + 交付物 12 件全命中）；plan 018 两轮 + 复审预授 APPROVED；2.5 默认批准披露（问询未获答：批准/降级验收）；阶段 4 **R1-R5 全 PASS**（探针真红真绿）+ 阶段 5 **COMPLETE**（安全/契约/前瞻 + 冒烟 36）；audit-log ×4 入库
+
+**诚实标注（遗留项）**
+- **真实 Perplexity API 实测未做**：scratch 凭据池无 PERPLEXITY_API_KEY（2.5 降级裁定）——断言就绪零改动，补 key 后 `pnpm vitest run tests/e2e.real/perplexity.real.test.ts` 直接闭合；3423 已换 0.3.1 在跑（boot + firecrawl 成员实搜 4 passed 证明链健康）
+- T4 lint 装饰性修复晚于 tarball 安装：已装 0.3.1 与 HEAD 行为等价（阶段 4 逐行为核实）
+- 🟢 新观察×2（search_results 全无 url 边界语义 / title 空白判定不对称）归补 key 实测时裁定
+
+**跟踪（观察期）**
+- 基线 **401 passed | 13 skipped (414) exit0**（399→401）/ tc 0 / lint 0w0e 57f / build 85.31+38.68+95.68 / pack 五件 54.0kB / i18n 96 keys / UA dsh-websearch/0.3.1 ×6
+- 下一棒：S15 README 手册（素材全就绪）——正本 session-18 记录★节
+
+---
+
 ## 2026-09-10 — P1 高价值参数批 0.3.0：14 参数全链路 + 成员 options 热化 + 统一语言/区域入口（Session 17，API 对齐系列第 2 棒 + 阶段 0 🟡×4 清偿）
 
 **新增（0.2.2 → 0.3.0，功能批 minor）**
