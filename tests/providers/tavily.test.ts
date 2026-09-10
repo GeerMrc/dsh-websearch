@@ -77,7 +77,7 @@ describe('dshws-tavily request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer tvly-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.4.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.5.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5, include_answer: 'basic' })
   })
 
