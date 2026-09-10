@@ -77,7 +77,7 @@ describe('dshws-tavily request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer tvly-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.6.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.7.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5, include_answer: 'basic' })
   })
 
@@ -135,6 +135,52 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     await new TavilySearchProvider(resolved).search({ query: 'q' })
     const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(JSON.parse(init.body as string).include_answer).toBe('advanced')
+  })
+
+  it('S22 T1: startDate/endDate land as start_date/end_date; exactMatch absent by default', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', startDate: '2026-01-01', endDate: '2026-06-30' } satisfies TavilyMemberConfig,
+      async () => 'tvly-key',
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.start_date).toBe('2026-01-01')
+    expect(body.end_date).toBe('2026-06-30')
+    expect(body.exact_match).toBeUndefined()
+  })
+
+  it('S22 T1: exactMatch true lands as exact_match; a lone date bound lands alone', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', exactMatch: true, startDate: '2026-01-01' } satisfies TavilyMemberConfig,
+      async () => 'tvly-key',
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string)).toEqual({
+      query: 'q',
+      include_answer: 'basic',
+      start_date: '2026-01-01',
+      exact_match: true,
+    })
+  })
+
+  it('S22 T1: empty-string date bounds clear to not-sent (GUI clear sentinel)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', startDate: '', endDate: '  ' } satisfies TavilyMemberConfig,
+      async () => 'tvly-key',
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.start_date).toBeUndefined()
+    expect(body.end_date).toBeUndefined()
   })
 
   it('response answer maps to result content; blank answer stays omitted', () => {

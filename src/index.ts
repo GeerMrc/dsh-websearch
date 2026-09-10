@@ -306,7 +306,7 @@ export function apply(ctx: Context, config: Config): void {
     hotMemberOptions(() => resolveFirecrawlMemberOptions(live.current().firecrawl, () => traced.firecrawl.resolveApiKey(), fanoutOf())),
   )
   const anysearch = new AnysearchSearchProvider(
-    hotMemberOptions(() => resolveAnysearchMemberOptions(live.current().anysearch, () => traced.anysearch.resolveApiKey())),
+    hotMemberOptions(() => resolveAnysearchMemberOptions(live.current().anysearch, () => traced.anysearch.resolveApiKey(), fanoutOf())),
   )
   const tavily = new TavilySearchProvider(
     hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey(), fanoutOf())),

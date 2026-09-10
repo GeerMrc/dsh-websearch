@@ -56,7 +56,7 @@ export type ExaSearchType = 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' |
 const codes = MEMBER_ERROR_CODES.exa
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.6.0'
+const USER_AGENT = 'dsh-websearch/0.7.0'
 
 /**
  * Normalize a stored publication-date floor to the ISO date-time form the API
@@ -107,6 +107,14 @@ export interface ExaMemberOptions {
   readonly category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people'
   /** Content cache freshness; absent = not sent (S20 P2). */
   readonly maxAgeHours?: number
+  /** Publication-date ceiling, normalized to date-time; absent = not sent (S22 P3). */
+  readonly endPublishedDate?: string
+  /** `contents.text` verbosity; absent = not sent = API default compact (S22 P3). */
+  readonly textVerbosity?: 'compact' | 'standard' | 'full'
+  /** `contents.text` include-section filter; absent = not sent (S22 P3). */
+  readonly includeSections?: readonly string[]
+  /** `contents.text` exclude-section filter; absent = not sent (S22 P3). */
+  readonly excludeSections?: readonly string[]
 }
 
 /**
@@ -133,6 +141,16 @@ export function resolveExaMemberOptions(
     excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
     category: config.category || undefined,
     maxAgeHours: config.maxAgeHours,
+    endPublishedDate: config.endPublishedDate !== undefined
+      ? normalizeStartPublishedDate(config.endPublishedDate)
+      : undefined,
+    textVerbosity: config.textVerbosity,
+    includeSections: config.includeSections !== undefined
+      ? config.includeSections.split(',').map((entry) => entry.trim()).filter((entry) => entry.length > 0)
+      : undefined,
+    excludeSections: config.excludeSections !== undefined
+      ? config.excludeSections.split(',').map((entry) => entry.trim()).filter((entry) => entry.length > 0)
+      : undefined,
   }
 }
 
@@ -213,11 +231,23 @@ export class ExaSearchProvider implements WebSearchProvider {
             highlights: { query: request.query, maxCharacters: EXA_HIGHLIGHT_MAX_CHARACTERS },
             // S17 D4: text rides along by default so snippet-less results are
             // kept; turning the fallback off restores the highlight-only wire.
-            ...this.options.textFallback ? { text: { maxCharacters: EXA_TEXT_FALLBACK_MAX_CHARACTERS } } : {},
+            // S22 P3: verbosity and section filters ride only when configured
+            // (absent = the official compact default, byte-identical wire).
+            ...this.options.textFallback || this.options.textVerbosity !== undefined || this.options.includeSections !== undefined || this.options.excludeSections !== undefined
+              ? {
+                text: {
+                  ...this.options.textFallback ? { maxCharacters: EXA_TEXT_FALLBACK_MAX_CHARACTERS } : {},
+                  ...this.options.textVerbosity !== undefined ? { verbosity: this.options.textVerbosity } : {},
+                  ...this.options.includeSections !== undefined ? { includeSections: [...this.options.includeSections] } : {},
+                  ...this.options.excludeSections !== undefined ? { excludeSections: [...this.options.excludeSections] } : {},
+                },
+              }
+              : {},
           },
           ...numResults !== undefined ? { numResults } : {},
           ...this.options.category !== undefined ? { category: this.options.category } : {},
           ...dateFloor !== undefined ? { startPublishedDate: dateFloor } : {},
+          ...this.options.endPublishedDate !== undefined ? { endPublishedDate: this.options.endPublishedDate } : {},
           ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
           ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
           ...excludeDomains !== undefined ? { excludeDomains: [...excludeDomains] } : {},

@@ -591,6 +591,18 @@ describe('S20 P2 unified domain entry', () => {
     const tavily = controller.snapshot().members.find((member) => member.key === 'tavily')
     expect(tavily?.chunksPerSource).toBe(1)
   })
+
+  it('S22 T1: the snapshot carries the tavily P3 fields and setMemberOption writes them through', async () => {
+    const remote = new FakeRemote()
+    remote.nsValue = { tavily: { startDate: '2026-01-01', exactMatch: true } }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const tavily = controller.snapshot().members.find((member) => member.key === 'tavily')
+    expect(tavily?.startDate).toBe('2026-01-01')
+    expect(tavily?.exactMatch).toBe(true)
+    await controller.setMemberOption('tavily', 'endDate', '2026-06-30')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ tavily: { endDate: '2026-06-30' } })
+  })
 })
 describe('S21 T6: fetch chain controller', () => {
   it('the snapshot defaults fetchChain to the fetch-capable three; an explicit section value survives (dead ids filtered)', async () => {

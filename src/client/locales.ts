@@ -100,6 +100,22 @@ export type DshWsLocaleKey =
   | 'exaTextFallbackLabel'
   | 'exaTextFallbackNote'
   | 'exaDateFloorLabel'
+  | 'tavilyStartDateLabel'
+  | 'tavilyEndDateLabel'
+  | 'tavilyExactMatchLabel'
+  | 'tavilyExactMatchNote'
+  | 'exaDateCeilingLabel'
+  | 'exaVerbosityLabel'
+  | 'exaVerbosityNote'
+  | 'verbosityCompact'
+  | 'verbosityStandard'
+  | 'verbosityFull'
+  | 'exaIncludeSectionsLabel'
+  | 'exaExcludeSectionsLabel'
+  | 'exaSectionsNote'
+  | 'fcTbsNote'
+  | 'fcSafeLabel'
+  | 'fcSafeNote'
   | 'ctxLow'
   | 'ctxMedium'
   | 'ctxHigh'
@@ -203,7 +219,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   searchCountryLabel: 'Search region',
   searchCountryNote: 'One ISO country code (e.g. CN) for every tool that accepts a region — Exa and Firecrawl (whose API otherwise defaults to US). Applies to the next search; leave empty to send none.',
   searchLanguageLabel: 'Search language',
-  searchLanguageNote: 'One ISO language code (e.g. zh) for the tool with a search-level language parameter — Tavily. Applies to the next search; leave empty to send none.',
+  searchLanguageNote: 'One ISO language code (e.g. zh) for the members with a search-level language parameter — Tavily, and AnySearch (mapped to BCP-47, e.g. zh -> zh-CN). Applies to the next search; leave empty to send none.',
   optDefault: 'Default',
   optOff: 'No limit',
   recencyHour: 'Past hour',
@@ -232,6 +248,22 @@ export const en: Record<DshWsLocaleKey, string> = {
   exaTextFallbackLabel: 'Text fallback',
   exaTextFallbackNote: 'ON: also request each result page\u2019s text so results without highlights keep a snippet instead of being dropped. Default ON.',
   exaDateFloorLabel: 'Published after',
+  tavilyStartDateLabel: 'Published from',
+  tavilyEndDateLabel: 'Published until',
+  tavilyExactMatchLabel: 'Exact match',
+  tavilyExactMatchNote: 'Only return results containing the exact quoted phrase(s) of the query, bypassing synonym expansion.',
+  exaDateCeilingLabel: 'Published before',
+  exaVerbosityLabel: 'Text verbosity',
+  exaVerbosityNote: 'standard and full enlarge the returned text (more downstream tokens — billing-relevant); the default compact matches the previous wire.',
+  verbosityCompact: 'Compact',
+  verbosityStandard: 'Standard',
+  verbosityFull: 'Full',
+  exaIncludeSectionsLabel: 'Include sections',
+  exaExcludeSectionsLabel: 'Exclude sections',
+  exaSectionsNote: 'Comma-separated from header/navigation/banner/sidebar/footer/metadata/body. Requires cache freshness = 0 (fresh crawl) or -1; other values are rejected on save.',
+  fcTbsNote: 'Time filter, comma-combinable: qdr:h/d/w/m/y presets, sbd:1 (date sort), cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY (custom range). Invalid expressions are rejected on save.',
+  fcSafeLabel: 'SafeSearch',
+  fcSafeNote: 'Filter explicit content from web source results; off = not sent (no filtering).',
   ctxLow: 'Low',
   ctxMedium: 'Medium',
   ctxHigh: 'High',
@@ -330,7 +362,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   searchCountryLabel: '搜索区域',
   searchCountryNote: '一个 ISO 国家码（如 CN），作用于所有支持区域的工具——Exa、Firecrawl（其 API 缺省固定美国）。下一次搜索生效；留空不发送。',
   searchLanguageLabel: '搜索语言',
-  searchLanguageNote: '一个 ISO 语言码（如 zh），作用于有搜索级语言参数的工具——Tavily。下一次搜索生效；留空不发送。',
+  searchLanguageNote: '一个 ISO 语言码（如 zh），作用于有搜索级语言参数的工具——Tavily，以及 AnySearch（映射为 BCP-47，如 zh → zh-CN）。下一次搜索生效；留空不发送。',
   optDefault: '默认',
   optOff: '不限',
   recencyHour: '1 小时内',
@@ -359,6 +391,22 @@ export const zh: Record<DshWsLocaleKey, string> = {
   exaTextFallbackLabel: '全文回退',
   exaTextFallbackNote: '开：同时请求每条结果的页面全文——无高亮摘要的结果保留全文摘录而非被丢弃。默认开。',
   exaDateFloorLabel: '发布日期下限',
+  tavilyStartDateLabel: '发布日期起',
+  tavilyEndDateLabel: '发布日期止',
+  tavilyExactMatchLabel: '精确短语匹配',
+  tavilyExactMatchNote: '仅返回包含查询中精确引号短语的结果，绕过同义词扩展。',
+  exaDateCeilingLabel: '发布日期上限',
+  exaVerbosityLabel: '文本详细度',
+  exaVerbosityNote: 'standard 与 full 会放大返回文本（增加下游 token——涉及计费）；默认 compact 与此前请求一致。',
+  verbosityCompact: '精简',
+  verbosityStandard: '标准',
+  verbosityFull: '完整',
+  exaIncludeSectionsLabel: '包含小节',
+  exaExcludeSectionsLabel: '排除小节',
+  exaSectionsNote: '逗号分隔，取值限 header/navigation/banner/sidebar/footer/metadata/body。要求缓存新鲜度 = 0（强制新抓）或 -1，其他值保存时会被拒绝。',
+  fcTbsNote: '时间过滤，可逗号组合：qdr:h/d/w/m/y 预设、sbd:1（按日期排序）、cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY（自定义区间）。非法表达式保存时会被拒绝。',
+  fcSafeLabel: '安全搜索',
+  fcSafeNote: '过滤 web 来源结果中的显式内容；关闭 = 不发送该参数（不过滤）。',
   ctxLow: '低',
   ctxMedium: '中',
   ctxHigh: '高',

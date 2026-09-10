@@ -52,6 +52,14 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     location: undefined,
     chunksPerSource: undefined,
     filterByLanguage: undefined,
+    safe: undefined,
+    startDate: undefined,
+    endDate: undefined,
+    exactMatch: undefined,
+    endPublishedDate: undefined,
+    textVerbosity: undefined,
+    includeSections: undefined,
+    excludeSections: undefined,
     includeDomainsMode: undefined,
     category: undefined,
     maxAgeHours: undefined,
@@ -916,11 +924,26 @@ describe('S17 P1 member parameter controls', () => {
   })
 
 
-  it('firecrawl: tbs select and location staged text field forward their values', async () => {
+  it('S22 T3: firecrawl tbs becomes a staged combo text field and safe toggles immediately', async () => {
     const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
     expand('firecrawl')
-    fireEvent.change(screen.getByTestId('dshws-param-firecrawl-tbs'), { target: { value: 'qdr:w' } })
+    const tbs = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbs, { target: { value: 'sbd:1,qdr:w' } })
+    fireEvent.click(screen.getByRole('button', { name: `Firecrawl ${en.fcTbsLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'tbs', 'sbd:1,qdr:w'))
+    expect((screen.getByTestId('dshws-param-firecrawl-safe') as HTMLButtonElement).getAttribute('aria-checked')).toBe('false')
+    fireEvent.click(screen.getByTestId('dshws-param-firecrawl-safe'))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'safe', true))
+  })
+
+  it('firecrawl: tbs and location staged text fields forward their values', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('firecrawl')
+    const tbsField = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbsField, { target: { value: 'qdr:w' } })
+    fireEvent.click(screen.getByRole('button', { name: `Firecrawl ${en.fcTbsLabel} ${en.save}` }))
     await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'tbs', 'qdr:w'))
 
     const location = screen.getByTestId('dshws-param-firecrawl-location') as HTMLInputElement
@@ -976,6 +999,38 @@ describe('S20 P2 domain entry and member controls', () => {
     expand('firecrawl')
     fireEvent.change(screen.getByTestId('dshws-param-firecrawl-sources'), { target: { value: 'web+news' } })
     await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'sources', 'web+news'))
+  })
+
+  it('S22 T1: tavily exposes the P3 date window and exact_match controls', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('tavily')
+    const start = screen.getByTestId('dshws-param-tavily-startDate') as HTMLInputElement
+    const end = screen.getByTestId('dshws-param-tavily-endDate') as HTMLInputElement
+    expect(start.value).toBe('')
+    expect(end.value).toBe('')
+    expect((screen.getByTestId('dshws-param-tavily-exactMatch') as HTMLButtonElement).getAttribute('aria-checked')).toBe('false')
+    fireEvent.change(start, { target: { value: '2026-01-01' } })
+    fireEvent.click(screen.getByRole('button', { name: `Tavily ${en.tavilyStartDateLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'startDate', '2026-01-01'))
+    fireEvent.click(screen.getByTestId('dshws-param-tavily-exactMatch'))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('tavily', 'exactMatch', true))
+  })
+
+  it('S22 T2: exa exposes the P3 controls (date ceiling, verbosity select, section filters)', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('exa')
+    fireEvent.change(screen.getByTestId('dshws-param-exa-textVerbosity'), { target: { value: 'standard' } })
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'textVerbosity', 'standard'))
+    const ceiling = screen.getByTestId('dshws-param-exa-endPublishedDate') as HTMLInputElement
+    fireEvent.change(ceiling, { target: { value: '2026-06-30' } })
+    fireEvent.click(screen.getByRole('button', { name: `Exa ${en.exaDateCeilingLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'endPublishedDate', '2026-06-30'))
+    const sections = screen.getByTestId('dshws-param-exa-includeSections') as HTMLInputElement
+    fireEvent.change(sections, { target: { value: 'header,body' } })
+    fireEvent.click(screen.getByRole('button', { name: `Exa ${en.exaIncludeSectionsLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('exa', 'includeSections', 'header,body'))
   })
 
   it('exa category select forwards its value (company guard covered at the wire)', async () => {

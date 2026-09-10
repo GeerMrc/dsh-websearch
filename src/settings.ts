@@ -19,7 +19,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
-import { resolveConfig, validateUnifiedDomainRule } from './config.ts'
+import { resolveConfig, validateExaSectionFilterRule, validateFirecrawlTbsRule, validateUnifiedDomainRule } from './config.ts'
 import type { Config, ResolvedWebSearchConfig } from './config.ts'
 
 /** The plugin's settings namespace (lowercase kebab, seam grammar). */
@@ -89,7 +89,11 @@ export function attachSettingsSection(ctx: Context, schema: z<Config>, entry: Co
       // value is rejected and the error surfaced to the committer — the loud
       // half of the ADR-0018 domain exclusivity rule (the quiet danger of a
       // resolveConfig throw on this path is documented on the validator).
-      validate: (value) => { validateUnifiedDomainRule(value) },
+      validate: (value) => {
+        validateUnifiedDomainRule(value)
+        validateExaSectionFilterRule(value)
+        validateFirecrawlTbsRule(value)
+      },
       setSource: (source) => {
         live.setSource(source as () => Config)
       },

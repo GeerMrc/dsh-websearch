@@ -91,3 +91,20 @@ S17 config 面按可迁移形态设计：S18 迁移时用户可见配置零改�
 - **AnySearch /v1/extract**：探针正本 = docs/notes/2026-09-10-s21-anysearch-extract-probe.md（端点/单 URL body/信封/去噪 Markdown/50k 上限 49,934 实测/三错误形态）。
 - **Firecrawl /v2/scrape**：代码在档（S16 P0 timeout 20s），S21 注册进内部 fetch registry。
 - **Exa 无 fetch 面**（上游无能力）——fetch 链三家定案（ADR-0019）。
+## 8. S22 P3 批增补（2026-09-10，正本 = plan 022；阶段 1 四家当日文档 diff）
+
+- **勘正 §6 / plan 020 §87**：「AnySearch 契约面仅 query/max_results/zone，无 P2 可加」**已过时**——
+  2026-09 官方 doc_spec 搜索面另有 language/tag/params(sub_domain_params)/domain/sub_domain 五族；
+  本批落地 language（统一 searchLanguage fan-out，zh→zh-CN 主地区映射 + 区域码大写归一），
+  tag/params 垂直面按 plan 022 硬规则**未实现**（无可达 key 做契约探针——维持 P4 边界披露）。
+- **Tavily**：start_date/end_date（YYYY-MM-DD，与 time_range 正交）+ exact_match（引号短语过滤）；
+  advanced_search_depth/days/include_score 现官方 spec **不存在**（旧调研销项）。
+- **Exa**：endPublishedDate（对称上限）+ contents.text.verbosity（compact 默认=旧行为等价；
+  standard/full 计费提示落 GUI ⓘ）+ include/excludeSections（封闭枚举，官方要求 maxAgeHours=0
+  强制新抓——双路守卫：settings validate hook + resolveConfig throw；-1 never-recrawl 亦合法）。
+- **Firecrawl**：tbs 由 5 值枚举放宽为文法校验自由串（qdr:*/sbd:1/cdr:1+cd_min/cd_max
+  MM/DD/YYYY，可逗号组合；旧 qdr 存量值兼容断言在档）+ safe（SafeSearch）；lang/prefetch
+  现官方 spec **不存在**（销项）。
+- **seam 阻挡/计费排除维持 P4**：Tavily include_raw_content/auto_parameters/country/images 族、
+  Exa summary/beta highlights/subpages、Firecrawl scrapeOptions/proxy/actions/LLM formats、
+  AnySearch 匿名 auto-register key（违背凭据治理，永不实现）——逐项理由见 plan 022 §0。

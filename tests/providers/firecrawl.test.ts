@@ -65,6 +65,32 @@ describe('dshws-firecrawl S17 P1 parameter wire', () => {
     expect(body.location).toBe('Beijing,China')
   })
 
+  it('S22 T3: tbs combo values land verbatim; legacy qdr values stay legal', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ data: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', tbs: 'sbd:1,qdr:w' } satisfies FirecrawlMemberConfig,
+      async () => 'fc-key',
+    )
+    await new FirecrawlProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).tbs).toBe('sbd:1,qdr:w')
+  })
+
+  it('S22 T3: custom date range tbs (cdr) lands; safe lands when true and stays absent by default', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ data: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', tbs: 'cdr:1,cd_min:01/01/2026,cd_max:06/30/2026', safe: true } satisfies FirecrawlMemberConfig,
+      async () => 'fc-key',
+    )
+    await new FirecrawlProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.tbs).toBe('cdr:1,cd_min:01/01/2026,cd_max:06/30/2026')
+    expect(body.safe).toBe(true)
+  })
+
   it('unset tbs/location stay absent from the wire', async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
     vi.stubGlobal('fetch', fetchMock)
@@ -205,7 +231,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.6.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.7.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5, timeout: 20_000 })
   })
 

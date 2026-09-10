@@ -45,7 +45,7 @@ export const TAVILY_DEFAULT_BASE_URL = 'https://api.tavily.com'
 const codes = MEMBER_ERROR_CODES.tavily
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.6.0'
+const USER_AGENT = 'dsh-websearch/0.7.0'
 
 /** Wire type of one Tavily `results[]` entry (optional fields read tolerantly). */
 export interface TavilyResultItem {
@@ -105,6 +105,12 @@ export interface TavilyMemberOptions {
   readonly filterByLanguage?: boolean
   /** Include-list semantics; only sent with a non-empty include list (S20 P2). */
   readonly includeDomainsMode?: 'filter' | 'boost'
+  /** Publication-date window lower bound (`YYYY-MM-DD`); absent = not sent (S22 P3). */
+  readonly startDate?: string
+  /** Publication-date window upper bound; absent = not sent (S22 P3). */
+  readonly endDate?: string
+  /** Exact quoted-phrase filter; absent = not sent (S22 P3). */
+  readonly exactMatch?: boolean
 }
 
 /**
@@ -136,6 +142,9 @@ export function resolveTavilyMemberOptions(
     chunksPerSource: config.chunksPerSource,
     filterByLanguage: config.filterByLanguage,
     includeDomainsMode: config.includeDomainsMode,
+    startDate: config.startDate?.trim().length ? config.startDate.trim() : undefined,
+    endDate: config.endDate?.trim().length ? config.endDate.trim() : undefined,
+    exactMatch: config.exactMatch,
   }
 }
 
@@ -253,6 +262,9 @@ export class TavilySearchProvider implements WebSearchProvider, WebFetchProvider
           ...this.options.includeDomainsMode !== undefined && this.options.includeDomains !== undefined
             ? { include_domains_mode: this.options.includeDomainsMode }
             : {},
+          ...this.options.startDate !== undefined ? { start_date: this.options.startDate } : {},
+          ...this.options.endDate !== undefined ? { end_date: this.options.endDate } : {},
+          ...this.options.exactMatch === true ? { exact_match: true } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

@@ -81,7 +81,7 @@ describe('dshws-deepseek request mapping', () => {
     expect(headers['authorization']).toBe('Bearer dk-key')
     expect(headers['anthropic-version']).toBe(DEEPSEEK_API_VERSION)
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.6.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.7.0')
     expect(JSON.parse(init.body as string)).toEqual({
       model: DEEPSEEK_DEFAULT_MODEL,
       max_tokens: DEEPSEEK_DEFAULT_MAX_TOKENS,

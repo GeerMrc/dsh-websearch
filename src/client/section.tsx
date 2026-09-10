@@ -37,7 +37,7 @@ export interface SectionProps {
   /** One S17 P1 member option (selects/toggles/text/number controls); '' clears enum/date fields. */
   onSetMemberOption: (
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch' | 'endPublishedDate' | 'textVerbosity' | 'includeSections' | 'excludeSections' | 'safe',
     value: string | number | boolean,
   ) => Promise<ActionResult>
   /** Unified search region (S17 P1, ADR-0015). */
@@ -844,15 +844,15 @@ function MemberEndpointField(props: {
 type MemberParamControl =
   | {
     kind: 'select'
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'tbs' | 'includeDomainsMode' | 'chunksPerSource' | 'category' | 'sources' | 'categories'
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'includeDomainsMode' | 'chunksPerSource' | 'category' | 'sources' | 'categories' | 'textVerbosity'
     labelKey: DshWsLocaleKey
     noteKey?: DshWsLocaleKey
     /** Resolved display default when the section value is unset ('' options are clear sentinels). */
     fallback?: string
     options: readonly { value: string, labelKey: DshWsLocaleKey }[]
   }
-  | { kind: 'toggle', option: 'textFallback' | 'filterByLanguage', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
-  | { kind: 'text', option: 'location' | 'startPublishedDate', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, inputType: 'text' | 'date', placeholder?: string }
+  | { kind: 'toggle', option: 'textFallback' | 'filterByLanguage' | 'exactMatch' | 'safe', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
+  | { kind: 'text', option: 'location' | 'startPublishedDate' | 'startDate' | 'endDate' | 'endPublishedDate' | 'includeSections' | 'excludeSections' | 'tbs', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, inputType: 'text' | 'date', placeholder?: string }
   | { kind: 'number', option: 'maxAgeHours', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, min: number, max: number, fallback: number }
 
 /** The S17 P1 controls per member, in card order (ADR-0015 mapping; deepseek/anysearch expose none). */
@@ -871,6 +871,9 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
     { kind: 'select', option: 'chunksPerSource', labelKey: 'chunksPerSourceLabel', options: [
       { value: '', labelKey: 'optDefault' }, { value: '1', labelKey: 'chunksOne' }, { value: '2', labelKey: 'chunksTwo' }, { value: '3', labelKey: 'chunksThree' }] },
     { kind: 'toggle', option: 'filterByLanguage', labelKey: 'filterByLanguageLabel', noteKey: 'filterByLanguageNote' },
+    { kind: 'text', option: 'startDate', labelKey: 'tavilyStartDateLabel', inputType: 'date' },
+    { kind: 'text', option: 'endDate', labelKey: 'tavilyEndDateLabel', inputType: 'date' },
+    { kind: 'toggle', option: 'exactMatch', labelKey: 'tavilyExactMatchLabel', noteKey: 'tavilyExactMatchNote' },
   ],
   exa: [
     { kind: 'select', option: 'type', labelKey: 'exaTypeLabel', fallback: 'auto', options: [
@@ -880,10 +883,15 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
     { kind: 'select', option: 'category', labelKey: 'categoryLabel', options: [
       { value: '', labelKey: 'optDefault' }, { value: 'company', labelKey: 'catCompany' }, { value: 'publication', labelKey: 'catPublication' }, { value: 'news', labelKey: 'catNews' }, { value: 'personal site', labelKey: 'catPersonalSite' }, { value: 'financial report', labelKey: 'catFinancialReport' }, { value: 'people', labelKey: 'catPeople' }] },
     { kind: 'number', option: 'maxAgeHours', labelKey: 'maxAgeHoursLabel', noteKey: 'maxAgeHoursNote', min: -1, max: 720, fallback: 24 },
+    { kind: 'text', option: 'endPublishedDate', labelKey: 'exaDateCeilingLabel', inputType: 'date' },
+    { kind: 'select', option: 'textVerbosity', labelKey: 'exaVerbosityLabel', noteKey: 'exaVerbosityNote', options: [
+      { value: '', labelKey: 'optDefault' }, { value: 'compact', labelKey: 'verbosityCompact' }, { value: 'standard', labelKey: 'verbosityStandard' }, { value: 'full', labelKey: 'verbosityFull' }] },
+    { kind: 'text', option: 'includeSections', labelKey: 'exaIncludeSectionsLabel', noteKey: 'exaSectionsNote', inputType: 'text', placeholder: 'header,body' },
+    { kind: 'text', option: 'excludeSections', labelKey: 'exaExcludeSectionsLabel', noteKey: 'exaSectionsNote', inputType: 'text', placeholder: 'navigation,banner' },
   ],
   firecrawl: [
-    { kind: 'select', option: 'tbs', labelKey: 'fcTbsLabel', options: [
-      { value: '', labelKey: 'optOff' }, { value: 'qdr:h', labelKey: 'recencyHour' }, { value: 'qdr:d', labelKey: 'recencyDay' }, { value: 'qdr:w', labelKey: 'recencyWeek' }, { value: 'qdr:m', labelKey: 'recencyMonth' }, { value: 'qdr:y', labelKey: 'recencyYear' }] },
+    { kind: 'text', option: 'tbs', labelKey: 'fcTbsLabel', noteKey: 'fcTbsNote', inputType: 'text', placeholder: 'qdr:w' },
+    { kind: 'toggle', option: 'safe', labelKey: 'fcSafeLabel', noteKey: 'fcSafeNote' },
     { kind: 'text', option: 'location', labelKey: 'fcLocationLabel', noteKey: 'fcLocationNote', inputType: 'text', placeholder: 'Beijing,China' },
     { kind: 'select', option: 'sources', labelKey: 'sourcesLabel', options: [
       { value: '', labelKey: 'optDefault' }, { value: 'news', labelKey: 'srcNews' }, { value: 'web+news', labelKey: 'srcWebNews' }] },
