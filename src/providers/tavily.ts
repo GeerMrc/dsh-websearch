@@ -24,7 +24,7 @@
 import type { TavilyMemberConfig } from '../config.ts'
 import type { UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
-import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
+import type { WebFetchProvider, WebFetchRequest, WebFetchResult, WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
   isAbortError,
   isPositiveInteger,
@@ -54,6 +54,17 @@ export interface TavilyResultItem {
   readonly content?: string
   readonly score?: number
   readonly published_date?: string
+}
+
+/** Wire type of one /extract results[] entry (optional fields read tolerantly). */
+export interface TavilyExtractResultItem {
+  readonly url?: string
+  readonly raw_content?: string
+}
+
+export interface TavilyExtractResponse {
+  readonly results?: readonly TavilyExtractResultItem[]
+  readonly failed_results?: readonly { readonly url?: string, readonly error?: string }[]
 }
 
 export interface TavilySearchResponse {
@@ -159,8 +170,34 @@ export function mapTavilyResponse(response: TavilySearchResponse): WebSearchResu
   }
 }
 
-/** The Tavily-backed chain member; redirects fail as a request failure. */
-export class TavilySearchProvider implements WebSearchProvider {
+/**
+ * Map an /extract response to a fetch result: the entry's raw_content
+ * (markdown by request) becomes the text body; a failed_results entry is a
+ * member error so the chain degrades instead of faking a success.
+ */
+export function mapTavilyExtractResponse(requestUrl: string, response: TavilyExtractResponse): WebFetchResult {
+  const failed = response.failed_results?.find((entry) => entry.url === requestUrl) ?? response.failed_results?.[0]
+  if (failed !== undefined) {
+    throw new DshwsError(codes.httpError, `Tavily extract failed for ${failed.url ?? requestUrl}${failed.error !== undefined ? `: ${failed.error}` : ''}`)
+  }
+  const entry = response.results?.find((item) => item.url === requestUrl) ?? response.results?.[0]
+  if (entry?.raw_content === undefined || entry.raw_content.length === 0) {
+    throw new DshwsError(codes.badResponse, 'Tavily extract returned no content though the URL was not in failed_results')
+  }
+  return {
+    url: entry.url ?? requestUrl,
+    statusCode: 200,
+    body: { kind: 'text', content: entry.raw_content },
+    truncated: false,
+  }
+}
+
+/**
+ * The Tavily-backed chain member on both capability faces: search (`/search`)
+ * and fetch (`/extract`, S21 — markdown by request, single URL per the seam's
+ * one-URL contract). Redirects fail as a request failure.
+ */
+export class TavilySearchProvider implements WebSearchProvider, WebFetchProvider {
   readonly id = TAVILY_MEMBER_ID
 
   constructor(private readonly options: TavilyMemberOptions) {}
@@ -243,6 +280,54 @@ export class TavilySearchProvider implements WebSearchProvider {
       const payload = await response.json() as TavilySearchResponse
       return mapTavilyResponse(payload)
     } catch (error: unknown) {
+      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
+      throw memberBadResponse(codes, 'Tavily', error)
+    }
+  }
+
+  /**
+   * The extract face (S21): one URL in, markdown out. Billing is per success
+   * (1 credit / 5 URLs basic); the chain's per-member budget governs — no
+   * extra timeout field is sent (the API default 10s sits well inside it).
+   */
+  async fetch(request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
+    throwIfMemberAborted(codes, 'Tavily', signal)
+    const apiKey = await this.#apiKey(signal)
+    throwIfMemberAborted(codes, 'Tavily', signal)
+    let response: Response
+    try {
+      response = await fetch(`${this.options.baseURL}/extract`, {
+        method: 'POST',
+        redirect: 'error',
+        headers: {
+          'authorization': `Bearer ${apiKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json',
+          'user-agent': USER_AGENT,
+        },
+        body: JSON.stringify({ urls: [request.url], format: 'markdown' }),
+        ...(signal !== undefined ? { signal } : {}),
+      })
+    } catch (error: unknown) {
+      throw memberFetchFailure(codes, 'Tavily', error, signal)
+    }
+    if (!response.ok) {
+      const status = response.status
+      let message = `Tavily API error (HTTP ${status})`
+      try {
+        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
+        const detail = unfoldHttpErrorDetail(parsed)
+        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
+      } catch (error: unknown) {
+        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
+      }
+      throw new DshwsError(codes.httpError, message, { httpStatus: status })
+    }
+    try {
+      const payload = await response.json() as TavilyExtractResponse
+      return mapTavilyExtractResponse(request.url, payload)
+    } catch (error: unknown) {
+      if (error instanceof DshwsError) throw error
       if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
       throw memberBadResponse(codes, 'Tavily', error)
     }
