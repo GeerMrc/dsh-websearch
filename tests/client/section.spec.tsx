@@ -25,6 +25,16 @@ function expand(memberKey: string): void {
   fireEvent.click(screen.getByTestId(`dshws-member-toggle-${memberKey}`))
 }
 
+/** S22b: open the search-chain card's verbose-config fold (default collapsed). */
+function openAdvanced(): void {
+  fireEvent.click(screen.getByTestId('dshws-advanced-disclosure'))
+}
+
+/** S22b: open the takeover card's Web Fetch chain fold (default collapsed). */
+function openTakeover(): void {
+  fireEvent.click(screen.getByTestId('dshws-fetch-takeover-disclosure'))
+}
+
 /** S14d: a configured card shows the masked value until focused — open a fresh
  * entry (focus) before typing into the key field. */
 function focusKey(label: string): HTMLInputElement {
@@ -135,9 +145,7 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    // S22a T3: +1 for the fetch chain block, which moved under the takeover
-    // switch inside this container (ON-only rendering).
-    expect(cards.length).toBe(7)
+    expect(cards.length).toBe(6)
     // Card testids, not brand text: the fallback selector's options also
     // carry brand names inside this container (ADR-0014).
     expect(screen.getByTestId('dshws-member-tavily')).toBeTruthy()
@@ -232,21 +240,34 @@ describe('WebSearchSettingsSection', () => {
     // S21: the fetch chain is now a live reorderable block (ADR-0019) — two
     // lists coexist inside the global card.
     expect(chains.querySelectorAll('ol').length).toBe(1)
-    // S22a T3: the fetch chain block left this card for the takeover switch.
+    // S22a T3 + S22b: the fetch chain lives inside the takeover card's fold —
+    // absent collapsed, present once the fold opens.
     expect(chains.querySelector('[data-testid="dshws-fetch-chain"]')).toBeNull()
+    expect(container.querySelector('[data-testid="dshws-fetch-chain"]')).toBeNull()
+    openTakeover()
     expect(container.querySelector('[data-testid="dshws-fetch-chain"]')).not.toBeNull()
     const searchRows = Array.from(chains.querySelector('[data-testid="dshws-search-chain"]')!.querySelectorAll('[data-dshws-chain-label]')).map(rowBrand)
     // S14c: four orderable rows only — DeepSeek is the fixed tail, not a row.
     expect(searchRows).toEqual(BRANDS.filter((brand) => brand !== 'DeepSeek'))
-    // The timeout folded into the card hint line.
+    // S22b: the timeout line sits behind the default-collapsed advanced fold.
+    expect(chains.textContent).not.toContain('30000')
+    openAdvanced()
     expect(chains.textContent).toContain('30000')
+  })
+
+  it('S22b: the advanced fold defaults collapsed and opens on demand (maxUses hidden until opened)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expect(screen.queryByLabelText(en.maxUsesLabel)).toBeNull()
+    openAdvanced()
+    expect(screen.getByLabelText(en.maxUsesLabel)).toBeTruthy()
   })
 
   it('the reorder rows stay hidden while no member is configured; the global card remains (S14c 改判 12a 反馈④)', () => {
     const members = defaultMembers().map((m) => member(m.key, m.label, { configured: false }))
     const { container } = render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(members) })} t={t} />)
-    // The global card (chain + timeout + maxUses) is always visible now…
+    // The global card (chain + advanced fold) is always visible now…
     expect(container.querySelector('[data-testid="dshws-chains"]')).not.toBeNull()
+    openAdvanced()
     expect(container.querySelector('[data-testid="dshws-max-uses"]')).not.toBeNull()
     // …but the reorder rows only earn their place once a member is configured.
     expect(container.querySelector('[data-testid="dshws-search-chain"]')).toBeNull()
@@ -497,7 +518,9 @@ describe('WebSearchSettingsSection', () => {
     expect(input.value).toBe('')
     fireEvent.blur(input)
     expect(input.value).toBe(en.maskedKey)
-    // The maxUses hint names the value in the box (default 10; typing 3 → 3).
+    // The maxUses hint names the value in the box (default 10; typing 3 → 3);
+    // the knob sits behind the advanced fold (S22b).
+    openAdvanced()
     const maxInput = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
     const hintBtn = screen.getByRole('button', { name: en.maxUsesHint.replace('{N}', '10') })
     expect(hintBtn).toBeTruthy()
@@ -756,7 +779,9 @@ describe('WebSearchSettingsSection', () => {
     const members = container.querySelector('[data-testid="dshws-members"]')!
     // DOM order: global card first, tools after.
     expect(chains.compareDocumentPosition(members) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    // Host-parity label verbatim; S14d default is 10 (user ruling).
+    // Host-parity label verbatim; S14d default is 10 (user ruling) — the knob
+    // lives behind the advanced fold (S22b).
+    openAdvanced()
     expect(screen.getByLabelText(en.maxUsesLabel).getAttribute('value')).toBe('10')
     expect(chains.textContent).toContain(en.maxUsesLabel)
   })
@@ -781,16 +806,16 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const members = container.querySelector('[data-testid="dshws-members"]')!
     const children = Array.from(members.children)
-    // S22a T3: the takeover row stays last-but-one — the fetch chain block
-    // (ON-only) renders under the switch inside this container.
-    expect(children.length).toBe(7)
-    expect((children[children.length - 2] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
-    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-chain')
+    // S22b: the Web Fetch chain folds INSIDE the takeover card — the takeover
+    // card is the container's last element again.
+    expect(children.length).toBe(6)
+    expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
   })
 
   it('maxUses save patches the deepseek member key (S14c T4)', async () => {
     const onSetMaxUses = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMaxUses })} t={t} />)
+    openAdvanced()
     const input = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
     // S14g: bounds are [5, 100] — 3 is out of range and must NOT save.
     fireEvent.change(input, { target: { value: '3' } })
@@ -804,6 +829,7 @@ describe('WebSearchSettingsSection', () => {
 
   it('the maxUses steppers snap in steps of 5 within [5, 100] (S14g)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
     const input = screen.getByLabelText(en.maxUsesLabel) as HTMLInputElement
     expect(input.value).toBe('10')
     fireEvent.click(screen.getByTestId('dshws-max-uses-up'))
@@ -969,6 +995,7 @@ describe('S17 P1 member parameter controls', () => {
     const onSetSearchCountry = vi.fn(async () => ({ ok: true }) as ActionResult)
     const onSetSearchLanguage = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetSearchCountry, onSetSearchLanguage })} t={t} />)
+    openAdvanced()
     const country = screen.getByTestId('dshws-search-country') as HTMLInputElement
     const language = screen.getByTestId('dshws-search-language') as HTMLInputElement
     expect(country.value).toBe('')
@@ -987,6 +1014,7 @@ describe('S20 P2 domain entry and member controls', () => {
   it('the global domain pair renders with the exclusivity note and forwards the chosen list', async () => {
     const onSetSearchDomains = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetSearchDomains })} t={t} />)
+    openAdvanced()
     const include = screen.getByTestId('dshws-search-domains-include') as HTMLInputElement
     expect(include.value).toBe('')
     fireEvent.change(include, { target: { value: 'example.com' } })
@@ -1053,6 +1081,8 @@ describe('S21 T6: fetch chain GUI', () => {
   it('renders the fetch chain rows once a fetch-capable member is configured and forwards moves', async () => {
     const onMoveFetch = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onMoveFetch })} t={t} />)
+    // S22b: the chain rows open with the takeover card's fold.
+    openTakeover()
     const list = screen.getByTestId('dshws-fetch-chain-list')
     const labels = [...list.querySelectorAll('[data-dshws-chain-label]')].map(rowBrand)
     // Default fixture: all members configured — the fetch-capable three in default order.
@@ -1065,6 +1095,7 @@ describe('S21 T6: fetch chain GUI', () => {
 
   it('S22a T1: role chips ride INSIDE the label cell right after the tool name (no grid wrap)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openTakeover()
     const searchChip = screen.getByTestId('dshws-chain-role-primary')
     expect(searchChip.parentElement?.hasAttribute('data-dshws-chain-label')).toBe(true)
     expect(searchChip.parentElement?.textContent).toContain('Tavily')
@@ -1073,23 +1104,23 @@ describe('S21 T6: fetch chain GUI', () => {
     expect(fetchChip.parentElement?.textContent).toContain('Firecrawl')
   })
 
-  it('S22a T3: the fetch chain block sits under the takeover switch and hides when the switch is off', () => {
+  it('S22a T3+S22b: the Web Fetch chain folds inside the takeover card — collapsed by default, off hides it even expanded', () => {
     const onMoveFetch = vi.fn(async () => ({ ok: true }) as ActionResult)
     const { container } = render(<WebSearchSettingsSection {...makeProps({ onMoveFetch })} t={t} />)
-    expect(screen.getByTestId('dshws-fetch-chain')).toBeTruthy()
-    // DOM order: the takeover row precedes the fetch chain block (S22a user ruling).
-    const members = container.querySelector('[data-testid="dshws-members"]')
-    const takeoverRow = screen.getByRole('switch', { name: en.fetchTakeoverLabel }).closest('div')
+    // S22b: default-collapsed — the chain takes no viewport until opened.
+    expect(screen.queryByTestId('dshws-fetch-chain')).toBeNull()
+    openTakeover()
     const fetchChain = screen.getByTestId('dshws-fetch-chain')
-    if (members && takeoverRow && fetchChain) {
-      expect(members.compareDocumentPosition(fetchChain) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-      expect(takeoverRow.compareDocumentPosition(fetchChain) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    }
+    // DOM: the chain rides INSIDE the takeover card, after its header (S22a/S22b).
+    const takeoverCard = container.querySelector('[data-testid="dshws-fetch-takeover"]')!
+    expect(takeoverCard.contains(fetchChain)).toBe(true)
+    expect(takeoverCard.compareDocumentPosition(fetchChain) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
     cleanup()
     const off = makeProps({ onMoveFetch })
     off.snapshot = { ...off.snapshot, fetchTakeover: false }
     render(<WebSearchSettingsSection {...off} t={t} />)
+    openTakeover()
     expect(screen.queryByTestId('dshws-fetch-chain')).toBeNull()
   })
 
@@ -1099,9 +1130,9 @@ describe('S21 T6: fetch chain GUI', () => {
     expect(screen.queryByTestId('dshws-fetch-chain')).toBeNull()
   })
 
-  it('the takeover switch carries the S21 chain-service note', () => {
+  it('the takeover switch carries the S21 chain-service note (S22b: the ⓘ rides in the fold header)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const info = screen.getByTestId('dshws-fetch-takeover').querySelector('button')
+    const info = screen.getByTestId('dshws-fetch-takeover-disclosure').querySelector('button')
     expect(info?.getAttribute('aria-label')).toBe(en.fetchTakeoverNoteS21)
   })
 })
