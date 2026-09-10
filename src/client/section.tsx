@@ -35,13 +35,15 @@ export interface SectionProps {
   /** One S17 P1 member option (selects/toggles/text/number controls); '' clears enum/date fields. */
   onSetMemberOption: (
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories',
     value: string | number | boolean,
   ) => Promise<ActionResult>
   /** Unified search region (S17 P1, ADR-0015). */
   onSetSearchCountry: (country: string) => Promise<ActionResult>
   /** Unified search language (S17 P1, ADR-0015). */
   onSetSearchLanguage: (language: string) => Promise<ActionResult>
+  /** Unified domain allow/block lists (S20 P1, ADR-0018); setting one clears the other. */
+  onSetSearchDomains: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
   /** Designated fallback (ADR-0014): 'auto' = chain-order last position. */
   onSetFallbackMember: (member: SectionSnapshot['fallbackSelection']) => Promise<ActionResult>
   /** Universal web_fetch takeover toggle (S15a). */
@@ -76,6 +78,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetMemberOption={(key, option, value) => controller.setMemberOption(key, option, value)}
         onSetSearchCountry={(country) => controller.setSearchCountry(country)}
         onSetSearchLanguage={(language) => controller.setSearchLanguage(language)}
+        onSetSearchDomains={(kind, domains) => controller.setSearchDomains(kind, domains)}
       />
     )
   }
@@ -259,7 +262,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -429,6 +432,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           </p>
           <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
           <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
+          <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
         </section>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -784,15 +788,16 @@ function MemberEndpointField(props: {
 type MemberParamControl =
   | {
     kind: 'select'
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'tbs'
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'tbs' | 'includeDomainsMode' | 'chunksPerSource' | 'category' | 'sources' | 'categories'
     labelKey: DshWsLocaleKey
     noteKey?: DshWsLocaleKey
     /** Resolved display default when the section value is unset ('' options are clear sentinels). */
     fallback?: string
     options: readonly { value: string, labelKey: DshWsLocaleKey }[]
   }
-  | { kind: 'toggle', option: 'textFallback', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
+  | { kind: 'toggle', option: 'textFallback' | 'filterByLanguage', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey }
   | { kind: 'text', option: 'location' | 'startPublishedDate', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, inputType: 'text' | 'date', placeholder?: string }
+  | { kind: 'number', option: 'maxAgeHours', labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, min: number, max: number, fallback: number }
 
 /** The S17 P1 controls per member, in card order (ADR-0015 mapping; deepseek/anysearch expose none). */
 const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberParamControl[]>>> = {
@@ -805,17 +810,29 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
       { value: '', labelKey: 'optDefault' }, { value: 'advanced', labelKey: 'depthAdvanced' }, { value: 'fast', labelKey: 'depthFast' }, { value: 'ultra-fast', labelKey: 'depthUltraFast' }] },
     { kind: 'select', option: 'includeAnswer', labelKey: 'tavilyAnswerLabel', fallback: 'basic', options: [
       { value: 'basic', labelKey: 'answerBasic' }, { value: 'advanced', labelKey: 'answerAdvanced' }] },
+    { kind: 'select', option: 'includeDomainsMode', labelKey: 'domainsLabel', options: [
+      { value: '', labelKey: 'optDefault' }, { value: 'filter', labelKey: 'modeFilter' }, { value: 'boost', labelKey: 'modeBoost' }] },
+    { kind: 'select', option: 'chunksPerSource', labelKey: 'chunksPerSourceLabel', options: [
+      { value: '', labelKey: 'optDefault' }, { value: '1', labelKey: 'chunksOne' }, { value: '2', labelKey: 'chunksTwo' }, { value: '3', labelKey: 'chunksThree' }] },
+    { kind: 'toggle', option: 'filterByLanguage', labelKey: 'filterByLanguageLabel', noteKey: 'filterByLanguageNote' },
   ],
   exa: [
     { kind: 'select', option: 'type', labelKey: 'exaTypeLabel', fallback: 'auto', options: [
       { value: 'auto', labelKey: 'typeAuto' }, { value: 'instant', labelKey: 'typeInstant' }, { value: 'fast', labelKey: 'typeFast' }, { value: 'deep-lite', labelKey: 'typeDeepLite' }, { value: 'deep', labelKey: 'typeDeep' }, { value: 'deep-reasoning', labelKey: 'typeDeepReasoning' }] },
     { kind: 'toggle', option: 'textFallback', labelKey: 'exaTextFallbackLabel', noteKey: 'exaTextFallbackNote' },
     { kind: 'text', option: 'startPublishedDate', labelKey: 'exaDateFloorLabel', inputType: 'date' },
+    { kind: 'select', option: 'category', labelKey: 'categoryLabel', options: [
+      { value: '', labelKey: 'optDefault' }, { value: 'company', labelKey: 'catCompany' }, { value: 'publication', labelKey: 'catPublication' }, { value: 'news', labelKey: 'catNews' }, { value: 'personal site', labelKey: 'catPersonalSite' }, { value: 'financial report', labelKey: 'catFinancialReport' }, { value: 'people', labelKey: 'catPeople' }] },
+    { kind: 'number', option: 'maxAgeHours', labelKey: 'maxAgeHoursLabel', noteKey: 'maxAgeHoursNote', min: -1, max: 720, fallback: 24 },
   ],
   firecrawl: [
     { kind: 'select', option: 'tbs', labelKey: 'fcTbsLabel', options: [
       { value: '', labelKey: 'optOff' }, { value: 'qdr:h', labelKey: 'recencyHour' }, { value: 'qdr:d', labelKey: 'recencyDay' }, { value: 'qdr:w', labelKey: 'recencyWeek' }, { value: 'qdr:m', labelKey: 'recencyMonth' }, { value: 'qdr:y', labelKey: 'recencyYear' }] },
     { kind: 'text', option: 'location', labelKey: 'fcLocationLabel', noteKey: 'fcLocationNote', inputType: 'text', placeholder: 'Beijing,China' },
+    { kind: 'select', option: 'sources', labelKey: 'sourcesLabel', options: [
+      { value: '', labelKey: 'optDefault' }, { value: 'news', labelKey: 'srcNews' }, { value: 'web+news', labelKey: 'srcWebNews' }] },
+    { kind: 'select', option: 'categories', labelKey: 'categoryLabel', options: [
+      { value: '', labelKey: 'optDefault' }, { value: 'developer', labelKey: 'fcCatDeveloper' }, { value: 'research', labelKey: 'fcCatResearch' }, { value: 'pdf', labelKey: 'fcCatPdf' }] },
   ],
 }
 
@@ -921,16 +938,22 @@ function MemberParamField(props: {
     )
   }
 
-  // text: staged draft with a Save button (the endpoint-field pattern).
-  const current = typeof stored === 'string' ? stored : ''
+  // number | text: staged draft with a Save button (the endpoint-field pattern).
+  const current = control.kind === 'number'
+    ? (typeof stored === 'number' ? String(stored) : String(control.fallback))
+    : (typeof stored === 'string' ? stored : '')
   const value = draft ?? current
-  const valid = true
+  const valid = control.kind === 'number'
+    ? Number.isInteger(Number(value)) && Number(value) >= control.min && Number(value) <= control.max
+    : true
   return (
     <div style={fieldStyle}>
       <FieldLabel t={t} labelKey={control.labelKey} noteKey={control.noteKey} ariaLabel={ariaLabel} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         <input
-          type={control.inputType}
+          type={control.kind === 'number' ? 'number' : control.inputType}
+          min={control.kind === 'number' ? control.min : undefined}
+          max={control.kind === 'number' ? control.max : undefined}
           aria-label={ariaLabel}
           data-testid={testid}
           placeholder={control.kind === 'text' ? control.placeholder : undefined}
@@ -944,7 +967,7 @@ function MemberParamField(props: {
           disabled={!valid || draft === null || draft === current}
           aria-label={`${ariaLabel} ${t('save')}`}
           onClick={() => {
-            void commit(value).then(() => setDraft(null))
+            void commit(control.kind === 'number' ? Number(value) : value).then(() => setDraft(null))
           }}
         >
           {t('save')}
@@ -970,6 +993,80 @@ function SearchGeoFields(props: {
     <div data-testid="dshws-search-geo" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <GeoField t={t} testid="dshws-search-country" labelKey="searchCountryLabel" noteKey="searchCountryNote" placeholder="CN" value={country} onSet={onSetCountry} />
       <GeoField t={t} testid="dshws-search-language" labelKey="searchLanguageLabel" noteKey="searchLanguageNote" placeholder="zh" value={language} onSet={onSetLanguage} />
+    </div>
+  )
+}
+
+/** Unified domain allow/block lists (S20 P1, ADR-0018) — mutually exclusive single-line inputs. */
+function SearchDomainFields(props: {
+  t: (key: DshWsLocaleKey) => string
+  includeDomains: string | undefined
+  excludeDomains: string | undefined
+  onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+}) {
+  const { t, includeDomains, excludeDomains, onSet } = props
+  return (
+    <div data-testid="dshws-search-domains" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <DomainField t={t} kind="include" value={includeDomains} onSet={onSet} />
+      <DomainField t={t} kind="exclude" value={excludeDomains} onSet={onSet} />
+    </div>
+  )
+}
+
+function DomainField(props: {
+  t: (key: DshWsLocaleKey) => string
+  kind: 'include' | 'exclude'
+  value: string | undefined
+  onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+}) {
+  const { t, kind, value, onSet } = props
+  const [draft, setDraft] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
+    return () => clearTimeout(timer)
+  }, [feedback])
+  const labelKey = kind === 'include' ? 'searchIncludeDomainsLabel' : 'searchExcludeDomainsLabel'
+  const noteKey = kind === 'include' ? 'searchIncludeDomainsNote' : 'searchExcludeDomainsNote'
+  const current = value ?? ''
+  const shown = draft ?? current
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+        {t(labelKey)}
+        <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={380}>
+          <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
+            <IconQuestionOutline14 />
+          </button>
+        </Tooltip>
+      </span>
+      <span style={{ flex: 1 }} />
+      <input
+        aria-label={t(labelKey)}
+        data-testid={`dshws-search-domains-${kind}`}
+        placeholder="example.com,foo.org"
+        value={shown}
+        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
+        style={{ width: 200, height: 28, padding: '0 8px', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={draft === null || draft === current}
+        aria-label={`${t(labelKey)} ${t('save')}`}
+        onClick={() => {
+          void onSet(kind, draft ?? '').then((result) => {
+            setFeedback(result.ok ? 'saved' : 'failed')
+            if (result.ok) setDraft(null)
+          })
+        }}
+      >
+        {t('save')}
+      </Button>
+      {feedback !== undefined ? (
+        <span role="status" data-testid={`dshws-search-domains-${kind}-feedback`} style={{ fontSize: 12, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
+      ) : null}
     </div>
   )
 }

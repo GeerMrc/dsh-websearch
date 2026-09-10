@@ -50,6 +50,13 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     startPublishedDate: undefined,
     tbs: undefined,
     location: undefined,
+    chunksPerSource: undefined,
+    filterByLanguage: undefined,
+    includeDomainsMode: undefined,
+    category: undefined,
+    maxAgeHours: undefined,
+    sources: undefined,
+    categories: undefined,
     source: undefined,
     writable: true,
     ...overrides,
@@ -81,6 +88,8 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     fetchTakeover: true,
     searchCountry: undefined,
     searchLanguage: undefined,
+    searchIncludeDomains: undefined,
+    searchExcludeDomains: undefined,
     revision: 0,
     writable: true,
   }
@@ -101,6 +110,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetMemberOption: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetSearchCountry: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetSearchLanguage: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetSearchDomains: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
