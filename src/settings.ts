@@ -19,7 +19,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
-import { resolveConfig, validateExaSectionFilterRule, validateUnifiedDomainRule } from './config.ts'
+import { resolveConfig, validateExaSectionFilterRule, validateFirecrawlTbsRule, validateUnifiedDomainRule } from './config.ts'
 import type { Config, ResolvedWebSearchConfig } from './config.ts'
 
 /** The plugin's settings namespace (lowercase kebab, seam grammar). */
@@ -92,6 +92,7 @@ export function attachSettingsSection(ctx: Context, schema: z<Config>, entry: Co
       validate: (value) => {
         validateUnifiedDomainRule(value)
         validateExaSectionFilterRule(value)
+        validateFirecrawlTbsRule(value)
       },
       setSource: (source) => {
         live.setSource(source as () => Config)

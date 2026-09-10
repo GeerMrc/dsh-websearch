@@ -52,6 +52,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     location: undefined,
     chunksPerSource: undefined,
     filterByLanguage: undefined,
+    safe: undefined,
     startDate: undefined,
     endDate: undefined,
     exactMatch: undefined,
@@ -923,11 +924,26 @@ describe('S17 P1 member parameter controls', () => {
   })
 
 
-  it('firecrawl: tbs select and location staged text field forward their values', async () => {
+  it('S22 T3: firecrawl tbs becomes a staged combo text field and safe toggles immediately', async () => {
     const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
     expand('firecrawl')
-    fireEvent.change(screen.getByTestId('dshws-param-firecrawl-tbs'), { target: { value: 'qdr:w' } })
+    const tbs = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbs, { target: { value: 'sbd:1,qdr:w' } })
+    fireEvent.click(screen.getByRole('button', { name: `Firecrawl ${en.fcTbsLabel} ${en.save}` }))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'tbs', 'sbd:1,qdr:w'))
+    expect((screen.getByTestId('dshws-param-firecrawl-safe') as HTMLButtonElement).getAttribute('aria-checked')).toBe('false')
+    fireEvent.click(screen.getByTestId('dshws-param-firecrawl-safe'))
+    await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'safe', true))
+  })
+
+  it('firecrawl: tbs and location staged text fields forward their values', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('firecrawl')
+    const tbsField = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbsField, { target: { value: 'qdr:w' } })
+    fireEvent.click(screen.getByRole('button', { name: `Firecrawl ${en.fcTbsLabel} ${en.save}` }))
     await waitFor(() => expect(onSetMemberOption).toHaveBeenCalledWith('firecrawl', 'tbs', 'qdr:w'))
 
     const location = screen.getByTestId('dshws-param-firecrawl-location') as HTMLInputElement

@@ -134,6 +134,16 @@ describe('attachSettingsSection', () => {
     expect(() => validate({ searchIncludeDomains: 'a.test', searchExcludeDomains: 'b.test' })).toThrow(/mutually exclusive/)
   })
 
+  it('S22 T3: the Firecrawl tbs guard rides the same validate hook (rejects before persist)', () => {
+    const { ctx, captured } = fakeSettingsCtx()
+    const live = new LiveResolvedConfig({})
+    attachSettingsSection(ctx, Config, {}, live)
+    const hooks = captured.hooks as { validate?: (value: unknown) => void }
+    const validate = hooks.validate!
+    expect(() => validate({ firecrawl: { tbs: 'banana' } })).toThrow(/tbs/)
+    expect(() => validate({ firecrawl: { tbs: 'sbd:1' } })).not.toThrow()
+  })
+
   it('S22 T2: the Exa section-filter guard rides the same validate hook (rejects before persist)', () => {
     const { ctx, captured } = fakeSettingsCtx()
     const live = new LiveResolvedConfig({})

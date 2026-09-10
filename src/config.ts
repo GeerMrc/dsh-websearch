@@ -189,15 +189,22 @@ export interface FirecrawlSettings {
   /** API endpoint base; provider default applies when omitted (S05a). Hot: a settings change applies to the next search (S17 D1). */
   baseURL?: string
   /**
-   * Time-based search filter (S17 P1, Google-style `tbs` presets; omitted = no filter). Hot.
+   * Time-based search filter (S17 P1 presets; S22 P3 widened to official combos: `qdr:*`
+   * presets, `sbd:1` date sort, `cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY` custom range,
+   * comma-combinable). Validated on both write paths; omitted = no filter. Hot.
    */
-  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y' | ''
+  tbs?: string
   /**
    * Free-text geo location for search results (S17 P1, e.g. `San Francisco,California,United
    * States`; city-level granularity — finer than the global country entry; omitted = not sent).
    * The official docs recommend setting it together with a country. Hot.
    */
   location?: string
+  /**
+   * SafeSearch filter (S22 P3, official boolean): `true` filters explicit content from `web`
+   * source results; omitted = not sent (the API default, no filtering). Hot.
+   */
+  safe?: boolean
   /**
    * Result sources (S20 P2; `''` = clear, omitted = not sent, API default web-only): `news` adds
    * the native time-sorted news feed (the only bundled member with one), `web+news` requests both —
@@ -419,7 +426,8 @@ export const Config: z<Config> = z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
-    tbs: z.union(['', 'qdr:h', 'qdr:d', 'qdr:w', 'qdr:m', 'qdr:y']),
+    tbs: z.string(),
+    safe: z.boolean(),
     location: z.string(),
     sources: z.union(['', 'news', 'web+news']),
     categories: z.union(['', 'developer', 'research', 'pdf']),
@@ -492,8 +500,10 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
 /** Fully defaulted settings for one member. */
 export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 'enabled' | 'apiKeyEnv'>> {
   baseURL?: string
-  /** Time-based search filter; absent = not sent (S17 P1). */
-  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Time-based search filter (presets + official combos, validated upstream); absent = not sent (S17/S22 P3). */
+  tbs?: string
+  /** SafeSearch filter; absent = not sent (S22 P3). */
+  safe?: boolean
   /** Free-text geo location; absent = not sent (S17 P1). */
   location?: string
   /** Result sources; `''` normalizes away at resolve (S20 P2). */
@@ -594,6 +604,30 @@ export function validateUnifiedDomainRule(value: Pick<Config, 'searchIncludeDoma
  * and the cordis.yml load path through the `resolveConfig` throw (a watcher throw would otherwise
  * be swallowed into a warn and brick the restart, see {@link validateUnifiedDomainRule}).
  */
+const TBS_TOKEN = /^(qdr:[hdwmy]|sbd:1|cdr:1|cd_min:\d{2}\/\d{2}\/\d{4}|cd_max:\d{2}\/\d{2}\/\d{4})$/
+
+/**
+ * The Firecrawl `tbs` grammar rule (S22 P3): comma-combined tokens from the official forms —
+ * `qdr:*` presets, `sbd:1` date sort, `cdr:1` requiring both `cd_min`/`cd_max` `MM/DD/YYYY`
+ * bounds. Anything else is rejected, dual-path like the ADR-0018 domain rule (settings validate
+ * hook before persist + resolveConfig throw on load).
+ */
+export function validateFirecrawlTbsRule(value: Pick<Config, 'firecrawl'>): void {
+  const raw = value.firecrawl?.tbs?.trim()
+  if (raw === undefined || raw.length === 0) return
+  const tokens = raw.split(',').map((token) => token.trim()).filter((token) => token.length > 0)
+  if (tokens.length === 0 || tokens.some((token) => !TBS_TOKEN.test(token))) {
+    throw new Error(`firecrawl.tbs "${raw}" is not a valid tbs expression — combine qdr:* presets, sbd:1, and cdr:1 with cd_min/cd_max MM/DD/YYYY bounds`)
+  }
+  if (tokens.includes('cdr:1')) {
+    const hasMin = tokens.some((token) => token.startsWith('cd_min:'))
+    const hasMax = tokens.some((token) => token.startsWith('cd_max:'))
+    if (!hasMin || !hasMax) {
+      throw new Error('firecrawl.tbs cdr:1 requires both cd_min:MM/DD/YYYY and cd_max:MM/DD/YYYY bounds')
+    }
+  }
+}
+
 export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
   const exa = value.exa
   if (exa === undefined) return
@@ -614,6 +648,7 @@ export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
   validateUnifiedDomainRule(config)
   validateExaSectionFilterRule(config)
+  validateFirecrawlTbsRule(config)
   const fallbackMember: FallbackMember = config.fallbackMember === 'dshws-perplexity'
     // S19 legacy alias: the removed member's designation degrades to auto.
     ? 'auto'
@@ -672,7 +707,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       apiKeyEnv: config.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
       keySelection: config.firecrawl?.keySelection ?? 'round-robin',
       baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
-      tbs: config.firecrawl?.tbs || undefined,
+      tbs: config.firecrawl?.tbs?.trim().length ? config.firecrawl.tbs.trim() : undefined,
+      safe: config.firecrawl?.safe,
       sources: config.firecrawl?.sources || undefined,
       categories: config.firecrawl?.categories || undefined,
       location: config.firecrawl?.location?.trim() === '' ? undefined : config.firecrawl?.location,

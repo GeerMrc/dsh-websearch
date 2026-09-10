@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig, validateExaSectionFilterRule } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig, validateExaSectionFilterRule, validateFirecrawlTbsRule } from '../src/config.ts'
 
 describe('resolveConfig', () => {
   it('applies the built-in member order to empty chains — four tools (S19: perplexity removed), no appended tail (ADR-0014)', () => {
@@ -143,7 +143,10 @@ describe('resolveConfig', () => {
       const resolved = resolveConfig({ firecrawl: { tbs: 'qdr:m', location: 'Shanghai,China' } })
       expect(resolved.firecrawl.tbs).toBe('qdr:m')
       expect(resolved.firecrawl.location).toBe('Shanghai,China')
-      expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
+      // S22 T3: the zod enum was widened to z.string(); load-time rejection now
+        // lives in validateFirecrawlTbsRule (called by resolveConfig), which
+        // also covers the combo grammar the enum could not express.
+        expect(() => resolveConfig({ firecrawl: { tbs: 'last-week' } })).toThrow(/tbs/)
     })
 
     it("S20 T4: firecrawl member params — sources enum + clear sentinel, categories enum", () => {
@@ -307,5 +310,18 @@ describe('S22 T2: Exa section-filter freshness guard (dual-path, official maxAge
   })
   it('resolveConfig throws on the same mismatch (cordis.yml load path)', () => {
     expect(() => resolveConfig({ exa: { includeSections: 'body', maxAgeHours: 24 } } as never)).toThrow(/maxAgeHours/)
+  })
+})
+
+describe('S22 T3: Firecrawl tbs combo guard (dual-path)', () => {
+  it('legacy qdr presets and official combos pass; garbage tokens are rejected', () => {
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'qdr:w' } })).not.toThrow()
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'sbd:1,qdr:w' } })).not.toThrow()
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'cdr:1,cd_min:01/01/2026,cd_max:06/30/2026' } })).not.toThrow()
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'banana' } })).toThrow(/tbs/)
+    expect(() => validateFirecrawlTbsRule({ firecrawl: { tbs: 'cdr:1,cd_min:01/01/2026' } })).toThrow(/tbs/)
+  })
+  it('resolveConfig throws on the same mismatch (cordis.yml load path)', () => {
+    expect(() => resolveConfig({ firecrawl: { tbs: 'banana' } } as never)).toThrow(/tbs/)
   })
 })

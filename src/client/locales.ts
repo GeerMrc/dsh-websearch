@@ -113,6 +113,9 @@ export type DshWsLocaleKey =
   | 'exaIncludeSectionsLabel'
   | 'exaExcludeSectionsLabel'
   | 'exaSectionsNote'
+  | 'fcTbsNote'
+  | 'fcSafeLabel'
+  | 'fcSafeNote'
   | 'ctxLow'
   | 'ctxMedium'
   | 'ctxHigh'
@@ -258,6 +261,9 @@ export const en: Record<DshWsLocaleKey, string> = {
   exaIncludeSectionsLabel: 'Include sections',
   exaExcludeSectionsLabel: 'Exclude sections',
   exaSectionsNote: 'Comma-separated from header/navigation/banner/sidebar/footer/metadata/body. Requires cache freshness = 0 (fresh crawl) or -1; other values are rejected on save.',
+  fcTbsNote: 'Time filter, comma-combinable: qdr:h/d/w/m/y presets, sbd:1 (date sort), cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY (custom range). Invalid expressions are rejected on save.',
+  fcSafeLabel: 'SafeSearch',
+  fcSafeNote: 'Filter explicit content from web source results; off = not sent (no filtering).',
   ctxLow: 'Low',
   ctxMedium: 'Medium',
   ctxHigh: 'High',
@@ -398,6 +404,9 @@ export const zh: Record<DshWsLocaleKey, string> = {
   exaIncludeSectionsLabel: '包含小节',
   exaExcludeSectionsLabel: '排除小节',
   exaSectionsNote: '逗号分隔，取值限 header/navigation/banner/sidebar/footer/metadata/body。要求缓存新鲜度 = 0（强制新抓）或 -1，其他值保存时会被拒绝。',
+  fcTbsNote: '时间过滤，可逗号组合：qdr:h/d/w/m/y 预设、sbd:1（按日期排序）、cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY（自定义区间）。非法表达式保存时会被拒绝。',
+  fcSafeLabel: '安全搜索',
+  fcSafeNote: '过滤 web 来源结果中的显式内容；关闭 = 不发送该参数（不过滤）。',
   ctxLow: '低',
   ctxMedium: '中',
   ctxHigh: '高',

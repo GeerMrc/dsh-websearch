@@ -84,8 +84,8 @@ interface MemberSectionValue {
   textFallback?: boolean
   /** Exa S17 P1: publication-date floor (YYYY-MM-DD). */
   startPublishedDate?: string
-  /** Firecrawl S17 P1: time-based search filter. */
-  tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Firecrawl S17/S22 P3: time-based search filter (presets + official combos). */
+  tbs?: string
   /** Firecrawl S17 P1: free-text geo location. */
   location?: string
   /** Tavily S20 P2: content chunks per source (1-3). */
@@ -114,6 +114,8 @@ interface MemberSectionValue {
   /** Exa S22 P3: contents.text section filter (comma list). */
   includeSections?: string
   excludeSections?: string
+  /** Firecrawl S22 P3: SafeSearch filter. */
+  safe?: boolean
 }
 
 interface SectionValue {
@@ -185,6 +187,7 @@ export interface MemberSnapshot {
   readonly textVerbosity: string | undefined
   readonly includeSections: string | undefined
   readonly excludeSections: string | undefined
+  readonly safe: boolean | undefined
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -276,6 +279,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       textVerbosity: section?.textVerbosity,
       includeSections: section?.includeSections,
       excludeSections: section?.excludeSections,
+      safe: section?.safe,
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -440,7 +444,7 @@ export class WebSearchSettingsController {
    */
   async setMemberOption(
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch' | 'endPublishedDate' | 'textVerbosity' | 'includeSections' | 'excludeSections',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch' | 'endPublishedDate' | 'textVerbosity' | 'includeSections' | 'excludeSections' | 'safe',
     value: string | number | boolean,
   ): Promise<ActionResult> {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)

@@ -100,7 +100,10 @@ export interface FirecrawlMemberOptions {
   /** Endpoint base; `/v2/search` and `/v2/scrape` are appended. */
   readonly baseURL: string
   /** Time-based search filter; absent = not sent (S17 P1). */
-  readonly tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
+  /** Time-based search filter (presets + official combos); absent = not sent (S17/S22 P3). */
+  readonly tbs?: string
+  /** SafeSearch filter; absent = not sent (S22 P3). */
+  readonly safe?: boolean
   /** Free-text geo location; absent = not sent (S17 P1). */
   readonly location?: string
   /** Unified search region (ISO 3166-1 alpha-2); absent = not sent (S17 P1, ADR-0015 — the fix for the API's US default). */
@@ -158,6 +161,7 @@ export function resolveFirecrawlMemberOptions(
     resolveApiKey,
     baseURL: config.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
     tbs: config.tbs,
+    safe: config.safe,
     location: config.location,
     country: fanout?.country,
     ...normalizeFirecrawlDomains(fanout),
@@ -264,6 +268,7 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
             : {},
           ...this.options.categories !== undefined ? { categories: [{ type: this.options.categories }] } : {},
           ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
+          ...this.options.safe === true ? { safe: true } : {},
           ...this.options.location !== undefined ? { location: this.options.location } : {},
           ...this.options.country !== undefined ? { country: this.options.country } : {},
           ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
