@@ -170,39 +170,51 @@ describe('dshws-perplexity request mapping', () => {
 })
 
 describe('dshws-perplexity response mapping', () => {
-  it('prefers structured search_results and carries the generated answer as content', () => {
+  it('maps the Agent API trace: message item text becomes content, search_results item becomes structured sources', () => {
     const result = mapPerplexityResponse({
-      choices: [{ message: { content: 'generated answer' } }],
-      search_results: [
-        { url: 'https://a.test', title: 'A', snippet: 'salient', date: '2026-01-01' },
-        { url: 'https://b.test' },
+      output: [
+        { type: 'web_search_call', queries: ['q'] },
+        { type: 'search_results', queries: ['q'], results: [
+          { id: 1, url: 'https://a.test', title: 'A', snippet: 'salient', date: '2026-01-01', source: 'web' },
+          { id: 2, url: 'https://b.test', last_updated: '2026-02-02' },
+          { id: 3, url: 'https://blank.test', snippet: '   ' },
+        ] },
+        { type: 'message', content: [{ type: 'output_text', text: 'generated answer', annotations: [] }] },
       ],
     })
     expect(result.content).toBe('generated answer')
     expect(result.truncated).toBe(false)
     expect(result.sources).toEqual([
       { url: 'https://a.test', title: 'A', snippet: 'salient', publishedAt: '2026-01-01' },
-      { url: 'https://b.test' },
+      { url: 'https://b.test', publishedAt: '2026-02-02' },
+      { url: 'https://blank.test' },
     ])
   })
 
-  it('falls back to URL-only citations only when search_results is absent', () => {
-    const withCitations = mapPerplexityResponse({
-      choices: [{ message: { content: 'answer' } }],
-      citations: ['https://c.test', 'https://d.test'],
+  it('falls back to message annotations when no search_results item exists', () => {
+    const result = mapPerplexityResponse({
+      output: [
+        { type: 'message', content: [{ type: 'output_text', text: 'answer', annotations: [
+          { type: 'url_citation', url: 'https://c.test', title: 'C' },
+          { type: 'url_citation', url: 'https://d.test' },
+        ] }] },
+      ],
     })
-    expect(withCitations.sources).toEqual([{ url: 'https://c.test' }, { url: 'https://d.test' }])
-
-    const searchResultsPresent = mapPerplexityResponse({
-      choices: [{ message: { content: 'answer' } }],
-      citations: ['https://c.test'],
-      search_results: [{ url: 'https://a.test' }],
-    })
-    expect(searchResultsPresent.sources).toEqual([{ url: 'https://a.test' }])
+    expect(result.content).toBe('answer')
+    expect(result.sources).toEqual([{ url: 'https://c.test', title: 'C' }, { url: 'https://d.test' }])
   })
 
-  it('omits content when the answer is empty and tolerates a missing choices array', () => {
-    expect(mapPerplexityResponse({ choices: [{ message: { content: '' } }] }).content).toBeUndefined()
+  it('falls back to legacy URL-only citations when neither trace source exists (tolerant last resort)', () => {
+    const result = mapPerplexityResponse({
+      output: [{ type: 'message', content: 'plain string answer' }],
+      citations: ['https://e.test'],
+    })
+    expect(result.content).toBe('plain string answer')
+    expect(result.sources).toEqual([{ url: 'https://e.test' }])
+  })
+
+  it('omits content when the answer is empty and tolerates a missing output array', () => {
+    expect(mapPerplexityResponse({ output: [{ type: 'message', content: [{ type: 'output_text', text: '' }] }] }).content).toBeUndefined()
     expect(mapPerplexityResponse({}).content).toBeUndefined()
     expect(mapPerplexityResponse({}).sources).toEqual([])
   })

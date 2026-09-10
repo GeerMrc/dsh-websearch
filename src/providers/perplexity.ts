@@ -59,21 +59,45 @@ const codes = MEMBER_ERROR_CODES.perplexity
 /** Attribution header sent on every request; bump with the package version. */
 const USER_AGENT = 'dsh-websearch/0.3.0'
 
-/** Wire type of one structured `search_results[]` entry (optional fields read tolerantly). */
+/** Wire type of one structured search result (Agent API `search_results` item entry; tolerant). */
 export interface PerplexitySearchResult {
+  /** Citation index the answer text's `[n]` markers refer to. */
+  readonly id?: number
   readonly url?: string
   readonly title?: string
   readonly snippet?: string
   readonly date?: string
+  /** Alternative timestamp field (Agent API); used when `date` is absent. */
+  readonly last_updated?: string
+  /** Result origin (`web`); read past. */
+  readonly source?: string
+}
+
+/** Wire type of one `url_citation` annotation on a message content part (tolerant). */
+interface PerplexityUrlCitation {
+  readonly type?: string
+  readonly url?: string
+  readonly title?: string
+}
+
+/**
+ * Wire type of one Agent API output trace item. The trace carries more item
+ * kinds (search calls, sandbox runs, …) — only `message` and `search_results`
+ * carry data this member maps; everything else is read past tolerantly.
+ */
+export interface PerplexityOutputItem {
+  readonly type?: string
+  /** `search_results` items: the queries that produced the list; read past. */
+  readonly queries?: readonly string[]
+  /** `message` items: a plain string or content parts carrying `text` and citations. */
+  readonly content?: string | readonly { readonly type?: string, readonly text?: string, readonly annotations?: readonly PerplexityUrlCitation[] }[]
+  /** `search_results` items: the structured source list. */
+  readonly results?: readonly PerplexitySearchResult[]
 }
 
 export interface PerplexityResponse {
-  readonly choices?: readonly {
-    readonly message?: {
-      readonly content?: string
-    }
-  }[]
-  readonly search_results?: readonly PerplexitySearchResult[]
+  readonly output?: readonly PerplexityOutputItem[]
+  /** Legacy flat URL list — tolerant last-resort fallback when the trace carries no sources. */
   readonly citations?: readonly string[]
 }
 
@@ -123,37 +147,59 @@ export function resolvePerplexityMemberOptions(
 
 /**
  * Map one structured Perplexity search result to a normalized source; blank
- * fields are omitted rather than set empty. Entries without a `url` are
- * dropped — a source always has a URL.
+ * fields are omitted rather than set empty, `last_updated` backs up `date`.
+ * Entries without a `url` are dropped — a source always has a URL.
  */
 export function mapPerplexityResult(result: PerplexitySearchResult): WebSearchSource | undefined {
   if (result.url === undefined || result.url.length === 0) return undefined
+  const publishedAt = result.date ?? result.last_updated
   return {
     url: result.url,
     ...result.title != null && result.title.length > 0 ? { title: result.title } : {},
-    ...result.snippet != null && result.snippet.length > 0 ? { snippet: result.snippet } : {},
-    ...result.date != null && result.date.length > 0 ? { publishedAt: result.date } : {},
+    ...result.snippet != null && result.snippet.trim().length > 0 ? { snippet: result.snippet } : {},
+    ...publishedAt != null && publishedAt.length > 0 ? { publishedAt } : {},
   }
 }
 
+/** Extract the answer text from a `message` item's content (parts join, plain string tolerated). */
+function messageText(content: PerplexityOutputItem['content']): string | undefined {
+  if (typeof content === 'string') return content.length > 0 ? content : undefined
+  if (content === undefined) return undefined
+  const text = content.map((part) => (typeof part?.text === 'string' ? part.text : '')).join('')
+  return text.length > 0 ? text : undefined
+}
+
 /**
- * Map a Perplexity response envelope to a normalized search result: the
- * generated answer becomes `content` (omitted when empty); sources prefer
- * structured `search_results[]` and fall back to URL-only `citations[]` only
- * when `search_results` is absent.
+ * Map an Agent API response to a normalized search result: the trace's
+ * `message` item becomes `content` (omitted when empty); sources prefer the
+ * `search_results` item, fall back to the message's `url_citation`
+ * annotations, and only then to the legacy flat `citations` URL list.
  */
 export function mapPerplexityResponse(response: PerplexityResponse): WebSearchResult {
-  const content = response.choices?.[0]?.message?.content
-  const sources = response.search_results !== undefined
-    ? (response.search_results ?? [])
-        .map(mapPerplexityResult)
-        .filter((source): source is WebSearchSource => source !== undefined)
-    : (response.citations ?? []).map(url => ({ url }))
+  const output = response.output ?? []
+  const message = output.find((item) => item.type === 'message')
+  const content = messageText(message?.content)
+  const searchResults = output.find((item) => item.type === 'search_results')?.results
+  const sources = searchResults !== undefined
+    ? searchResults.map(mapPerplexityResult).filter((source): source is WebSearchSource => source !== undefined)
+    : messageAnnotations(message) ?? (response.citations ?? []).map(url => ({ url }))
   return {
-    ...content != null && content.length > 0 ? { content } : {},
+    ...content !== undefined ? { content } : {},
     sources,
     truncated: false,
   }
+}
+
+/** Citation fallback: the message content parts' `url_citation` annotations (undefined when none carry a URL). */
+function messageAnnotations(message: PerplexityOutputItem | undefined): WebSearchSource[] | undefined {
+  if (message === undefined || !Array.isArray(message.content)) return undefined
+  const citations = message.content.flatMap((part) => part.annotations ?? [])
+    .filter((annotation) => annotation.type === 'url_citation' && annotation.url !== undefined && annotation.url.length > 0)
+  if (citations.length === 0) return undefined
+  return citations.map((annotation) => ({
+    url: annotation.url!,
+    ...annotation.title != null && annotation.title.length > 0 ? { title: annotation.title } : {},
+  }))
 }
 
 /** The Perplexity-backed chain member; redirects fail as a request failure. */

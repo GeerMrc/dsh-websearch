@@ -171,7 +171,10 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         '/exa/search': { kind: 'destroy' },
         '/perplexity/v1/agent': {
           kind: 'success',
-          body: { choices: [{ message: { content: 'loopback answer' } }], citations: ['https://pplx.test/a'] },
+          body: { output: [
+            { type: 'search_results', queries: ['loopback order'], results: [{ id: 1, url: 'https://pplx.test/a', title: 'A', snippet: 'sa', source: 'web' }] },
+            { type: 'message', content: [{ type: 'output_text', text: 'loopback answer', annotations: [] }] },
+          ] },
         },
       },
     )
@@ -199,7 +202,10 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
         '/exa/search': { kind: 'destroy' },
         '/perplexity/v1/agent': {
           kind: 'success',
-          body: { choices: [{ message: { content: 'answer' } }], citations: ['https://pplx.test/a'] },
+          body: { output: [
+            { type: 'search_results', queries: ['loopback skip'], results: [{ id: 1, url: 'https://pplx.test/a', source: 'web' }] },
+            { type: 'message', content: [{ type: 'output_text', text: 'answer', annotations: [] }] },
+          ] },
         },
       },
       { exaEnabled: false },
