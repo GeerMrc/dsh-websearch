@@ -592,3 +592,30 @@ describe('S20 P2 unified domain entry', () => {
     expect(tavily?.chunksPerSource).toBe(1)
   })
 })
+describe('S21 T6: fetch chain controller', () => {
+  it('the snapshot defaults fetchChain to the fetch-capable three; an explicit section value survives (dead ids filtered)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().fetchChain).toEqual(['dshws-firecrawl', 'dshws-tavily', 'dshws-anysearch'])
+
+    remote.nsValue = { fetchChain: ['dshws-tavily', 'dshws-exa', 'dshws-anysearch'] }
+    await controller.init()
+    expect(controller.snapshot().fetchChain).toEqual(['dshws-tavily', 'dshws-anysearch'])
+  })
+
+  it('moveFetchChainEntry patches the reordered array with the current revision', async () => {
+    const remote = new FakeRemote()
+    for (const ref of ['FIRECRAWL_API_KEY', 'TAVILY_API_KEY', 'ANYSEARCH_API_KEY']) {
+      remote.creds.set(ref, { configured: true, source: 'file', writable: true })
+    }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const result = await controller.moveFetchChainEntry('dshws-tavily', -1)
+    expect(result).toEqual({ ok: true })
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({
+      fetchChain: ['dshws-tavily', 'dshws-firecrawl', 'dshws-anysearch'],
+    })
+  })
+})
+

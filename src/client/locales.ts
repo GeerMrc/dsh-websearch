@@ -136,6 +136,9 @@ export type DshWsLocaleKey =
   | 'maxAgeHoursLabel'
   | 'maxAgeHoursNote'
   | 'sourcesLabel'
+  | 'fetchChainLabel'
+  | 'fetchChainHint'
+  | 'fetchTakeoverNoteS21'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -266,6 +269,9 @@ export const en: Record<DshWsLocaleKey, string> = {
   maxAgeHoursLabel: 'Cache freshness (h)',
   maxAgeHoursNote: 'Content cache age in hours (-1 = always cached, 0 = fresh crawl, up to 720).',
   sourcesLabel: 'Sources',
+  fetchChainLabel: 'Fetch chain',
+  fetchChainHint: 'The web_fetch degradation order: Firecrawl → Tavily → AnySearch, each with its own multi-key retries. Independent of the search order; member toggles apply to both chains.',
+  fetchTakeoverNoteS21: 'ON: web_fetch stays visible and is served by the plugin fetch chain (Firecrawl/Tavily/AnySearch — cloud-side extraction, unaffected by local network limits). OFF: plain local HTTP fetch. Uninstalling restores the official provider.',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -391,4 +397,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   maxAgeHoursLabel: '缓存新鲜度（小时）',
   maxAgeHoursNote: '内容缓存时长小时数（-1 = 永用缓存，0 = 强制新抓，最大 720）。',
   sourcesLabel: '结果来源',
+  fetchChainLabel: '全文抓取链',
+  fetchChainHint: 'web_fetch 降级序：Firecrawl → Tavily → AnySearch，各含自身多 key 重试。与搜索序相互独立；成员启停对两条链同时生效。',
+  fetchTakeoverNoteS21: '开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。',
 }

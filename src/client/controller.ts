@@ -53,6 +53,9 @@ export const MEMBERS = [
  * fallback and never appears in the reorderable chain rows. */
 const ORDERABLE_MEMBER_IDS: readonly string[] = MEMBERS.filter((member) => member.key !== 'deepseek').map((member) => member.memberId)
 const DEEPSEEK_MEMBER_ID = 'dshws-deepseek'
+/** Fetch-capable member ids and their built-in order (S21, ADR-0019; mirrors the node half's FETCH_CHAIN_DEFAULT_ORDER). */
+const FETCH_DEFAULT_ORDER = ['dshws-firecrawl', 'dshws-tavily', 'dshws-anysearch'] as const
+const FETCH_IDS = new Set<string>(FETCH_DEFAULT_ORDER)
 
 /** Per-member timeout budget applied when the section omits one (ADR-0002). */
 const DEFAULT_PER_MEMBER_TIMEOUT_MS = 30000
@@ -118,6 +121,8 @@ interface SectionValue {
   fallbackProvider?: 'deepseek' | 'none' | 'auto' | 'fetch'
   /** S19 legacy alias: a stored value naming the removed member normalizes to 'auto' in the snapshot. */
   searchChain?: string[]
+  /** Fetch priority chain by member id (S21, ADR-0019 — independent of searchChain). */
+  fetchChain?: string[]
   perMemberTimeoutMs?: number
   tavily?: MemberSectionValue
   exa?: MemberSectionValue
@@ -170,6 +175,8 @@ export interface SectionSnapshot {
   /** True when the section value sets the chain explicitly — the pinned-override marker (plan 007 D1). */
   readonly searchChainPinned: boolean
   readonly timeoutMs: number
+  /** Fetch priority chain, defaulted to the fetch-capable three (S21, ADR-0019). */
+  readonly fetchChain: readonly string[]
   /** DeepSeek fallback `maxUses` (S14c): raw section value, `undefined` = provider default (5). */
   readonly deepseekMaxUses: number | undefined
   /** Canonical designated fallback (ADR-0014); legacy values normalized away. */
@@ -264,6 +271,9 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       : [...ORDERABLE_MEMBER_IDS],
     searchChainPinned: (value.searchChain?.length ?? 0) > 0,
     timeoutMs: value.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
+    fetchChain: value.fetchChain?.length
+      ? value.fetchChain.filter((id) => FETCH_IDS.has(id))
+      : [...FETCH_DEFAULT_ORDER],
     deepseekMaxUses: value.deepseek?.maxUses,
     // ADR-0014 canonical projection: fallbackMember wins; the legacy alias
     // normalizes in ('deepseek' designates the paid floor, everything else
@@ -493,6 +503,28 @@ export class WebSearchSettingsController {
     if (to < 0 || to >= chain.length) return { ok: false }
     ;[chain[from], chain[to]] = [chain[to], chain[from]]
     const result = await this.#ports.updateSettings(NS, { searchChain: chain }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /**
+   * Move one fetch-chain entry to the adjacent configured slot (S21,
+   * ADR-0019) — same skip-unconfigured semantics as the search chain, on the
+   * independent fetch order.
+   */
+  async moveFetchChainEntry(id: string, delta: -1 | 1): Promise<ActionResult> {
+    const chain = [...this.#snapshot.fetchChain]
+    const configuredIds = new Set(
+      this.#snapshot.members.filter((m) => m.configured).map((m) => `dshws-${m.key}`),
+    )
+    const from = chain.indexOf(id)
+    if (from < 0) return { ok: false }
+    let to = from + delta
+    while (to >= 0 && to < chain.length && !configuredIds.has(chain[to])) to += delta
+    if (to < 0 || to >= chain.length) return { ok: false }
+    ;[chain[from], chain[to]] = [chain[to], chain[from]]
+    const result = await this.#ports.updateSettings(NS, { fetchChain: chain }, this.#revision)
     if (!result.ok) return { ok: false }
     await this.#refreshSection()
     return { ok: true }
