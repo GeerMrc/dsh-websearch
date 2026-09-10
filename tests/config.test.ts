@@ -137,6 +137,18 @@ describe('resolveConfig', () => {
       expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
     })
 
+    it("S20 T4: firecrawl member params — sources enum + clear sentinel, categories enum", () => {
+      expect(resolveConfig({}).firecrawl.sources).toBeUndefined()
+      expect(resolveConfig({}).firecrawl.categories).toBeUndefined()
+      const resolved = resolveConfig({ firecrawl: { sources: 'web+news', categories: 'developer' } })
+      expect(resolved.firecrawl.sources).toBe('web+news')
+      expect(resolved.firecrawl.categories).toBe('developer')
+      expect(resolveConfig({ firecrawl: { sources: '', categories: '' } }).firecrawl.sources).toBeUndefined()
+      expect(resolveConfig({ firecrawl: { sources: '', categories: '' } }).firecrawl.categories).toBeUndefined()
+      expect(() => Config({ firecrawl: { sources: 'images' as never } })).toThrow()
+      expect(() => Config({ firecrawl: { categories: 'banana' as never } })).toThrow()
+    })
+
     it("S20 T3: exa member params — category enum + clear sentinel, maxAgeHours bounds", () => {
       expect(resolveConfig({}).exa.category).toBeUndefined()
       expect(resolveConfig({}).exa.maxAgeHours).toBeUndefined()

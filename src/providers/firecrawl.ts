@@ -38,6 +38,9 @@ import {
   unfoldHttpErrorDetail,
 } from './shared.ts'
 
+/** Search-face timeout cap: the chain budget is 30s per member, so the server stops at 20s (S20 P2). */
+export const FIRECRAWL_SEARCH_TIMEOUT_MS = 20_000
+
 /** Stable id this member registers under (search + fetch, `dshws-` prefixed). */
 export const FIRECRAWL_MEMBER_ID = 'dshws-firecrawl'
 
@@ -57,10 +60,19 @@ export interface FirecrawlWebResult {
   readonly position?: number
 }
 
+/** Wire type of one Firecrawl `data.news[]` entry (optional fields read tolerantly). */
+export interface FirecrawlNewsResult {
+  readonly url?: string
+  readonly title?: string
+  readonly snippet?: string
+  readonly date?: string
+}
+
 export interface FirecrawlSearchResponse {
   readonly success?: boolean
   readonly data?: {
     readonly web?: readonly FirecrawlWebResult[]
+    readonly news?: readonly FirecrawlNewsResult[]
   }
 }
 
@@ -97,6 +109,10 @@ export interface FirecrawlMemberOptions {
   readonly includeDomains?: readonly string[]
   /** Unified exclude-domain blocklist, hostname-normalized; wildcards skip the fan-out (S20 P1, ADR-0018). */
   readonly excludeDomains?: readonly string[]
+  /** Result sources; absent = not sent (web-only API default) (S20 P2). */
+  readonly sources?: 'news' | 'web+news'
+  /** Result category; absent = not sent (S20 P2). */
+  readonly categories?: 'developer' | 'research' | 'pdf'
 }
 
 /**
@@ -145,6 +161,8 @@ export function resolveFirecrawlMemberOptions(
     location: config.location,
     country: fanout?.country,
     ...normalizeFirecrawlDomains(fanout),
+    sources: config.sources || undefined,
+    categories: config.categories || undefined,
   }
 }
 
@@ -159,7 +177,7 @@ export function mapFirecrawlSearchResponse(response: FirecrawlSearchResponse): W
   if (response.success === false) {
     throw new DshwsError(codes.badResponse, 'Firecrawl search reported success:false on a 2xx response')
   }
-  const sources = (response.data?.web ?? [])
+  const webSources = (response.data?.web ?? [])
     .map((item): WebSearchSource | undefined => {
       if (item.url === undefined || item.url.length === 0) return undefined
       return {
@@ -169,7 +187,20 @@ export function mapFirecrawlSearchResponse(response: FirecrawlSearchResponse): W
       }
     })
     .filter((source): source is WebSearchSource => source !== undefined)
-  return { sources, truncated: false }
+  // Merge order: web rows first, news rows appended (ADR-0018) — news is the
+  // time-sorted supplement, not a replacement for the web ranking.
+  const newsSources = (response.data?.news ?? [])
+    .map((item): WebSearchSource | undefined => {
+      if (item.url === undefined || item.url.length === 0) return undefined
+      return {
+        url: item.url,
+        ...item.title != null && item.title.length > 0 ? { title: item.title } : {},
+        ...item.snippet != null && item.snippet.length > 0 ? { snippet: item.snippet } : {},
+        ...item.date != null && item.date.length > 0 ? { publishedAt: item.date } : {},
+      }
+    })
+    .filter((source): source is WebSearchSource => source !== undefined)
+  return { sources: [...webSources, ...newsSources], truncated: false }
 }
 
 /**
@@ -224,6 +255,14 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         body: JSON.stringify({
           query: request.query,
           ...limit !== undefined ? { limit } : {},
+          // The upstream default is 60s vs the chain's 30s per-member budget:
+          // the explicit cap keeps the server from burning credits past our
+          // client abort (the S16-P0 scrape-face fix, applied to search).
+          timeout: FIRECRAWL_SEARCH_TIMEOUT_MS,
+          ...this.options.sources !== undefined
+            ? { sources: this.options.sources === 'news' ? [{ type: 'news' }] : [{ type: 'web' }, { type: 'news' }] }
+            : {},
+          ...this.options.categories !== undefined ? { categories: [{ type: this.options.categories }] } : {},
           ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
           ...this.options.location !== undefined ? { location: this.options.location } : {},
           ...this.options.country !== undefined ? { country: this.options.country } : {},

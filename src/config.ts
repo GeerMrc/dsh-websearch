@@ -176,6 +176,17 @@ export interface FirecrawlSettings {
    * The official docs recommend setting it together with a country. Hot.
    */
   location?: string
+  /**
+   * Result sources (S20 P2; `''` = clear, omitted = not sent, API default web-only): `news` adds
+   * the native time-sorted news feed (the only bundled member with one), `web+news` requests both —
+   * `limit` applies PER SOURCE there (up to 2× results). Hot.
+   */
+  sources?: 'news' | 'web+news' | ''
+  /**
+   * Result category (S20 P2, official enum; `''` = clear): `developer`/`research` target docs and
+   * papers for coding-agent queries. Hot.
+   */
+  categories?: 'developer' | 'research' | 'pdf' | ''
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -366,6 +377,8 @@ export const Config: z<Config> = z.object({
     baseURL: z.string(),
     tbs: z.union(['', 'qdr:h', 'qdr:d', 'qdr:w', 'qdr:m', 'qdr:y']),
     location: z.string(),
+    sources: z.union(['', 'news', 'web+news']),
+    categories: z.union(['', 'developer', 'research', 'pdf']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   exa: z.object({
@@ -429,6 +442,10 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
   tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w' | 'qdr:m' | 'qdr:y'
   /** Free-text geo location; absent = not sent (S17 P1). */
   location?: string
+  /** Result sources; `''` normalizes away at resolve (S20 P2). */
+  sources?: 'news' | 'web+news' | ''
+  /** Result category; `''` normalizes away at resolve (S20 P2). */
+  categories?: 'developer' | 'research' | 'pdf' | ''
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -572,6 +589,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       keySelection: config.firecrawl?.keySelection ?? 'round-robin',
       baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
       tbs: config.firecrawl?.tbs || undefined,
+      sources: config.firecrawl?.sources || undefined,
+      categories: config.firecrawl?.categories || undefined,
       location: config.firecrawl?.location?.trim() === '' ? undefined : config.firecrawl?.location,
     },
     exa: {

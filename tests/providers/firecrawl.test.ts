@@ -74,6 +74,57 @@ describe('dshws-firecrawl S17 P1 parameter wire', () => {
     expect(body).not.toHaveProperty('location')
   })
 
+  it('S20 T4: sources — default omits the key; news/web+news fan out; news results map with publishedAt (web first, news appended)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: {
+      web: [{ url: 'https://w.test', title: 'W', description: 'wd' }],
+      news: [{ title: 'N', snippet: 'nd', url: 'https://n.test', date: '2026-09-01', imageUrl: 'https://img.test' }],
+    } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await searchProvider().search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('sources')
+
+    const newsOnly = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', sources: 'news'  } satisfies FirecrawlMemberConfig,
+      async () => 'k',
+    )
+    const result = await new FirecrawlProvider(newsOnly).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.sources).toEqual([{ type: 'news' }])
+    // Merge order: web rows first, news rows appended; date → publishedAt.
+    expect(result.sources).toEqual([
+      { url: 'https://w.test', title: 'W', snippet: 'wd' },
+      { url: 'https://n.test', title: 'N', snippet: 'nd', publishedAt: '2026-09-01' },
+    ])
+
+    const both = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', sources: 'web+news'  } satisfies FirecrawlMemberConfig,
+      async () => 'k',
+    )
+    await new FirecrawlProvider(both).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.sources).toEqual([{ type: 'web' }, { type: 'news' }])
+  })
+
+  it('S20 T4: categories land as [{type}]; search face carries an explicit 20s timeout (chain-budget cap)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    const configured = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', categories: 'research'  } satisfies FirecrawlMemberConfig,
+      async () => 'k',
+    )
+    await new FirecrawlProvider(configured).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.categories).toEqual([{ type: 'research' }])
+    // The upstream default is 60s vs the chain's 30s per-member budget — the
+    // explicit cap keeps the server from burning credits past our abort.
+    expect(body.timeout).toBe(20_000)
+    await searchProvider().search({ query: 'q' })
+    const bare = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(bare.timeout).toBe(20_000)
+    expect(bare).not.toHaveProperty('categories')
+  })
+
   it('S20 T1: unified domain list fan-out — hostname normalize, wildcard skips the member entirely, single-list only', async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
     vi.stubGlobal('fetch', fetchMock)
@@ -155,7 +206,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
     expect(headers['user-agent']).toBe('dsh-websearch/0.4.0')
-    expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5 })
+    expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5, timeout: 20_000 })
   })
 
   it('omits limit when the request carries no maxResults', async () => {
