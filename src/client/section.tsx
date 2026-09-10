@@ -291,6 +291,8 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   // The chain card only earns its place once at least one member is configured:
   // with nothing configured it read as a half-screen block of static copy.
   const showChains = snapshot.members.some((m) => m.configured)
+  // S22b: verbose-config fold, default collapsed (user ruling).
+  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
@@ -435,12 +437,30 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
               </p>
             )
           ) : null}
-          <p style={hintStyle}>
-            {t('timeout')}: {snapshot.timeoutMs} ms
-          </p>
-          <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
-          <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
-          <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
+          {/* S22b (user ruling): the verbose knobs fold away — the chain rows are
+          the card's steady state, the timeout/maxUses/geo/domain detail opens
+          on demand so the card stops eating the viewport. */}
+          <button
+            type="button"
+            data-testid="dshws-advanced-disclosure"
+            aria-expanded={advancedOpen}
+            aria-label={t('advancedConfigLabel')}
+            onClick={() => { setAdvancedOpen((value) => !value) }}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: 'var(--dsw-alias-label-secondary)', font: 'inherit', fontSize: 12, fontWeight: 500, textAlign: 'left', cursor: 'pointer', padding: 0 }}
+          >
+            {t('advancedConfigLabel')}
+            <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+          </button>
+          {advancedOpen ? (
+            <>
+              <p style={hintStyle}>
+                {t('timeout')}: {snapshot.timeoutMs} ms
+              </p>
+              <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
+              <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
+              <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
+            </>
+          ) : null}
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
         </section>
       <div data-testid="dshws-members" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -459,11 +479,10 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           />
         ))}
         <FallbackToolRow key="dshws-fallback-tool" snapshot={snapshot} t={t} onChoose={onSetFallbackMember} />
-        <FetchTakeoverRow t={t} active={snapshot.fetchTakeover} onSet={onSetFetchTakeover} />
-        {/* S22a T3 (user ruling): the fetch chain serves web_fetch ONLY while the
-        takeover switch is on — the block lives directly under the switch and is
-        hidden when off, instead of occupying the search-chain card year-round. */}
-        {snapshot.fetchTakeover ? <FetchChainRows t={t} snapshot={snapshot} onMove={onMoveFetch} /> : null}
+        {/* S22b (user ruling): the takeover row adopts the member-card fold —
+        header (label, ⓘ, switch) stays visible, the Web Fetch chain rows open
+        on demand (and only while the takeover is on, S22a T3). */}
+        <FetchTakeoverRow t={t} active={snapshot.fetchTakeover} onSet={onSetFetchTakeover} chain={<FetchChainRows t={t} snapshot={snapshot} onMove={onMoveFetch} />} />
       </div>
     </div>
   )
@@ -696,14 +715,19 @@ function FallbackToolRow(props: {
   )
 }
 
-/** Universal web_fetch takeover toggle (S15a): a switch row with guidance note. */
+/** Universal web_fetch takeover toggle (S15a; S22b member-card fold): the
+ * header row (label, ⓘ, switch) is the steady state, the Web Fetch chain
+ * rows open on demand and only while the takeover is on. */
 function FetchTakeoverRow(props: {
   t: (key: DshWsLocaleKey) => string
   active: boolean
   onSet: (active: boolean) => Promise<ActionResult>
+  /** The Web Fetch chain block; rendered only when the fold is open AND the takeover is on. */
+  chain: React.ReactNode
 }) {
-  const { t, active, onSet } = props
+  const { t, active, onSet, chain } = props
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  const [open, setOpen] = useState(false)
   useEffect(() => {
     if (feedback === undefined) return
     const timer = setTimeout(() => setFeedback(undefined), 1500)
@@ -712,13 +736,23 @@ function FetchTakeoverRow(props: {
   return (
     <div data-testid="dshws-fetch-takeover" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <strong style={nameStyle}>{t('fetchTakeoverLabel')}</strong>
-        <Tooltip label={t('fetchTakeoverNoteS21')} side="bottom" delayMs={400} maxWidth={380}>
-          <button type="button" aria-label={t('fetchTakeoverNoteS21')} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
-          </button>
-        </Tooltip>
-        <span style={{ flex: 1 }} />
+        <button
+          type="button"
+          data-testid="dshws-fetch-takeover-disclosure"
+          aria-expanded={open}
+          aria-label={`${t('fetchTakeoverLabel')} ${t('configure')}`}
+          onClick={() => { setOpen((value) => !value) }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', padding: 0 }}
+        >
+          <strong style={nameStyle}>{t('fetchTakeoverLabel')}</strong>
+          <Tooltip label={t('fetchTakeoverNoteS21')} side="bottom" delayMs={400} maxWidth={380}>
+            <button type="button" aria-label={t('fetchTakeoverNoteS21')} style={infoButtonStyle}>
+              <IconQuestionOutline14 />
+            </button>
+          </Tooltip>
+          <span style={{ flex: 1 }} />
+          <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+        </button>
         <button
           type="button"
           role="switch"
@@ -734,6 +768,9 @@ function FetchTakeoverRow(props: {
           <span role="status" data-testid="dshws-fetch-takeover-feedback" style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
         ) : null}
       </div>
+      {/* S22a T3 + S22b: the chain renders only when the fold is open AND the
+      takeover is on — collapsed or off, the rows take no viewport. */}
+      {open && active ? chain : null}
     </div>
   )
 }
