@@ -299,7 +299,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   maxAgeHoursLabel: 'Cache freshness (h)',
   maxAgeHoursNote: 'Content cache age in hours (-1 = always cached, 0 = fresh crawl, up to 720).',
   sourcesLabel: 'Sources',
-  fetchChainLabel: 'Fetch chain',
+  fetchChainLabel: 'Web Fetch chain',
   fetchChainHint: 'The web_fetch degradation order: Firecrawl → Tavily → AnySearch, each with its own multi-key retries. Independent of the search order; member toggles apply to both chains.',
   fetchTakeoverNoteS21: 'ON: web_fetch stays visible and is served by the plugin fetch chain (Firecrawl/Tavily/AnySearch — cloud-side extraction, unaffected by local network limits). OFF: plain local HTTP fetch. Uninstalling restores the official provider.',
 }
@@ -308,7 +308,7 @@ export const en: Record<DshWsLocaleKey, string> = {
 export const zh: Record<DshWsLocaleKey, string> = {
   nav: '网页搜索',
   title: '网页搜索',
-  description: '管理搜索引擎优先级、API key、成员启停与全文抓取链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。',
+  description: '管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。',
   apiKey: 'API Key',
   save: '保存',
   clear: '清除',
@@ -442,7 +442,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   maxAgeHoursLabel: '缓存新鲜度（小时）',
   maxAgeHoursNote: '内容缓存时长小时数（-1 = 永用缓存，0 = 强制新抓，最大 720）。',
   sourcesLabel: '结果来源',
-  fetchChainLabel: '全文抓取链',
+  fetchChainLabel: 'Web Fetch 链',
   fetchChainHint: 'web_fetch 降级序：Firecrawl → Tavily → AnySearch，各含自身多 key 重试。与搜索序相互独立；成员启停对两条链同时生效。',
   fetchTakeoverNoteS21: '开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。',
 }
