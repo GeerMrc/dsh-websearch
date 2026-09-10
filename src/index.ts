@@ -30,7 +30,7 @@ import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
-import type { UnifiedSearchGeo } from './config.ts'
+import type { UnifiedSearchFanout } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
@@ -122,9 +122,14 @@ export function apply(ctx: Context, config: Config): void {
     })
 
   /** The unified language/region entry (ADR-0015) read live per call, fed to the members whose APIs accept it. */
-  const geoOf = (): UnifiedSearchGeo => {
+  const fanoutOf = (): UnifiedSearchFanout => {
     const current = live.current()
-    return { country: current.searchCountry, language: current.searchLanguage }
+    return {
+      country: current.searchCountry,
+      language: current.searchLanguage,
+      includeDomains: current.searchIncludeDomains.length ? current.searchIncludeDomains : undefined,
+      excludeDomains: current.searchExcludeDomains.length ? current.searchExcludeDomains : undefined,
+    }
   }
 
   const credentials = ctx.credentials
@@ -299,7 +304,7 @@ export function apply(ctx: Context, config: Config): void {
   // and in the plugin registry with its gates for the chain (ADR-0002
   // Decision 5).
   const firecrawl = new FirecrawlProvider(
-    hotMemberOptions(() => resolveFirecrawlMemberOptions(live.current().firecrawl, () => traced.firecrawl.resolveApiKey(), geoOf())),
+    hotMemberOptions(() => resolveFirecrawlMemberOptions(live.current().firecrawl, () => traced.firecrawl.resolveApiKey(), fanoutOf())),
   )
   const anysearch = new AnysearchSearchProvider(
     hotMemberOptions(() => resolveAnysearchMemberOptions(live.current().anysearch, () => traced.anysearch.resolveApiKey())),
@@ -311,14 +316,14 @@ export function apply(ctx: Context, config: Config): void {
   }[] = [
     {
       provider: new TavilySearchProvider(
-        hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey(), geoOf())),
+        hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey(), fanoutOf())),
       ),
       memberKey: 'tavily',
       pool: pools.tavily,
     },
     {
       provider: new ExaSearchProvider(
-        hotMemberOptions(() => resolveExaMemberOptions(live.current().exa, () => traced.exa.resolveApiKey(), geoOf())),
+        hotMemberOptions(() => resolveExaMemberOptions(live.current().exa, () => traced.exa.resolveApiKey(), fanoutOf())),
       ),
       memberKey: 'exa',
       pool: pools.exa,

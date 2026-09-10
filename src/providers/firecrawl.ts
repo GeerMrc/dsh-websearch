@@ -17,7 +17,7 @@
  * @module dsh-websearch/providers/firecrawl
  */
 import type { FirecrawlMemberConfig } from '../config.ts'
-import type { UnifiedSearchGeo } from '../config.ts'
+import type { UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type {
   WebFetchProvider,
@@ -93,6 +93,39 @@ export interface FirecrawlMemberOptions {
   readonly location?: string
   /** Unified search region (ISO 3166-1 alpha-2); absent = not sent (S17 P1, ADR-0015 — the fix for the API's US default). */
   readonly country?: string
+  /** Unified include-domain allowlist, hostname-normalized; wildcards skip the fan-out (S20 P1, ADR-0018). */
+  readonly includeDomains?: readonly string[]
+  /** Unified exclude-domain blocklist, hostname-normalized; wildcards skip the fan-out (S20 P1, ADR-0018). */
+  readonly excludeDomains?: readonly string[]
+}
+
+/**
+ * Firecrawl accepts bare hostnames only (no protocol/path/wildcard): URL-like
+ * entries collapse to their host; any wildcard entry makes the whole list an
+ * Exa-only capability, so this member's domain fan-out is skipped entirely
+ * (sending it would 400 — the same defensive-skip shape as the Exa category
+ * guard). Evaluated once per options resolution.
+ */
+function normalizeFirecrawlDomains(fanout: UnifiedSearchFanout | undefined): {
+  includeDomains?: readonly string[]
+  excludeDomains?: readonly string[]
+} {
+  const raw = fanout?.includeDomains?.length ? fanout.includeDomains
+    : fanout?.excludeDomains?.length ? fanout.excludeDomains
+    : undefined
+  if (raw === undefined) return {}
+  if (raw.some((entry) => entry.includes('*'))) return {}
+  const normalized = raw.map((entry) => {
+    if (!entry.includes('://') && !entry.includes('/')) return entry
+    try {
+      return new URL(entry.includes('://') ? entry : `https://${entry}`).host
+    } catch {
+      return entry
+    }
+  })
+  return fanout?.includeDomains?.length
+    ? { includeDomains: normalized }
+    : { excludeDomains: normalized }
 }
 
 /**
@@ -102,7 +135,7 @@ export interface FirecrawlMemberOptions {
 export function resolveFirecrawlMemberOptions(
   config: FirecrawlMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
-  geo?: UnifiedSearchGeo,
+  fanout?: UnifiedSearchFanout,
 ): FirecrawlMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -110,7 +143,8 @@ export function resolveFirecrawlMemberOptions(
     baseURL: config.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
     tbs: config.tbs,
     location: config.location,
-    country: geo?.country,
+    country: fanout?.country,
+    ...normalizeFirecrawlDomains(fanout),
   }
 }
 
@@ -193,6 +227,8 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
           ...this.options.tbs !== undefined ? { tbs: this.options.tbs } : {},
           ...this.options.location !== undefined ? { location: this.options.location } : {},
           ...this.options.country !== undefined ? { country: this.options.country } : {},
+          ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
+          ...this.options.excludeDomains !== undefined ? { excludeDomains: [...this.options.excludeDomains] } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

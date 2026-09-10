@@ -22,7 +22,7 @@
  * @module dsh-websearch/providers/tavily
  */
 import type { TavilyMemberConfig } from '../config.ts'
-import type { UnifiedSearchGeo } from '../config.ts'
+import type { UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -82,6 +82,10 @@ export interface TavilyMemberOptions {
   readonly includeAnswer: 'basic' | 'advanced'
   /** Unified search language (ISO 639-1); absent = not sent (S17 P1, ADR-0015). */
   readonly language?: string
+  /** Unified include-domain allowlist; empty = not sent (S20 P1, ADR-0018; caps 300/150 enforced API-side). */
+  readonly includeDomains?: readonly string[]
+  /** Unified exclude-domain blocklist; empty = not sent (S20 P1, ADR-0018). */
+  readonly excludeDomains?: readonly string[]
 }
 
 /**
@@ -94,7 +98,7 @@ export interface TavilyMemberOptions {
 export function resolveTavilyMemberOptions(
   config: TavilyMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
-  geo?: UnifiedSearchGeo,
+  fanout?: UnifiedSearchFanout,
 ): TavilyMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -105,7 +109,9 @@ export function resolveTavilyMemberOptions(
     timeRange: config.timeRange,
     searchDepth: config.searchDepth,
     includeAnswer: config.includeAnswer ?? 'basic',
-    language: geo?.language,
+    language: fanout?.language,
+    includeDomains: fanout?.includeDomains?.length ? fanout.includeDomains : undefined,
+    excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
   }
 }
 
@@ -179,6 +185,8 @@ export class TavilySearchProvider implements WebSearchProvider {
           // is 'basic' (S17 D4).
           include_answer: this.options.includeAnswer,
           ...this.options.language !== undefined ? { language: this.options.language } : {},
+          ...this.options.includeDomains !== undefined ? { include_domains: [...this.options.includeDomains] } : {},
+          ...this.options.excludeDomains !== undefined ? { exclude_domains: [...this.options.excludeDomains] } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

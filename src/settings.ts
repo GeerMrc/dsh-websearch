@@ -19,7 +19,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
-import { resolveConfig } from './config.ts'
+import { resolveConfig, validateUnifiedDomainRule } from './config.ts'
 import type { Config, ResolvedWebSearchConfig } from './config.ts'
 
 /** The plugin's settings namespace (lowercase kebab, seam grammar). */
@@ -85,6 +85,11 @@ export interface SettingsCommitHooks {
 export function attachSettingsSection(ctx: Context, schema: z<Config>, entry: Config, live: LiveResolvedConfig, commitHooks?: SettingsCommitHooks): void {
   ctx.inject(['settings'], (settingsCtx) => {
     settingsCtx.settings.installSection(ctx, SETTINGS_NAMESPACE, schema, entry, {
+      // Runs inside the host write queue BEFORE persist: an invalid committed
+      // value is rejected and the error surfaced to the committer — the loud
+      // half of the ADR-0018 domain exclusivity rule (the quiet danger of a
+      // resolveConfig throw on this path is documented on the validator).
+      validate: (value) => { validateUnifiedDomainRule(value) },
       setSource: (source) => {
         live.setSource(source as () => Config)
       },

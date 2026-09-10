@@ -74,6 +74,41 @@ describe('dshws-firecrawl S17 P1 parameter wire', () => {
     expect(body).not.toHaveProperty('location')
   })
 
+  it('S20 T1: unified domain list fan-out — hostname normalize, wildcard skips the member entirely, single-list only', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ success: true, data: { web: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    // URL-like inputs collapse to their host; bare hostnames pass through.
+    const withDomains = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
+      async () => 'fc-key',
+      { includeDomains: ['https://example.com/docs/page', 'foo.org'] },
+    )
+    await new FirecrawlProvider(withDomains).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.includeDomains).toEqual(['example.com', 'foo.org'])
+
+    // Wildcards are an Exa capability; Firecrawl is hostname-only — any wildcard
+    // skips the domain fan-out for this member entirely (400 guard, ADR-0018).
+    const withWildcard = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
+      async () => 'fc-key',
+      { includeDomains: ['example.com', '*.foo.org'] },
+    )
+    await new FirecrawlProvider(withWildcard).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body).not.toHaveProperty('includeDomains')
+
+    // An exclude-only list (the only other legal single-list state) still fans out.
+    const excludeOnly = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },
+      async () => 'fc-key',
+      { excludeDomains: ['spam.test'] },
+    )
+    await new FirecrawlProvider(excludeOnly).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.excludeDomains).toEqual(['spam.test'])
+  })
+
   it('S17 T6: unified country fans out to the search wire; absent → not sent', async () => {
     const withCountry = resolveFirecrawlMemberOptions(
       { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY'  },

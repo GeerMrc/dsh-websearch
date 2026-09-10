@@ -20,7 +20,7 @@
  * @module dsh-websearch/providers/exa
  */
 import type { ExaMemberConfig } from '../config.ts'
-import type { UnifiedSearchGeo } from '../config.ts'
+import type { UnifiedSearchFanout } from '../config.ts'
 import { MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
@@ -99,6 +99,10 @@ export interface ExaMemberOptions {
   readonly startPublishedDate?: string
   /** Unified search region (ISO 3166-1 alpha-2) as Exa's `userLocation`; absent = not sent (S17 P1, ADR-0015). */
   readonly userLocation?: string
+  /** Unified include-domain allowlist (≤1200, hostname/path-prefix/wildcard); empty = not sent (S20 P1, ADR-0018). */
+  readonly includeDomains?: readonly string[]
+  /** Unified exclude-domain blocklist; empty = not sent (S20 P1, ADR-0018). */
+  readonly excludeDomains?: readonly string[]
 }
 
 /**
@@ -108,7 +112,7 @@ export interface ExaMemberOptions {
 export function resolveExaMemberOptions(
   config: ExaMemberConfig,
   resolveApiKey: () => Promise<string | undefined>,
-  geo?: UnifiedSearchGeo,
+  fanout?: UnifiedSearchFanout,
 ): ExaMemberOptions {
   return {
     apiKeyRef: config.apiKeyEnv,
@@ -120,7 +124,9 @@ export function resolveExaMemberOptions(
     startPublishedDate: config.startPublishedDate !== undefined
       ? normalizeStartPublishedDate(config.startPublishedDate)
       : undefined,
-    userLocation: geo?.country,
+    userLocation: fanout?.country,
+    includeDomains: fanout?.includeDomains?.length ? fanout.includeDomains : undefined,
+    excludeDomains: fanout?.excludeDomains?.length ? fanout.excludeDomains : undefined,
   }
 }
 
@@ -195,6 +201,8 @@ export class ExaSearchProvider implements WebSearchProvider {
           ...numResults !== undefined ? { numResults } : {},
           ...this.options.startPublishedDate !== undefined ? { startPublishedDate: this.options.startPublishedDate } : {},
           ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
+          ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
+          ...this.options.excludeDomains !== undefined ? { excludeDomains: [...this.options.excludeDomains] } : {},
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

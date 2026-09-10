@@ -137,6 +137,17 @@ describe('resolveConfig', () => {
       expect(() => Config({ firecrawl: { tbs: 'last-week' as never } })).toThrow()
     })
 
+    it('S20 T1: unified domain entry — comma strings parse to arrays; both set fails loud; blanks drop (ADR-0018)', () => {
+      expect(resolveConfig({}).searchIncludeDomains).toEqual([])
+      expect(resolveConfig({}).searchExcludeDomains).toEqual([])
+      const resolved = resolveConfig({ searchIncludeDomains: ' example.com, *.foo.org , ' })
+      expect(resolved.searchIncludeDomains).toEqual(['example.com', '*.foo.org'])
+      expect(resolveConfig({ searchExcludeDomains: 'spam.test' }).searchExcludeDomains).toEqual(['spam.test'])
+      // The two-lists-at-once state is rejected at the load boundary (cordis.yml path);
+      // the settings path rejects it before persist through the validate hook.
+      expect(() => resolveConfig({ searchIncludeDomains: 'a.test', searchExcludeDomains: 'b.test' })).toThrow(/include.*exclude|exclude.*include/i)
+    })
+
     it('unified geo entry: absent by default; passthrough canonicalizes casing and drops blanks (ADR-0015)', () => {
       expect(resolveConfig({}).searchCountry).toBeUndefined()
       expect(resolveConfig({}).searchLanguage).toBeUndefined()

@@ -144,6 +144,20 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     expect(mapTavilyResponse({ results: [{ url: 'https://a.test' }] }).content).toBeUndefined()
   })
 
+  it('S20 T1: unified domain lists fan out as include_domains/exclude_domains arrays', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY'  },
+      async () => 'tvly-key',
+      { includeDomains: ['example.com', '*.foo.org'], excludeDomains: [] },
+    )
+    await new TavilySearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.include_domains).toEqual(['example.com', '*.foo.org'])
+    expect(body).not.toHaveProperty('exclude_domains')
+  })
+
   it('S17 T6: unified language fans out to the wire; country is NOT sent to Tavily in v1 (ADR-0015 格式不匹配防御)', async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
     vi.stubGlobal('fetch', fetchMock)

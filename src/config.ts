@@ -211,14 +211,18 @@ export interface AnysearchSettings {
 }
 
 /**
- * The unified language/region entry (S17 P1, ADR-0015): a single write point
- * fanned out to each member's native wire parameter. Country is an ISO
- * 3166-1 alpha-2 code, language an ISO 639-1 code; both normalize (country
- * uppercase, language lowercase) and blank means "not sent".
+ * The unified fan-out context (S17 P1 ADR-0015 geo entry + S20 P1 ADR-0018
+ * domain entry): single write points fanned out to each member's native wire
+ * parameters. Country is an ISO 3166-1 alpha-2 code, language an ISO 639-1
+ * code; both normalize (country uppercase, language lowercase) and blank means
+ * "not sent". The domain lists arrive pre-split (resolveConfig owns the
+ * comma-string parsing and the include-vs-exclude exclusivity rule).
  */
-export interface UnifiedSearchGeo {
+export interface UnifiedSearchFanout {
   readonly country?: string
   readonly language?: string
+  readonly includeDomains?: readonly string[]
+  readonly excludeDomains?: readonly string[]
 }
 
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
@@ -269,6 +273,19 @@ export interface Config {
    * the members with a search-level language parameter — Tavily `language`. Blank = not sent. Hot: the next search.
    */
   searchLanguage?: string
+  /**
+   * Unified include-domain allowlist (S20 P1, ADR-0018): comma-separated domains fanned out to
+   * Tavily/Exa/Firecrawl (with each member's format guards). Mutually exclusive with
+   * {@link searchExcludeDomains} — a state setting both fails loud (settings path: validate hook
+   * rejects before persist; cordis.yml path: load error). Blank = not sent. Hot: the next search.
+   */
+  searchIncludeDomains?: string
+  /**
+   * Unified exclude-domain blocklist (S20 P1, ADR-0018): comma-separated domains fanned out to
+   * Tavily/Exa/Firecrawl. Mutually exclusive with {@link searchIncludeDomains}. Blank = not sent.
+   * Hot: the next search.
+   */
+  searchExcludeDomains?: string
   /** DeepSeek member settings. */
   deepseek?: DeepSeekSettings
   /** Tavily member settings. */
@@ -291,6 +308,8 @@ export const Config: z<Config> = z.object({
   fetchTakeover: z.boolean(),
   searchCountry: z.string(),
   searchLanguage: z.string(),
+  searchIncludeDomains: z.string(),
+  searchExcludeDomains: z.string(),
   fetchChain: z.array(z.string()),
   perMemberTimeoutMs: z.number().step(1).min(1),
   deepseek: z.object({
@@ -411,6 +430,10 @@ export interface ResolvedWebSearchConfig {
   readonly searchCountry?: string
   /** Unified search language (ISO 639-1, lowercase); absent = not sent (S17 P1, ADR-0015). */
   readonly searchLanguage?: string
+  /** Unified include-domain allowlist, pre-split; empty = not sent (S20 P1, ADR-0018). */
+  readonly searchIncludeDomains: readonly string[]
+  /** Unified exclude-domain blocklist, pre-split; empty = not sent (S20 P1, ADR-0018). */
+  readonly searchExcludeDomains: readonly string[]
   /** Search priority chain; never empty after resolution. */
   readonly searchChain: readonly string[]
   /** Fetch priority chain; never empty after resolution. */
@@ -424,6 +447,26 @@ export interface ResolvedWebSearchConfig {
   readonly anysearch: AnysearchMemberConfig
 }
 
+/** Split a comma-separated domain list into trimmed non-blank entries. */
+function splitDomainList(value: string | undefined): readonly string[] {
+  if (value === undefined) return []
+  return value.split(',').map((entry) => entry.trim()).filter((entry) => entry.length > 0)
+}
+
+/**
+ * The include-vs-exclude exclusivity rule (ADR-0018): both lists set at once is
+ * rejected — on the settings path through the installSection validate hook
+ * (before persist, error surfaced to the committer) and on the cordis.yml load
+ * path through this throw. A resolveConfig throw must NOT be relied on for the
+ * settings path: the host swallows watcher throws into a warn, persisting the
+ * invalid value and bricking the plugin on restart (S20 stage-2 M-1 evidence).
+ */
+export function validateUnifiedDomainRule(value: Pick<Config, 'searchIncludeDomains' | 'searchExcludeDomains'>): void {
+  if (value.searchIncludeDomains?.trim().length && value.searchExcludeDomains?.trim().length) {
+    throw new Error('searchIncludeDomains and searchExcludeDomains are mutually exclusive — set only one (ADR-0018)')
+  }
+}
+
 /**
  * Apply every default explicitly: empty chains become the built-in member
  * order, a missing timeout budget becomes 30s, and each member section gets
@@ -432,6 +475,7 @@ export interface ResolvedWebSearchConfig {
  * implementations (S04/S05a); their values pass through untouched.
  */
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
+  validateUnifiedDomainRule(config)
   const fallbackMember: FallbackMember = config.fallbackMember === 'dshws-perplexity'
     // S19 legacy alias: the removed member's designation degrades to auto.
     ? 'auto'
@@ -450,6 +494,8 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
     // ADR-0015 canonical forms: country uppercase, language lowercase; blank drops.
     searchCountry: config.searchCountry?.trim().length ? config.searchCountry.trim().toUpperCase() : undefined,
     searchLanguage: config.searchLanguage?.trim().length ? config.searchLanguage.trim().toLowerCase() : undefined,
+    searchIncludeDomains: splitDomainList(config.searchIncludeDomains),
+    searchExcludeDomains: splitDomainList(config.searchExcludeDomains),
     fetchChain: config.fetchChain?.length
       ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...ORDERABLE_SEARCH_MEMBER_ORDER],

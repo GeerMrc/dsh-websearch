@@ -104,6 +104,25 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     expect(body).not.toHaveProperty('startPublishedDate')
   })
 
+  it('S20 T1: unified domain lists fan out as includeDomains/excludeDomains', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
+      async () => 'exa-key',
+      { excludeDomains: ['spam.test', 'example.com/docs'] },
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.excludeDomains).toEqual(['spam.test', 'example.com/docs'])
+    expect(body).not.toHaveProperty('includeDomains')
+
+    await new ExaSearchProvider(options).search({ query: 'q' })
+    const bare = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(bare).not.toHaveProperty('includeDomains')
+    expect(bare).not.toHaveProperty('excludeDomains')
+  })
+
   it('S17 T6: unified country fans out as userLocation; absent → not sent', async () => {
     const withCountry = resolveExaMemberOptions(
       { enabled: true, apiKeyEnv: 'EXA_API_KEY'  },
