@@ -83,13 +83,13 @@
 | 17 | 2026-09-10 | P1 高价值参数批（14 参数全链路 + 成员 options 热化统一 + 通用语言/区域入口 ADR-0015） | ✅ | docs/sessions/2026-09-10-session-17.md；0.3.0；全量 **399\|13(412) exit0**；浏览器全要素亲见 + firecrawl tbs 真实通过（2160ms）；阶段 4 R1-R6 PASS / 阶段 5 COMPLETE | 阶段 0 🟡×4 T0 清偿 + web_fetch 评估收口；🟡 Perplexity Sonar 日落→S18；Tavily/Exa/Perplexity 真实参数实测无 key 归用户择机 |
 | 18 | 2026-09-10 | Perplexity Agent API 迁移（Sonar 日落应对，2026-09-27 前） | ✅ | docs/sessions/2026-09-10-session-18.md；0.3.1；全量 **401\|13(414) exit0**；config 面零改动亲证；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | **🟡 Sonar 日落已清偿**；真实 Perplexity 实测无 key 降级（断言就绪，补 key 零改动闭合）〔勘注：随 S19 移除转历史档〕 |
 | 19 | 2026-09-10 | 完整移除 dshws-perplexity 成员（用户终裁：免费额度准入标准 ADR-0017） | ✅ | docs/sessions/2026-09-10-session-19.md；0.4.0 breaking；全量 **377\|11(388) exit0**；R1 功能性残留 0（legacy 基建豁免）；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | S18 观察×2 moot 翻账；残尸节 🟢 登记（S15 README 提示）；union 内联 🟢 |
-| 20 | 2026-09-10 | P2 中价值参数批（用户裁定先于 S15；S16 审计批次） | 🚧 | plan docs/plans/2026-09-10-020-s20-p2-params-plan.md（阶段 2 两轮 APPROVED；2.5=用户排期裁定+默认披露）+ audit-log 阶段 0/2；分支 feat/s20-p2-params | 10 参数 + timeout 修复 + ADR-0018；阶段 0 🟡（裁定落案）T0 清偿 |
+| 20 | 2026-09-10 | P2 中价值参数批（用户裁定先于 S15；S16 审计批次） | ✅ | docs/sessions/2026-09-10-session-20.md；0.5.0；终态全量 **398\|11(409) exit0**；守卫清单六条全测试在档；阶段 4 R4 FAIL→清偿 / 阶段 5 F-1→清偿 | Tavily/Exa 真实实测无 key 披露；🟢×2 新登记（union 扩面/number kind） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 20 🚧（P2 中价值参数批——**用户裁定 2026-09-10 先于 S15**；阶段 0 PASS + plan 020 阶段 2 两轮 APPROVED + 2.5 用户排期裁定+默认披露；分支 feat/s20-p2-params）
+- **当前 session**: 无进行中（Session 20 ✅ 2026-09-10 收官——P2 参数批 0.5.0 + 统一域名入口 ADR-0018；下一棒 = **S15 README + 迁移 + 升级手册**〔素材全就绪含 ADR-0017/0018 + P2 面〕）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 18 — 记录：docs/sessions/2026-09-10-session-18.md
-- **下一棒**: 本棒（S20 P2）→ S15 README 手册（P2 素材并入）→ S16 上游验收准备
+- **下一棒**: S15 README + 迁移 + 升级手册（roadmap ⏳ 行）→ S16 上游验收准备
 - **活跃债务**: 🔴×0 🟡×1（web_fetch 完整替代〔评估完成：短期开关已可用/中期 Firecrawl 单成员/长期多工具链 v2——实现归后续〕）🟢 池维持 + L-2 + 观察（badge 超长 id/fetchChain 对称注记/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/re-export/**残尸 perplexity 节〔S19 登记，S15 README 提示清理〕/controller union 内联〔S19 登记〕**）+ v2 backlog——正本：progress-M7 台账
-- **更新时间**: 2026-09-10（S19 阶段 6 收尾）
+- **更新时间**: 2026-09-10（S20 阶段 6 收尾）
