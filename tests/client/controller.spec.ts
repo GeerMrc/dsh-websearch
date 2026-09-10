@@ -119,7 +119,6 @@ describe('WebSearchSettingsController', () => {
     expect(snapshot.members.map((member) => member.key)).toEqual([
       'tavily',
       'exa',
-      'perplexity',
       'firecrawl',
       'deepseek',
       'anysearch',
@@ -135,7 +134,6 @@ describe('WebSearchSettingsController', () => {
     expect(snapshot.searchChain).toEqual([
       'dshws-tavily',
       'dshws-exa',
-      'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-anysearch',
     ])
@@ -283,7 +281,7 @@ describe('WebSearchSettingsController', () => {
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch'],
+          searchChain: ['dshws-exa', 'dshws-tavily', 'dshws-firecrawl', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -319,20 +317,20 @@ describe('WebSearchSettingsController', () => {
   it('a move in a mixed configured set swaps with the adjacent configured member, skipping unconfigured ones (S11 🟡2 清偿)', async () => {
     const remote = new FakeRemote()
     const controller = new WebSearchSettingsController(makePorts(remote))
-    // exa and perplexity unconfigured: the visible order is tavily, firecrawl, deepseek, anysearch.
+    // exa unconfigured: the visible order is tavily, firecrawl, deepseek, anysearch.
     for (const ref of ['TAVILY_API_KEY', 'FIRECRAWL_API_KEY', 'DEEPSEEK_API_KEY', 'ANYSEARCH_API_KEY']) {
       remote.creds.set(ref, { configured: true, source: 'file', writable: true })
     }
     await controller.init()
 
-    // Moving firecrawl UP skips unconfigured perplexity AND exa, landing next to tavily.
+    // Moving firecrawl UP skips the unconfigured exa, landing next to tavily.
     const result = await controller.moveSearchChainEntry('dshws-firecrawl', -1)
     expect(result.ok).toBe(true)
     expect(remote.updateCalls).toEqual([
       {
         ns: 'dsh-websearch',
         patch: {
-          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-perplexity', 'dshws-tavily', 'dshws-anysearch'],
+          searchChain: ['dshws-firecrawl', 'dshws-exa', 'dshws-tavily', 'dshws-anysearch'],
         },
         expectedRevision: 0,
       },
@@ -341,7 +339,6 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().searchChain).toEqual([
       'dshws-firecrawl',
       'dshws-exa',
-      'dshws-perplexity',
       'dshws-tavily',
       'dshws-anysearch',
     ])
@@ -479,7 +476,6 @@ describe('WebSearchSettingsController', () => {
     expect(controller.snapshot().searchChain).toEqual([
       'dshws-tavily',
       'dshws-exa',
-      'dshws-perplexity',
       'dshws-firecrawl',
       'dshws-anysearch',
     ])
@@ -535,8 +531,16 @@ describe('S17 P1 member options and unified geo entry', () => {
     const controller = new WebSearchSettingsController(remote)
     await controller.init()
 
-    await controller.setMemberOption('perplexity', 'searchRecencyFilter', '')
-    expect(remote.updateCalls.at(-1)?.patch).toEqual({ perplexity: { searchRecencyFilter: '' } })
+    await controller.setMemberOption('tavily', 'timeRange', '')
+    expect(remote.updateCalls.at(-1)?.patch).toEqual({ tavily: { timeRange: '' } })
+  })
+
+  it('S19: a stored fallbackMember naming the removed member normalizes to auto in the snapshot (legacy alias)', async () => {
+    const remote = new FakeRemote()
+    remote.nsValue = { fallbackMember: 'dshws-perplexity' }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().fallbackSelection).toBe('auto')
   })
 
   it('the snapshot exposes the S17 raw values with client-side defaults (textFallback true)', async () => {

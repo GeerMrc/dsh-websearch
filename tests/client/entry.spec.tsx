@@ -116,7 +116,7 @@ describe('client entry', () => {
     const Component = registered[0]!.component as (props: { t: typeof t }) => JSX.Element
 
     render(<Component t={t} />)
-    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(7))
+    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(6))
     // Scoped to the cards grid: the brand label also renders in chain rows.
     expect(within(screen.getByTestId('dshws-members')).getByText('Tavily')).toBeTruthy()
   })
@@ -129,7 +129,7 @@ describe('client entry', () => {
     const Component = registered[0]!.component as (props: { t: typeof t }) => JSX.Element
 
     render(<Component t={t} />)
-    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(7))
+    await waitFor(() => expect(screen.getByTestId('dshws-members').children.length).toBe(6))
     // S14c: cards default collapsed — expand before driving the key surface.
     fireEvent.click(screen.getByTestId('dshws-member-toggle-tavily'))
     const input = screen.getByLabelText('Tavily API Key') as HTMLInputElement
