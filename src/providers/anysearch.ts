@@ -17,7 +17,7 @@
  */
 import type { AnysearchMemberConfig } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
-import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
+import type { WebFetchProvider, WebFetchRequest, WebFetchResult, WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
   isAbortError,
   memberAborted,
@@ -56,7 +56,8 @@ export interface AnysearchSearchData {
 export interface AnysearchEnvelope {
   readonly code: number
   readonly message?: string
-  readonly data?: AnysearchSearchData
+  /** Search face: the results page; extract face: the {url, title, content} payload (S21). */
+  readonly data?: AnysearchSearchData | { url?: string, title?: string, content?: string }
   readonly request_id?: string
 }
 
@@ -113,8 +114,27 @@ export function mapAnysearchResponse(data: AnysearchSearchData): WebSearchResult
   return { sources, truncated: false }
 }
 
-/** The Anysearch-backed chain member; redirects fail as a request failure. */
-export class AnysearchSearchProvider implements WebSearchProvider {
+/**
+ * Map an /v1/extract envelope data payload to a fetch result (S21, probe
+ * contract docs/notes/2026-09-10-s21-anysearch-extract-probe.md): the
+ * denoised markdown `content` becomes the text body; the probe-measured
+ * ~50k cap (49,934 on an over-long page) maps to `truncated` through a
+ * 49,900 defensive band.
+ */
+export function mapAnysearchExtractData(requestUrl: string, data: { url?: string, title?: string, content?: string }): WebFetchResult {
+  if (data.content === undefined || data.content.length === 0) {
+    throw new DshwsError(codes.badResponse, 'AnySearch extract returned no content on a code-0 envelope')
+  }
+  return {
+    url: data.url ?? requestUrl,
+    statusCode: 200,
+    body: { kind: 'text', content: data.content },
+    truncated: data.content.length >= 49_900,
+  }
+}
+
+/** The Anysearch-backed chain member on both capability faces (search + extract, S21). */
+export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvider {
   readonly id = ANYSEARCH_MEMBER_ID
 
   constructor(private readonly options: AnysearchMemberOptions) {}
@@ -182,10 +202,57 @@ export class AnysearchSearchProvider implements WebSearchProvider {
         `Anysearch API error (code ${envelope.code})${envelope.message !== undefined ? `: ${envelope.message}` : ''}${requestId}`,
       )
     }
-    return mapAnysearchResponse(envelope.data ?? {})
+    return mapAnysearchResponse((envelope.data as AnysearchSearchData | undefined) ?? {})
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */
+  /**
+   * The extract face (S21, probe-backed): `POST /v1/extract` with a single
+   * `{url}` body — the probe rejected the array form. Envelope `code !== 0`
+   * rides the established business-error path (chain degradation).
+   */
+  async fetch(request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
+    throwIfMemberAborted(codes, 'AnySearch', signal)
+    const apiKey = await this.#apiKey(signal)
+    throwIfMemberAborted(codes, 'AnySearch', signal)
+    let response: Response
+    try {
+      response = await fetch(`${this.options.baseURL}/v1/extract`, {
+        method: 'POST',
+        redirect: 'error',
+        headers: {
+          'authorization': `Bearer ${apiKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json',
+          'user-agent': USER_AGENT,
+        },
+        body: JSON.stringify({ url: request.url }),
+        ...(signal !== undefined ? { signal } : {}),
+      })
+    } catch (error: unknown) {
+      throw memberFetchFailure(codes, 'AnySearch', error, signal)
+    }
+    if (!response.ok) {
+      const status = response.status
+      throw new DshwsError(codes.httpError, `Anysearch API error (HTTP ${status})`, { httpStatus: status })
+    }
+    let envelope: AnysearchEnvelope
+    try {
+      envelope = await response.json() as AnysearchEnvelope
+    } catch (error: unknown) {
+      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'AnySearch', signal, error)
+      throw memberBadResponse(codes, 'AnySearch', error)
+    }
+    if (envelope.code !== 0) {
+      const requestId = envelope.request_id !== undefined ? ` (request_id: ${envelope.request_id})` : ''
+      throw new DshwsError(
+        codes.httpError,
+        `Anysearch API error (code ${envelope.code})${envelope.message !== undefined ? `: ${envelope.message}` : ''}${requestId}`,
+      )
+    }
+    return mapAnysearchExtractData(request.url, (envelope.data as { url?: string, title?: string, content?: string } | undefined) ?? {})
+  }
+
   #apiKey(signal?: AbortSignal): Promise<string> {
     return resolveMemberApiKey({
       codes,
