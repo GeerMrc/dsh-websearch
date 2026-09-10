@@ -13,7 +13,7 @@ describe('resolveConfig', () => {
     // The chain's last ready member IS the fallback; nothing is appended by default.
     expect(resolved.searchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
     expect(resolved.fallbackMember).toBe('auto')
-    expect(resolved.fetchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
+    expect(resolved.fetchChain).toEqual(['dshws-firecrawl', 'dshws-tavily', 'dshws-anysearch'])
   })
 
   it('keeps an explicit chain verbatim, tolerating member ids that are not registered yet', () => {
@@ -21,6 +21,15 @@ describe('resolveConfig', () => {
     // Dead ids (pre-S14c deepseek tail; the deleted free floor) are stripped,
     // never re-appended — deepseek joins only through the runtime guard.
     expect(resolved.searchChain).toEqual(['dshws-not-registered-yet'])
+  })
+
+  it('S21: the fetch chain defaults to the fetch-capable three (Exa excluded, ADR-0019)', () => {
+    const resolved = resolveConfig({})
+    expect(resolved.fetchChain).toEqual(['dshws-firecrawl', 'dshws-tavily', 'dshws-anysearch'])
+    // The search chain keeps the four orderable members (S19).
+    expect(resolved.searchChain).toEqual(ORDERABLE_SEARCH_MEMBER_ORDER)
+    // An explicit stored fetch chain survives verbatim (dead ids skipped at call time).
+    expect(resolveConfig({ fetchChain: ['dshws-exa', 'dshws-tavily'] }).fetchChain).toEqual(['dshws-exa', 'dshws-tavily'])
   })
 
   it('resolves search and fetch chains independently', () => {
