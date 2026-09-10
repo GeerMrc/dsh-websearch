@@ -104,6 +104,15 @@ export type DshWsLocaleKey =
   | 'tavilyEndDateLabel'
   | 'tavilyExactMatchLabel'
   | 'tavilyExactMatchNote'
+  | 'exaDateCeilingLabel'
+  | 'exaVerbosityLabel'
+  | 'exaVerbosityNote'
+  | 'verbosityCompact'
+  | 'verbosityStandard'
+  | 'verbosityFull'
+  | 'exaIncludeSectionsLabel'
+  | 'exaExcludeSectionsLabel'
+  | 'exaSectionsNote'
   | 'ctxLow'
   | 'ctxMedium'
   | 'ctxHigh'
@@ -240,6 +249,15 @@ export const en: Record<DshWsLocaleKey, string> = {
   tavilyEndDateLabel: 'Published until',
   tavilyExactMatchLabel: 'Exact match',
   tavilyExactMatchNote: 'Only return results containing the exact quoted phrase(s) of the query, bypassing synonym expansion.',
+  exaDateCeilingLabel: 'Published before',
+  exaVerbosityLabel: 'Text verbosity',
+  exaVerbosityNote: 'standard and full enlarge the returned text (more downstream tokens — billing-relevant); the default compact matches the previous wire.',
+  verbosityCompact: 'Compact',
+  verbosityStandard: 'Standard',
+  verbosityFull: 'Full',
+  exaIncludeSectionsLabel: 'Include sections',
+  exaExcludeSectionsLabel: 'Exclude sections',
+  exaSectionsNote: 'Comma-separated from header/navigation/banner/sidebar/footer/metadata/body. Requires cache freshness = 0 (fresh crawl) or -1; other values are rejected on save.',
   ctxLow: 'Low',
   ctxMedium: 'Medium',
   ctxHigh: 'High',
@@ -371,6 +389,15 @@ export const zh: Record<DshWsLocaleKey, string> = {
   tavilyEndDateLabel: '发布日期止',
   tavilyExactMatchLabel: '精确短语匹配',
   tavilyExactMatchNote: '仅返回包含查询中精确引号短语的结果，绕过同义词扩展。',
+  exaDateCeilingLabel: '发布日期上限',
+  exaVerbosityLabel: '文本详细度',
+  exaVerbosityNote: 'standard 与 full 会放大返回文本（增加下游 token——涉及计费）；默认 compact 与此前请求一致。',
+  verbosityCompact: '精简',
+  verbosityStandard: '标准',
+  verbosityFull: '完整',
+  exaIncludeSectionsLabel: '包含小节',
+  exaExcludeSectionsLabel: '排除小节',
+  exaSectionsNote: '逗号分隔，取值限 header/navigation/banner/sidebar/footer/metadata/body。要求缓存新鲜度 = 0（强制新抓）或 -1，其他值保存时会被拒绝。',
   ctxLow: '低',
   ctxMedium: '中',
   ctxHigh: '高',

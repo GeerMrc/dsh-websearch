@@ -249,6 +249,25 @@ export interface ExaSettings {
    * the old `livecrawl`/`crawlingOptions` are deprecated. Hot.
    */
   maxAgeHours?: number
+  /**
+   * Publication-date ceiling (S22 P3, symmetric to `startPublishedDate`); date-only stored,
+   * normalized to date-time at the provider. `''` clears. Hot.
+   */
+  endPublishedDate?: string
+  /**
+   * `contents.text` verbosity (S22 P3, official enum). `standard`/`full` enlarge the returned
+   * text (more downstream tokens — billing-relevant, ⓘ-noted in the GUI); absent = API default
+   * `compact`, identical to the previous wire. Hot.
+   */
+  textVerbosity?: 'compact' | 'standard' | 'full' | ''
+  /**
+   * `contents.text` section filter, comma-separated from the official closed set
+   * (header/navigation/banner/sidebar/footer/metadata/body; S22 P3). Requires `maxAgeHours: 0`
+   * (fresh crawl) — enforced on both write paths. Hot.
+   */
+  includeSections?: string
+  /** `contents.text` section exclusion filter; same closed set and freshness requirement as {@link includeSections}. Hot. */
+  excludeSections?: string
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -416,6 +435,10 @@ export const Config: z<Config> = z.object({
     startPublishedDate: z.string(),
     category: z.union(['', 'company', 'publication', 'news', 'personal site', 'financial report', 'people']),
     maxAgeHours: z.number().step(1).min(-1).max(720),
+    endPublishedDate: z.string(),
+    textVerbosity: z.union(['', 'compact', 'standard', 'full']),
+    includeSections: z.string(),
+    excludeSections: z.string(),
     keySelection: z.union(['order', 'round-robin', 'random']),
   }),
   anysearch: z.object({
@@ -495,6 +518,14 @@ export interface ExaMemberConfig extends Required<Pick<ExaSettings, 'enabled' | 
   category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people' | ''
   /** Content cache freshness; absent = not sent (S20 P2). */
   maxAgeHours?: number
+  /** Publication-date ceiling; absent = not sent (S22 P3). */
+  endPublishedDate?: string
+  /** `contents.text` verbosity; absent = not sent = API default compact (S22 P3). */
+  textVerbosity?: 'compact' | 'standard' | 'full'
+  /** `contents.text` include-section filter; absent = not sent (S22 P3). */
+  includeSections?: string
+  /** `contents.text` exclude-section filter; absent = not sent (S22 P3). */
+  excludeSections?: string
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -556,6 +587,24 @@ export function validateUnifiedDomainRule(value: Pick<Config, 'searchIncludeDoma
 }
 
 /**
+ * The Exa section-filter freshness rule (S22 P3): `contents.text` section filters officially
+ * require a fresh crawl (`maxAgeHours: 0`; `-1` never-recrawl also bypasses cache). Sections
+ * configured while `maxAgeHours` is absent or positive are rejected — dual-path like the ADR-0018
+ * domain rule: the settings write path through the installSection validate hook (before persist)
+ * and the cordis.yml load path through the `resolveConfig` throw (a watcher throw would otherwise
+ * be swallowed into a warn and brick the restart, see {@link validateUnifiedDomainRule}).
+ */
+export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
+  const exa = value.exa
+  if (exa === undefined) return
+  const sectionsConfigured = (exa.includeSections?.trim().length ?? 0) > 0 || (exa.excludeSections?.trim().length ?? 0) > 0
+  const freshness = exa.maxAgeHours
+  if (sectionsConfigured && (freshness === undefined || freshness > 0)) {
+    throw new Error('exa.includeSections/excludeSections require exa.maxAgeHours = 0 (fresh crawl) or -1 (never recrawl) — official constraint')
+  }
+}
+
+/**
  * Apply every default explicitly: empty chains become the built-in member
  * order, a missing timeout budget becomes 30s, and each member section gets
  * `enabled: true` plus its credential-ref env name. Provider-specific option
@@ -564,6 +613,7 @@ export function validateUnifiedDomainRule(value: Pick<Config, 'searchIncludeDoma
  */
 export function resolveConfig(config: Config): ResolvedWebSearchConfig {
   validateUnifiedDomainRule(config)
+  validateExaSectionFilterRule(config)
   const fallbackMember: FallbackMember = config.fallbackMember === 'dshws-perplexity'
     // S19 legacy alias: the removed member's designation degrades to auto.
     ? 'auto'
@@ -639,6 +689,10 @@ export function resolveConfig(config: Config): ResolvedWebSearchConfig {
       startPublishedDate: config.exa?.startPublishedDate?.trim().length ? config.exa.startPublishedDate.trim() : undefined,
       category: config.exa?.category || undefined,
       maxAgeHours: config.exa?.maxAgeHours,
+      endPublishedDate: config.exa?.endPublishedDate?.trim().length ? config.exa.endPublishedDate.trim() : undefined,
+      textVerbosity: config.exa?.textVerbosity || undefined,
+      includeSections: config.exa?.includeSections?.trim().length ? config.exa.includeSections.trim() : undefined,
+      excludeSections: config.exa?.excludeSections?.trim().length ? config.exa.excludeSections.trim() : undefined,
     },
     anysearch: {
       enabled: config.anysearch?.enabled ?? true,

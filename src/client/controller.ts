@@ -107,6 +107,13 @@ interface MemberSectionValue {
   endDate?: string
   /** Tavily S22 P3: exact quoted-phrase filter. */
   exactMatch?: boolean
+  /** Exa S22 P3: publication-date ceiling (`YYYY-MM-DD`). */
+  endPublishedDate?: string
+  /** Exa S22 P3: contents.text verbosity. */
+  textVerbosity?: 'compact' | 'standard' | 'full'
+  /** Exa S22 P3: contents.text section filter (comma list). */
+  includeSections?: string
+  excludeSections?: string
 }
 
 interface SectionValue {
@@ -173,6 +180,11 @@ export interface MemberSnapshot {
   readonly startDate: string | undefined
   readonly endDate: string | undefined
   readonly exactMatch: boolean | undefined
+  /** Exa S22 P3 raw values, `undefined` = not sent. */
+  readonly endPublishedDate: string | undefined
+  readonly textVerbosity: string | undefined
+  readonly includeSections: string | undefined
+  readonly excludeSections: string | undefined
   readonly source: string | undefined
   readonly writable: boolean
 }
@@ -260,6 +272,10 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       startDate: section?.startDate,
       endDate: section?.endDate,
       exactMatch: section?.exactMatch,
+      endPublishedDate: section?.endPublishedDate,
+      textVerbosity: section?.textVerbosity,
+      includeSections: section?.includeSections,
+      excludeSections: section?.excludeSections,
       source: fact?.source,
       writable: fact?.writable === true,
     }
@@ -424,7 +440,7 @@ export class WebSearchSettingsController {
    */
   async setMemberOption(
     memberKey: string,
-    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch',
+    option: 'topic' | 'timeRange' | 'searchDepth' | 'includeAnswer' | 'type' | 'textFallback' | 'startPublishedDate' | 'tbs' | 'location' | 'chunksPerSource' | 'filterByLanguage' | 'includeDomainsMode' | 'category' | 'maxAgeHours' | 'sources' | 'categories' | 'startDate' | 'endDate' | 'exactMatch' | 'endPublishedDate' | 'textVerbosity' | 'includeSections' | 'excludeSections',
     value: string | number | boolean,
   ): Promise<ActionResult> {
     const member = MEMBERS.find((candidate) => candidate.key === memberKey)

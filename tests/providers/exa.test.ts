@@ -191,6 +191,47 @@ describe('dshws-exa S17 P1 parameter wire', () => {
   })
 })
 
+describe('S22 T2: Exa P3 parameters (date ceiling, text verbosity, section filters)', () => {
+  it('endPublishedDate lands as the ISO date-time ceiling; absent = not sent', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', endPublishedDate: '2026-06-30' } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.endPublishedDate).toBe('2026-06-30T00:00:00Z')
+  })
+
+  it('textVerbosity lands inside contents.text; default stays compact-equivalent (absent)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', textVerbosity: 'standard' } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.contents.text.verbosity).toBe('standard')
+  })
+
+  it('include/excludeSections land inside contents.text; mutually exclusive pairing stays legal on the wire', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const resolved = resolveExaMemberOptions(
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', includeSections: 'header,body', maxAgeHours: 0 } satisfies ExaMemberConfig,
+      async () => 'exa-key',
+    )
+    await new ExaSearchProvider(resolved).search({ query: 'q' })
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.contents.text.includeSections).toEqual(['header', 'body'])
+  })
+})
+
 describe('dshws-exa availability (local checks only)', () => {
   it('registers under the dshws- prefixed member id', () => {
     expect(new ExaSearchProvider(options).id).toBe(EXA_MEMBER_ID)

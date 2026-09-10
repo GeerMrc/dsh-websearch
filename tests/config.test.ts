@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig, validateExaSectionFilterRule } from '../src/config.ts'
 
 describe('resolveConfig', () => {
   it('applies the built-in member order to empty chains — four tools (S19: perplexity removed), no appended tail (ADR-0014)', () => {
@@ -291,5 +291,21 @@ describe('Config schema', () => {
     // runtime validator, which guards config loaded from YAML files.
     const hostile = { searchChain: ['dshws-tavily', 42] } as unknown as Config
     expect(() => Config(hostile)).toThrow()
+  })
+})
+
+describe('S22 T2: Exa section-filter freshness guard (dual-path, official maxAgeHours=0 requirement)', () => {
+  it('sections configured with maxAgeHours defaulting (>0 cache state) is rejected', () => {
+    expect(() => validateExaSectionFilterRule({ exa: { includeSections: 'body' } })).toThrow(/maxAgeHours/)
+  })
+  it('sections configured with maxAgeHours 0 or -1 pass (fresh-crawl / never-recrawl states)', () => {
+    expect(() => validateExaSectionFilterRule({ exa: { includeSections: 'body', maxAgeHours: 0 } })).not.toThrow()
+    expect(() => validateExaSectionFilterRule({ exa: { excludeSections: 'header', maxAgeHours: -1 } })).not.toThrow()
+  })
+  it('no sections configured = no constraint (any maxAgeHours state passes)', () => {
+    expect(() => validateExaSectionFilterRule({ exa: { maxAgeHours: 24 } })).not.toThrow()
+  })
+  it('resolveConfig throws on the same mismatch (cordis.yml load path)', () => {
+    expect(() => resolveConfig({ exa: { includeSections: 'body', maxAgeHours: 24 } } as never)).toThrow(/maxAgeHours/)
   })
 })
