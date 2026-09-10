@@ -153,6 +153,7 @@ export type DshWsLocaleKey =
   | 'sourcesLabel'
   | 'fetchChainLabel'
   | 'advancedConfigLabel'
+  | 'unsavedPending'
   | 'fetchChainHint'
   | 'fetchTakeoverNoteS21'
 
@@ -302,6 +303,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   sourcesLabel: 'Sources',
   fetchChainLabel: 'Web Fetch chain',
   advancedConfigLabel: 'Advanced settings',
+  unsavedPending: 'Unsaved',
   fetchChainHint: 'The web_fetch degradation order: Firecrawl → Tavily → AnySearch, each with its own multi-key retries. Independent of the search order; member toggles apply to both chains.',
   fetchTakeoverNoteS21: 'ON: web_fetch stays visible and is served by the plugin fetch chain (Firecrawl/Tavily/AnySearch — cloud-side extraction, unaffected by local network limits). OFF: plain local HTTP fetch. Uninstalling restores the official provider.',
 }
@@ -446,6 +448,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   sourcesLabel: '结果来源',
   fetchChainLabel: 'Web Fetch 链',
   advancedConfigLabel: '详细配置',
+  unsavedPending: '未保存',
   fetchChainHint: 'web_fetch 降级序：Firecrawl → Tavily → AnySearch，各含自身多 key 重试。与搜索序相互独立；成员启停对两条链同时生效。',
   fetchTakeoverNoteS21: '开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。',
 }

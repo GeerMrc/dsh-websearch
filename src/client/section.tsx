@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button, IconQuestionOutline14, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconChevronDownOutline14, IconQuestionOutline14, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
@@ -87,6 +87,26 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
   }
 }
 
+
+/**
+ * S23 §0.5 B1: pseudo-class rules the inline-style system cannot express,
+ * delivered as one injected <style> block selected by data-dshws-* attributes.
+ * Colors stay tokenized (--dsw-alias-*) so both themes stay correct; host
+ * anchors: PluginCard.module.css (.card:hover/.cardOpen/.header:focus-visible).
+ */
+const SECTION_STYLE_CSS = `
+[data-dshws-card] { transition: border-color .16s, background .16s; }
+[data-dshws-card]:hover { border-color: var(--dsw-alias-label-dimmed); }
+[data-dshws-card][data-open='true'] { background: var(--dsw-alias-bg-layer-2); border-color: var(--dsw-alias-label-dimmed); }
+[data-dshws-card-body] { border-top: 1px solid var(--dsw-alias-border-l2); margin: 0 2px; padding-top: 8px; }
+[data-dshws-input]:focus { border-color: var(--dsw-alias-brand-primary); outline: none; }
+[data-dshws-focusable]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+  [data-dshws-card] { transition: none; }
+  [data-dshws-chevron] { transition: none !important; }
+}
+`
+
 const cardStyle = {
   border: '1px solid var(--dsw-alias-border-l2)',
   borderRadius: 12,
@@ -130,7 +150,8 @@ const fieldStyle = {
 const fieldLabelStyle = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 6,
+  // S23 D14: the Models field label leaves a 10px gap before the ⓘ icon.
+  gap: 10,
   fontSize: 12,
   lineHeight: '18px',
   fontWeight: 500,
@@ -193,7 +214,7 @@ const feedbackColor = (state: 'saved' | 'cleared' | 'failed'): string =>
     ? 'var(--dsw-alias-state-success-primary)'
     : state === 'cleared'
       ? 'var(--dsw-alias-state-warn-label)'
-      : 'var(--dsh-alias-state-error-primary)'
+      : 'var(--dsw-alias-state-error-primary)'
 
 const feedbackStyle = {
   flex: 1,
@@ -293,9 +314,20 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   const showChains = snapshot.members.some((m) => m.configured)
   // S22b: verbose-config fold, default collapsed (user ruling).
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  // S23 D9: the fold's staged drafts live HERE so they survive folding, and
+  // any pending entry lights the disclosure's unsaved pill.
+  const [advancedDrafts, setAdvancedDrafts] = useState<Record<string, string | null>>({})
+  const setAdvancedDraft = (key: string, value: string | null): void => {
+    setAdvancedDrafts((previous) => ({ ...previous, [key]: value }))
+  }
+  const advancedDirty = Object.values(advancedDrafts).some((value) => value !== null)
+  const liftedOf = (key: string) => ({ draft: advancedDrafts[key] ?? null, onDraftChange: (value: string | null) => setAdvancedDraft(key, value) })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
+      {/* S23 §0.5 B1: one injected style block rides the section root (single-file CJS
+          distribution has no CSS channel of its own). */}
+      <style data-dshws-styles="">{SECTION_STYLE_CSS}</style>
       <div>
         <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
           {t('title')}
@@ -315,7 +347,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
       always visible; the reorder rows only earn their place once a member is
       configured (S12a rationale), while the tail note, timeout, and the
       host-parity maxUses knob are meaningful in every state. */}
-      <section data-testid="dshws-chains" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
+      <section data-testid="dshws-chains" data-dshws-card="" style={{ ...cardStyle, padding: '10px 14px', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* S14j (user report fix): the S14h edit accidentally dropped the
             「搜索链」 title itself — this row IS the reorder surface for the
@@ -334,24 +366,9 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 aria-label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
                 data-testid="dshws-chain-order-info"
                 data-dshws-chain-state={snapshot.searchChainPinned ? 'pinned' : 'default'}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 16,
-                  height: 16,
-                  padding: 0,
-                  border: '1px solid var(--dsw-alias-border-l2)',
-                  borderRadius: 999,
-                  background: 'transparent',
-                  color: 'var(--dsw-alias-label-secondary)',
-                  fontSize: 11,
-                  lineHeight: 1,
-                  cursor: 'help',
-                  opacity: 0.6,
-                }}
+                style={infoButtonStyle}
               >
-                !
+                <IconQuestionOutline14 />
               </button>
             </Tooltip>
             <span style={{ flex: 1 }} />
@@ -388,6 +405,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 {/* Per-item aria labels: identical "move" buttons are a screen-reader ambiguity (S06 lesson). */}
                 <button
                   type="button"
+                  data-dshws-focusable=""
                   aria-label={`${labelOf(id)} ${t('moveUp')}`}
                   disabled={index === 0}
                   onClick={() => void move(id, -1)}
@@ -397,6 +415,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 </button>
                 <button
                   type="button"
+                  data-dshws-focusable=""
                   aria-label={`${labelOf(id)} ${t('moveDown')}`}
                   disabled={index === orderableSearch.length - 1 && !showLockedTail}
                   onClick={() => void move(id, 1)}
@@ -432,7 +451,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 {t('chainFloorDeepseekNote')}
               </p>
             ) : (
-              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-danger, #f87171)' }}>
+              <p role="status" data-testid="dshws-chain-no-usable" style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }}>
                 {t('chainNoUsableWarning')}
               </p>
             )
@@ -443,22 +462,27 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           <button
             type="button"
             data-testid="dshws-advanced-disclosure"
+            data-dshws-focusable=""
             aria-expanded={advancedOpen}
             aria-label={t('advancedConfigLabel')}
             onClick={() => { setAdvancedOpen((value) => !value) }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: 'var(--dsw-alias-label-secondary)', font: 'inherit', fontSize: 12, fontWeight: 500, textAlign: 'left', cursor: 'pointer', padding: 0 }}
           >
             {t('advancedConfigLabel')}
-            <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+            {advancedDirty ? <UnsavedPill t={t} testid="dshws-unsaved-advanced" /> : null}
+            {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
+            <span aria-hidden="true" data-dshws-chevron="" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+              <IconChevronDownOutline14 />
+            </span>
           </button>
           {advancedOpen ? (
             <>
               <p style={hintStyle}>
                 {t('timeout')}: {snapshot.timeoutMs} ms
               </p>
-              <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
-              <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
-              <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
+              <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} lifted={liftedOf('maxUses')} />
+              <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} lifted={{ country: liftedOf('country'), language: liftedOf('language') }} />
+              <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} lifted={{ include: liftedOf('domain-include'), exclude: liftedOf('domain-exclude') }} />
             </>
           ) : null}
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
@@ -497,13 +521,18 @@ function MaxUsesRow(props: {
   t: (key: DshWsLocaleKey) => string
   value: number | undefined
   onSet: (maxUses: number) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, value, onSet } = props
-  const [draft, setDraft] = useState('')
+  const { t, value, onSet, lifted } = props
+  const [liftedDraft, setLiftedDraft] = useLiftedDraft(lifted)
+  // The knob's own semantics are string-draft based ('' = shows the stored
+  // value); a lifted null maps onto the same '' steady state.
+  const draft = liftedDraft ?? ''
+  const setDraft = (next: string): void => { setLiftedDraft(next === '' && lifted !== undefined ? null : next) }
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
-  // S14i: the saved note auto-clears (2.5s) so the row never looks stuck;
+  // S14i: the saved note auto-clears (1.5s) so the row never looks stuck;
   // with the controller re-describe fix the value itself updates live too.
   useEffect(() => {
     if (feedback === undefined) return
@@ -558,6 +587,7 @@ function MaxUsesRow(props: {
           step={5}
           aria-label={t('maxUsesLabel')}
           data-testid="dshws-max-uses-input"
+          data-dshws-input=""
           style={{ width: 52, height: 28, padding: '0 6px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
           value={draft === '' ? String(current) : draft}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -667,7 +697,7 @@ function FallbackToolRow(props: {
     : effective !== 'auto' ? fallbackDesignationReady : false
   const dotTitle = dotOn ? t('configured') : note !== undefined ? t('notConfigured') : undefined
   return (
-    <div data-testid="dshws-fallback-tool" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div data-testid="dshws-fallback-tool" data-dshws-card="" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
         <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
@@ -694,10 +724,10 @@ function FallbackToolRow(props: {
             // inset chevron so it keeps its distance from the border.
             appearance: 'none',
             WebkitAppearance: 'none',
-            paddingRight: 30,
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
+            paddingRight: 32,
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2381858C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
             backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 10px center',
+            backgroundPosition: 'right 12px center',
           }}
         >
           <option value="auto">{t('fallbackAutoOption')}</option>
@@ -734,11 +764,12 @@ function FetchTakeoverRow(props: {
     return () => clearTimeout(timer)
   }, [feedback])
   return (
-    <div data-testid="dshws-fetch-takeover" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div data-testid="dshws-fetch-takeover" data-dshws-card="" data-open={open} style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <button
           type="button"
           data-testid="dshws-fetch-takeover-disclosure"
+          data-dshws-focusable=""
           aria-expanded={open}
           aria-label={`${t('fetchTakeoverLabel')} ${t('configure')}`}
           onClick={() => { setOpen((value) => !value) }}
@@ -751,11 +782,15 @@ function FetchTakeoverRow(props: {
             </button>
           </Tooltip>
           <span style={{ flex: 1 }} />
-          <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+          {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
+          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
+            <IconChevronDownOutline14 />
+          </span>
         </button>
         <button
           type="button"
           role="switch"
+          data-dshws-focusable=""
           aria-checked={active}
           aria-label={t('fetchTakeoverLabel')}
           data-testid="dshws-fetch-takeover-toggle"
@@ -801,13 +836,9 @@ function FetchChainRows(props: {
             type="button"
             aria-label={t('fetchChainHint')}
             data-testid="dshws-fetch-chain-info"
-            style={{
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0,
-              border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent',
-              color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6,
-            }}
+            style={infoButtonStyle}
           >
-            !
+            <IconQuestionOutline14 />
           </button>
         </Tooltip>
         {feedback ? <span role="status" data-testid="dshws-fetch-chain-feedback" style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }}>{t(feedback)}</span> : null}
@@ -821,8 +852,8 @@ function FetchChainRows(props: {
               {labelOf(id)}
               {index === 0 ? <span data-testid="dshws-fetch-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span> : null}
             </span>
-            <button type="button" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
-            <button type="button" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
+            <button type="button" data-dshws-focusable="" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
+            <button type="button" data-dshws-focusable="" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
           </li>
         ))}
       </ol>
@@ -830,6 +861,38 @@ function FetchChainRows(props: {
   )
 }
 
+
+/**
+ * S23 D9 (plan §0.5 B2 path a): a staged field can run on LIFTED draft state
+ * so the draft survives the card/fold unmounting around it; `lifted === undefined`
+ * keeps the component self-contained (local state, previous behavior).
+ */
+function useLiftedDraft(lifted: { draft: string | null, onDraftChange: (value: string | null) => void } | undefined): readonly [string | null, (value: string | null) => void] {
+  const [local, setLocal] = useState<string | null>(null)
+  if (lifted === undefined) return [local, setLocal] as const
+  return [lifted.draft, lifted.onDraftChange] as const
+}
+
+/** S23 D9: the host's header-carried pending pill (PluginCard.module.css .pending). */
+const unsavedPillStyle = {
+  flex: 'none',
+  borderRadius: 999,
+  padding: '1px 8px',
+  fontSize: 11,
+  lineHeight: '17px',
+  fontWeight: 500,
+  whiteSpace: 'nowrap',
+  background: 'var(--dsw-alias-bg-module-platform)',
+  color: 'var(--dsw-alias-label-secondary)',
+} as const
+
+function UnsavedPill(props: { t: (key: DshWsLocaleKey) => string, testid: string }) {
+  return <span data-testid={props.testid} style={unsavedPillStyle}>{props.t('unsavedPending')}</span>
+}
+
+/**
+ * S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block).
+ */
 /** Per-member endpoint override (S14k): staged text input mirroring the
  * official「接口地址」field — empty means the provider default; the saved value
  * applies to the next search (hot since S17 D1, noted beside the field). */
@@ -837,9 +900,10 @@ function MemberEndpointField(props: {
   member: MemberSnapshot
   t: (key: DshWsLocaleKey) => string
   onSet: (memberKey: string, baseURL: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { member, t, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { member, t, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -860,6 +924,7 @@ function MemberEndpointField(props: {
       <input
         aria-label={`${member.label} ${t('endpointLabel')}`}
         data-testid={`dshws-endpoint-${member.key}`}
+        data-dshws-input=""
         placeholder={MEMBERS.find((entry) => entry.key === member.key)?.defaultBaseURL ?? 'https://…'}
         value={value}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -956,10 +1021,10 @@ const selectStyle = {
   margin: 0,
   appearance: 'none',
   WebkitAppearance: 'none',
-  paddingRight: 30,
-  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
+  paddingRight: 32,
+  backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2381858C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
   backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 10px center',
+  backgroundPosition: 'right 12px center',
 } as const
 
 /** Field label with an optional ⓘ tooltip carrying the control's semantics. */
@@ -985,9 +1050,10 @@ function MemberParamField(props: {
   control: MemberParamControl
   t: (key: DshWsLocaleKey) => string
   onSet: SectionProps['onSetMemberOption']
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { member, control, t, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { member, control, t, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1070,6 +1136,7 @@ function MemberParamField(props: {
           max={control.kind === 'number' ? control.max : undefined}
           aria-label={ariaLabel}
           data-testid={testid}
+          data-dshws-input=""
           placeholder={control.kind === 'text' ? control.placeholder : undefined}
           value={value}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1101,12 +1168,13 @@ function SearchGeoFields(props: {
   language: string | undefined
   onSetCountry: (country: string) => Promise<ActionResult>
   onSetLanguage: (language: string) => Promise<ActionResult>
+  lifted?: Record<'country' | 'language', { draft: string | null, onDraftChange: (value: string | null) => void }>
 }) {
-  const { t, country, language, onSetCountry, onSetLanguage } = props
+  const { t, country, language, onSetCountry, onSetLanguage, lifted } = props
   return (
     <div data-testid="dshws-search-geo" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <GeoField t={t} testid="dshws-search-country" labelKey="searchCountryLabel" noteKey="searchCountryNote" placeholder="CN" value={country} onSet={onSetCountry} />
-      <GeoField t={t} testid="dshws-search-language" labelKey="searchLanguageLabel" noteKey="searchLanguageNote" placeholder="zh" value={language} onSet={onSetLanguage} />
+      <GeoField t={t} testid="dshws-search-country" labelKey="searchCountryLabel" noteKey="searchCountryNote" placeholder="CN" value={country} onSet={onSetCountry} lifted={lifted?.country} />
+      <GeoField t={t} testid="dshws-search-language" labelKey="searchLanguageLabel" noteKey="searchLanguageNote" placeholder="zh" value={language} onSet={onSetLanguage} lifted={lifted?.language} />
     </div>
   )
 }
@@ -1117,12 +1185,13 @@ function SearchDomainFields(props: {
   includeDomains: string | undefined
   excludeDomains: string | undefined
   onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+  lifted?: Record<'include' | 'exclude', { draft: string | null, onDraftChange: (value: string | null) => void }>
 }) {
-  const { t, includeDomains, excludeDomains, onSet } = props
+  const { t, includeDomains, excludeDomains, onSet, lifted } = props
   return (
     <div data-testid="dshws-search-domains" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <DomainField t={t} kind="include" value={includeDomains} onSet={onSet} />
-      <DomainField t={t} kind="exclude" value={excludeDomains} onSet={onSet} />
+      <DomainField t={t} kind="include" value={includeDomains} onSet={onSet} lifted={lifted?.include} />
+      <DomainField t={t} kind="exclude" value={excludeDomains} onSet={onSet} lifted={lifted?.exclude} />
     </div>
   )
 }
@@ -1132,9 +1201,10 @@ function DomainField(props: {
   kind: 'include' | 'exclude'
   value: string | undefined
   onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, kind, value, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { t, kind, value, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1159,6 +1229,7 @@ function DomainField(props: {
       <input
         aria-label={t(labelKey)}
         data-testid={`dshws-search-domains-${kind}`}
+        data-dshws-input=""
         placeholder="example.com,foo.org"
         value={shown}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1193,9 +1264,10 @@ function GeoField(props: {
   placeholder: string
   value: string | undefined
   onSet: (value: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, testid, labelKey, noteKey, placeholder, value, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { t, testid, labelKey, noteKey, placeholder, value, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1218,6 +1290,7 @@ function GeoField(props: {
       <input
         aria-label={t(labelKey)}
         data-testid={testid}
+        data-dshws-input=""
         placeholder={placeholder}
         value={shown}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
@@ -1259,7 +1332,7 @@ function MemberCard(props: {
   // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
   const [editing, setEditing] = useState(false)
   const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
-  // S14o: the saved/cleared note auto-clears (2.5s) like the maxUses and
+  // S14o: the saved/cleared note auto-clears (1.5s) like the maxUses and
   // endpoint rows — a sticky 已清除/已保存 that only a page reload dismisses
   // reads as a stuck state (user report).
   useEffect(() => {
@@ -1291,9 +1364,17 @@ function MemberCard(props: {
   // S14c (user ruling): cards default COLLAPSED — the header row (status, name,
   // switch) is the steady state; the key/pool surface opens on demand.
   const [open, setOpen] = useState(false)
+  // S23 D9 (plan §0.5 B2 path a): lifted staged drafts for the endpoint and
+  // parameter fields — they survive the card folding around them, and any
+  // non-null entry lights the header's unsaved pill.
+  const [liftedDrafts, setLiftedDrafts] = useState<Record<string, string | null>>({})
+  const setLiftedDraft = (key: string, value: string | null): void => {
+    setLiftedDrafts((previous) => ({ ...previous, [key]: value }))
+  }
+  const hasUnsavedDraft = draft !== '' || Object.values(liftedDrafts).some((value) => value !== null)
 
   return (
-    <div data-testid={`dshws-member-${member.key}`} style={cardStyle}>
+    <div data-testid={`dshws-member-${member.key}`} data-dshws-card="" data-open={open} style={cardStyle}>
       {/* S14k (user report): the WHOLE header is the disclosure button — the
       official PluginCard pattern (click anywhere on the head row to expand /
       collapse, chevron rotates). The enable switch stays a separate sibling
@@ -1302,6 +1383,7 @@ function MemberCard(props: {
         <button
           type="button"
           data-testid={`dshws-member-toggle-${member.key}`}
+          data-dshws-focusable=""
           aria-expanded={open}
           aria-label={`${member.label} ${t('configure')}`}
           onClick={() => { setOpen((value) => !value) }}
@@ -1309,12 +1391,17 @@ function MemberCard(props: {
         >
           <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
           <strong style={nameStyle}>{member.label}</strong>
+          {hasUnsavedDraft ? <UnsavedPill t={t} testid={`dshws-unsaved-${member.key}`} /> : null}
           <span style={{ flex: 1 }} />
-          <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+          {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
+          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
+            <IconChevronDownOutline14 />
+          </span>
         </button>
         <button
           type="button"
           role="switch"
+          data-dshws-focusable=""
           aria-checked={member.enabled}
           aria-label={`${member.label} ${t('enabled')}`}
           disabled={!member.configured}
@@ -1341,9 +1428,9 @@ function MemberCard(props: {
               type="button"
               aria-label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
               data-testid={`dshws-keysel-info-${member.key}`}
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, padding: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, background: 'transparent', color: 'var(--dsw-alias-label-secondary)', fontSize: 11, lineHeight: 1, cursor: 'help', opacity: 0.6 }}
+              style={infoButtonStyle}
             >
-              !
+              <IconQuestionOutline14 />
             </button>
           </Tooltip>
         </span>
@@ -1355,6 +1442,7 @@ function MemberCard(props: {
         <input
           type="text"
           autoComplete="off"
+          data-dshws-input=""
           aria-label={`${member.label} ${t('apiKey')}`}
           placeholder={t('keyPlaceholder').replace('{ref}', member.refName)}
           value={draft === '' && member.configured && !editing ? t('maskedKey') : draft}
@@ -1392,11 +1480,12 @@ function MemberCard(props: {
       </div>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —
       parity here. Empty = provider default; hot since S17 D1 (note inline). */}
-      <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} />
+      <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} lifted={{ draft: liftedDrafts.endpoint ?? null, onDraftChange: (value) => setLiftedDraft('endpoint', value) }} />
       {(MEMBER_PARAM_CONTROLS[member.key] ?? []).map((control) => (
-        <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} />
+        <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} lifted={{ draft: liftedDrafts[control.option] ?? null, onDraftChange: (value) => setLiftedDraft(control.option, value) }} />
       ))}
-      <div style={footerStyle}>
+      {/* S23 D10: the footer separates from the field stack (host .footer border-top). */}
+      <div data-dshws-card-body="" style={footerStyle}>
         {feedback ? (
           <span role="status" data-testid={`dshws-feedback-${member.key}`} style={{ ...feedbackStyle, color: feedbackColor(feedback) }}>{t(feedback)}</span>
         ) : (

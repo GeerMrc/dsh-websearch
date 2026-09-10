@@ -12,6 +12,29 @@
 
 ---
 
+## 2026-09-11 — UI/UX 全面对齐 DSH 0.8.0（Session 23，roadmap 重排插行）
+
+**新增（0.7.2 → 0.8.0，UI/UX 对齐批 minor）**
+- **差距清单驱动**（独立 Agent 宿主源码级对照 D1-D18 + 已一致 10 项）：
+- **D4 token 修复**：feedbackColor 的 `--dsh-` 前缀拼写错（解析失败）与 no-usable 警告的 `#f87171` 非法 fallback → 统一 `--dsw-alias-state-error-primary`
+- **D1 折叠图标**：三处文字 ▾ → 宿主 `IconChevronDownOutline14` + 160ms 旋转
+- **D2/D10 卡片态**：hover 边框 dimmed + open 态 bg-layer-2（「正在操作的那张」语义）+ 成员卡 footer 分隔线——经注入式 `<style data-dshws-styles>` 块（token 化，单文件 CJS 分发无 CSS 通道）
+- **D3/D17 focus 覆盖**：六个输入框 brand focus 边框 + 开关/移动钮/折叠头 focus-visible 2px outline + reduced-motion 豁免（D16）
+- **D8 select chevron** 宿主参数（#81858C/right 12px/pr 32px 两处）
+- **D9 unsaved pill**：endpoint/param/maxUses/geo/domain 草稿提升卡级/折叠级——**折叠不丢草稿**，pending 时成员卡头与详细配置折叠头示「未保存」徽（宿主 PluginCard .pending 形态）
+- **D15 提示形态统一**：三处自绘「！」圆徽 → ⓘ 图标 + Tooltip
+- **裁定豁免（用户先例）**：D5 未配置琥珀 / D6 反馈 1.5s 自动清（仅勘正 2.5s 注释漂移）/ D7 开关绿 / D11 maxUses stepper；方言锚定 Models rowCard（D12/D13/D18 维持）
+
+**治理**
+- 阶段 0：S22b 审核 PASS（443|13(456) 复现）+ 🟡 roadmap 陈旧标记 T0 清偿
+- 阶段 2：两轮（B1 伪类通路/B2 草稿提升语义）→ 复审 APPROVED；正本 = docs/sessions/audit-logs/2026-09-11-s23-stage0-2-audit.md
+- 双审：阶段 4 核销 + 阶段 5 换 spawn 复审（见 session-23 记录）
+
+**跟踪**
+- 终态门墙数字见 session-23 记录收官节
+
+---
+
 ## 2026-09-11 — 设置页折叠化 0.7.2（Session 22b，用户反馈插行棒）
 
 **新增（0.7.1 → 0.7.2，UI 折叠批 patch）**

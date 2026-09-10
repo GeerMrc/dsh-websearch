@@ -326,14 +326,15 @@ describe('WebSearchSettingsSection', () => {
     expect(screen.getByRole('tooltip').textContent).toBe(`${en.chainPinned}: ${en.chainOrderHint}`)
   })
 
-  it('the order note lives behind the bordered ! badge, not dead prose (S14e D4, 用户裁定)', () => {
+  it('the order note lives behind the ⓘ icon badge, not dead prose (S14e D4 用户裁定; S23 D15 glyph unified)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
     // No dead prose lines: neither the old default-order hint nor the tail note.
     expect(chains.textContent).not.toContain(en.chainTailHint)
-    // The bordered badge exists; focusing it opens the full order note.
+    // The badge exists (S23 D15: the host ⓘ glyph, no text); focusing it opens the full order note.
     const badge = screen.getByTestId('dshws-chain-order-info')
-    expect(badge.textContent).toBe('!')
+    expect(badge.textContent).toBe('')
+    expect(badge.querySelector('svg')).not.toBeNull()
     fireEvent.focus(badge)
     expect(screen.getByRole('tooltip').textContent).toBe(en.chainOrderHint)
     fireEvent.blur(badge)
@@ -890,7 +891,7 @@ describe('WebSearchSettingsSection', () => {
     const input2 = focusKey('Tavily API Key')
     fireEvent.change(input2, { target: { value: 'sk-2' } })
     fireEvent.click(within(screen.getByTestId('dshws-member-tavily')).getByRole('button', { name: `Tavily ${en.save}` }))
-    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsh-alias-state-error-primary)'))
+    await waitFor(() => expect(screen.getByTestId('dshws-feedback-tavily').style.color).toBe('var(--dsw-alias-state-error-primary)'))
   })
 
   it('feedback auto-dismisses after 1.5s (S14s 时序收紧)', async () => {
@@ -1091,6 +1092,60 @@ describe('S21 T6: fetch chain GUI', () => {
 
     fireEvent.click(within(list).getByRole('button', { name: `Tavily ${en.moveUp}` }))
     await waitFor(() => expect(onMoveFetch).toHaveBeenCalledWith('dshws-tavily', -1))
+  })
+
+  it('S23 stage-4 #2: the injected style block mounts with the pseudo-class rule set (D2/D3/D10/D16/D17)', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const style = container.querySelector('style[data-dshws-styles]') as HTMLStyleElement
+    expect(style).not.toBeNull()
+    const css = style.textContent ?? ''
+    // Each rule family the alignment batch depends on (probe A once deleted
+    // focus-visible with zero reds — this anchors the block's content).
+    expect(css).toContain('[data-dshws-card]:hover')
+    expect(css).toContain("[data-dshws-card][data-open='true']")
+    expect(css).toContain('[data-dshws-input]:focus')
+    expect(css).toContain('[data-dshws-focusable]:focus-visible')
+    expect(css).toContain('[data-dshws-card-body]')
+    expect(css).toContain('prefers-reduced-motion')
+  })
+
+  it('S23 T6: a staged draft survives folding and shows the unsaved pill on the member header', async () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expand('tavily')
+    const endpoint = screen.getByTestId('dshws-endpoint-tavily') as HTMLInputElement
+    fireEvent.change(endpoint, { target: { value: 'https://proxy.test' } })
+    fireEvent.click(screen.getByRole('button', { name: `Tavily ${en.endpointLabel} ${en.save}` }))
+    await waitFor(() => expect(screen.getByTestId('dshws-endpoint-feedback-tavily').textContent).toBe(en.saved))
+    // stage a NEW draft, then fold — the draft must survive and the header must say unsaved.
+    fireEvent.change(endpoint, { target: { value: 'https://proxy2.test' } })
+    expand('tavily')
+    expect(screen.getByTestId('dshws-unsaved-tavily').textContent).toBe(en.unsavedPending)
+    expand('tavily')
+    expect((screen.getByTestId('dshws-endpoint-tavily') as HTMLInputElement).value).toBe('https://proxy2.test')
+  })
+
+  it('S23 T6: advanced-fold drafts survive folding with the unsaved pill on the disclosure', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
+    const country = screen.getByTestId('dshws-search-country') as HTMLInputElement
+    fireEvent.change(country, { target: { value: 'CN' } })
+    // fold without saving — the pill appears and the draft survives the fold.
+    openAdvanced()
+    expect(screen.getByTestId('dshws-unsaved-advanced').textContent).toBe(en.unsavedPending)
+    openAdvanced()
+    expect((screen.getByTestId('dshws-search-country') as HTMLInputElement).value).toBe('CN')
+  })
+
+  it('S23 T1: failure feedback uses the defined error token; no hardcoded fallback colors (D4)', async () => {
+    const onSetMaxUses = vi.fn(async () => ({ ok: false }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMaxUses })} t={t} />)
+    openAdvanced()
+    fireEvent.change(screen.getByLabelText(en.maxUsesLabel), { target: { value: '15' } })
+    fireEvent.click(screen.getByRole('button', { name: `${en.maxUsesLabel} ${en.save}` }))
+    // --dsh- (typo) resolves to nothing and #f87171 is a forbidden hardcoded fallback.
+    await waitFor(() => {
+      expect(screen.getByTestId('dshws-max-uses-feedback').style.color).toBe('var(--dsw-alias-state-error-primary)')
+    })
   })
 
   it('S22a T1: role chips ride INSIDE the label cell right after the tool name (no grid wrap)', () => {
