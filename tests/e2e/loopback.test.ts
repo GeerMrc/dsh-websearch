@@ -94,7 +94,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
     const { server, chain, handle } = await assemble(
       {
         '/exa/search': { kind: 'success', body: { results: [{ url: 'https://exa.test/a', title: 'Exa page', highlights: ['exa snippet a'] }] } },
-        '/perplexity/chat/completions': { kind: 'destroy' },
+        '/perplexity/v1/agent': { kind: 'destroy' },
       },
       { tavilyBaseURL: `http://127.0.0.1:${dead}/tavily` },
     )
@@ -169,9 +169,12 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
-        '/perplexity/chat/completions': {
+        '/perplexity/v1/agent': {
           kind: 'success',
-          body: { choices: [{ message: { content: 'loopback answer' } }], citations: ['https://pplx.test/a'] },
+          body: { output: [
+            { type: 'search_results', queries: ['loopback order'], results: [{ id: 1, url: 'https://pplx.test/a', title: 'A', snippet: 'sa', source: 'web' }] },
+            { type: 'message', content: [{ type: 'output_text', text: 'loopback answer', annotations: [] }] },
+          ] },
         },
       },
     )
@@ -182,7 +185,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
-        'POST /perplexity/chat/completions',
+        'POST /perplexity/v1/agent',
       ])
       // Perplexity carries content, so the signature is a first line over body text.
       expect(result.content).toBe('[served-by: dshws-perplexity]\nloopback answer')
@@ -197,9 +200,12 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
-        '/perplexity/chat/completions': {
+        '/perplexity/v1/agent': {
           kind: 'success',
-          body: { choices: [{ message: { content: 'answer' } }], citations: ['https://pplx.test/a'] },
+          body: { output: [
+            { type: 'search_results', queries: ['loopback skip'], results: [{ id: 1, url: 'https://pplx.test/a', source: 'web' }] },
+            { type: 'message', content: [{ type: 'output_text', text: 'answer', annotations: [] }] },
+          ] },
         },
       },
       { exaEnabled: false },
@@ -208,7 +214,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       const result = await chain.search({ query: 'loopback skip' })
       // exa sits in the chain but its selection gate skips it: no arrival, no
       // entry in the walk — selection skips are not sequence entries.
-      expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /perplexity/chat/completions'])
+      expect(server.arrivals).toEqual(['POST /tavily/search', 'POST /perplexity/v1/agent'])
       expect(result.content).toBe('[served-by: dshws-perplexity]\nanswer')
     } finally {
       await server.close()
@@ -220,7 +226,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       {
         '/tavily/search': { kind: 'status', status: 429 },
         '/exa/search': { kind: 'destroy' },
-        '/perplexity/chat/completions': { kind: 'status', status: 500, body: { detail: 'backend down' } },
+        '/perplexity/v1/agent': { kind: 'status', status: 500, body: { detail: 'backend down' } },
         '/deepseek/messages': { kind: 'status', status: 500, body: { error: { message: 'quota' } } },
       },
       // THREE ready tools + a designated, keyed, loopback-wired DeepSeek: the
@@ -258,7 +264,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(server.arrivals).toEqual([
         'POST /tavily/search',
         'POST /exa/search',
-        'POST /perplexity/chat/completions',
+        'POST /perplexity/v1/agent',
       ])
     } finally {
       await server.close()

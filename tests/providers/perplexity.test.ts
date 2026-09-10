@@ -66,29 +66,32 @@ describe('dshws-perplexity availability (local checks only)', () => {
 })
 
 describe('dshws-perplexity request mapping', () => {
-  it('sends the chat-completions request with sonar model and bearer auth', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+  it('sends the Agent API request with the prefixed model, input, and the web_search tool always on', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ output: [] }))
     vi.stubGlobal('fetch', fetchMock)
 
     await new PerplexitySearchProvider(options).search({ query: 'hello' })
 
     expect(fetchMock).toHaveBeenCalledOnce()
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
-    expect(url).toBe(`${PERPLEXITY_DEFAULT_BASE_URL}/chat/completions`)
+    expect(url).toBe(`${PERPLEXITY_DEFAULT_BASE_URL}/v1/agent`)
     expect(init).toMatchObject({ method: 'POST', redirect: 'error' })
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer pplx-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.3.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.3.1')
     expect(JSON.parse(init.body as string)).toEqual({
-      model: PERPLEXITY_DEFAULT_MODEL,
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: 'hello' }],
+      model: 'perplexity/sonar',
+      input: 'hello',
+      max_output_tokens: 1024,
+      // web_search is OPT-IN on the Agent API — the tool rides along on every
+      // request or the member answers from parametric memory (S18 D1).
+      tools: [{ type: 'web_search' }],
     })
   })
 
-  it('S17: configured maxTokens lands as max_tokens (1024 腰斩修复 = 可配)', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+  it('S18: configured maxTokens lands as max_output_tokens (1024 腰斩修复 = 可配)', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ output: [] }))
     vi.stubGlobal('fetch', fetchMock)
     const resolved = resolvePerplexityMemberOptions(
       { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', maxTokens: 4096 } satisfies PerplexityMemberConfig,
@@ -96,11 +99,12 @@ describe('dshws-perplexity request mapping', () => {
     )
     await new PerplexitySearchProvider(resolved).search({ query: 'q' })
     const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
-    expect(body.max_tokens).toBe(4096)
+    expect(body.max_output_tokens).toBe(4096)
+    expect(body).not.toHaveProperty('max_tokens')
   })
 
-  it('S17: recency lands top-level; context size nests under web_search_options (single construction point)', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+  it('S18: recency nests INSIDE the web_search tool filters; context size sits on the tool top level', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ output: [] }))
     vi.stubGlobal('fetch', fetchMock)
     const resolved = resolvePerplexityMemberOptions(
       { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', searchRecencyFilter: 'week', searchContextSize: 'high' } satisfies PerplexityMemberConfig,
@@ -108,21 +112,26 @@ describe('dshws-perplexity request mapping', () => {
     )
     await new PerplexitySearchProvider(resolved).search({ query: 'q' })
     const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
-    expect(body.search_recency_filter).toBe('week')
-    expect(body.web_search_options).toEqual({ search_context_size: 'high' })
+    expect(body.tools).toEqual([{
+      type: 'web_search',
+      filters: { search_recency_filter: 'week' },
+      search_context_size: 'high',
+    }])
+    expect(body).not.toHaveProperty('search_recency_filter')
+    expect(body).not.toHaveProperty('web_search_options')
   })
 
-  it('S17: neither nested field set → web_search_options absent from the wire', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+  it('S18: neither filter set → the web_search tool carries only its type', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ output: [] }))
     vi.stubGlobal('fetch', fetchMock)
     await new PerplexitySearchProvider(options).search({ query: 'q' })
     const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
-    expect(body).not.toHaveProperty('web_search_options')
-    expect(body).not.toHaveProperty('search_recency_filter')
+    expect(body.tools).toEqual([{ type: 'web_search' }])
+    expect(body.messages).toBeUndefined()
   })
 
-  it('S17 T6: unified country joins web_search_options.user_location at the single construction point; language lands as language_preference', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ choices: [{ message: { content: 'answer' } }] }))
+  it('S18: unified country joins the web_search tool user_location; language lands as top-level language_preference', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ output: [] }))
     vi.stubGlobal('fetch', fetchMock)
     const resolved = resolvePerplexityMemberOptions(
       { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', searchContextSize: 'high' } satisfies PerplexityMemberConfig,
@@ -131,45 +140,81 @@ describe('dshws-perplexity request mapping', () => {
     )
     await new PerplexitySearchProvider(resolved).search({ query: 'q' })
     const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
-    expect(body.web_search_options).toEqual({ search_context_size: 'high', user_location: { country: 'CN' } })
+    expect(body.tools).toEqual([{
+      type: 'web_search',
+      search_context_size: 'high',
+      user_location: { country: 'CN' },
+    }])
     expect(body.language_preference).toBe('zh')
+  })
+
+  it('S18: bare model names gain the perplexity/ prefix; already-prefixed names pass through', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ output: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const bare = resolvePerplexityMemberOptions(
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', model: 'sonar-pro' } satisfies PerplexityMemberConfig,
+      async () => 'pplx-key',
+    )
+    await new PerplexitySearchProvider(bare).search({ query: 'q' })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.model).toBe('perplexity/sonar-pro')
+
+    const prefixed = resolvePerplexityMemberOptions(
+      { enabled: true, apiKeyEnv: 'PERPLEXITY_API_KEY', model: 'perplexity/sonar-deep-research' } satisfies PerplexityMemberConfig,
+      async () => 'pplx-key',
+    )
+    await new PerplexitySearchProvider(prefixed).search({ query: 'q' })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.model).toBe('perplexity/sonar-deep-research')
   })
 })
 
 describe('dshws-perplexity response mapping', () => {
-  it('prefers structured search_results and carries the generated answer as content', () => {
+  it('maps the Agent API trace: message item text becomes content, search_results item becomes structured sources', () => {
     const result = mapPerplexityResponse({
-      choices: [{ message: { content: 'generated answer' } }],
-      search_results: [
-        { url: 'https://a.test', title: 'A', snippet: 'salient', date: '2026-01-01' },
-        { url: 'https://b.test' },
+      output: [
+        { type: 'web_search_call', queries: ['q'] },
+        { type: 'search_results', queries: ['q'], results: [
+          { id: 1, url: 'https://a.test', title: 'A', snippet: 'salient', date: '2026-01-01', source: 'web' },
+          { id: 2, url: 'https://b.test', last_updated: '2026-02-02' },
+          { id: 3, url: 'https://blank.test', snippet: '   ' },
+        ] },
+        { type: 'message', content: [{ type: 'output_text', text: 'generated answer', annotations: [] }] },
       ],
     })
     expect(result.content).toBe('generated answer')
     expect(result.truncated).toBe(false)
     expect(result.sources).toEqual([
       { url: 'https://a.test', title: 'A', snippet: 'salient', publishedAt: '2026-01-01' },
-      { url: 'https://b.test' },
+      { url: 'https://b.test', publishedAt: '2026-02-02' },
+      { url: 'https://blank.test' },
     ])
   })
 
-  it('falls back to URL-only citations only when search_results is absent', () => {
-    const withCitations = mapPerplexityResponse({
-      choices: [{ message: { content: 'answer' } }],
-      citations: ['https://c.test', 'https://d.test'],
+  it('falls back to message annotations when no search_results item exists', () => {
+    const result = mapPerplexityResponse({
+      output: [
+        { type: 'message', content: [{ type: 'output_text', text: 'answer', annotations: [
+          { type: 'url_citation', url: 'https://c.test', title: 'C' },
+          { type: 'url_citation', url: 'https://d.test' },
+        ] }] },
+      ],
     })
-    expect(withCitations.sources).toEqual([{ url: 'https://c.test' }, { url: 'https://d.test' }])
-
-    const searchResultsPresent = mapPerplexityResponse({
-      choices: [{ message: { content: 'answer' } }],
-      citations: ['https://c.test'],
-      search_results: [{ url: 'https://a.test' }],
-    })
-    expect(searchResultsPresent.sources).toEqual([{ url: 'https://a.test' }])
+    expect(result.content).toBe('answer')
+    expect(result.sources).toEqual([{ url: 'https://c.test', title: 'C' }, { url: 'https://d.test' }])
   })
 
-  it('omits content when the answer is empty and tolerates a missing choices array', () => {
-    expect(mapPerplexityResponse({ choices: [{ message: { content: '' } }] }).content).toBeUndefined()
+  it('falls back to legacy URL-only citations when neither trace source exists (tolerant last resort)', () => {
+    const result = mapPerplexityResponse({
+      output: [{ type: 'message', content: 'plain string answer' }],
+      citations: ['https://e.test'],
+    })
+    expect(result.content).toBe('plain string answer')
+    expect(result.sources).toEqual([{ url: 'https://e.test' }])
+  })
+
+  it('omits content when the answer is empty and tolerates a missing output array', () => {
+    expect(mapPerplexityResponse({ output: [{ type: 'message', content: [{ type: 'output_text', text: '' }] }] }).content).toBeUndefined()
     expect(mapPerplexityResponse({}).content).toBeUndefined()
     expect(mapPerplexityResponse({}).sources).toEqual([])
   })
