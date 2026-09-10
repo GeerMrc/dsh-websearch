@@ -84,13 +84,13 @@
 | 18 | 2026-09-10 | Perplexity Agent API 迁移（Sonar 日落应对，2026-09-27 前） | ✅ | docs/sessions/2026-09-10-session-18.md；0.3.1；全量 **401\|13(414) exit0**；config 面零改动亲证；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | **🟡 Sonar 日落已清偿**；真实 Perplexity 实测无 key 降级（断言就绪，补 key 零改动闭合）〔勘注：随 S19 移除转历史档〕 |
 | 19 | 2026-09-10 | 完整移除 dshws-perplexity 成员（用户终裁：免费额度准入标准 ADR-0017） | ✅ | docs/sessions/2026-09-10-session-19.md；0.4.0 breaking；全量 **377\|11(388) exit0**；R1 功能性残留 0（legacy 基建豁免）；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | S18 观察×2 moot 翻账；残尸节 🟢 登记（S15 README 提示）；union 内联 🟢 |
 | 20 | 2026-09-10 | P2 中价值参数批（用户裁定先于 S15；S16 审计批次） | ✅ | docs/sessions/2026-09-10-session-20.md；0.5.0；终态全量 **398\|11(409) exit0**；守卫清单六条全测试在档；阶段 4 R4 FAIL→清偿 / 阶段 5 F-1→清偿 | Tavily/Exa 真实实测无 key 披露；🟢×2 新登记（union 扩面/number kind） |
-| 21 | 2026-09-10 | web_fetch 全模式多链接管（用户主计划重排第 1 棒：fetch 链三家 + 两态开关 + restrict 移除） | 🚧 | plan docs/plans/2026-09-10-021-s21-fetch-chain-takeover-plan.md（2.5=用户主计划批准+四决策获答）；分支 feat/s21-fetch-chain-takeover | roadmap 重排：S21→S22→S23→S15 顺延；未来迭代登记（计费看板） |
+| 21 | 2026-09-10 | web_fetch 全模式多链接管（用户主计划重排第 1 棒：fetch 链三家 + 两态开关 + restrict 移除） | ✅ | docs/sessions/2026-09-10-session-21.md；0.6.0；全量 **415\|13(428) exit0**；AnySearch extract 实测 1,048ms；浏览器亲验通过 | **web_fetch 🟡 翻账**；阶段 4 R5 FAIL→T9 清偿 |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 21 🚧（web_fetch 全模式多链接管——用户主计划重排：fetch 链三家 + 两态开关；2.5=用户主计划批准+四决策获答；分支 feat/s21-fetch-chain-takeover）
+- **当前 session**: 无进行中（Session 21 ✅ 2026-09-10 收官——web_fetch 多链接管 0.6.0 + ADR-0019 + 🟡 翻账；下一棒 = **S22 P3 对齐批 + 全功能一致性深度审核**）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 18 — 记录：docs/sessions/2026-09-10-session-18.md
-- **下一棒**: 本棒（S21 fetch 链）→ S22 P3 对齐批 → S23 UI/UX 对齐 DSH → S15 README 收尾（roadmap 重排 2026-09-10）
+- **下一棒**: S22 P3 对齐批 + 全功能一致性深度审核（roadmap ⏳）→ S23 UI/UX 对齐 DSH → S15 README 收尾
 - **活跃债务**: 🔴×0 🟡×1（web_fetch 完整替代〔评估完成：短期开关已可用/中期 Firecrawl 单成员/长期多工具链 v2——实现归后续〕）🟢 池维持 + L-2 + 观察（badge 超长 id/fetchChain 对称注记/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/re-export/**残尸 perplexity 节〔S19 登记，S15 README 提示清理〕/controller union 内联〔S19 登记〕**）+ v2 backlog——正本：progress-M7 台账
-- **更新时间**: 2026-09-10（S20 阶段 6 收尾）
+- **更新时间**: 2026-09-10（S21 阶段 6 收尾）

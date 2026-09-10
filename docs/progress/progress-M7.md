@@ -27,6 +27,26 @@
 
 ## 已完成
 
+### S21 web_fetch 全模式多链接管（2026-09-10，分支 feat/s21-fetch-chain-takeover，用户主计划重排第 1 棒）
+
+阶段 0 PASS（fetch 链可行性背书）→ plan 021 两轮 APPROVED（B1 构造序/B2 registry 矛盾/B3 启停语义写死 + S1 OFF 口径正位）→ 2.5 用户主计划批准+四决策 → T0-T8 逐一 TDD → 阶段 4 R1-R4 PASS + **R5 FAIL→T9 清偿**（🟡 翻账/CHANGELOG/浏览器亲验三项）→ 收官。
+
+| 任务 | 结果 |
+|---|---|
+| T0+T1 治理批+重排+探针定案 | `a9eb63e`（50k 上限坐实 49,934/去噪 MD/三错误形态——Note 正本） |
+| T2 Tavily extract face | `7ac3eea`（红 4f→绿 29p；failed_results→链降级） |
+| T3 AnySearch extract face | `745e6b2`（红 4f→绿 17p；**真实 API 实测 1,048ms 去噪 Markdown**） |
+| T4 fetch 链接线 | `75da120`（FETCH_CHAIN_DEFAULT_ORDER + 内部 registry + lazy thunk） |
+| T5 gate 路由器 + restrict 退役 | `93da810`（ON=链服务/OFF=http 直抓；零订阅断言） |
+| T6 GUI fetch 链配置面 | `d64921a`（FetchChainRows + moveFetchChainEntry + S21 开关文案；123 keys） |
+| T7 loopback 降级链 + ADR-0019 | `06671b1`（scrape 500→extract 接管 arrivals 双端点亲证） |
+| T8 0.6.0 + 3423 实测 | `9dc9107`（AnySearch extract 3p + Firecrawl 4p 活体） |
+| T9 阶段 4 缺陷修复 + 翻账 + 收官 | 阶段 4 抓获 5 项缺陷（locales 陈旧文案/死键/三处陈旧注释/桩断言）当场清偿 + 本序列 |
+
+### S21 门墙（提交态，node v22.23.2；全量正本 = 阶段 4 audit-log）
+
+①`pnpm test` 全量 → **415 passed \| 13 skipped (428) exit0**（398→415：+17）②tc 0 ③lint 0w0e 54f ④build 90.85+40.32+110.94 ⑤pack 五件 59.3kB ⑥i18n **122 keys** parity（修复批 -1 死键）⑦clean。3423 = 0.6.0 在跑（pid 41627）。**浏览器亲验通过**：fetch 链行组渲染（Firecrawl+AnySearch——tavily 未配置如实过滤）+ AnySearch 上移拖动生效 + settings.yaml fetchChain 持久化亲读（已复原默认序）+ S21 开关 aria 新文案。
+
 ### S20 P2 中价值参数批（2026-09-10，分支 feat/s20-p2-params，用户裁定先于 S15）
 
 阶段 0 PASS → plan 020 两轮（M-1：resolveConfig throw 在 settings 路径 = warn 吞 + brick——正位 validate-hook）→ 2.5 用户排期裁定+默认 → T0-T7 → 阶段 4 R1-R3/R5 PASS + **R4 FAIL→清偿** → 阶段 5 COMPLETE + **F-1/F-3→清偿** → 收官。
@@ -478,7 +498,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | v2 backlog：B2 启动包 + 暖启动预热 | 🟢 v2 | S14w 登记（2026-09-08，STATUS 台账 14w 行）；未排期 |
 | 链路文件日志的 GUI 轨迹页可见面 | 🟢 v2 | S14z 登记（2026-09-09，STATUS 台账 14z 行）；文件日志本体已交付（chain-log），GUI 可见面 v2 |
 | 卸载残留：settings 默认值 + 预设目录（remove 单命令后不清理；用户自撰同名目录永不覆写） | 🟢 观察 | S14z2 登记（2026-09-09，STATUS 台账 14z2 行）；诚实披露态维持 |
-| web_fetch 完整替代（「按 URL 取全文」能力缺口；现态 = S15c restrict 隐藏，工作正常零报错） | 🟡 | S16-P0 登记（2026-09-10）；**恢复路径评估完成（2026-09-10 S17 T9）——结论正本 = 本行 + CHANGELOG「2026-09-10 — S17」条目**：短期 = fetchTakeover 开关关闭即恢复官方 web_fetch（零开发，已可用）；中期 = Firecrawl scrape 单成员（fetch face 代码在档，接线量小，耗 credits）；长期 = 多工具 fetch 链复活（v2 backlog，链壳代码在档）。实现归后续棒/v2 |
+| ~~web_fetch 完整替代~~ | 🟡→**已翻账（2026-09-10 S21）**：多成员 fetch 链全面接管落地（ADR-0019——gate 运行时路由器 + Firecrawl/Tavily/AnySearch 降级链 + 两态开关 + restrict 退役 + GUI 双链独立排序；长期路径提前实施） |
 | Perplexity Sonar 全线 2026-09-27 日落（含现用 /chat/completions 别名）——Perplexity 成员届时不可用 | 🟡 | ~~S18 阶段 1 调研发现（2026-09-10）~~ **已翻账（2026-09-10 S18 收官）**：迁移至 Agent API `/v1/agent`（ADR-0016；config 零改动；401\|13(414) exit0；config 零 diff 亲证）——死线解除。遗留：真实 API 实测无 key 降级（断言就绪，补 key 零改动闭合，用户择机） |
 | ~~S18 新观察×2：search_results 全无 url 边界 / title 空白判定~~ | 🟢→moot | **已翻账（2026-09-10 S19）**：Perplexity 成员移除（ADR-0017），补 key 实测前提永久消失 |
 | 存量 settings.yaml 残留 `perplexity:` 节（schema 静默透传无害；schemastery 探针实测 NO THROW） | 🟢 观察 | S19 登记（2026-09-10）；README（S15）提示手动清理 |

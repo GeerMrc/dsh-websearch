@@ -4,13 +4,12 @@ import { apply, inject, name } from '../src/index.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 /**
- * S15c takeover unit tests: the plugin's agent/created listener must call
- * tools.restrict({deny:['web_fetch']}) and register a shadow prompt section
- * for every agent when the takeover toggle is ON — and do neither when OFF.
+ * S21 takeover unit tests: the S15c agent/created listener (restrict +
+ * prompt shadow) is RETIRED — web_fetch stays visible and is served by the
+ * plugin fetch chain when ON. Both toggle states must subscribe nothing.
  *
- * The fake ctx below stubs the three host services the listener touches
- * (event bus, tools registry, systemPrompt registry) at the minimum surface
- * the plugin reads.
+ * The fake ctx below stubs the host event bus at the minimum surface the
+ * plugin reads.
  */
 
 interface RestrictCall { readonly deny: readonly string[] }

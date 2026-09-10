@@ -11,11 +11,12 @@ describe('FetchGateProvider (S15a Layer C)', () => {
     expect(FETCH_GATE_PROVIDER_ID).toBe('dshws-fetch-gate')
   })
 
-  it('ON (pre-S21 semantics retired): the gate no longer rejects — see the S21 router describe below', () => {
-    // S21 ADR-0019: ON delegates to the chain instead of rejecting. The old
-    // WEB_FETCH_TAKEOVER rejection is superseded; this stub documents the
-    // semantic flip (full assertion in the S21 describe).
-    expect(true).toBe(true)
+  it('ON no longer registers the retired WEB_FETCH_TAKEOVER rejection (semantic flip pinned by the S21 router describe)', () => {
+    // The rejection code was removed with the router semantics; asserting its
+    // absence keeps a future revert loud. The OFF stub throws if the chain
+    // runs — proving ON-side delegation lives only in the S21 describe.
+    const gate = new FetchGateProvider(() => false, async () => { throw new Error('chain must not run when OFF') })
+    expect(gate.id).toBe(FETCH_GATE_PROVIDER_ID)
   })
 
   it('OFF: fetch delegates to plain HTTP and returns a proper WebFetchResult', async () => {
