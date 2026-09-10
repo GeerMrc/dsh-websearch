@@ -26,10 +26,6 @@ import { WebError } from '@deepseek-ai/dsh-web'
 /** Stable id this provider registers under; the plugin patch pins `fetchProvider` here. */
 export const FETCH_GATE_PROVIDER_ID = 'dshws-fetch-gate'
 
-/** The guidance the model sees when the takeover is ON. */
-const TAKEOVER_MESSAGE =
-  'web_fetch is taken over by dsh-websearch — use the web_search tool instead (multi-tool, multi-key, fallback chain).'
-
 /** Cap the delegated body, matching the official provider's default budget. */
 const MAX_DELEGATED_CHARS = 200_000
 
@@ -106,13 +102,22 @@ function isPublicAddress(address: string): boolean {
 }
 
 /**
- * The gateway provider. `takeoverActive` is read per call so the settings
- * toggle is hot on the next web_fetch invocation.
+ * The gateway provider, S21 a runtime ROUTER: ON delegates to the plugin's
+ * internal fetch chain (Firecrawl → Tavily → AnySearch degradation); OFF
+ * falls through to the built-in http fetch below — an official-behavior
+ * equivalent stand-in (redirect:'error', 200k cap, binary refusal, the same
+ * SSRF checks), because the pinned patch means the official provider instance
+ * is never selected. `takeoverActive` is read per call so the settings toggle
+ * is hot on the next web_fetch invocation.
  */
 export class FetchGateProvider implements WebFetchProvider {
   readonly id = FETCH_GATE_PROVIDER_ID
 
-  constructor(private readonly isTakeoverActive: () => boolean) {}
+  constructor(
+    private readonly isTakeoverActive: () => boolean,
+    /** Lazy chain resolution (S21): the chain is built after this gate registers; the thunk decouples construction order. */
+    private readonly chainFetch: (request: WebFetchRequest, signal?: AbortSignal) => Promise<WebFetchResult>,
+  ) {}
 
   /** Always true: the pin guarantees selection, so availability is ours to own (review M2). */
   available(): boolean {
@@ -121,7 +126,7 @@ export class FetchGateProvider implements WebFetchProvider {
 
   async fetch(request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
     if (this.isTakeoverActive()) {
-      throw new WebError(TAKEOVER_MESSAGE, 'WEB_FETCH_TAKEOVER')
+      return await this.chainFetch(request, signal)
     }
     return await delegateFetch(request, signal)
   }

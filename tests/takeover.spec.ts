@@ -63,25 +63,18 @@ function takeoverCtx(): { ctx: Context; agents: AgentCall[]; createAgent: () => 
   return { ctx: c as unknown as Context, agents, createAgent }
 }
 
-describe('S15c takeover: tools.restrict on agent/created', () => {
-  it('takeover ON (default): every new agent gets web_fetch denied and prompt shadowed', async () => {
+describe('S21 takeover semantics: restrict listener retired (ADR-0019)', () => {
+  it('S21: no agent/created subscription exists — web_fetch stays visible and is served by the chain when ON', async () => {
     const { ctx, agents, createAgent } = takeoverCtx()
     apply(ctx, {})
     await flushGate()
 
-    // Simulate two agents being created
+    // S15c's restrict/prompt-shadow listener is RETIRED (ADR-0019): agents
+    // get no deny and no shadow section; the gate serves web_fetch instead.
     createAgent()
-    createAgent()
-
-    expect(agents).toHaveLength(2)
-    for (const agent of agents) {
-      expect(agent.restrictCalls).toHaveLength(1)
-      expect(agent.restrictCalls[0]!.deny).toContain('web_fetch')
-      expect(agent.sectionCalls).toHaveLength(1)
-      expect(agent.sectionCalls[0]!.name).toBe('tool:web_fetch')
-      expect(agent.sectionCalls[0]!.text).toBe('')
-      expect(agent.sectionCalls[0]!.order).toBe(2100)
-    }
+    expect(agents).toHaveLength(1)
+    expect(agents[0]!.restrictCalls).toHaveLength(0)
+    expect(agents[0]!.sectionCalls).toHaveLength(0)
   })
 
   it('takeover OFF: no restrict call, no prompt shadow', async () => {

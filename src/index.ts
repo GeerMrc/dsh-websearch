@@ -22,9 +22,9 @@ import type {} from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import type { WebSearchProvider } from '@deepseek-ai/dsh-web'
+import type { WebFetchProvider, WebSearchProvider } from '@deepseek-ai/dsh-web'
 import type {} from '@deepseek-ai/dsh-web'
-import { ChainSearchProvider, MemberRegistry } from './chain/core.ts'
+import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain/core.ts'
 import { createChainFileLog } from './chain-log.ts'
 import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
@@ -98,6 +98,11 @@ type MemberKey = 'tavily' | 'exa' | 'firecrawl' | 'deepseek' | 'anysearch'
  * seam's registration effects (including the gate's event subscription and
  * the settings section).
  */
+/** Defensive: the gate's chain thunk ran before the chain was assigned — cannot happen (registration order), but a loud beat beats a silent undefined. */
+function throwMissingChain(): never {
+  throw new Error('dsh-websearch: fetch chain not constructed before first gated call')
+}
+
 export function apply(ctx: Context, config: Config): void {
   const live = new LiveResolvedConfig(config)
   const resolved = resolveConfig(config)
@@ -134,25 +139,19 @@ export function apply(ctx: Context, config: Config): void {
 
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
-  // S15c (user ruling "complete takeover, zero errors"): hide web_fetch from
-  // every agent's tool list through the OFFICIAL tools.restrict() API — the
-  // same mechanism the subagent system uses to control tool visibility
-  // (child-agent.ts:217 precedent). Combined with a scoped same-name empty
-  // system-prompt section that shadows tool-web's guidance text, the model
-  // never sees web_fetch at all: no schema, no prompt mention, no execution,
-  // no errors. Works for every preset (standard/PTC/creative/minimal/custom).
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
-  ctx.web.registerFetchProvider(new FetchGateProvider(fetchTakeoverActive))
-  ctx.on('agent/created', ({ agent }) => {
-    if (!fetchTakeoverActive()) return
-    // The named tool vanishes from the agent's tool list AND refuses
-    // execution — one call covers both (tools/index.ts restrict semantics).
-    agent.ctx.tools.restrict({ deny: ['web_fetch'] })
-    // Shadow tool-web's `tool:web_fetch` guidance section with an empty
-    // text; renderPrompt drops zero-length sections, so the model reads
-    // nothing about web_fetch (system-prompt scoped shadowing semantics).
-    agent.ctx.systemPrompt.section({ name: 'tool:web_fetch', order: 2100, text: '' })
-  })
+  // S21 (ADR-0019): the gate is a runtime ROUTER — the chain instance lands
+  // here through a lazy thunk so registration order stays put (the chain is
+  // constructed after the pools/members below). ON delegates to the chain,
+  // OFF falls through to the gate's built-in http fetch (official-behavior
+  // equivalent stand-in — the pinned patch means the official provider
+  // instance is never selected). The S15c restrict/prompt-shadow listener is
+  // RETIRED: web_fetch stays visible and is served by the chain when ON.
+  let fetchChainInstance: WebFetchProvider | undefined
+  ctx.web.registerFetchProvider(new FetchGateProvider(
+    fetchTakeoverActive,
+    (request, signal) => (fetchChainInstance ?? throwMissingChain()).fetch(request, signal),
+  ))
 
   // S15b (user ruling): gate-only takeover — no preset copies, no default
   // switching. The settings inject exists solely for the ONE-TIME migration:
@@ -309,15 +308,16 @@ export function apply(ctx: Context, config: Config): void {
   const anysearch = new AnysearchSearchProvider(
     hotMemberOptions(() => resolveAnysearchMemberOptions(live.current().anysearch, () => traced.anysearch.resolveApiKey())),
   )
+  const tavily = new TavilySearchProvider(
+    hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey(), fanoutOf())),
+  )
   const members: readonly {
     provider: WebSearchProvider
     memberKey: MemberKey
     pool: KeyPool
   }[] = [
     {
-      provider: new TavilySearchProvider(
-        hotMemberOptions(() => resolveTavilyMemberOptions(live.current().tavily, () => traced.tavily.resolveApiKey(), fanoutOf())),
-      ),
+      provider: tavily,
       memberKey: 'tavily',
       pool: pools.tavily,
     },
@@ -346,8 +346,27 @@ export function apply(ctx: Context, config: Config): void {
     ctx.web.registerSearchProvider(provider)
     searchMembers.register(provider, gates(memberKey, pool))
   }
-  // S14z: the firecrawl scrape face is retired with the fetch chain — the
-  // instance below still serves its SEARCH face through the search registry.
+
+  // S21 (ADR-0019): the fetch-capable members join the INTERNAL fetch
+  // registry — same pools and enabled gates as their search faces (member
+  // toggles are cross-chain by design; only the orders are independent). The
+  // chain instance feeds the gate's lazy thunk registered above.
+  const fetchMembers = new MemberRegistry<WebFetchProvider>()
+  for (const member of [firecrawl, tavily, anysearch] as const) {
+    const key = member.id.replace('dshws-', '') as MemberKey
+    fetchMembers.register(member, gates(key, pools[key]))
+  }
+  const fetchChain = new ChainFetchProvider({
+    members: fetchMembers.toResolver(),
+    get order() {
+      return [...live.current().fetchChain]
+    },
+    get perMemberTimeoutMs() {
+      return live.current().perMemberTimeoutMs
+    },
+    log,
+  })
+  fetchChainInstance = fetchChain
 
   // Hot settings section when the host has a settings service; no-op
   // (entry config authoritative) otherwise. A committed change re-primes the

@@ -5,21 +5,17 @@ afterEach(() => { vi.unstubAllGlobals() })
 
 describe('FetchGateProvider (S15a Layer C)', () => {
   it('is always available under the pinned id — the seam selects it unconditionally', () => {
-    const gate = new FetchGateProvider(() => true)
+    const gate = new FetchGateProvider(() => true, async () => { throw new Error('chain must not run here') })
     expect(gate.id).toBe(FETCH_GATE_PROVIDER_ID)
     expect(gate.available()).toBe(true)
     expect(FETCH_GATE_PROVIDER_ID).toBe('dshws-fetch-gate')
   })
 
-  it('ON: fetch rejects with guidance naming web_search (review M2 pin)', async () => {
-    const gate = new FetchGateProvider(() => true)
-    const caught = await gate.fetch({ url: 'https://example.com' }).then(
-      () => null,
-      (error: unknown) => error as { code: string; message: string },
-    )
-    expect(caught).not.toBeNull()
-    expect(caught!.code).toBe('WEB_FETCH_TAKEOVER')
-    expect(caught!.message).toContain('web_search')
+  it('ON (pre-S21 semantics retired): the gate no longer rejects — see the S21 router describe below', () => {
+    // S21 ADR-0019: ON delegates to the chain instead of rejecting. The old
+    // WEB_FETCH_TAKEOVER rejection is superseded; this stub documents the
+    // semantic flip (full assertion in the S21 describe).
+    expect(true).toBe(true)
   })
 
   it('OFF: fetch delegates to plain HTTP and returns a proper WebFetchResult', async () => {
@@ -27,7 +23,7 @@ describe('FetchGateProvider (S15a Layer C)', () => {
       status: 200,
       headers: { 'content-type': 'text/html' },
     })))
-    const gate = new FetchGateProvider(() => false)
+    const gate = new FetchGateProvider(() => false, async () => { throw new Error('chain must not run when OFF') })
     const result = await gate.fetch({ url: 'https://8.8.8.8/page' })
     expect(result.statusCode).toBe(200)
     expect(result.body.kind).toBe('html')
@@ -36,7 +32,7 @@ describe('FetchGateProvider (S15a Layer C)', () => {
   })
 
   it('OFF: a non-public hostname is rejected (SSRF guard, review Y-2)', async () => {
-    const gate = new FetchGateProvider(() => false)
+    const gate = new FetchGateProvider(() => false, async () => { throw new Error('chain must not run when OFF') })
     const caught = await gate.fetch({ url: 'http://192.168.1.1/admin' }).then(
       () => null,
       (error: unknown) => error as { code: string },
@@ -50,7 +46,7 @@ describe('FetchGateProvider (S15a Layer C)', () => {
       status: 200,
       headers: { 'content-type': 'application/octet-stream' },
     })))
-    const gate = new FetchGateProvider(() => false)
+    const gate = new FetchGateProvider(() => false, async () => { throw new Error('chain must not run when OFF') })
     const caught = await gate.fetch({ url: 'https://8.8.8.8/file.bin' }).then(
       () => null,
       (error: unknown) => error as { code: string },
@@ -64,9 +60,34 @@ describe('FetchGateProvider (S15a Layer C)', () => {
       status: 200,
       headers: { 'content-type': 'text/plain' },
     })))
-    const gate = new FetchGateProvider(() => false)
+    const gate = new FetchGateProvider(() => false, async () => { throw new Error('chain must not run when OFF') })
     const result = await gate.fetch({ url: 'https://8.8.8.8/big' })
     expect(result.truncated).toBe(true)
     expect(result.body.content.length).toBe(200_000)
   })
 })
+describe('S21 T5: gate as runtime router (chain service / http fallback)', () => {
+  it('ON delegates to the injected chain (no takeover error)', async () => {
+    const chainFetch = vi.fn(async () => ({
+      url: 'https://a.test', statusCode: 200, body: { kind: 'text' as const, content: 'chain markdown' }, truncated: false,
+    }))
+    const gate = new FetchGateProvider(() => true, chainFetch)
+    const result = await gate.fetch({ url: 'https://a.test' })
+    expect(chainFetch).toHaveBeenCalledOnce()
+    expect(result.body).toEqual({ kind: 'text', content: 'chain markdown' })
+  })
+
+  it('OFF falls through to the built-in http fetch (chain untouched)', async () => {
+    const chainFetch = vi.fn()
+    const gate = new FetchGateProvider(() => false, chainFetch)
+    // A numeric public IP skips DNS entirely (the file's established pattern —
+    // the resolver on this host lands on the fake-ip range, S14v evidence).
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>ok</html>', {
+      status: 200, headers: { 'content-type': 'text/html' },
+    })))
+    const result = await gate.fetch({ url: 'https://8.8.8.8/page' })
+    expect(chainFetch).not.toHaveBeenCalled()
+    expect(result.body.kind).toBe('html')
+  })
+})
+
