@@ -36,4 +36,4 @@ accepted（2026-09-10，plan 017 阶段 2 两轮审核 APPROVED + 2.5 默认批�
 
 - 正面：单一写入点（用户产品裁定口径）；Firecrawl US 偏差修复对全部 ISO 码成员一次生效；热化（T1 机制）使全局入口下一次搜索即生效。
 - 负面/接受：Tavily 区域定向 v1 缺席（语言仍在）；两字段均为自由文本（GUI placeholder 示范格式，未做码表校验——错误码值由各 API 以 4xx 拒绝、走既有 HTTP_ERROR 降级链，fail-loud）。
-- 关联：成员 options 热化统一（plan 017 D1）；Perplexity Agent API 迁移（S18）时 `user_location` 同名保留、`search_language_filter` 官方列为无对应物（drop 清单）——本入口的 language 面在迁移后仅剩 Tavily。
+- 关联：〔勘注 2026-09-10，ADR-0017〕Perplexity 成员已依准入标准移除——fan-out 语言面剩 Tavily 一家、region 面剩 Exa/Firecrawl；S18 迁移语义见 ADR-0016（superseded 历史档）。

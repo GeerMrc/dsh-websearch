@@ -5,7 +5,7 @@
 
 ## 1. 项目定位
 
-`dsh-websearch` 是 deepseek-harness（`dsh`）的**外挂式统一 WebSearch 管理插件**：在不修改上游任何代码的前提下，把多搜索 provider（Tavily / Firecrawl / Exa / Perplexity / DeepSeek）收编进一个标准插件，提供用户可配置的优先级链与完整高可用降级，并在 Web 设置页提供统一管理 GUI（每 provider API key + 启停 + 排序）。
+`dsh-websearch` 是 deepseek-harness（`dsh`）的**外挂式统一 WebSearch 管理插件**：在不修改上游任何代码的前提下，把多搜索 provider（Tavily / Firecrawl / Exa / DeepSeek；准入标准 = 高可用 + 免费额度 + 多 key + 对齐上游，ADR-0017）收编进一个标准插件，提供用户可配置的优先级链与完整高可用降级，并在 Web 设置页提供统一管理 GUI（每 provider API key + 启停 + 排序）。
 
 要解决的上游现状（2026-09-02 实测证据，deepseek-harness 仓库）：
 
@@ -47,7 +47,7 @@ dsh-websearch/
 │   │   ├── tavily.ts           # dshws-tavily（POST /search）
 │   │   ├── firecrawl.ts        # dshws-firecrawl（v2 search + scrape，单类双接口，同 key）
 │   │   ├── exa.ts              # dshws-exa（POST {baseURL}/search）
-│   │   └── perplexity.ts       # dshws-perplexity（OpenAI 兼容 chat-completions, sonar）
+│   │   └── anysearch.ts        # dshws-anysearch（信封规格 HTTP，zone cn/intl）
 │   ├── credentials.ts          # 凭据 gate：describe 缓存 + credentials/reference-updated 刷新（未 describe = 未就绪）
 │   └── settings.ts             # LiveResolvedConfig + installSection：链序/超时/启停热改
 ├── client/                     # client 半区（设置页）
@@ -81,14 +81,13 @@ Config（schemastery，全部字段带 JSDoc；部署差异经 cordis.yml，用�
 ```text
 dsh-websearch:
   searchChain:        string[]   # search 优先级链（成员 id；空 = 内置默认序
-                                 #   tavily → exa → perplexity → firecrawl → deepseek，ADR-0004）
+                                 #   tavily → exa → firecrawl → anysearch，ADR-0004；S19 起 4 成员）
   fetchChain:         string[]   # fetch 优先级链（GUI v1 只读展示，YAML 调整）
   perMemberTimeoutMs: number     # 链内每成员超时预算，默认 30000（ADR-0002）
   deepseek:   { enabled, apiKeyEnv='DEEPSEEK_API_KEY', baseURL, model, maxTokens }
   tavily:     { enabled, apiKeyEnv='TAVILY_API_KEY',   baseURL, maxResults }
   firecrawl:  { enabled, apiKeyEnv='FIRECRAWL_API_KEY', baseURL }
   exa:        { enabled, apiKeyEnv='EXA_API_KEY',      baseURL, numResults }
-  perplexity: { enabled, apiKeyEnv='PERPLEXITY_API_KEY', baseURL, model }
 ```
 
 错误码规范（稳定 string code，前缀 `DSHWS_`）：链级 `DSHWS_CHAIN_EXHAUSTED`（全成员耗尽，附逐成员摘要）、`DSHWS_NO_MEMBER_CONFIGURED`（链上无任何可用成员）、`DSHWS_MEMBER_TIMEOUT`（链级日志码，成员超时降级时记录）；成员级由各 provider 自带码（`DSHWS_DEEPSEEK_*`/`DSHWS_TAVILY_*`/…，S03 定义清单落 `src/errors.ts`）。
