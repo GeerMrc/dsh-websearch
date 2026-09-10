@@ -81,12 +81,13 @@
 | 15c | 2026-09-09 | web_fetch 彻底隐藏 via 官方 tools.restrict() API（终版） | ✅ | docs/sessions/2026-09-09-session-15c.md（reconstructed 2026-09-10）；实测：标准模式新会话模型确认"没有 web_fetch"、零报错零引导、仅调 web_search；354\|9(363) | 官方 API 零维护开销；对全部预设/模式自动生效 |
 | 16-p0 | 2026-09-10 | API 对齐 P0 修复级：Exa highlights 迁移 + Firecrawl timeout + 6 UA 统一 + web_fetch 债务标记 | ✅ | docs/sessions/2026-09-10-session-16p0.md（reconstructed 2026-09-10）；master d996d3d；357\|9(366) exit0；**lint 实为 3w（S17 阶段 0 勘正，T0 清偿）** | web_fetch 🟡 登记；P1 为下一棒（roadmap S17 ⏳） |
 | 17 | 2026-09-10 | P1 高价值参数批（14 参数全链路 + 成员 options 热化统一 + 通用语言/区域入口 ADR-0015） | ✅ | docs/sessions/2026-09-10-session-17.md；0.3.0；全量 **399\|13(412) exit0**；浏览器全要素亲见 + firecrawl tbs 真实通过（2160ms）；阶段 4 R1-R6 PASS / 阶段 5 COMPLETE | 阶段 0 🟡×4 T0 清偿 + web_fetch 评估收口；🟡 Perplexity Sonar 日落→S18；Tavily/Exa/Perplexity 真实参数实测无 key 归用户择机 |
+| 18 | 2026-09-10 | Perplexity Agent API 迁移（Sonar 日落应对，2026-09-27 前） | 🚧 | plan docs/plans/2026-09-10-018-s18-perplexity-agent-api-plan.md（阶段 2 两轮 APPROVED）+ audit-log 阶段 0/2；分支 feat/s18-perplexity-agent-api | 阶段 0 🟡：凭据池无 PERPLEXITY key（2.5 默认=降级验收）+ Sonar 日落（本棒主体） |
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 17 ✅ 2026-09-10 收官——P1 高价值参数批 0.3.0 + 阶段 0 🟡×4 清偿；下一棒 = **S18 Perplexity Agent API 迁移（2026-09-27 日落前，紧迫）**）
+- **当前 session**: Session 18 🚧（Perplexity Agent API 迁移——阶段 0 PASS〔🟡：无 PERPLEXITY key→2.5 默认降级验收〕+ plan 018 阶段 2 两轮 APPROVED + 2.5 默认批准披露；分支 feat/s18-perplexity-agent-api）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 17 — 记录：docs/sessions/2026-09-10-session-17.md
-- **下一棒**: S18 Perplexity Agent API 迁移（roadmap ⏳ 行，**2026-09-27 前**；S17 已按同名可迁移形态设计，config 面零改动）→ S15 README 手册 → S16 上游验收准备
+- **下一棒**: 本棒（S18 迁移，2026-09-27 前）→ S15 README 手册 → S16 上游验收准备
 - **活跃债务**: 🔴×0 🟡×2（web_fetch 完整替代〔**评估已完成**：短期开关已可用/中期 Firecrawl 单成员/长期多工具链 v2——实现归后续〕+ **Perplexity Sonar 2026-09-27 日落〔S18 迁移棒〕**）🟢 池维持 + L-2 + 观察（badge 超长 id/fetchChain 对称注记/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/**新类型 re-export〔S17 登记〕**）+ v2 backlog——正本：progress-M7 台账（S17 T0 补账 + 评估收口）
 - **更新时间**: 2026-09-10（S17 阶段 6 收尾）
