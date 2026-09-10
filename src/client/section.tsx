@@ -314,6 +314,14 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   const showChains = snapshot.members.some((m) => m.configured)
   // S22b: verbose-config fold, default collapsed (user ruling).
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  // S23 D9: the fold's staged drafts live HERE so they survive folding, and
+  // any pending entry lights the disclosure's unsaved pill.
+  const [advancedDrafts, setAdvancedDrafts] = useState<Record<string, string | null>>({})
+  const setAdvancedDraft = (key: string, value: string | null): void => {
+    setAdvancedDrafts((previous) => ({ ...previous, [key]: value }))
+  }
+  const advancedDirty = Object.values(advancedDrafts).some((value) => value !== null)
+  const liftedOf = (key: string) => ({ draft: advancedDrafts[key] ?? null, onDraftChange: (value: string | null) => setAdvancedDraft(key, value) })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 720 }}>
@@ -476,6 +484,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: 'var(--dsw-alias-label-secondary)', font: 'inherit', fontSize: 12, fontWeight: 500, textAlign: 'left', cursor: 'pointer', padding: 0 }}
           >
             {t('advancedConfigLabel')}
+            {advancedDirty ? <UnsavedPill t={t} testid="dshws-unsaved-advanced" /> : null}
             {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
             <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
               <IconChevronDownOutline14 />
@@ -486,9 +495,9 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
               <p style={hintStyle}>
                 {t('timeout')}: {snapshot.timeoutMs} ms
               </p>
-              <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} />
-              <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} />
-              <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} />
+              <MaxUsesRow t={t} value={snapshot.deepseekMaxUses} onSet={onSetMaxUses} lifted={liftedOf('maxUses')} />
+              <SearchGeoFields t={t} country={snapshot.searchCountry} language={snapshot.searchLanguage} onSetCountry={onSetSearchCountry} onSetLanguage={onSetSearchLanguage} lifted={{ country: liftedOf('country'), language: liftedOf('language') }} />
+              <SearchDomainFields t={t} includeDomains={snapshot.searchIncludeDomains} excludeDomains={snapshot.searchExcludeDomains} onSet={onSetSearchDomains} lifted={{ include: liftedOf('domain-include'), exclude: liftedOf('domain-exclude') }} />
             </>
           ) : null}
           {chainFeedback ? <p style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }} data-testid="dshws-chain-feedback">{t(chainFeedback)}</p> : null}
@@ -527,9 +536,14 @@ function MaxUsesRow(props: {
   t: (key: DshWsLocaleKey) => string
   value: number | undefined
   onSet: (maxUses: number) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, value, onSet } = props
-  const [draft, setDraft] = useState('')
+  const { t, value, onSet, lifted } = props
+  const [liftedDraft, setLiftedDraft] = useLiftedDraft(lifted)
+  // The knob's own semantics are string-draft based ('' = shows the stored
+  // value); a lifted null maps onto the same '' steady state.
+  const draft = liftedDraft ?? ''
+  const setDraft = (next: string): void => { setLiftedDraft(next === '' && lifted !== undefined ? null : next) }
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
@@ -866,6 +880,38 @@ function FetchChainRows(props: {
   )
 }
 
+
+/**
+ * S23 D9 (plan §0.5 B2 path a): a staged field can run on LIFTED draft state
+ * so the draft survives the card/fold unmounting around it; `lifted === undefined`
+ * keeps the component self-contained (local state, previous behavior).
+ */
+function useLiftedDraft(lifted: { draft: string | null, onDraftChange: (value: string | null) => void } | undefined): readonly [string | null, (value: string | null) => void] {
+  const [local, setLocal] = useState<string | null>(null)
+  if (lifted === undefined) return [local, setLocal] as const
+  return [lifted.draft, lifted.onDraftChange] as const
+}
+
+/** S23 D9: the host's header-carried pending pill (PluginCard.module.css .pending). */
+const unsavedPillStyle = {
+  flex: 'none',
+  borderRadius: 999,
+  padding: '1px 8px',
+  fontSize: 11,
+  lineHeight: '17px',
+  fontWeight: 500,
+  whiteSpace: 'nowrap',
+  background: 'var(--dsw-alias-bg-module-platform)',
+  color: 'var(--dsw-alias-label-secondary)',
+} as const
+
+function UnsavedPill(props: { t: (key: DshWsLocaleKey) => string, testid: string }) {
+  return <span data-testid={props.testid} style={unsavedPillStyle}>{props.t('unsavedPending')}</span>
+}
+
+/**
+ * S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block).
+ */
 /** Per-member endpoint override (S14k): staged text input mirroring the
  * official「接口地址」field — empty means the provider default; the saved value
  * applies to the next search (hot since S17 D1, noted beside the field). */
@@ -873,9 +919,10 @@ function MemberEndpointField(props: {
   member: MemberSnapshot
   t: (key: DshWsLocaleKey) => string
   onSet: (memberKey: string, baseURL: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { member, t, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { member, t, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1022,9 +1069,10 @@ function MemberParamField(props: {
   control: MemberParamControl
   t: (key: DshWsLocaleKey) => string
   onSet: SectionProps['onSetMemberOption']
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { member, control, t, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { member, control, t, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1139,12 +1187,13 @@ function SearchGeoFields(props: {
   language: string | undefined
   onSetCountry: (country: string) => Promise<ActionResult>
   onSetLanguage: (language: string) => Promise<ActionResult>
+  lifted?: Record<'country' | 'language', { draft: string | null, onDraftChange: (value: string | null) => void }>
 }) {
-  const { t, country, language, onSetCountry, onSetLanguage } = props
+  const { t, country, language, onSetCountry, onSetLanguage, lifted } = props
   return (
     <div data-testid="dshws-search-geo" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <GeoField t={t} testid="dshws-search-country" labelKey="searchCountryLabel" noteKey="searchCountryNote" placeholder="CN" value={country} onSet={onSetCountry} />
-      <GeoField t={t} testid="dshws-search-language" labelKey="searchLanguageLabel" noteKey="searchLanguageNote" placeholder="zh" value={language} onSet={onSetLanguage} />
+      <GeoField t={t} testid="dshws-search-country" labelKey="searchCountryLabel" noteKey="searchCountryNote" placeholder="CN" value={country} onSet={onSetCountry} lifted={lifted?.country} />
+      <GeoField t={t} testid="dshws-search-language" labelKey="searchLanguageLabel" noteKey="searchLanguageNote" placeholder="zh" value={language} onSet={onSetLanguage} lifted={lifted?.language} />
     </div>
   )
 }
@@ -1155,12 +1204,13 @@ function SearchDomainFields(props: {
   includeDomains: string | undefined
   excludeDomains: string | undefined
   onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+  lifted?: Record<'include' | 'exclude', { draft: string | null, onDraftChange: (value: string | null) => void }>
 }) {
-  const { t, includeDomains, excludeDomains, onSet } = props
+  const { t, includeDomains, excludeDomains, onSet, lifted } = props
   return (
     <div data-testid="dshws-search-domains" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <DomainField t={t} kind="include" value={includeDomains} onSet={onSet} />
-      <DomainField t={t} kind="exclude" value={excludeDomains} onSet={onSet} />
+      <DomainField t={t} kind="include" value={includeDomains} onSet={onSet} lifted={lifted?.include} />
+      <DomainField t={t} kind="exclude" value={excludeDomains} onSet={onSet} lifted={lifted?.exclude} />
     </div>
   )
 }
@@ -1170,9 +1220,10 @@ function DomainField(props: {
   kind: 'include' | 'exclude'
   value: string | undefined
   onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, kind, value, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { t, kind, value, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1232,9 +1283,10 @@ function GeoField(props: {
   placeholder: string
   value: string | undefined
   onSet: (value: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, testid, labelKey, noteKey, placeholder, value, onSet } = props
-  const [draft, setDraft] = useState<string | null>(null)
+  const { t, testid, labelKey, noteKey, placeholder, value, onSet, lifted } = props
+  const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
@@ -1331,6 +1383,14 @@ function MemberCard(props: {
   // S14c (user ruling): cards default COLLAPSED — the header row (status, name,
   // switch) is the steady state; the key/pool surface opens on demand.
   const [open, setOpen] = useState(false)
+  // S23 D9 (plan §0.5 B2 path a): lifted staged drafts for the endpoint and
+  // parameter fields — they survive the card folding around them, and any
+  // non-null entry lights the header's unsaved pill.
+  const [liftedDrafts, setLiftedDrafts] = useState<Record<string, string | null>>({})
+  const setLiftedDraft = (key: string, value: string | null): void => {
+    setLiftedDrafts((previous) => ({ ...previous, [key]: value }))
+  }
+  const hasUnsavedDraft = draft !== '' || Object.values(liftedDrafts).some((value) => value !== null)
 
   return (
     <div data-testid={`dshws-member-${member.key}`} data-dshws-card="" data-open={open} style={cardStyle}>
@@ -1350,6 +1410,7 @@ function MemberCard(props: {
         >
           <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
           <strong style={nameStyle}>{member.label}</strong>
+          {hasUnsavedDraft ? <UnsavedPill t={t} testid={`dshws-unsaved-${member.key}`} /> : null}
           <span style={{ flex: 1 }} />
           {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
           <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
@@ -1438,9 +1499,9 @@ function MemberCard(props: {
       </div>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —
       parity here. Empty = provider default; hot since S17 D1 (note inline). */}
-      <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} />
+      <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} lifted={{ draft: liftedDrafts.endpoint ?? null, onDraftChange: (value) => setLiftedDraft('endpoint', value) }} />
       {(MEMBER_PARAM_CONTROLS[member.key] ?? []).map((control) => (
-        <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} />
+        <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} lifted={{ draft: liftedDrafts[control.option] ?? null, onDraftChange: (value) => setLiftedDraft(control.option, value) }} />
       ))}
       {/* S23 D10: the footer separates from the field stack (host .footer border-top). */}
       <div data-dshws-card-body="" style={footerStyle}>

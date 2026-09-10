@@ -1093,6 +1093,33 @@ describe('S21 T6: fetch chain GUI', () => {
     await waitFor(() => expect(onMoveFetch).toHaveBeenCalledWith('dshws-tavily', -1))
   })
 
+  it('S23 T6: a staged draft survives folding and shows the unsaved pill on the member header', async () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expand('tavily')
+    const endpoint = screen.getByTestId('dshws-endpoint-tavily') as HTMLInputElement
+    fireEvent.change(endpoint, { target: { value: 'https://proxy.test' } })
+    fireEvent.click(screen.getByRole('button', { name: `Tavily ${en.endpointLabel} ${en.save}` }))
+    await waitFor(() => expect(screen.getByTestId('dshws-endpoint-feedback-tavily').textContent).toBe(en.saved))
+    // stage a NEW draft, then fold — the draft must survive and the header must say unsaved.
+    fireEvent.change(endpoint, { target: { value: 'https://proxy2.test' } })
+    expand('tavily')
+    expect(screen.getByTestId('dshws-unsaved-tavily').textContent).toBe(en.unsavedPending)
+    expand('tavily')
+    expect((screen.getByTestId('dshws-endpoint-tavily') as HTMLInputElement).value).toBe('https://proxy2.test')
+  })
+
+  it('S23 T6: advanced-fold drafts survive folding with the unsaved pill on the disclosure', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
+    const country = screen.getByTestId('dshws-search-country') as HTMLInputElement
+    fireEvent.change(country, { target: { value: 'CN' } })
+    // fold without saving — the pill appears and the draft survives the fold.
+    openAdvanced()
+    expect(screen.getByTestId('dshws-unsaved-advanced').textContent).toBe(en.unsavedPending)
+    openAdvanced()
+    expect((screen.getByTestId('dshws-search-country') as HTMLInputElement).value).toBe('CN')
+  })
+
   it('S23 T1: failure feedback uses the defined error token; no hardcoded fallback colors (D4)', async () => {
     const onSetMaxUses = vi.fn(async () => ({ ok: false }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMaxUses })} t={t} />)
