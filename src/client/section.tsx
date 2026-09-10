@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button, IconQuestionOutline14, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, IconChevronDownOutline14, IconQuestionOutline14, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
@@ -450,7 +450,10 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: 'var(--dsw-alias-label-secondary)', font: 'inherit', fontSize: 12, fontWeight: 500, textAlign: 'left', cursor: 'pointer', padding: 0 }}
           >
             {t('advancedConfigLabel')}
-            <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+            {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
+            <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+              <IconChevronDownOutline14 />
+            </span>
           </button>
           {advancedOpen ? (
             <>
@@ -752,7 +755,10 @@ function FetchTakeoverRow(props: {
             </button>
           </Tooltip>
           <span style={{ flex: 1 }} />
-          <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+          {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
+          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+            <IconChevronDownOutline14 />
+          </span>
         </button>
         <button
           type="button"
@@ -1311,7 +1317,10 @@ function MemberCard(props: {
           <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
           <strong style={nameStyle}>{member.label}</strong>
           <span style={{ flex: 1 }} />
-          <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+          {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
+          <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+            <IconChevronDownOutline14 />
+          </span>
         </button>
         <button
           type="button"
