@@ -47,6 +47,13 @@ interface AssembleOverrides {
   firecrawlAtLoopback?: boolean
   /** Explicit configured-ref set (defaults: the three primaries). */
   configuredRefs?: string[]
+  /** Extra raw member/unified settings merged into the apply config (S22 P3 wire scenarios). */
+  p3Settings?: {
+    tavily?: { startDate?: string, endDate?: string, exactMatch?: boolean }
+    exa?: { textVerbosity?: 'standard' | 'full', includeSections?: string, maxAgeHours?: number, endPublishedDate?: string }
+    firecrawl?: { tbs?: string, safe?: boolean }
+    searchLanguage?: string
+  }
   /** Per-ref credential values (defaults keep 'fake-key' for every ref). */
   values?: Record<string, string>
 }
@@ -69,10 +76,12 @@ async function assemble(
       tavily: {
         baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily`,
         ...(overrides?.tavilyKeySelection !== undefined ? { keySelection: overrides.tavilyKeySelection } : {}),
+        ...(overrides?.p3Settings?.tavily ?? {}),
       },
-      exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}) },
+      exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}), ...(overrides?.p3Settings?.exa ?? {}) },
       ...(overrides?.withAnysearch ? { anysearch: { baseURL: `http://127.0.0.1:${server.port}/anysearch` } } : {}),
-      ...(overrides?.firecrawlAtLoopback ? { firecrawl: { baseURL: `http://127.0.0.1:${server.port}/firecrawl` } } : {}),
+      ...(overrides?.firecrawlAtLoopback ? { firecrawl: { baseURL: `http://127.0.0.1:${server.port}/firecrawl`, ...(overrides?.p3Settings?.firecrawl ?? {}) } } : {}),
+      ...(overrides?.p3Settings?.searchLanguage !== undefined ? { searchLanguage: overrides.p3Settings.searchLanguage } : {}),
       ...(overrides?.deepseekAtLoopback ? { deepseek: { baseURL: `http://127.0.0.1:${server.port}/deepseek` } } : {}),
     })
     const chain = handle.providers.get('dshws-chain') as WebSearchProvider
@@ -515,6 +524,49 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       await server.close()
     }
   })
+  it('S22: P3 parameters reach the wire end-to-end through the assembled plugin (T5 wire 抽验)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/tavily/search': { kind: 'success', body: { results: [{ url: 'https://t.test/a', title: 'A', content: 'ta' }] } },
+      },
+      {
+        p3Settings: {
+          tavily: { startDate: '2026-01-01', endDate: '2026-06-30', exactMatch: true },
+        },
+      },
+    )
+    try {
+      await chain.search({ query: 'exact phrase' })
+      const tavilyBody = server.bodies.find((body) => (body as { start_date?: string } | undefined)?.start_date !== undefined) as Record<string, unknown>
+      expect(tavilyBody.start_date).toBe('2026-01-01')
+      expect(tavilyBody.end_date).toBe('2026-06-30')
+      expect(tavilyBody.exact_match).toBe(true)
+    } finally {
+      await server.close()
+    }
+  })
+
+  it('S22: the unified language reaches AnySearch as zh-CN (BCP-47 mapping end-to-end)', async () => {
+    const { server, chain } = await assemble(
+      {
+        '/anysearch/v1/search': { kind: 'success', body: { code: 0, data: { results: [{ url: 'https://a.test/z', title: 'Z', content: 'zc' }] } } },
+      },
+      {
+        withAnysearch: true,
+        searchChain: ['dshws-anysearch'],
+        configuredRefs: ['ANYSEARCH_API_KEY'],
+        p3Settings: { searchLanguage: 'zh' },
+      },
+    )
+    try {
+      await chain.search({ query: 'q' })
+      const body = server.bodies[0] as Record<string, unknown>
+      expect(body.language).toBe('zh-CN')
+    } finally {
+      await server.close()
+    }
+  })
+
 })
 
   it('S21: web_fetch rides the fetch chain — firecrawl scrape fails, tavily extract serves (降级链端到端)', async () => {

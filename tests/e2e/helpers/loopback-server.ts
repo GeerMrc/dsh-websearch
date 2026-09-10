@@ -38,6 +38,8 @@ export interface LoopbackServer {
   readonly arrivals: readonly string[]
   /** `Authorization` header per request, in arrival order (key-rotation assertions). */
   readonly auths: readonly string[]
+  /** Parsed JSON request body per arrival, `undefined` when none parsed (wire-parameter assertions). */
+  readonly bodies: readonly (unknown | undefined)[]
   close(): Promise<void>
 }
 
@@ -58,6 +60,7 @@ function respond(res: ServerResponse, status: number, body: unknown): void {
 export async function startLoopback(behavior: Record<string, LoopbackBehavior>): Promise<LoopbackServer> {
   const arrivals: string[] = []
   const auths: string[] = []
+  const bodies: (unknown | undefined)[] = []
   const queues = new Map<string, LoopbackBehavior[]>()
   const repeatLastStep = (steps: readonly LoopbackBehavior[]): LoopbackBehavior =>
     steps[steps.length - 1] ?? { kind: 'status', status: 500 }
@@ -74,6 +77,16 @@ export async function startLoopback(behavior: Record<string, LoopbackBehavior>):
   const server: Server = createServer((req: IncomingMessage, res: ServerResponse) => {
     arrivals.push(`${req.method ?? 'GET'} ${req.url ?? '/'}`)
     auths.push(String(req.headers.authorization ?? ''))
+    const chunks: Buffer[] = []
+    req.on('data', (chunk: Buffer) => { chunks.push(chunk) })
+    req.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('utf8')
+      try {
+        bodies.push(raw.length > 0 ? JSON.parse(raw) as unknown : undefined)
+      } catch {
+        bodies.push(undefined)
+      }
+    })
     const action = nextAction(req.url ?? '/')
     if (action === undefined) {
       respond(res, 404, {})
@@ -102,6 +115,7 @@ export async function startLoopback(behavior: Record<string, LoopbackBehavior>):
     port,
     arrivals,
     auths,
+    bodies,
     close: async () => {
       server.closeAllConnections()
       server.close()

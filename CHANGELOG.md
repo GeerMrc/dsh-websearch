@@ -12,6 +12,31 @@
 
 ---
 
+## 2026-09-10 — P3 对齐批 0.7.0 + 全功能一致性深度审核（Session 22，roadmap 重排插行）
+
+**新增（0.6.0 → 0.7.0，参数批 minor）**
+- **Tavily**：`startDate`/`endDate` 发布日期区间（与 timeRange 正交）+ `exactMatch` 精确短语过滤——GUI 双日期输入 + 开关（i18n 126→138 keys）
+- **Exa**：`endPublishedDate` 上限 + `contents.text.verbosity`（standard/full 含计费 ⓘ）+ `includeSections`/`excludeSections`（封闭枚举；**双路守卫**：sections 要求 maxAgeHours=0/-1，settings validate hook 与 resolveConfig 各拒绝一次，-1 边界在测）
+- **Firecrawl**：`tbs` 放宽为官方组合文法（qdr 预设 + `sbd:1` + `cdr:1,cd_min,cd_max`，双路文法守卫，qdr 存量兼容断言）+ `safe` SafeSearch 开关
+- **AnySearch**：统一 `searchLanguage` fan-out 第 4 家（zh→zh-CN 主地区映射、区域码大写归一）；tag/params 垂直面**未实现**（硬规则：无可达 key 做契约探针——P4 边界披露，plan 022 §0）
+- **loopback server** 请求体捕获（bodies）+ 两条 S22 端到端 wire 场景（P3 参数达 wire / zh-CN 映射装配级）
+
+**治理**
+- 阶段 0（独立 Agent）：S21 审核初判 **BLOCKED（🔴×1 阶段 2 audit-log 正本悬空）**→ T0 `719dbfb` reconstructed 补落 + session-21 三处勘正 → PASS；🟡×2 同批清偿
+- 阶段 1：四家独立 Agent 当日官方文档全参数 diff（Tavily/Exa/Firecrawl/AnySearch+DeepSeek）——roadmap 点名项全部核证为真；**勘正 plan 020 §87 AnySearch 契约面结论过时**（Note s17 §8）
+- 阶段 2：初审 NEEDS REVISION（B1 双路守卫遗漏 / B2 AnySearch language 归属）→ 修订 → 复审 APPROVED；正本 = docs/sessions/audit-logs/2026-09-10-s22-stage0-2-audit.md
+- 阶段 2.5：用户批准（session-governance 接管指令原文在 session-22 记录）
+
+**诚实标注（遗留项）**
+- AnySearch tag/params/domain/sub_domain 垂直面未实现（无 key 探针；补 key 后须先探针定形态）
+- Tavily/Exa/Firecrawl 真实 API 实测沿用既有披露（无 key 环境维持 mock 全链路 + loopback）
+- zh-TW 等非默认地区粒度超出统一入口能力（ISO 639-1 存储），Note s17 §8 记录
+
+**跟踪**
+- 终态门墙数字见 session-22 记录收官节；dont-do 无新增（本批无踩坑）
+
+---
+
 ## 2026-09-10 — web_fetch 全模式多链接管 0.6.0（Session 21，用户主计划重排 + ADR-0019；🟡 债务翻账）
 
 **新增（0.5.0 → 0.6.0，功能批 minor）**

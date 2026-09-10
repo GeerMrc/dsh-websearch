@@ -56,7 +56,7 @@ export type ExaSearchType = 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' |
 const codes = MEMBER_ERROR_CODES.exa
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.6.0'
+const USER_AGENT = 'dsh-websearch/0.7.0'
 
 /**
  * Normalize a stored publication-date floor to the ISO date-time form the API
