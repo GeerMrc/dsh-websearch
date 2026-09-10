@@ -191,7 +191,7 @@ const sourceStyle = { display: 'flex', flexDirection: 'column', gap: 2 } as cons
 const urlStyle = { fontSize: 11, opacity: 0.6 } as const
 const snippetStyle = { fontSize: 12, opacity: 0.8 } as const
 const noteStyle = { fontSize: 12, opacity: 0.7 } as const
-const errorStyle = { color: 'var(--dsw-alias-danger, #f87171)', fontSize: 12 } as const
+const errorStyle = { color: 'var(--dsw-alias-state-error-primary)', fontSize: 12 } as const
 const preStyle = { margin: 0, fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: 0.8 } as const
 
 /** The self-drawn web_search tool row served by the `tool.call.toolview` takeover. */

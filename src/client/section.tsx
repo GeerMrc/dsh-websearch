@@ -471,7 +471,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             {t('advancedConfigLabel')}
             {advancedDirty ? <UnsavedPill t={t} testid="dshws-unsaved-advanced" /> : null}
             {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
-            <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+            <span aria-hidden="true" data-dshws-chevron="" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
               <IconChevronDownOutline14 />
             </span>
           </button>

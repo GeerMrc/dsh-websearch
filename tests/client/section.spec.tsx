@@ -1094,6 +1094,21 @@ describe('S21 T6: fetch chain GUI', () => {
     await waitFor(() => expect(onMoveFetch).toHaveBeenCalledWith('dshws-tavily', -1))
   })
 
+  it('S23 stage-4 #2: the injected style block mounts with the pseudo-class rule set (D2/D3/D10/D16/D17)', () => {
+    const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const style = container.querySelector('style[data-dshws-styles]') as HTMLStyleElement
+    expect(style).not.toBeNull()
+    const css = style.textContent ?? ''
+    // Each rule family the alignment batch depends on (probe A once deleted
+    // focus-visible with zero reds — this anchors the block's content).
+    expect(css).toContain('[data-dshws-card]:hover')
+    expect(css).toContain("[data-dshws-card][data-open='true']")
+    expect(css).toContain('[data-dshws-input]:focus')
+    expect(css).toContain('[data-dshws-focusable]:focus-visible')
+    expect(css).toContain('[data-dshws-card-body]')
+    expect(css).toContain('prefers-reduced-motion')
+  })
+
   it('S23 T6: a staged draft survives folding and shows the unsaved pill on the member header', async () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')
