@@ -27,6 +27,24 @@
 
 ## 已完成
 
+### S19 Perplexity 成员移除（2026-09-10，分支 feat/s19-remove-perplexity，用户终裁插行）
+
+阶段 0 精简版 PASS（schemastery 探针 + 免费 key 事实核证附档）→ plan 019 两轮 APPROVED → 2.5 = 用户直接指令 → T0-T5 逐一执行 → 阶段 4 **R1-R5 全 PASS**（全量 377\|11(388) exit0 亲跑 + 探针双红绿 + R1 逐行分类零非豁免残留）→ 阶段 5 **COMPLETE**（三正交 + 冒烟 149 + 4 条前瞻项归 T7 全清）→ T7 收官。
+
+| 任务 | 内容 | 结果 |
+|---|---|---|
+| T0 | 治理批（plan/audit-log×2/roadmap 插行/STATUS/骨架） | 完成（`149d84f`） |
+| T1+T3 | node 面全清（provider/config/index/errors + loopback 场景 firecrawl 承载）+ legacy 别名归一（红 2f\|28p → 绿） | 完成（`e3ae688`，−804 行） |
+| T2 | client 面全清（卡/三控件/4 键+6 行文案/snapshot 归一断言） | 完成（`3474bef`；client 106p） |
+| T4 | 0.4.0 breaking + UA×5 + 3423 换包冒烟（firecrawl 4p）+ 门墙六件 | 完成（`f4293f0`） |
+| T5 | ADR-0017 准入标准 + 0016 superseded + 0015 注记 + architecture 正本 | 完成（`cb2f672`） |
+| T6 | 阶段 4/5 独立验证 | **R1-R5 全 PASS / COMPLETE**（正本 audit-logs s19-stage4/stage5） |
+| T7 | 收尾 6 件套 + 前瞻 4 项清偿 + 原子收官 + merge + 接力 | 完成（本序列） |
+
+### S19 门墙（提交态，node v22.23.2；全量正本 = 阶段 4 audit-log）
+
+①`pnpm test` 全量 → **377 passed \| 11 skipped (388) exit0**（S18 401\|13→净减 26 = perplexity.test 21 + perplexity.real 3 + spec 改写差额；11 skipped 全为 e2e.real 无 key 自跳）②tc 0 双面 ③lint **0w0e（54 files）** ④build index.js **77.20**（gzip 21.58）/ index.d.ts 34.02 / client.js **93.18**（gzip 22.18）——较 0.3.1 净缩 ⑤pack 五件 **51.7kB** ⑥i18n **92 keys** parity + 20 files 零 CJK ⑦clean。R1：grep 功能性残留 0（legacy 基建 7 行豁免 + 描述性标题）。3423 = 0.4.0 在跑（pid 22026，boot log /tmp/dshws-s19/）。
+
 ### S18 Perplexity Agent API 迁移（2026-09-10，分支 feat/s18-perplexity-agent-api）
 
 阶段 0 独立审核 S17 **PASS**（🔴×0；🟡×2 = 无 PERPLEXITY key〔2.5 降级裁定〕+ Sonar 日落〔本棒主体〕；正本 audit-logs/2026-09-10-s18-stage0-review-of-s17.md）→ plan 018（附录 A Agent API 契约正本）→ 阶段 2 两轮 + 复审预授 **APPROVED** → 2.5 默认批准披露 → 逐一执行 → 阶段 4 **R1-R5 全 PASS**（全量唯一责任点亲跑 401\|13(414) exit0）→ 阶段 5 **COMPLETE**（冒烟 36）→ T7 收官。
@@ -442,7 +460,9 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 卸载残留：settings 默认值 + 预设目录（remove 单命令后不清理；用户自撰同名目录永不覆写） | 🟢 观察 | S14z2 登记（2026-09-09，STATUS 台账 14z2 行）；诚实披露态维持 |
 | web_fetch 完整替代（「按 URL 取全文」能力缺口；现态 = S15c restrict 隐藏，工作正常零报错） | 🟡 | S16-P0 登记（2026-09-10）；**恢复路径评估完成（2026-09-10 S17 T9）——结论正本 = 本行 + CHANGELOG「2026-09-10 — S17」条目**：短期 = fetchTakeover 开关关闭即恢复官方 web_fetch（零开发，已可用）；中期 = Firecrawl scrape 单成员（fetch face 代码在档，接线量小，耗 credits）；长期 = 多工具 fetch 链复活（v2 backlog，链壳代码在档）。实现归后续棒/v2 |
 | Perplexity Sonar 全线 2026-09-27 日落（含现用 /chat/completions 别名）——Perplexity 成员届时不可用 | 🟡 | ~~S18 阶段 1 调研发现（2026-09-10）~~ **已翻账（2026-09-10 S18 收官）**：迁移至 Agent API `/v1/agent`（ADR-0016；config 零改动；401\|13(414) exit0；config 零 diff 亲证）——死线解除。遗留：真实 API 实测无 key 降级（断言就绪，补 key 零改动闭合，用户择机） |
-| S18 新观察×2：search_results item 存在但条目全无 url 时不再落 annotations 兜底（边界语义）；title 空白判定与 snippet 不对称（装饰级） | 🟢 观察 | S18 阶段 5 登记（2026-09-10）；归补 key 真实实测时裁定 |
+| ~~S18 新观察×2：search_results 全无 url 边界 / title 空白判定~~ | 🟢→moot | **已翻账（2026-09-10 S19）**：Perplexity 成员移除（ADR-0017），补 key 实测前提永久消失 |
+| 存量 settings.yaml 残留 `perplexity:` 节（schema 静默透传无害；schemastery 探针实测 NO THROW） | 🟢 观察 | S19 登记（2026-09-10）；README（S15）提示手动清理 |
+| controller fallbackMember 宽 union 内联重复（与 config 字面量双维护，删成员时人工同步） | 🟢 观察 | S19 阶段 5 登记（2026-09-10）；后续棒收口 import type 组合 |
 | 新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归） | 🟢 观察 | S17 阶段 5 登记（2026-09-10）；后续棒顺手补 |
 
 ## 已验锚点（台账）
