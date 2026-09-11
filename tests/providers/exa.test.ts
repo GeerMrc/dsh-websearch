@@ -257,7 +257,7 @@ describe('dshws-exa request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer exa-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.8.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.8.1')
     expect(JSON.parse(init.body as string)).toEqual({
       query: 'hello',
       type: 'auto',

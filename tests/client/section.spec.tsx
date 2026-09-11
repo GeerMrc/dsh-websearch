@@ -1094,6 +1094,21 @@ describe('S21 T6: fetch chain GUI', () => {
     await waitFor(() => expect(onMoveFetch).toHaveBeenCalledWith('dshws-tavily', -1))
   })
 
+  it('S23a #2/#3: the params group renders the grid + header; a member-param draft survives folding with the header pill', async () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expand('firecrawl')
+    // presentation anchor: group header + two-column grid testid exist
+    expect(screen.getByText(en.paramsGroupLabel)).toBeTruthy()
+    expect(screen.getByTestId('dshws-params-grid-firecrawl')).toBeTruthy()
+    // lifted-draft anchor: stage the tbs combo, fold, the draft and the pill survive
+    const tbs = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbs, { target: { value: 'sbd:1,qdr:w' } })
+    expand('firecrawl')
+    expect(screen.getByTestId('dshws-unsaved-firecrawl').textContent).toBe(en.unsavedPending)
+    expand('firecrawl')
+    expect((screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement).value).toBe('sbd:1,qdr:w')
+  })
+
   it('S23 stage-4 #2: the injected style block mounts with the pseudo-class rule set (D2/D3/D10/D16/D17)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const style = container.querySelector('style[data-dshws-styles]') as HTMLStyleElement
