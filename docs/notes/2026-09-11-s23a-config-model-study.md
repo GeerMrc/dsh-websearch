@@ -48,3 +48,7 @@ Tavily：baseline 10 源/1.2-4.2s；news+week 10；日期窗+exactMatch 10；**i
 endPublishedDate 10；verbosity=standard avgSnippet 380；sections=body+maxAge=0（强制新抓）11.3s。
 Firecrawl：baseline 3；qdr:w 3；sbd:1,qdr:m 3；safe 3；fetch 200。AnySearch：baseline 5/3.0s；
 language zh→zh-CN 5/1.3s；zone=cn 5；extract 200/184ms。（AnySearch baseline 首跑瞬时网络失败，单行重跑过。）
+
+## 6. 用户裁定（2026-09-11 收官后）
+
+**路径 C 维持现状（固定配置 + GUI）**——B（链智能默认）/A（富参数工具）不排期；本 Note 转为定谳正本。
