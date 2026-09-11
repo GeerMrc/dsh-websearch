@@ -147,6 +147,25 @@ const fieldStyle = {
   gap: 6,
 } as const
 
+/** S23a T4: one member-parameter row — label left, control right (the host
+ * filter-row rhythm), so the expanded card reads as a compact two-column
+ * grid instead of a tall stack of full-width blocks. */
+const paramRowStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  minWidth: 0,
+} as const
+
+/** S23a T4: the member card's two named groups — credentials stay full-width,
+ * the parameter rows flow as a two-column grid. */
+const groupHeaderStyle = {
+  margin: 0,
+  fontSize: 12,
+  fontWeight: 500,
+  color: 'var(--dsw-alias-label-tertiary)',
+} as const
+
 const fieldLabelStyle = {
   display: 'inline-flex',
   alignItems: 'center',
@@ -1069,8 +1088,17 @@ function MemberParamField(props: {
   if (control.kind === 'select') {
     const value = typeof stored === 'string' && stored !== '' ? stored : (control.fallback ?? '')
     return (
-      <div style={fieldStyle}>
-        <FieldLabel t={t} labelKey={control.labelKey} ariaLabel={ariaLabel} />
+      <div style={paramRowStyle}>
+        <span style={{ ...fieldLabelStyle, flex: 1, minWidth: 0 }}>
+          {t(control.labelKey)}
+          {control.noteKey !== undefined ? (
+            <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
+              <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
+                <IconQuestionOutline14 />
+              </button>
+            </Tooltip>
+          ) : null}
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <select
             aria-label={ariaLabel}
@@ -1096,8 +1124,17 @@ function MemberParamField(props: {
     const fallback = control.option === 'textFallback'
     const on = typeof stored === 'boolean' ? stored : fallback
     return (
-      <div style={fieldStyle}>
-        <FieldLabel t={t} labelKey={control.labelKey} noteKey={control.noteKey} ariaLabel={ariaLabel} />
+      <div style={paramRowStyle}>
+        <span style={{ ...fieldLabelStyle, flex: 1, minWidth: 0 }}>
+          {t(control.labelKey)}
+          {control.noteKey !== undefined ? (
+            <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
+              <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
+                <IconQuestionOutline14 />
+              </button>
+            </Tooltip>
+          ) : null}
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
             type="button"
@@ -1127,9 +1164,18 @@ function MemberParamField(props: {
     ? Number.isInteger(Number(value)) && Number(value) >= control.min && Number(value) <= control.max
     : true
   return (
-    <div style={fieldStyle}>
-      <FieldLabel t={t} labelKey={control.labelKey} noteKey={control.noteKey} ariaLabel={ariaLabel} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+    <div style={paramRowStyle}>
+      <span style={{ ...fieldLabelStyle, flex: 1, minWidth: 0 }}>
+        {t(control.labelKey)}
+        {control.noteKey !== undefined ? (
+          <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
+            <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
+              <IconQuestionOutline14 />
+            </button>
+          </Tooltip>
+        ) : null}
+      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, justifyContent: 'flex-end' }}>
         <input
           type={control.kind === 'number' ? 'number' : control.inputType}
           min={control.kind === 'number' ? control.min : undefined}
@@ -1481,9 +1527,18 @@ function MemberCard(props: {
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —
       parity here. Empty = provider default; hot since S17 D1 (note inline). */}
       <MemberEndpointField member={member} t={t} onSet={onSetBaseURL} lifted={{ draft: liftedDrafts.endpoint ?? null, onDraftChange: (value) => setLiftedDraft('endpoint', value) }} />
-      {(MEMBER_PARAM_CONTROLS[member.key] ?? []).map((control) => (
-        <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} lifted={{ draft: liftedDrafts[control.option] ?? null, onDraftChange: (value) => setLiftedDraft(control.option, value) }} />
-      ))}
+      {/* S23a T4: named groups + a two-column parameter grid — the expanded
+      card reads as credentials (full-width) then a compact filter grid. */}
+      {(MEMBER_PARAM_CONTROLS[member.key] ?? []).length > 0 ? (
+        <>
+          <p style={groupHeaderStyle}>{t('paramsGroupLabel')}</p>
+          <div data-testid={`dshws-params-grid-${member.key}`} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '6px 16px' }}>
+            {(MEMBER_PARAM_CONTROLS[member.key] ?? []).map((control) => (
+              <MemberParamField key={`${member.key}-${control.option}`} member={member} control={control} t={t} onSet={onSetMemberOption} lifted={{ draft: liftedDrafts[control.option] ?? null, onDraftChange: (value) => setLiftedDraft(control.option, value) }} />
+            ))}
+          </div>
+        </>
+      ) : null}
       {/* S23 D10: the footer separates from the field stack (host .footer border-top). */}
       <div data-dshws-card-body="" style={footerStyle}>
         {feedback ? (
