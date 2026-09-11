@@ -45,7 +45,7 @@ export const TAVILY_DEFAULT_BASE_URL = 'https://api.tavily.com'
 const codes = MEMBER_ERROR_CODES.tavily
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.8.0'
+const USER_AGENT = 'dsh-websearch/0.8.1'
 
 /** Wire type of one Tavily `results[]` entry (optional fields read tolerantly). */
 export interface TavilyResultItem {

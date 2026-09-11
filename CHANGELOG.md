@@ -12,6 +12,21 @@
 
 ---
 
+## 2026-09-11 — 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（Session 23a，用户插行）
+
+**新增（0.8.0 → 0.8.1，研究+UI 批 patch）**
+- **配置模型研究**（Note s23a + /tmp/dshws-s23a/config-model-report.html）：宿主 web_search LLM 面仅 queries（工具 schema 归宿主）；当前固定配置模式与 Anthropic/OpenAI 第一方 API 同构=基线合理；建议近期增强=链智能默认（auto_parameters 式三态档）；A（自注册富参数工具，ctx.tools.register 可行）不建议近期——**呈用户裁定**
+- **真实 API 对齐矩阵 20/20**（key 取 3423 实例各池首把；含 Tavily include_domains 语义断言 10→1、Exa 强制新抓 11.3s、AnySearch zh→zh-CN 真实链路）
+- **成员卡展开区重排**：凭据区（全宽）+「搜索参数」组头 + 标签左/控件右行节奏 + 两列自适应 grid——纯呈现层，交互语义/testid/dirty pill 不变
+
+**治理**
+- S15（README，plan 015 已批准）顺延至本棒后；阶段 0-5 见 session-23a 记录
+
+**跟踪**
+- 全量 447|13(460) exit0 / i18n 141 keys
+
+---
+
 ## 2026-09-11 — UI/UX 全面对齐 DSH 0.8.0（Session 23，roadmap 重排插行）
 
 **新增（0.7.2 → 0.8.0，UI/UX 对齐批 minor）**
