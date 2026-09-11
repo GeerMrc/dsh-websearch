@@ -541,7 +541,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 
 ## Session 23（2026-09-11）UI/UX 全面对齐 DSH 0.8.0
 
-- **门墙终态**: test **447|13(460) exit0** / tc 0 / lint 3w0e / i18n 141 keys
+- **门墙终态**: test **447|13(460) exit0** / tc 0 / lint 3w0e / i18n 140 keys
 - **提交链**: 分支 b686d27→982576a→c5334a8→1a0f594→d1874f8→09151ed→4f5f1b0→ff00f27→a6ddf2c → merge master（T0 b845ebf 在 master）
 - **债务变动**: 阶段 4 抓获×3 全清偿（含 master 期遗留 websearch-row token 同类 bug）；无新增
 - **已验锚点**: D1-D18 核销（13 对齐/4 豁免/2 维持）；探针 B 双红（D9 防回归网）；style 块六规则族断言锚；浏览器双主题（chevron/pill 两处/草稿折叠存活/style 块 DOM 亲证）
