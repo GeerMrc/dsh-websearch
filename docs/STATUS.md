@@ -85,6 +85,7 @@
 | 19 | 2026-09-10 | 完整移除 dshws-perplexity 成员（用户终裁：免费额度准入标准 ADR-0017） | ✅ | docs/sessions/2026-09-10-session-19.md；0.4.0 breaking；全量 **377\|11(388) exit0**；R1 功能性残留 0（legacy 基建豁免）；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | S18 观察×2 moot 翻账；残尸节 🟢 登记（S15 README 提示）；union 内联 🟢 |
 | 20 | 2026-09-10 | P2 中价值参数批（用户裁定先于 S15；S16 审计批次） | ✅ | docs/sessions/2026-09-10-session-20.md；0.5.0；终态全量 **398\|11(409) exit0**；守卫清单六条全测试在档；阶段 4 R4 FAIL→清偿 / 阶段 5 F-1→清偿 | Tavily/Exa 真实实测无 key 披露；🟢×2 新登记（union 扩面/number kind） |
 | 21 | 2026-09-10 | web_fetch 全模式多链接管（用户主计划重排第 1 棒：fetch 链三家 + 两态开关 + restrict 移除） | ✅ | docs/sessions/2026-09-10-session-21.md；0.6.0；全量 **415\|13(428) exit0**；AnySearch extract 实测 1,048ms；浏览器亲验通过 | **web_fetch 🟡 翻账**；阶段 4 R5 FAIL→T9 清偿 |
+| 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；**三路径待用户裁定 Note s23a §4**） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
 | 23 | 2026-09-11 | UI/UX 全面对齐 DSH 0.8.0（差距清单 D1-D18 驱动；双审两轮 PASS-WITH-NOTES/COMPLETE-WITH-NOTES；4 豁免裁定 + Models 方言锚定） | ✅ | docs/sessions/2026-09-11-session-23.md；0.8.0；全量 **447\|13(460) exit0**；i18n 141；浏览器双主题亲验（chevron/pill/草稿折叠存活/style 块规则） | 阶段 4 缺陷×3 当场清偿（a6ddf2c）；S15 素材接线（plan 023 §0） |
 | 22b | 2026-09-11 | 设置页折叠化 0.7.2（用户反馈插行：接管卡成员卡式折叠 + 搜索链「详细配置」子折叠默认收起） | ✅ | docs/sessions/2026-09-11-session-22b.md；0.7.2；全量 **443\|13(456) exit0**；浏览器亲验（默认收起截图/展开内容齐） | — |
 | 22a | 2026-09-11 | Web Fetch 链 UI 修正批 0.7.1（用户四项反馈插行：chip wrap 修复/区块迁至接管开关下 ON-only/更名 Web Fetch 链/连点排序 conflict 重试） | ✅ | docs/sessions/2026-09-11-session-22a.md；0.7.1；全量 **442\|13(455) exit0**；浏览器亲验（单行排版截图/两态/连点×5 ok） | — |
@@ -92,9 +93,9 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（Session 23 ✅ 2026-09-11 收官——UI/UX 全面对齐 DSH 0.8.0〔D1-D18 差距清单驱动 + 双审〕；下一棒 = **S15 README 收官**〔素材面 = Note s17 §8 + plan 023 §0 + ADR-0009..0019〕）；前棒 S22b ✅ 0.7.2——Web Fetch 链 UI 修正批 0.7.1〔用户四项反馈全修复〕；前棒 Session 22 ✅ 2026-09-10——P3 对齐批 0.7.0：Tavily 日期窗+exact_match / Exa 上限+verbosity+小节双路守卫 / Firecrawl tbs 文法+safe / AnySearch language fan-out〔zh→zh-CN〕；四家官方文档 diff + plan 020 §87 勘正；下一棒 = **S23 UI/UX 全面对齐 DSH**）
+- **当前 session**: 无进行中（Session 23a ✅ 2026-09-11 收官——配置模型深研+真实 API 矩阵+成员卡重排 0.8.1，**三路径待用户裁定**；前棒 Session 23 ✅ 0.8.0——UI/UX 全面对齐 DSH 0.8.0〔D1-D18 差距清单驱动 + 双审〕；下一棒 = **S15 README 收官**〔素材面 = Note s17 §8 + plan 023 §0 + ADR-0009..0019〕）；前棒 S22b ✅ 0.7.2——Web Fetch 链 UI 修正批 0.7.1〔用户四项反馈全修复〕；前棒 Session 22 ✅ 2026-09-10——P3 对齐批 0.7.0：Tavily 日期窗+exact_match / Exa 上限+verbosity+小节双路守卫 / Firecrawl tbs 文法+safe / AnySearch language fan-out〔zh→zh-CN〕；四家官方文档 diff + plan 020 §87 勘正；下一棒 = **S23 UI/UX 全面对齐 DSH**）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 18 — 记录：docs/sessions/2026-09-10-session-18.md
-- **下一棒**: S15 README + 迁移 + 升级手册（roadmap ⏳；素材面 = Note s17 §8 + plan 023 §0 豁免裁定清单 + ADR-0009..0019）
+- **下一棒**: S15 README（plan 015 `cd3f341` 已批准）——或用户裁定 S23a 配置模型路径（C 基线/B 链智能默认/A 富参数工具，Note s23a §4）后插行实施棒优先
 - **活跃债务**: 🔴×0 🟡×1（web_fetch 完整替代〔评估完成：短期开关已可用/中期 Firecrawl 单成员/长期多工具链 v2——实现归后续〕）🟢 池维持 + L-2 + 观察（badge 超长 id/fetchChain 对称注记/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/re-export/残尸 perplexity 节〔S19 登记，S15 README 提示清理〕/controller union 内联〔S19 登记〕/**AnySearch 垂直面 tag/params 待 key 探针〔S22 登记，Note s17 §8〕**）+ v2 backlog——正本：progress-M7 台账
-- **更新时间**: 2026-09-11（S23 收官）
+- **更新时间**: 2026-09-11（S23a 收官）
