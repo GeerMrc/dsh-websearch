@@ -145,12 +145,11 @@ describe('WebSearchSettingsSection', () => {
   it('renders one card per member in snapshot order with brand labels', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const cards = screen.getByTestId('dshws-members').children
-    expect(cards.length).toBe(6)
+    expect(cards.length).toBe(5)
     // Card testids, not brand text: the fallback selector's options also
     // carry brand names inside this container (ADR-0014).
     expect(screen.getByTestId('dshws-member-tavily')).toBeTruthy()
     expect(screen.getByTestId('dshws-member-anysearch')).toBeTruthy()
-    expect(screen.getByTestId('dshws-fallback-tool')).toBeTruthy()
     expect(screen.getByTestId('dshws-fetch-takeover')).toBeTruthy()
   })
 
@@ -395,6 +394,7 @@ describe('WebSearchSettingsSection', () => {
 
   it('the fallback row is a single tool selector; five ready tools → tool options only (ADR-0014)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
     const row = screen.getByTestId('dshws-fallback-tool')
     expect(within(row).getByText(en.fallbackRowLabel)).toBeTruthy()
     const info = within(row).getByRole('button', { name: en.fallbackInfo })
@@ -570,6 +570,7 @@ describe('WebSearchSettingsSection', () => {
   it('selecting a fallback tool writes the canonical field (ADR-0014)', async () => {
     const onSetFallbackMember = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetFallbackMember })} t={t} />)
+    openAdvanced()
     const select = screen.getByTestId('dshws-fallback-select') as HTMLSelectElement
     fireEvent.change(select, { target: { value: 'dshws-exa' } })
     await waitFor(() => expect(onSetFallbackMember).toHaveBeenCalledWith('dshws-exa'))
@@ -582,6 +583,7 @@ describe('WebSearchSettingsSection', () => {
     }
     const snapshot = { ...makeSnapshot(members), readyToolMembers: ['dshws-tavily'] }
     render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    openAdvanced()
     const select = screen.getByTestId('dshws-fallback-select') as HTMLSelectElement
     const values = Array.from(select.options).map((option) => option.value)
     expect(values).toEqual(['auto', 'dshws-deepseek'])
@@ -589,6 +591,7 @@ describe('WebSearchSettingsSection', () => {
 
   it('a stored DeepSeek selection with two-plus ready tools degrades to auto with the stop note (ADR-0014)', () => {
     render(<WebSearchSettingsSection {...makeProps({ snapshot: { ...makeSnapshot(), fallbackSelection: 'dshws-deepseek' as const } })} t={t} />)
+    openAdvanced()
     const select = screen.getByTestId('dshws-fallback-select') as HTMLSelectElement
     expect(select.value).toBe('auto')
     expect(screen.getByTestId('dshws-fallback-note').textContent).toBe(en.fallbackDeepseekStoppedNote)
@@ -626,6 +629,7 @@ describe('WebSearchSettingsSection', () => {
       fallbackDesignationReady: false,
     }
     render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    openAdvanced()
     // No exa row at all (unusable members never list), no locked tail.
     expect(screen.queryByTestId('dshws-chain-item-dshws-exa')).toBeNull()
     const lastRow = screen.getByTestId('dshws-chain-item-dshws-anysearch')
@@ -636,6 +640,7 @@ describe('WebSearchSettingsSection', () => {
   it('the fallback dot: green for an armed paid selection, warn for auto (ADR-0014)', () => {
     // Default fixture: auto → dot off.
     const first = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
     expect(screen.getByTestId('dshws-fallback-dot').style.background).toBe('var(--dsw-alias-state-warn-label)')
     first.unmount()
 
@@ -652,6 +657,7 @@ describe('WebSearchSettingsSection', () => {
       fallbackDeepseekEligible: true,
     }
     render(<WebSearchSettingsSection {...makeProps({ snapshot })} t={t} />)
+    openAdvanced()
     expect(screen.getByTestId('dshws-fallback-dot').style.background).toBe('var(--dsw-alias-state-success-primary)')
   })
 
@@ -673,10 +679,9 @@ describe('WebSearchSettingsSection', () => {
     const input = within(card).getByLabelText('Tavily API Key')
     const wrap = input.parentElement as HTMLElement
     expect(wrap.querySelector('button')).toBeTruthy() // the policy chip shares the input row
-    const save = within(card).getByRole('button', { name: 'Tavily Save' })
-    const footer = save.parentElement as HTMLElement
-    expect(within(footer).getByRole('button', { name: 'Tavily Clear' })).toBeTruthy()
-    expect(footer).not.toBe(wrap)
+    const save = within(wrap).getByRole('button', { name: 'Tavily Save' })
+    expect(within(wrap).getByRole('button', { name: 'Tavily Clear' })).toBeTruthy()
+    expect(save.parentElement).toBe(wrap)
   })
 
 
@@ -809,8 +814,12 @@ describe('WebSearchSettingsSection', () => {
     const children = Array.from(members.children)
     // S22b: the Web Fetch chain folds INSIDE the takeover card — the takeover
     // card is the container's last element again.
-    expect(children.length).toBe(6)
+    expect(children.length).toBe(5)
     expect((children[children.length - 1] as HTMLElement).dataset.testid).toBe('dshws-fetch-takeover')
+    // S23b: the fallback row moved INTO the advanced fold.
+    expect(screen.queryByTestId('dshws-fallback-tool')).toBeNull()
+    openAdvanced()
+    expect(screen.getByTestId('dshws-fallback-tool')).toBeTruthy()
   })
 
   it('maxUses save patches the deepseek member key (S14c T4)', async () => {

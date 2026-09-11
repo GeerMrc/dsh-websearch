@@ -496,6 +496,10 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           </button>
           {advancedOpen ? (
             <>
+              {/* S23b (user ruling): the fallback selector joins the verbose
+              knobs inside the advanced fold — chain behavior config in one
+              place, the member list above stays scannable. */}
+              <FallbackToolRow key="dshws-fallback-tool" snapshot={snapshot} t={t} onChoose={onSetFallbackMember} />
               <p style={hintStyle}>
                 {t('timeout')}: {snapshot.timeoutMs} ms
               </p>
@@ -521,7 +525,6 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             onSetMemberOption={onSetMemberOption}
           />
         ))}
-        <FallbackToolRow key="dshws-fallback-tool" snapshot={snapshot} t={t} onChoose={onSetFallbackMember} />
         {/* S22b (user ruling): the takeover row adopts the member-card fold —
         header (label, ⓘ, switch) stays visible, the Web Fetch chain rows open
         on demand (and only while the takeover is on, S22a T3). */}
@@ -1522,6 +1525,29 @@ function MemberCard(props: {
               {t(keySelectionLabelKey(member.keySelection))}
             </button>
           </Tooltip>
+          {/* S23b (user bug report): the key save/clear actions ride the API
+          Key row itself — the card footer's twin 保存 read as a duplicate. */}
+          {feedback !== undefined ? (
+            <span role="status" data-testid={`dshws-feedback-${member.key}`} style={{ ...feedbackStyle, flex: undefined, color: feedbackColor(feedback) }}>{t(feedback)}</span>
+          ) : null}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!member.configured}
+            aria-label={`${member.label} ${t('clear')}`}
+            onClick={() => void clear()}
+          >
+            {t('clear')}
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={draft === ''}
+            aria-label={`${member.label} ${t('save')}`}
+            onClick={() => void save()}
+          >
+            {t('save')}
+          </Button>
         </div>
       </div>
       {/* S14k (user report): the official DeepSeek card exposes Endpoint —
@@ -1539,32 +1565,6 @@ function MemberCard(props: {
           </div>
         </>
       ) : null}
-      {/* S23 D10: the footer separates from the field stack (host .footer border-top). */}
-      <div data-dshws-card-body="" style={footerStyle}>
-        {feedback ? (
-          <span role="status" data-testid={`dshws-feedback-${member.key}`} style={{ ...feedbackStyle, color: feedbackColor(feedback) }}>{t(feedback)}</span>
-        ) : (
-          <span style={{ flex: 1 }} />
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!member.configured}
-          aria-label={`${member.label} ${t('clear')}`}
-          onClick={() => void clear()}
-        >
-          {t('clear')}
-        </Button>
-        <Button
-          variant="primary"
-          size="sm"
-          disabled={draft === ''}
-          aria-label={`${member.label} ${t('save')}`}
-          onClick={() => void save()}
-        >
-          {t('save')}
-        </Button>
-      </div>
       </>
       ) : null}
     </div>

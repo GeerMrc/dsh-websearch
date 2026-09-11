@@ -231,7 +231,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.8.1')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.8.2')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5, timeout: 20_000 })
   })
 
