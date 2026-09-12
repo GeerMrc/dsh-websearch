@@ -2,8 +2,10 @@
  * web_search toolview takeover (ADR-0010): registers below the shipped WebRow
  * (priority -1 — a keyed cell renders the lowest priority, and the same key at
  * the same priority throws) and owns the whole tool-call block: the collapsed
- * row carries a served-by badge parsed from the first line of `meta.answer`
- * (content fallback), the expanded body mirrors the host WebRow derivation
+ * row carries a served-by badge parsed from `[served-by: …]` lines anywhere in
+ * `meta.answer` (content fallback) — the 0.1.5 `formatSearchOutput` preamble
+ * moved the signature off the first line — and the expanded body mirrors the
+ * host WebRow derivation
  * (answer + sources + truncated). Two fallback levels per ADR-0010 Decision 2:
  * a result without the signature line renders badge-free in the host shape
  * (pinned-direct or foreign results), and a meta shape mismatch degrades to a
@@ -85,15 +87,21 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
   }
 }
 
-/** Attribution carrier shape written by the chain since S03 (ADR-0002 Decision 4). */
-const SERVED_BY_PATTERN = /^\[served-by: ([^\]]+)\]/
+/**
+ * Attribution carrier written by the chain since S03 (ADR-0002 Decision 4),
+ * one line per member contribution. Since 0.1.5 `formatSearchOutput` prepends
+ * the untrusted-content notice and `### query` headings, the signature is no
+ * longer anchored to the first line — scan the whole answer text.
+ */
+const SERVED_BY_PATTERN = /\[served-by: ([^\]]+)\]/g
+const SERVED_BY_LINE_PATTERN = /^\[served-by: [^\]]+\]\n?/gm
 
 /** The web card view model: the host `WebSearchMeta` projection plus attribution. */
 interface WebCardFace {
   readonly answer: string | undefined
   readonly sources: readonly { url: string; title?: string; snippet?: string; publishedAt?: string }[]
   readonly truncated: boolean
-  readonly servedBy: string | undefined
+  readonly servedBy: readonly string[]
 }
 
 /** Join the model-facing queries for the collapsed summary (host toolRowModel shape). */
@@ -162,8 +170,14 @@ function deriveWebCard(block: ToolResultFace): WebCardFace | null {
     })
   }
   const signatureText = answer !== undefined ? answer : firstText(block.content)
-  const signature = signatureText !== undefined ? SERVED_BY_PATTERN.exec(signatureText.split('\n')[0] ?? '') : undefined
-  return { answer, sources: cleaned, truncated, servedBy: signature?.[1] }
+  const servedBy: string[] = []
+  if (signatureText !== undefined) {
+    for (const match of signatureText.matchAll(SERVED_BY_PATTERN)) {
+      if (!servedBy.includes(match[1]!)) servedBy.push(match[1]!)
+    }
+  }
+  const displayAnswer = answer !== undefined && servedBy.length > 0 ? answer.replace(SERVED_BY_LINE_PATTERN, '').trim() : answer
+  return { answer: displayAnswer, sources: cleaned, truncated, servedBy }
 }
 
 const shellStyle = { display: 'flex', flexDirection: 'column' } as const
@@ -204,7 +218,7 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
   const summary = summarizeArgs(argsRaw)
   // `null` merges the absent and the shape-mismatch cases: both render generic.
   const web = settled !== undefined && !settled.isError ? deriveWebCard(settled) : null
-  const badge = web !== null && web.servedBy !== undefined ? `· ${labelOf(web.servedBy)}` : undefined
+  const badge = web !== null && web.servedBy.length > 0 ? `· ${web.servedBy.map(labelOf).join(' + ')}` : undefined
   const contentText = settled !== undefined
     ? settled.content.filter((piece) => typeof piece.text === 'string').map((piece) => piece.text).join('\n')
     : ''
@@ -221,8 +235,8 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
         <IconGlobeOutline14 size={14} />
         <span style={titleStyle}>{t('toolTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
-        {badge !== undefined && web !== null && web.servedBy !== undefined && (
-          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${labelOf(web.servedBy)}`}>
+        {badge !== undefined && web !== null && web.servedBy.length > 0 && (
+          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${web.servedBy.map(labelOf).join(' + ')}`}>
             {badge}
           </span>
         )}

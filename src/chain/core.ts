@@ -304,10 +304,19 @@ export class ChainSearchProvider implements WebSearchProvider {
 }
 
 /**
- * Fetch chain meta provider, registered as `dshws-chain-fetch`. Attribution is
- * the host log line only (D3): a fetched body is the resource itself, so the
- * `[served-by:]` marker must not corrupt it.
+ * Fetch attribution carrier (S28, superseding the D3 log-only decision): the
+ * seam's `WebFetchResult` is closed like `WebSearchResult`, so the serving
+ * member is named in a `[served-by: <id>]` line prepended to `body.content`.
+ * Head placement survives the host's head-preserving truncation layers; the
+ * html kind's turndown escaping (`\[served-by: …\]`) shapes what the client
+ * regex tolerates.
  */
+function withFetchServedBy(memberId: string, result: WebFetchResult): WebFetchResult {
+  const line = `[served-by: ${memberId}]`
+  return { ...result, body: { ...result.body, content: `${line}\n${result.body.content}` } }
+}
+
+/** Fetch chain meta provider, registered as `dshws-chain-fetch`. */
 export class ChainFetchProvider implements WebFetchProvider {
   readonly id = 'dshws-chain-fetch'
 
@@ -315,7 +324,7 @@ export class ChainFetchProvider implements WebFetchProvider {
 
   /** Kept by reference for the same hot-read reason as the search shell. */
   constructor(options: ChainOptions<WebFetchProvider>) {
-    this.#core = new ChainCore(options, (_memberId, result) => result)
+    this.#core = new ChainCore(options, withFetchServedBy)
   }
 
   available(): boolean {

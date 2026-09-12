@@ -74,7 +74,7 @@ describe('fetch chain (dshws-chain-fetch 同构)', () => {
     })
     const result = await chain.fetch({ url: 'https://example.test/a' })
     expect(calls).toEqual(['dshws-broken', 'dshws-works'])
-    expect(result.body).toEqual({ kind: 'text', content: 'body from dshws-works' })
+    expect(result.body).toEqual({ kind: 'text', content: '[served-by: dshws-works]\nbody from dshws-works' })
   })
 
   it('throws DSHWS_CHAIN_EXHAUSTED when every fetch member fails', async () => {
@@ -129,7 +129,7 @@ describe('fetch chain (dshws-chain-fetch 同构)', () => {
     }
   })
 
-  it('attributes via the host log only, leaving the fetched body untouched (D3)', async () => {
+  it('attributes with a head signature line that survives head-preserving truncation (S28)', async () => {
     const logs: string[] = []
     const chain = new ChainFetchProvider({
       members: resolver({ 'dshws-lone': { provider: trackingFetchProvider('dshws-lone', []) } }),
@@ -138,8 +138,10 @@ describe('fetch chain (dshws-chain-fetch 同构)', () => {
       log: (message) => logs.push(message),
     })
     const result = await chain.fetch({ url: 'https://example.test/a' })
-    expect(result.body).toEqual({ kind: 'text', content: 'body from dshws-lone' })
-    expect(result.body.content.startsWith('[served-by:')).toBe(false)
+    // D3 (log-only attribution) is superseded by S28: the badge needs a
+    // client-readable carrier, and the head is the only position that survives
+    // the host's head-preserving truncation layers (review verdict).
+    expect(result.body).toEqual({ kind: 'text', content: '[served-by: dshws-lone]\nbody from dshws-lone' })
     expect(logs.some((line) => line.includes('served-by') && line.includes('dshws-lone'))).toBe(true)
   })
 })

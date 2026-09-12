@@ -40,6 +40,7 @@ export type DshWsLocaleKey =
   | 'keySelectionHint'
   | 'sharedWithModels'
   | 'toolTitle'
+  | 'fetchTitle'
   | 'servedBy'
   | 'toolSources'
   | 'toolTruncated'
@@ -191,6 +192,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   keySelectionHint: 'Keys default to "{policy}" selection; on failure the tool retries across its own keys first — up to 3 attempts including the first — before degrading to the next tool.',
   sharedWithModels: 'Shared with Models',
   toolTitle: 'Web search',
+  fetchTitle: 'Web fetch',
   servedBy: 'Served by',
   toolSources: 'Sources',
   toolTruncated: 'Results truncated',
@@ -337,6 +339,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   keySelectionHint: 'key 默认按「{policy}」选取；请求失败优先在本工具的多把 key 间重试——至多 3 次尝试（含首次），仍失败才降级下一个工具。',
   sharedWithModels: '共用模型 Key',
   toolTitle: '网页搜索',
+  fetchTitle: '网页获取',
   servedBy: '服务成员',
   toolSources: '来源',
   toolTruncated: '结果已截断',

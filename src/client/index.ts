@@ -21,6 +21,7 @@ import { WebSearchSettingsController } from './controller.ts'
 import type { WebSearchSettingsPorts } from './controller.ts'
 import { en, NS, zh } from './locales.ts'
 import { bindWebSearchSettingsSection } from './section.tsx'
+import { WebFetchToolviewRow } from './fetch-row.tsx'
 import { WebSearchToolviewRow } from './websearch-row.tsx'
 
 /** Client services this bundle binds; `remote.*` faces are individually gated. */
@@ -28,7 +29,8 @@ export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.c
 
 /**
  * Register the locale dictionaries, the `settings.section` slot, and the
- * `web_search` toolview takeover (ADR-0010). The settings controller lives
+ * `web_search`/`web_fetch` toolview takeovers (ADR-0010; fetch sibling S28).
+ * The settings controller lives
  * inside the injection effect so uninjecting the slot also detaches its event
  * subscription; `init()` fills the first snapshot in the background and every
  * refresh re-derives it (controller contract). The toolview entry registers at
@@ -62,6 +64,12 @@ export function apply(ctx: Context): void {
     ctx.slots.register(
       { name: 'tool.call.toolview', key: 'web_search', priority: -1, locale: NS },
       WebSearchToolviewRow,
+    ),
+  )
+  ctx.slots.inject('tool.call.toolview', () =>
+    ctx.slots.register(
+      { name: 'tool.call.toolview', key: 'web_fetch', priority: -1, locale: NS },
+      WebFetchToolviewRow,
     ),
   )
 }
