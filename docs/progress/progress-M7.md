@@ -487,7 +487,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 发版清单「追平重述 web config」条目实体待建 | 🟢 观察 | S14a 阶段 4/5 登记；S15/S16 创建清单时从 s14a Note §5.1 搬运，勿凭记忆重写 |
 | 宿主设置页闲置的 web-search-deepseek 配置卡（接管后不生效仍在；其 key 保存为对 DEEPSEEK_API_KEY 的单值写入点） | 🟢 | S14b 阶段 0 入册（2026-09-06，双审计发现）；披露正文归 S15 README「已知行为」节 |
 | 00-architecture.md 其余陈旧（§1 五 provider 缺 anysearch / §3 模块树 / §5 config 模型 / 悬空附录指针） | 🟢 | S14b 阶段 0 入册；S15 文档腿全面刷新（§6/§9 已由 S14b T4 注记） |
-| section.tsx MemberCard 残留不可达 deepseek badge 死分支（分流后永不可达，纯清理） | 🟢 | S14b 阶段 4/5 登记；S15 顺手清理 |
+| ~~section.tsx MemberCard 残留不可达 deepseek badge 死分支~~ | 🟢→**已翻账（2026-09-06 S14c T1）**：`fe31b94` 顺手清偿（「顺手清 MemberCard 死 badge 分支（S14b 🟢 债）」在案），S26 T4 台账对齐 |
 | 〔勘注 2026-09-06，S14b T4〕S14a 收官 commit 4d8f921 称「🟢×3 新观察入台账」，实物为两行（第三项 stub-log 探测残留行留 session 记录注记未登台账）——记录性超报，时点快照不回改，本行即为对齐 | 勘注 | S14a 阶段 0 复核抓获 |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
@@ -504,7 +504,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 存量 settings.yaml 残留 `perplexity:` 节（schema 静默透传无害；schemastery 探针实测 NO THROW） | 🟢 观察 | S19 登记（2026-09-10）；README（S15）提示手动清理 |
 | controller fallbackMember 宽 union 内联重复（与 config 字面量双维护，删成员时人工同步） | 🟢 观察 | S19 阶段 5 登记（2026-09-10）；后续棒收口 import type 组合 |
 | controller union 内联 6→16 扩面（S19 条目注记升级）+ number kind 控件复活（chunksPerSource/maxAgeHours）的边界口径 | 🟢 观察 | S20 阶段 5 F-2 登记（2026-09-10）；后续棒收口 |
-| 新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归） | 🟢 观察 | S17 阶段 5 登记（2026-09-10）；后续棒顺手补 |
+| ~~新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归）~~ | 🟢 观察→**已清偿（2026-09-12 S26 T4）**：UnifiedSearchFanout〔S17 改名，登记时旧名〕/ExaSearchType/六家 MemberOptions/AnysearchSettings 全部进 index 导出面 |
 
 ## 已验锚点（台账）
 
