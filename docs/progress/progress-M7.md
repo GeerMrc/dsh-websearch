@@ -476,10 +476,10 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 |---|---|---|
 | S11 遗留腿四笔：jsdom 过滤负路径断言 / 混合序列交换断言 / 牙齿探针 / 浏览器棒（T6） | 🟡 | ~~S12 T3/T5/T7 清偿 + T8 复验闭合~~ **已翻账（2026-09-04 T9）：四腿全清偿，T8 独立复验判定 S11 验收采信链闭合（正本 docs/sessions/audit-logs/2026-09-04-s12-stage45-verification.md 第二节；S11 🔴2 证据面就此闭合）** |
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 009 债务映射节正本） |
-| fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
+| ~~fetch 链排序 UI~~ | 🟢→**已翻账（2026-09-10 S21）**：GUI 双链（search/fetch）独立排序随 ADR-0019 落地（见 :501 翻账行） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
 | 设置页 CSS module 化（内联 style 收敛） | 🟢 | 维持不排期（12a 登记；S15 顺手候选——**本行为 S13 T0 补镜像**，原登记 plan 012a） |
-| anysearch fetch 面（fetch 链成员 v1 不做） | 🟢 | 维持不排期（S10 登记——**本行为 S13 T0 补镜像**） |
+| ~~anysearch fetch 面（fetch 链成员 v1 不做）~~ | 🟢→**已翻账（2026-09-10 S21）**：AnySearch 进 fetch 降级链（ADR-0019，[firecrawl, tavily, anysearch]） |
 | 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | ~~S14/S15 顺手补一条~~ **已翻账（2026-09-04 登记 → S14 T2 清偿 `05f230c`）**：「消费后下一抽不重发同把」具名断言双策略在档（keys.test；探针红×2 还原绿 13 passed） |
 | firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排）——**已复核（2026-09-06 stage45）**：search face 双 it 在档（firecrawl.test.ts:115-127），fetch face 无独立 402/429 it（仅 requestFailed/badResponse）——描述准确，维持观察 |
 | 溯源徽标 badge 超长 id 撑宽折叠行（flexShrink:0 无截断，与 summary ellipsis 不对称；纯视觉，React 转义无安全面） | 🟢 观察 | S14 阶段 4/5 登记（2026-09-06）；宿主 WebRow 对齐维护点顺手候选 |
@@ -487,13 +487,13 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 发版清单「追平重述 web config」条目实体待建 | 🟢 观察 | S14a 阶段 4/5 登记；S15/S16 创建清单时从 s14a Note §5.1 搬运，勿凭记忆重写 |
 | 宿主设置页闲置的 web-search-deepseek 配置卡（接管后不生效仍在；其 key 保存为对 DEEPSEEK_API_KEY 的单值写入点） | 🟢 | S14b 阶段 0 入册（2026-09-06，双审计发现）；披露正文归 S15 README「已知行为」节 |
 | 00-architecture.md 其余陈旧（§1 五 provider 缺 anysearch / §3 模块树 / §5 config 模型 / 悬空附录指针） | 🟢 | S14b 阶段 0 入册；S15 文档腿全面刷新（§6/§9 已由 S14b T4 注记） |
-| section.tsx MemberCard 残留不可达 deepseek badge 死分支（分流后永不可达，纯清理） | 🟢 | S14b 阶段 4/5 登记；S15 顺手清理 |
+| ~~section.tsx MemberCard 残留不可达 deepseek badge 死分支~~ | 🟢→**已翻账（2026-09-06 S14c T1）**：`fe31b94` 顺手清偿（「顺手清 MemberCard 死 badge 分支（S14b 🟢 债）」在案），S26 T4 台账对齐 |
 | 〔勘注 2026-09-06，S14b T4〕S14a 收官 commit 4d8f921 称「🟢×3 新观察入台账」，实物为两行（第三项 stub-log 探测残留行留 session 记录注记未登台账）——记录性超报，时点快照不回改，本行即为对齐 | 勘注 | S14a 阶段 0 复核抓获 |
 | i18n CI 接线 | 🟢 观察 | S15 手册项（2026-09-04 重排） |
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
 | v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期——**S14 T1 地基调研已落档**（docs/notes/2026-09-06-s14-fetch-fallback-research.md §2：宿主 client 零 usage/balance slot，可借面 settings.section/sidebar.footer.action；provider 余额 API 调研属 v2 正式立项内容） |
-| v2 backlog：fetch 兜底开关 | 🟢 v2 | 未排期——**S14 T1 缝隙判定已落档**（同注记 §1：宿主单赢家无降级 + fetch 无 settings namespace + 唯一外挂缝 = registerFetchProvider 新 id + patch 钉 fetchProvider + 内部回落 HttpFetchProvider；热切上限 = patch live reload，GUI 热开关需上游） |
+| ~~v2 backlog：fetch 兜底开关~~ | 🟢 v2→**已翻账（2026-09-10 S21）**：ADR-0019 多成员 fetch 降级链取代单兜底路径（gate 运行时路由器 + 两态开关 + 内部回落 http——S14 T1 判定的「唯一外挂缝」以更强形态实施） |
 | 〔补账 2026-09-10，S17 T0——台账 S14c 起停更，本行起为 S14c-S16-P0 内联登记镜像 + 新登记；阶段 0 审核 🟡-1 清偿〕 | | |
 | v2 backlog：B2 启动包 + 暖启动预热 | 🟢 v2 | S14w 登记（2026-09-08，STATUS 台账 14w 行）；未排期 |
 | 链路文件日志的 GUI 轨迹页可见面 | 🟢 v2 | S14z 登记（2026-09-09，STATUS 台账 14z 行）；文件日志本体已交付（chain-log），GUI 可见面 v2 |
@@ -504,7 +504,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | 存量 settings.yaml 残留 `perplexity:` 节（schema 静默透传无害；schemastery 探针实测 NO THROW） | 🟢 观察 | S19 登记（2026-09-10）；README（S15）提示手动清理 |
 | controller fallbackMember 宽 union 内联重复（与 config 字面量双维护，删成员时人工同步） | 🟢 观察 | S19 阶段 5 登记（2026-09-10）；后续棒收口 import type 组合 |
 | controller union 内联 6→16 扩面（S19 条目注记升级）+ number kind 控件复活（chunksPerSource/maxAgeHours）的边界口径 | 🟢 观察 | S20 阶段 5 F-2 登记（2026-09-10）；后续棒收口 |
-| 新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归） | 🟢 观察 | S17 阶段 5 登记（2026-09-10）；后续棒顺手补 |
+| ~~新类型 re-export（UnifiedSearchGeo/ExaSearchType/XxxMemberOptions 不在 src/index.ts 导出列表——下游无法按名 import type；与 0.2.x 口径一致非回归）~~ | 🟢 观察→**已清偿（2026-09-12 S26 T4）**：UnifiedSearchFanout〔S17 改名，登记时旧名〕/ExaSearchType/六家 MemberOptions/AnysearchSettings 全部进 index 导出面 |
 
 ## 已验锚点（台账）
 
@@ -568,3 +568,9 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 - **部署态**: 3423 = worktree fb2c4b9e（0.1.5-rc.2）+ 插件 0.9.0；主树与 ~/.dsh 保持 alpha.3（生产零接触）
 - **已验锚点**: 八项兼容清单（Note s25）；3423 全要素 + 写路径 + **真实搜索 served-by**（chain log 2026-09-12T08:54）
 - **正本**: docs/sessions/2026-09-12-session-25.md
+## Session 26（2026-09-12/13）定档批 v0.1.0（生产就绪规范化）
+
+- **门墙终态**: test **449|13(462) exit0**（30 files）/ tc 0 / lint 0w0e / i18n 141 / build 0 / pack 0.1.0
+- **定档面**: T1 兜底行绿点前置（用户确认 2026-09-12）+ T2 lint 5w 清偿 + T3 口径三处（🟡×0）+ T4 re-export/badge 翻账 + T5 **v0.1.0**（ADR-0020：补丁位细迭代）+ T6 文档四件（README zh/en/upgrade/architecture v2.0；独立走通 **Tier B PASS**）+ T7 git 定档（59 分支删尽/敏感扫描零/无远端）+ T8 3423 换 0.1.0 冒烟（pid 61902）
+- **阶段 4/5**: 独立 Agent **PASS**（audit-logs/2026-09-13-s26-stage45-verification.md）；tag v0.1.0 于 merge 后打在 master（T7 报告披露的时点调整）
+- **正本**: docs/sessions/2026-09-12-session-26.md

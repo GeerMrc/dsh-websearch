@@ -76,11 +76,11 @@ async function assemble(
       tavily: {
         baseURL: overrides?.tavilyBaseURL ?? `http://127.0.0.1:${server.port}/tavily`,
         ...(overrides?.tavilyKeySelection !== undefined ? { keySelection: overrides.tavilyKeySelection } : {}),
-        ...(overrides?.p3Settings?.tavily ?? {}),
+        ...(overrides?.p3Settings?.tavily),
       },
-      exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}), ...(overrides?.p3Settings?.exa ?? {}) },
+      exa: { baseURL: `http://127.0.0.1:${server.port}/exa`, ...(overrides?.exaEnabled === false ? { enabled: false } : {}), ...(overrides?.p3Settings?.exa) },
       ...(overrides?.withAnysearch ? { anysearch: { baseURL: `http://127.0.0.1:${server.port}/anysearch` } } : {}),
-      ...(overrides?.firecrawlAtLoopback ? { firecrawl: { baseURL: `http://127.0.0.1:${server.port}/firecrawl`, ...(overrides?.p3Settings?.firecrawl ?? {}) } } : {}),
+      ...(overrides?.firecrawlAtLoopback ? { firecrawl: { baseURL: `http://127.0.0.1:${server.port}/firecrawl`, ...(overrides?.p3Settings?.firecrawl) } } : {}),
       ...(overrides?.p3Settings?.searchLanguage !== undefined ? { searchLanguage: overrides.p3Settings.searchLanguage } : {}),
       ...(overrides?.deepseekAtLoopback ? { deepseek: { baseURL: `http://127.0.0.1:${server.port}/deepseek` } } : {}),
     })

@@ -44,12 +44,19 @@ import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
 
 export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
 export type {
+  AnysearchSettings,
   DeepSeekSettings,
   ExaSettings,
   FirecrawlSettings,
   ResolvedWebSearchConfig,
   TavilySettings,
+  UnifiedSearchFanout,
 } from './config.ts'
+export type { ExaSearchType, ExaMemberOptions } from './providers/exa.ts'
+export type { TavilyMemberOptions } from './providers/tavily.ts'
+export type { FirecrawlMemberOptions } from './providers/firecrawl.ts'
+export type { DeepSeekMemberOptions } from './providers/deepseek.ts'
+export type { AnysearchMemberOptions } from './providers/anysearch.ts'
 export { CHAIN_ERROR_CODES, DshwsError, MEMBER_ERROR_CODES } from './errors.ts'
 export { CredentialGate } from './credentials.ts'
 export { LiveResolvedConfig, SETTINGS_NAMESPACE, attachSettingsSection } from './settings.ts'

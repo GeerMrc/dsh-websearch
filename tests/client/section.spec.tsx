@@ -1215,4 +1215,16 @@ describe('S21 T6: fetch chain GUI', () => {
     expect(info?.getAttribute('aria-label')).toBe(en.fetchTakeoverNoteS21)
   })
 })
+describe('S26 T1: fallback row dot leads the row (host member-card parity)', () => {
+  it('the status dot renders BEFORE the label — same leading position as the member cards', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
+    const row = screen.getByTestId('dshws-fallback-tool').querySelector('div')!
+    const children = [...row.children]
+    const dotIndex = children.findIndex((el) => el.getAttribute('data-testid') === 'dshws-fallback-dot')
+    const labelIndex = children.findIndex((el) => el.tagName === 'STRONG')
+    expect(dotIndex).toBeGreaterThanOrEqual(0)
+    expect(labelIndex).toBeGreaterThan(dotIndex)
+  })
+})
 
