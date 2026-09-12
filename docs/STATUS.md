@@ -86,6 +86,7 @@
 | 20 | 2026-09-10 | P2 中价值参数批（用户裁定先于 S15；S16 审计批次） | ✅ | docs/sessions/2026-09-10-session-20.md；0.5.0；终态全量 **398\|11(409) exit0**；守卫清单六条全测试在档；阶段 4 R4 FAIL→清偿 / 阶段 5 F-1→清偿 | Tavily/Exa 真实实测无 key 披露；🟢×2 新登记（union 扩面/number kind） |
 | 21 | 2026-09-10 | web_fetch 全模式多链接管（用户主计划重排第 1 棒：fetch 链三家 + 两态开关 + restrict 移除） | ✅ | docs/sessions/2026-09-10-session-21.md；0.6.0；全量 **415\|13(428) exit0**；AnySearch extract 实测 1,048ms；浏览器亲验通过 | **web_fetch 🟡 翻账**；阶段 4 R5 FAIL→T9 清偿 |
 | 25 | 2026-09-12 | 采纳上游 0.1.5-rc.2：插件 0.9.0 + 3423 分级上线（八项兼容清单 PASS + 真实搜索验证；生产零接触） | ✅（至 T6） | docs/sessions/2026-09-12-session-25.md；0.9.0；448\|13(461) exit0 | **T6 人工验证待用户确认**；T7 生产批待明确指令 |
+| 26 | 2026-09-12 | 定档批：生产就绪规范化（用户主计划批准 + T6 确认；T7 生产批下棒） | 🚧 | plan docs/plans/2026-09-12-026-s26-release-hardening-plan.md（2.5=用户主计划批准）；分支 feat/s26-release-hardening | lint 5w + 口径三处 + README/upgrade 双缺 + 59 分支 + v0.1.0 定档 |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -96,6 +97,8 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
+- **当前 session**: Session 26 🚧（定档批——用户 T6 确认 + 主计划批准（六裁定：UI 先行呈审/定档先于 T7/远端仅备/v0.1.0 版本线/独立仓确认）；分支 feat/s26-release-hardening）
+> （S25 收官态快照见下一行历史注记：
 - **当前 session**: 无进行中（Session 25 ✅ 至 T6——0.1.5-rc.2 采纳：插件 0.9.0 已上 3423 + 真实搜索验证，**人工验证 gate 待用户**；生产 ~/.dsh 仍 alpha.3 零接触）；前棒 S24 预演 ✅ 决策 A——双保存修复+兜底入折叠 0.8.2；**配置模型已裁定 C 维持现状**；下一棒 = S15 README〔plan 015 已批准〕）；前棒 S23a ✅ 0.8.1——UI/UX 全面对齐 DSH 0.8.0〔D1-D18 差距清单驱动 + 双审〕；下一棒 = **S15 README 收官**〔素材面 = Note s17 §8 + plan 023 §0 + ADR-0009..0019〕）；前棒 S22b ✅ 0.7.2——Web Fetch 链 UI 修正批 0.7.1〔用户四项反馈全修复〕；前棒 Session 22 ✅ 2026-09-10——P3 对齐批 0.7.0：Tavily 日期窗+exact_match / Exa 上限+verbosity+小节双路守卫 / Firecrawl tbs 文法+safe / AnySearch language fan-out〔zh→zh-CN〕；四家官方文档 diff + plan 020 §87 勘正；下一棒 = **S23 UI/UX 全面对齐 DSH**）
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 18 — 记录：docs/sessions/2026-09-10-session-18.md
