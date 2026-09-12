@@ -476,10 +476,10 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 |---|---|---|
 | S11 遗留腿四笔：jsdom 过滤负路径断言 / 混合序列交换断言 / 牙齿探针 / 浏览器棒（T6） | 🟡 | ~~S12 T3/T5/T7 清偿 + T8 复验闭合~~ **已翻账（2026-09-04 T9）：四腿全清偿，T8 独立复验判定 S11 验收采信链闭合（正本 docs/sessions/audit-logs/2026-09-04-s12-stage45-verification.md 第二节；S11 🔴2 证据面就此闭合）** |
 | L-2 per-profile GUI 覆盖二期候选 | 🟢 | 维持不排期（plan 009 债务映射节正本） |
-| fetch 链排序 UI | 🟢 | 维持不排期（S07 登记） |
+| ~~fetch 链排序 UI~~ | 🟢→**已翻账（2026-09-10 S21）**：GUI 双链（search/fetch）独立排序随 ADR-0019 落地（见 :501 翻账行） |
 | 「恢复默认序」按钮 | 🟢 | 维持不排期（S07 登记） |
 | 设置页 CSS module 化（内联 style 收敛） | 🟢 | 维持不排期（12a 登记；S15 顺手候选——**本行为 S13 T0 补镜像**，原登记 plan 012a） |
-| anysearch fetch 面（fetch 链成员 v1 不做） | 🟢 | 维持不排期（S10 登记——**本行为 S13 T0 补镜像**） |
+| ~~anysearch fetch 面（fetch 链成员 v1 不做）~~ | 🟢→**已翻账（2026-09-10 S21）**：AnySearch 进 fetch 降级链（ADR-0019，[firecrawl, tavily, anysearch]） |
 | 「失败不回牌」无直接钉牌断言（结构保证：抽牌即消费无重试环） | 🟢 | ~~S14/S15 顺手补一条~~ **已翻账（2026-09-04 登记 → S14 T2 清偿 `05f230c`）**：「消费后下一抽不重发同把」具名断言双策略在档（keys.test；探针红×2 还原绿 13 passed） |
 | firecrawl fetch 面 402/429 it 独立覆盖 | 🟢 观察 | M3 台账正本；S14 复核（2026-09-04 重排）——**已复核（2026-09-06 stage45）**：search face 双 it 在档（firecrawl.test.ts:115-127），fetch face 无独立 402/429 it（仅 requestFailed/badResponse）——描述准确，维持观察 |
 | 溯源徽标 badge 超长 id 撑宽折叠行（flexShrink:0 无截断，与 summary ellipsis 不对称；纯视觉，React 转义无安全面） | 🟢 观察 | S14 阶段 4/5 登记（2026-09-06）；宿主 WebRow 对齐维护点顺手候选 |
@@ -493,7 +493,7 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 | tsdown 弃用 ×2 / vitest sourcemap / s06 mtime 口径 | 🟢 观察 | S15 升级演练顺手项（2026-09-04 重排）/ 上游包产物 / 留痕口径 |
 | 牙齿证明惯例沉淀为治理通用实践 | 🟢 观察 | 无主候选（各棒实录累证） |
 | v2 backlog：余额/积分定期统计与数据看板 | 🟢 v2 | ADR-0008 缓议章节；未排期——**S14 T1 地基调研已落档**（docs/notes/2026-09-06-s14-fetch-fallback-research.md §2：宿主 client 零 usage/balance slot，可借面 settings.section/sidebar.footer.action；provider 余额 API 调研属 v2 正式立项内容） |
-| v2 backlog：fetch 兜底开关 | 🟢 v2 | 未排期——**S14 T1 缝隙判定已落档**（同注记 §1：宿主单赢家无降级 + fetch 无 settings namespace + 唯一外挂缝 = registerFetchProvider 新 id + patch 钉 fetchProvider + 内部回落 HttpFetchProvider；热切上限 = patch live reload，GUI 热开关需上游） |
+| ~~v2 backlog：fetch 兜底开关~~ | 🟢 v2→**已翻账（2026-09-10 S21）**：ADR-0019 多成员 fetch 降级链取代单兜底路径（gate 运行时路由器 + 两态开关 + 内部回落 http——S14 T1 判定的「唯一外挂缝」以更强形态实施） |
 | 〔补账 2026-09-10，S17 T0——台账 S14c 起停更，本行起为 S14c-S16-P0 内联登记镜像 + 新登记；阶段 0 审核 🟡-1 清偿〕 | | |
 | v2 backlog：B2 启动包 + 暖启动预热 | 🟢 v2 | S14w 登记（2026-09-08，STATUS 台账 14w 行）；未排期 |
 | 链路文件日志的 GUI 轨迹页可见面 | 🟢 v2 | S14z 登记（2026-09-09，STATUS 台账 14z 行）；文件日志本体已交付（chain-log），GUI 可见面 v2 |

@@ -103,5 +103,5 @@
 - **所处里程碑**: **M7 ✅（含 S14u 质量收口）**。M5 交付就绪（🚧 e2e 腿 ✅ S08；文档腿 S15——2026-09-04 用户重排编号，原 S12 顺延）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 18 — 记录：docs/sessions/2026-09-10-session-18.md
 - **下一棒**: T7 生产批（前提：用户 T6 确认 + 明确指令——主树合并 67 冲突面/anysearch 裁定/~/.dsh 同步〔配置保留 sessions 可弃〕/3080 验证）或 S15 README（plan 015 已批准）
-- **活跃债务**: 🔴×0 🟡×1（web_fetch 完整替代〔评估完成：短期开关已可用/中期 Firecrawl 单成员/长期多工具链 v2——实现归后续〕）🟢 池维持 + L-2 + 观察（badge 超长 id/fetchChain 对称注记/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/re-export/残尸 perplexity 节〔S19 登记，S15 README 提示清理〕/controller union 内联〔S19 登记〕/**AnySearch 垂直面 tag/params 待 key 探针〔S22 登记，Note s17 §8〕**）+ v2 backlog——正本：progress-M7 台账
+- **活跃债务**: 🔴×0 🟡×0（~~web_fetch 完整替代~~——**已翻账 2026-09-10 S21**：ADR-0019 多成员 fetch 链全面接管落地）🟢 池维持 + L-2 + 观察（badge 超长 id/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/re-export/残尸 perplexity 节〔S19 登记，S15 README 提示清理〕/controller union 内联〔S19 登记〕/**AnySearch 垂直面 tag/params 待 key 探针〔S22 登记，Note s17 §8〕**）——正本：progress-M7 台账
 - **更新时间**: 2026-09-12（S25 至 T6）
