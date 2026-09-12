@@ -37,7 +37,7 @@ export const ANYSEARCH_DEFAULT_BASE_URL = 'https://api.anysearch.com'
 const codes = MEMBER_ERROR_CODES.anysearch
 
 /** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.8.2'
+const USER_AGENT = 'dsh-websearch/0.9.0'
 
 /** Wire type of one Anysearch `data.results[]` entry (optional fields read tolerantly). */
 export interface AnysearchResultItem {
