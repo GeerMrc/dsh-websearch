@@ -12,12 +12,25 @@
 
 ---
 
-## 2026-09-12 — 版本体系重置：定档 v0.1.0（Session 26，用户裁定）
+## 2026-09-12/13 — 定档批 v0.1.0（Session 26，用户六裁定）
+
+**新增（0.9.0〔内部编号〕→ v0.1.0，定档批）**
+- **T1 UI**：兜底搜索行绿点前置（用户确认 2026-09-12）——DOM 序断言钉住（`bcff9e1`）
+- **T2-T4 清偿**：lint 5w 清零（footerStyle/FieldLabel/冗余 spread）；治理口径三处对齐（🟡×0）；公共类型导出面（UnifiedSearchFanout/ExaSearchType/五家 MemberOptions）；badge 死分支翻账（S14c 已清）
+- **T6 文档腿（plan 015）**：README.md（zh 正本）/ README.en.md / docs/upgrade.md / docs/00-architecture.md v2.0；配置参考以 src/config.ts 为正本；**独立 Agent 从零走通 Tier B PASS**（安装→dump 三接线→运行时路由→诚实失败探针）
+- **T7 git 定档**：427 commits 敏感扫描零命中；59 已合分支删尽；远端仅准备不推送（用户裁定）
 
 **治理（版本线规则，正本 ADR-0020）**
 - 内部开发编号 0.2.0–0.9.0 归**历史档**（各批次 CHANGELOG 条目保留原编号，不回改）。
 - 正式版本线从 **v0.1.0** 起：小补丁/细节迭代走补丁位（v0.1.0 → v0.1.1 → v0.1.2，标准 semver）；仅特大架构功能扩展升 0.2.x。细迭代节奏，不做大版本跨度开发。
-- 首个 v0.1.0 = S26 定档批终态（T1 绿点前置 + lint 清偿 + 类型导出面 + README/upgrade 手册），tag 附注含定档说明。
+- 首个 v0.1.0 = S26 定档批终态，tag 附注含定档说明（打在 master merge 提交）。
+
+**诚实标注（遗留项）**
+- 走通为 Tier B 档（无 key 诚实失败证据链），真实搜索实证待回补。
+- T7 生产批下棒（Session 27，用户指令后）；远端创建与推送未做（仅准备）。
+
+**跟踪**
+- 全量 **449|13(462) exit0** / tc 0 / lint 0w0e / i18n 141 / build 0；3423 换 v0.1.0 冒烟（token 流 + 插件 client 在位）；阶段 0/4/5 独立 Agent 三份 audit-log（补强/走通/验收均 PASS）
 
 ---
 

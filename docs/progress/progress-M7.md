@@ -568,3 +568,9 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 - **部署态**: 3423 = worktree fb2c4b9e（0.1.5-rc.2）+ 插件 0.9.0；主树与 ~/.dsh 保持 alpha.3（生产零接触）
 - **已验锚点**: 八项兼容清单（Note s25）；3423 全要素 + 写路径 + **真实搜索 served-by**（chain log 2026-09-12T08:54）
 - **正本**: docs/sessions/2026-09-12-session-25.md
+## Session 26（2026-09-12/13）定档批 v0.1.0（生产就绪规范化）
+
+- **门墙终态**: test **449|13(462) exit0**（30 files）/ tc 0 / lint 0w0e / i18n 141 / build 0 / pack 0.1.0
+- **定档面**: T1 兜底行绿点前置（用户确认 2026-09-12）+ T2 lint 5w 清偿 + T3 口径三处（🟡×0）+ T4 re-export/badge 翻账 + T5 **v0.1.0**（ADR-0020：补丁位细迭代）+ T6 文档四件（README zh/en/upgrade/architecture v2.0；独立走通 **Tier B PASS**）+ T7 git 定档（59 分支删尽/敏感扫描零/无远端）+ T8 3423 换 0.1.0 冒烟（pid 61902）
+- **阶段 4/5**: 独立 Agent **PASS**（audit-logs/2026-09-13-s26-stage45-verification.md）；tag v0.1.0 于 merge 后打在 master（T7 报告披露的时点调整）
+- **正本**: docs/sessions/2026-09-12-session-26.md
