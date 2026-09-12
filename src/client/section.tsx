@@ -721,6 +721,7 @@ function FallbackToolRow(props: {
   return (
     <div data-testid="dshws-fallback-tool" data-dshws-card="" style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span role="img" aria-label={dotTitle} title={dotTitle} data-testid="dshws-fallback-dot" style={statusDotStyle(dotOn)} />
         <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
         <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
           <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
@@ -728,7 +729,6 @@ function FallbackToolRow(props: {
           </button>
         </Tooltip>
         <span style={{ flex: 1 }} />
-        <span role="img" aria-label={dotTitle} title={dotTitle} data-testid="dshws-fallback-dot" style={statusDotStyle(dotOn)} />
         <select
           aria-label={t('fallbackRowLabel')}
           data-testid="dshws-fallback-select"
