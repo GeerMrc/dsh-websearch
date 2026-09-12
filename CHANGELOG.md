@@ -12,6 +12,24 @@
 
 ---
 
+## 2026-09-13 — 生产切换批：v0.1.0 上生产（Session 27，用户 2.5 批准路线 B）
+
+**新增（生产部署）**
+- **~/.dsh 重建切换**：0.1.5-rc.2 worktree 供版（路线 B——弃主树 67 冲突合并）+ dsh-websearch v0.1.0 装即接管；旧 anysearch 安装与 237 条 alpha.3 healing 链接随 profiles/ 全清。
+- **保留面精确三件**：settings.yaml（模型配置）/ .credentials.yaml（模型三键 + 搜索四键合并——key 零人工操作）/ .anonymous-user-id；sessions 等其余全清（用户口径）。
+- **生产实证**：横幅 0.1.5-rc.2-fb2cf4b9、dump 三接线、四成员绿点、真实搜索 served-by: dshws-tavily（多 key 轮换）带来源链接回答。
+
+**治理**
+- 阶段 0 PASS（增量采信 S26）/ 阶段 2 APPROVED（healing 落点 3423 实证）/ 阶段 4/5 R1-R5 PASS——三份 audit-log 在档。
+
+**诚实标注（遗留项）**
+- 2 条验证会话 + dsh-harness-015 工作区留用户检验；fresh 状态「添加工作区」浏览对话框自动化未触发（用户实际浏览器待确认）。
+- 主树 merge-forward 降为 housekeeping 棒；双树 healing 边界（生产服务固定 worktree 启动）。
+
+**跟踪**
+- 3423 dev 零影响（pid 61902 存活）；主树 clean 零接触；备份 /tmp/dshws-s27/backup/ 四件。
+---
+
 ## 2026-09-12/13 — 定档批 v0.1.0（Session 26，用户六裁定）
 
 **新增（0.9.0〔内部编号〕→ v0.1.0，定档批）**

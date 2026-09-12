@@ -87,7 +87,7 @@
 | 21 | 2026-09-10 | web_fetch 全模式多链接管（用户主计划重排第 1 棒：fetch 链三家 + 两态开关 + restrict 移除） | ✅ | docs/sessions/2026-09-10-session-21.md；0.6.0；全量 **415\|13(428) exit0**；AnySearch extract 实测 1,048ms；浏览器亲验通过 | **web_fetch 🟡 翻账**；阶段 4 R5 FAIL→T9 清偿 |
 | 25 | 2026-09-12 | 采纳上游 0.1.5-rc.2：插件 0.9.0 + 3423 分级上线（八项兼容清单 PASS + 真实搜索验证；生产零接触） | ✅（至 T6） | docs/sessions/2026-09-12-session-25.md；0.9.0；448\|13(461) exit0 | **T6 人工验证待用户确认**；T7 生产批待明确指令 |
 | 26 | 2026-09-12 | 定档批：生产就绪规范化（用户主计划批准 + T6 确认；T7 生产批下棒） | ✅ | docs/sessions/2026-09-12-session-26.md；**v0.1.0 定档（ADR-0020 + tag）**；全量 449\|13(462) exit0；阶段 4/5 独立 PASS（audit-log 2026-09-13）；README zh/en + upgrade + architecture v2.0 交付（走通 Tier B PASS）；59 分支删尽 + 敏感扫描零 | 下一棒 S27 = T7 生产批（用户指令后） |
-| 27 | 2026-09-13 | 生产切换批（T7：重建 ~/.dsh + worktree 供版 0.1.5-rc.2 + 插件 v0.1.0 上生产；保留三件/其余全清——用户 2.5 批准路线 B） | 🚧 | plan docs/plans/2026-09-13-027-s27-production-cutover-plan.md；分支 feat/s27-production-cutover；阶段 0 PASS + 阶段 2 APPROVED | 清除前备份；3080 起服+真实搜索验证 |
+| 27 | 2026-09-13 | 生产切换批（T7：重建 ~/.dsh + worktree 供版 0.1.5-rc.2 + 插件 v0.1.0 上生产；保留三件/其余全清——用户 2.5 批准路线 B） | ✅ | docs/sessions/2026-09-13-session-27.md；横幅 0.1.5-rc.2-fb2cf4b9 + dump 三接线 + 四成员绿点 + **生产真实搜索 served-by: dshws-tavily（多 key 轮换）**；阶段 0/2/4/5 全 PASS | 遗留：2 条验证会话 + dsh-harness-015 工作区留检验；主树 merge 降 housekeeping 棒 |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -98,11 +98,11 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 27 🚧（生产切换批——用户 2.5 批准路线 B：重建 ~/.dsh + worktree 供版 0.1.5-rc.2 + dsh-websearch v0.1.0；保留 .credentials.yaml/settings.yaml/.anonymous-user-id 三件，sessions/其余全清；分支 feat/s27-production-cutover）
+- **当前 session**: 无进行中（Session 27 ✅ 2026-09-13——**生产切换完成**：~/.dsh = 0.1.5-rc.2 worktree 供版 + dsh-websearch v0.1.0；模型配置/key 三+四键保留合并；sessions 旧数据全清；3080 运行中真实搜索实证）；候选下一棒 = 主树 merge-forward housekeeping / 远端推送 / v0.1.1 迭代（待用户定向）
 > （S25 收官态快照见下一行历史注记：
 - **当前 session**: 无进行中（Session 25 ✅ 至 T6——0.1.5-rc.2 采纳：插件 0.9.0 已上 3423 + 真实搜索验证，**人工验证 gate 待用户**；生产 ~/.dsh 仍 alpha.3 零接触）；前棒 S24 预演 ✅ 决策 A——双保存修复+兜底入折叠 0.8.2；**配置模型已裁定 C 维持现状**；下一棒 = S15 README〔plan 015 已批准〕）；前棒 S23a ✅ 0.8.1——UI/UX 全面对齐 DSH 0.8.0〔D1-D18 差距清单驱动 + 双审〕；下一棒 = **S15 README 收官**〔素材面 = Note s17 §8 + plan 023 §0 + ADR-0009..0019〕）；前棒 S22b ✅ 0.7.2——Web Fetch 链 UI 修正批 0.7.1〔用户四项反馈全修复〕；前棒 Session 22 ✅ 2026-09-10——P3 对齐批 0.7.0：Tavily 日期窗+exact_match / Exa 上限+verbosity+小节双路守卫 / Firecrawl tbs 文法+safe / AnySearch language fan-out〔zh→zh-CN〕；四家官方文档 diff + plan 020 §87 勘正；下一棒 = **S23 UI/UX 全面对齐 DSH**）
 - **所处里程碑**: **M7 ✅ + 定档 ✅（v0.1.0）**。M5 交付就绪 ✅（e2e 腿 S08 + 文档腿 S26〔Tier B，真实搜索实证待回补〕）。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 18 — 记录：docs/sessions/2026-09-10-session-18.md
-- **下一棒**: T7 生产批（前提：用户 T6 确认 + 明确指令——主树合并 67 冲突面/anysearch 裁定/~/.dsh 同步〔配置保留 sessions 可弃〕/3080 验证）或 S15 README（plan 015 已批准）
+- **下一棒**: 待用户定向（主树 merge housekeeping / 远端推送 / v0.1.1 迭代）
 - **活跃债务**: 🔴×0 🟡×0（~~web_fetch 完整替代~~——**已翻账 2026-09-10 S21**：ADR-0019 多成员 fetch 链全面接管落地）🟢 池维持 + L-2 + 观察（badge 超长 id/architecture D7→S15/AMBIGUOUS→S15/发版清单→S15-S16/闲置卡→S15/firecrawl 已复核/i18n CI→S15/tsdown→S15/卸载残留/轨迹页 v2/B2 v2/re-export/残尸 perplexity 节〔S19 登记，S15 README 提示清理〕/controller union 内联〔S19 登记〕/**AnySearch 垂直面 tag/params 待 key 探针〔S22 登记，Note s17 §8〕**）——正本：progress-M7 台账
-- **更新时间**: 2026-09-13（S26 收官 ✅）
+- **更新时间**: 2026-09-13（S27 收官 ✅ 生产切换完成）
