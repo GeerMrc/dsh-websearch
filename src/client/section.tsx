@@ -191,13 +191,6 @@ const fieldInputStyle = {
   color: 'var(--dsw-alias-label-primary)',
 } as const
 
-const footerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: 8,
-} as const
-
 /** Page-header info anchor (12b): the single key-format note seat. */
 const infoButtonStyle = {
   display: 'inline-flex',
@@ -1048,23 +1041,6 @@ const selectStyle = {
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'right 12px center',
 } as const
-
-/** Field label with an optional ⓘ tooltip carrying the control's semantics. */
-function FieldLabel(props: { t: (key: DshWsLocaleKey) => string, labelKey: DshWsLocaleKey, noteKey?: DshWsLocaleKey, ariaLabel: string }) {
-  const { t, labelKey, noteKey, ariaLabel } = props
-  return (
-    <span style={fieldLabelStyle}>
-      {t(labelKey)}
-      {noteKey !== undefined ? (
-        <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={320}>
-          <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
-          </button>
-        </Tooltip>
-      ) : null}
-    </span>
-  )
-}
 
 /** One rendered S17 member parameter: selects/toggles commit immediately; text/number stage a draft. */
 function MemberParamField(props: {
