@@ -912,50 +912,56 @@ function UnsavedPill(props: { t: (key: DshWsLocaleKey) => string, testid: string
 /** Pool cap mirrored from the node half's `MAX_KEYS_PER_POOL` (tooltip copy). */
 const MAX_KEYS_PER_POOL = 10
 
+// 14px circular footprint — the same size as the header's ? info icon
+// (IconQuestionOutline14), so the badge sits in the established icon rhythm.
+// Widths are content-box: 12+2×1px (counted) and 11+2×1.5px (zero) both
+// render exactly 14px including borders.
 const keyCountBadgeBaseStyle = {
   flex: 'none',
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  borderRadius: 999,
-  fontSize: 11,
-  lineHeight: '16px',
+  padding: 0,
+  borderRadius: '50%',
+  fontSize: 10,
+  lineHeight: '12px',
   fontWeight: 500,
   whiteSpace: 'nowrap',
-  padding: '0 6px',
   marginLeft: 6,
+  background: 'transparent',
 } as const
 
 const keyCountZeroStyle = {
   ...keyCountBadgeBaseStyle,
-  width: 8,
-  height: 8,
-  padding: 0,
-  borderRadius: '50%',
-  background: 'var(--dsw-alias-bg-layer-1)',
+  width: 11,
+  height: 11,
   border: '1.5px solid var(--dsw-alias-border-l3)',
 } as const
 
 const keyCountCountStyle = {
   ...keyCountBadgeBaseStyle,
-  // DeepSeek brand blue (theme-independent static token): the count pill must
-  // read as "lit" in both themes; `--dsw-alias-brand-primary` resolves to a
-  // neutral (near-white dark / near-black light) and fails that.
-  border: '1px solid var(--dsw-static-deepseek-450)',
-  color: 'var(--dsw-static-deepseek-450)',
+  width: 12,
+  height: 12,
+  // Green activation, the plugin's own "lit" color (status dot, saved
+  // feedback, chain member badges all use this token).
+  border: '1px solid var(--dsw-alias-state-success-primary)',
+  color: 'var(--dsw-alias-state-success-primary)',
 } as const
 
 const keyCountOverStyle = {
   ...keyCountBadgeBaseStyle,
+  width: 12,
+  height: 12,
   border: '1px solid var(--dsw-alias-state-warn-label)',
   color: 'var(--dsw-alias-state-warn-label)',
 } as const
 
 /**
- * Per-member API-key count chip (expanded header only): gray hollow circle at
- * 0, brand-colored count pill at 1..cap, warn-colored at over-cap (the pool
- * draws loudly fail over the limit, ADR-0011). `undefined` never reaches here
- * — the caller hides the badge until counts load.
+ * Per-member API-key count chip (expanded header only): a 14px circle (the ?
+ * info icon's footprint) — gray hollow at 0, green-counted at 1..cap (the
+ * plugin's activation color), warn-colored at over-cap (the pool draws loudly
+ * fail over the limit, ADR-0011). `undefined` never reaches here — the caller
+ * hides the badge until counts load.
  */
 function KeyCountBadge(props: { count: number, t: (key: DshWsLocaleKey) => string, testid: string }) {
   const { count, t, testid } = props
