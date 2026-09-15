@@ -41,7 +41,12 @@ dsh --profile web --dump-config
 **安装**（宿主 peer 域 `dsh >=0.1.5-rc.1 <0.1.6`，覆盖 0.1.5-rc 线与 0.1.6 预发布线）：
 
 ```sh
-dsh plugin --profile web add <dsh-websearch-tarball>   # 或 profile package.json 依赖 file: 指向 tarball 后 pnpm install
+# 方式一：从本仓库发布页取 tarball
+dsh plugin --profile web add <dsh-websearch-tarball>
+# 方式二：从源码自行打包
+git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
+pnpm install && pnpm run build && npm pack   # 产出 dsh-websearch-<ver>.tgz
+# 方式三：profile package.json 依赖 file: 指向 tarball 后 pnpm install
 ```
 
 安装即接管 web_search / web_fetch（bundle 钉扎安装序，后写者赢）；卸载自动复原宿主默认。换包后浏览器整页刷新（client 走 `/plugins/*?rev=` 运行时路由）。

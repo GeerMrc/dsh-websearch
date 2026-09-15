@@ -12,6 +12,15 @@
 
 ---
 
+## 2026-09-16 — 开源发布批：公开仓库上线（Session 31）
+
+**新增**
+- LICENSE（MIT，GeerMrc）；README 中英安装节补公开分发三方式（发布页 tarball / 源码 clone 打包 / profile file: 依赖）。
+- 推送前敏感扫描（硬密钥形态精确匹配）零命中；清理本机失效 `x-access-token` 残留凭据（备份 git-credentials.bak）。
+- 公开仓库 https://github.com/GeerMrc/dsh-websearch （master + tags v0.1.0/v0.1.1）。
+
+---
+
 ## 2026-09-16 — 上游适配与生产升级批：0.1.6-alpha.1 + v0.1.1 上生产（Session 30，用户裁定插件+DSH 一并升）
 
 **新增（升级审核与切换）**

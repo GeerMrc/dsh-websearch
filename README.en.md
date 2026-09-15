@@ -42,7 +42,12 @@ dsh --profile web --dump-config
 **Install** (host peer range `dsh >=0.1.5-rc.1 <0.1.6`, covering the 0.1.5-rc line and 0.1.6 pre-releases):
 
 ```sh
-dsh plugin --profile web add <dsh-websearch-tarball>   # or a file: tarball dependency in the profile package.json + pnpm install
+# Option 1: grab the tarball from this repository's releases page
+dsh plugin --profile web add <dsh-websearch-tarball>
+# Option 2: pack from source
+git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
+pnpm install && pnpm run build && npm pack   # produces dsh-websearch-<ver>.tgz
+# Option 3: a file: tarball dependency in the profile package.json + pnpm install
 ```
 
 Installing takes over web_search / web_fetch (bundle-pinned install order, last writer wins); uninstalling restores the host defaults. Reload the page after swapping the package (the client bundle is served from `/plugins/*?rev=` runtime routes).
