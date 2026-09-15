@@ -37,6 +37,7 @@ export interface WebSearchSettingsPorts {
     expectedRevision: number | undefined,
   ): Promise<RemoteResult<SettingsNamespaceView>>
   describeCredentials(refs: readonly string[]): Promise<RemoteResult<Record<string, CredentialInfo>>>
+  describeKeyCounts(refs: readonly string[]): Promise<RemoteResult<Record<string, number>>>
   setCredential(ref: string, value: string): Promise<RemoteResult<void>>
   unsetCredential(ref: string): Promise<RemoteResult<void>>
   onReferenceUpdated(handler: (ref: string) => void): () => void
@@ -157,6 +158,8 @@ export interface MemberSnapshot {
   /** Chain-id alignment key (`dshws-<key>`) — chain filtering maps ids through this, not string surgery. */
   readonly memberId: string
   readonly refName: string
+  /** Configured key count for the member's ref; `undefined` = not loaded yet (no badge). */
+  readonly keyCount: number | undefined
   readonly enabled: boolean
   readonly configured: boolean
   /** Pool selection policy, defaulted to `round-robin` (S14n user ruling; ADR-0008). */
@@ -235,6 +238,7 @@ export type ActionResult = { ok: true } | { ok: false }
 
 const EMPTY_SECTION: SectionValue = {}
 const EMPTY_FACTS: ReadonlyMap<string, CredentialInfo> = new Map()
+const EMPTY_COUNTS: ReadonlyMap<string, number> = new Map()
 
 /**
  * Build the render-ready state from the described section value plus the
@@ -242,7 +246,7 @@ const EMPTY_FACTS: ReadonlyMap<string, CredentialInfo> = new Map()
  * event) funnels here so the snapshot is always derived, never patched in
  * place.
  */
-function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, CredentialInfo>, writable: boolean, revision: number | undefined): SectionSnapshot {
+function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, CredentialInfo>, counts: ReadonlyMap<string, number>, writable: boolean, revision: number | undefined): SectionSnapshot {
   const members = MEMBERS.map((member) => {
     const section = value[member.key]
     const refName = section?.apiKeyEnv ?? member.defaultRef
@@ -252,6 +256,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
       label: member.label,
       memberId: member.memberId,
       refName,
+      keyCount: counts.get(refName),
       // Client-facing flag (S14d default off); chain membership itself is
       // governed by the ADR-0014 fallback rules, not this flag.
       enabled: section?.enabled ?? (member.key === 'deepseek' ? false : true),
@@ -336,20 +341,24 @@ export class WebSearchSettingsController {
   readonly #listeners = new Set<() => void>()
   #value: SectionValue = EMPTY_SECTION
   #facts: ReadonlyMap<string, CredentialInfo> = EMPTY_FACTS
+  #counts: ReadonlyMap<string, number> = EMPTY_COUNTS
   #writable = false
   #revision: number | undefined = undefined
-  #snapshot: SectionSnapshot = deriveSnapshot(EMPTY_SECTION, EMPTY_FACTS, false, undefined)
+  #snapshot: SectionSnapshot = deriveSnapshot(EMPTY_SECTION, EMPTY_FACTS, EMPTY_COUNTS, false, undefined)
   #unsubscribe?: () => void
 
   constructor(ports: WebSearchSettingsPorts) {
     this.#ports = ports
   }
 
-  /** Load the section and credential facts, then subscribe to key updates. */
+  /** Load the section, credential facts, and key counts, then subscribe to key updates. */
   async init(): Promise<void> {
-    this.#unsubscribe = this.#ports.onReferenceUpdated(() => void this.#refreshCredentials())
+    this.#unsubscribe = this.#ports.onReferenceUpdated(() => {
+      void this.#refreshCredentials()
+      void this.refreshCounts()
+    })
     await this.#refreshSection()
-    await this.#refreshCredentials()
+    await Promise.all([this.#refreshCredentials(), this.refreshCounts()])
   }
 
   /**
@@ -394,7 +403,7 @@ export class WebSearchSettingsController {
     if (!member) return { ok: false }
     const result = await this.#ports.setCredential(this.#refNameOf(member.key), value)
     if (!result.ok) return { ok: false }
-    await this.#refreshCredentials()
+    await Promise.all([this.#refreshCredentials(), this.refreshCounts()])
     return { ok: true }
   }
 
@@ -404,7 +413,7 @@ export class WebSearchSettingsController {
     if (!member) return { ok: false }
     const result = await this.#ports.unsetCredential(this.#refNameOf(member.key))
     if (!result.ok) return { ok: false }
-    await this.#refreshCredentials()
+    await Promise.all([this.#refreshCredentials(), this.refreshCounts()])
     return { ok: true }
   }
 
@@ -596,8 +605,23 @@ export class WebSearchSettingsController {
     this.#recompute()
   }
 
+  /**
+   * Re-fetch the per-ref key counts. Idempotent and cheap — the member card
+   * fires it when it expands so an out-of-band value change (e.g. an edited
+   * env file, which raises no reference-updated event) still shows a fresh
+   * count at the moment the user looks at it.
+   */
+  async refreshCounts(): Promise<void> {
+    const refs = MEMBERS.map((member) => this.#refNameOf(member.key))
+    const described = await this.#ports.describeKeyCounts(refs)
+    if (described.ok) {
+      this.#counts = new Map(Object.entries(described.value))
+      this.#recompute()
+    }
+  }
+
   #recompute(): void {
-    this.#snapshot = deriveSnapshot(this.#value, this.#facts, this.#writable, this.#revision)
+    this.#snapshot = deriveSnapshot(this.#value, this.#facts, this.#counts, this.#writable, this.#revision)
     for (const listener of this.#listeners) listener()
   }
 }

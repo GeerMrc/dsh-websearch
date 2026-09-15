@@ -1,6 +1,6 @@
 {
   "name": "dsh-websearch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unified multi-provider WebSearch management plugin for the DeepSeek Harness (dsh) — priority chains with full HA degradation for search and fetch, plus a settings-page GUI",
   "license": "MIT",
   "type": "module",
@@ -44,6 +44,7 @@
     "@deepseek-ai/dsh-web": ">=0.1.5-rc.1 <0.1.6"
   },
   "dependencies": {
+    "@deepseek-ai/dsh-typert-protocol": "0.1.5-rc.2",
     "@deepseek-ai/schemastery": ">=3.18.1-rc.1 <4"
   },
   "devDependencies": {
@@ -60,6 +61,7 @@
     "@deepseek-ai/dsh-settings": "0.1.5-rc.2",
     "@deepseek-ai/dsh-system-prompt": "0.1.5-rc.2",
     "@deepseek-ai/dsh-tools": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-typert-protocol": "0.1.5-rc.2",
     "@deepseek-ai/dsh-web": "0.1.5-rc.2",
     "@deepseek-ai/schemastery": "3.18.2",
     "@shikijs/langs": "^4.4.3",
@@ -90,7 +92,8 @@
     "shiki": "^4.4.3",
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "zod": "^4.5.4"
   },
   "dsh": {
     "bundle": {

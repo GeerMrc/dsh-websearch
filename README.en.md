@@ -60,7 +60,7 @@ One ref per member (defaults `TAVILY_API_KEY` / `EXA_API_KEY` / `FIRECRAWL_API_K
 
 After install, Web UI "Settings → Web Search":
 
-- **Member cards** (collapsed by default; whole header clicks to expand): status dot, name, unsaved pill, enable switch; expanded = API key input (plaintext typing / •••• mask after save / clear), key-policy cycle chip, endpoint override (blank = default), per-member upstream-aligned parameters (ⓘ tooltips carry full semantics).
+- **Member cards** (collapsed by default; whole header clicks to expand): status dot, name, **key-count badge** (expanded only: 0 = gray hollow circle, N = brand-colored count pill, over 10 = warn color; hover shows `N of 10`, the count refreshes on expand), unsaved pill, enable switch; expanded = API key input (plaintext typing / •••• mask after save / clear), key-policy cycle chip, endpoint override (blank = default), per-member upstream-aligned parameters (ⓘ tooltips carry full semantics).
 - **Search chain / Web Fetch chain**: two independently orderable chains (ADR-0019), effective on the next search.
 - **Advanced fold**: fallback selector, timeout budget, DeepSeek maxUses, unified language/region (ADR-0015).
 - **Provenance badge** (ADR-0010): session tool rows show `[served-by: <member-id>]`.

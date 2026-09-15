@@ -18,9 +18,12 @@ class FakeRemote {
   nsValue: Record<string, unknown> = {}
   revision = 0
   creds = new Map<string, CredentialInfo>()
+  /** Ref → stored comma value; the count fake splits it like splitKeys. */
+  values = new Map<string, string>()
   readonly setCalls: [string, string][] = []
   readonly unsetCalls: string[] = []
   readonly describeCalls: string[][] = []
+  readonly describeCountCalls: string[][] = []
   readonly updateCalls: { ns: string; patch: Record<string, unknown>; expectedRevision: number | undefined }[] = []
   failNextSet = false
   failNextUpdate = false
@@ -59,6 +62,19 @@ class FakeRemote {
     })
   }
 
+  describeKeyCounts(
+    refs: readonly string[],
+  ): Promise<{ ok: true; value: Record<string, number> } | { ok: false; error: unknown }> {
+    this.describeCountCalls.push([...refs])
+    // Host parity: every requested ref answers, unconfigured as 0.
+    const out: Record<string, number> = {}
+    for (const ref of refs) {
+      const value = this.values.get(ref)
+      out[ref] = value === undefined ? 0 : value.split(',').map((k) => k.trim()).filter((k) => k.length > 0).length
+    }
+    return Promise.resolve({ ok: true, value: out })
+  }
+
   describeCredentials(
     refs: readonly string[],
   ): Promise<{ ok: true; value: Record<string, CredentialInfo> } | { ok: false; error: unknown }> {
@@ -75,12 +91,14 @@ class FakeRemote {
     this.setCalls.push([ref, value])
     if (this.failNextSet) return Promise.resolve({ ok: false, error: { code: 'credential/rejected' } })
     this.creds.set(ref, { configured: true, source: 'file', writable: true })
+    this.values.set(ref, value)
     return Promise.resolve({ ok: true, value: undefined })
   }
 
   unsetCredential(ref: string): Promise<{ ok: true; value: void } | { ok: false; error: unknown }> {
     this.unsetCalls.push(ref)
     this.creds.set(ref, { configured: false, writable: true })
+    this.values.delete(ref)
     return Promise.resolve({ ok: true, value: undefined })
   }
 
@@ -101,6 +119,7 @@ function makePorts(remote: FakeRemote): WebSearchSettingsPorts {
     describeSettings: () => remote.describeSettings(),
     updateSettings: (ns, patch, expectedRevision) => remote.updateSettings(ns, patch, expectedRevision),
     describeCredentials: (refs) => remote.describeCredentials(refs),
+    describeKeyCounts: (refs) => remote.describeKeyCounts(refs),
     setCredential: (ref, value) => remote.setCredential(ref, value),
     unsetCredential: (ref) => remote.unsetCredential(ref),
     onReferenceUpdated: (handler) => remote.onReferenceUpdated(handler),
@@ -653,5 +672,56 @@ describe('S21 T6: fetch chain controller', () => {
       fetchChain: ['dshws-tavily', 'dshws-firecrawl', 'dshws-anysearch'],
     })
   })
-})
 
+  it('key counts flow into the snapshot per member ref', async () => {
+    const remote = new FakeRemote()
+    remote.values.set('TAVILY_API_KEY', 'k1, k2 ,k3')
+    remote.values.set('EXA_API_KEY', 'k1')
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const members = controller.snapshot().members
+    expect(members.find((m) => m.key === 'tavily')?.keyCount).toBe(3)
+    expect(members.find((m) => m.key === 'exa')?.keyCount).toBe(1)
+    // An unconfigured ref is present in the answer as 0, not undefined.
+    expect(members.find((m) => m.key === 'firecrawl')?.keyCount).toBe(0)
+  })
+
+  it('counts stay undefined until loaded (pending is not 0)', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    expect(controller.snapshot().members.every((m) => m.keyCount === undefined)).toBe(true)
+  })
+
+  it('setKey re-fetches counts, so the badge tracks a multi-key save', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const result = await controller.setKey('tavily', 'a,b,c')
+    expect(result).toEqual({ ok: true })
+    expect(controller.snapshot().members.find((m) => m.key === 'tavily')?.keyCount).toBe(3)
+  })
+
+  it('a reference-updated event refreshes counts out-of-band', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    remote.values.set('ANYSEARCH_API_KEY', 'x,y')
+    remote.emitReferenceUpdated('ANYSEARCH_API_KEY')
+    await waitFor(() => {
+      expect(controller.snapshot().members.find((m) => m.key === 'anysearch')?.keyCount).toBe(2)
+    })
+  })
+
+  it('refreshCounts survives a failed describe (counts stay on the last answer)', async () => {
+    const remote = new FakeRemote()
+    remote.values.set('TAVILY_API_KEY', 'k1')
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().members.find((m) => m.key === 'tavily')?.keyCount).toBe(1)
+    const original = remote.describeKeyCounts.bind(remote)
+    remote.describeKeyCounts = () => Promise.resolve({ ok: false as const, error: new Error('down') })
+    await controller.refreshCounts()
+    expect(controller.snapshot().members.find((m) => m.key === 'tavily')?.keyCount).toBe(1)
+    remote.describeKeyCounts = original
+  })
+})

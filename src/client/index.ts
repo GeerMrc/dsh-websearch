@@ -19,6 +19,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { WebSearchSettingsController } from './controller.ts'
 import type { WebSearchSettingsPorts } from './controller.ts'
+import { mountKeyCountsRemote } from './key-counts-remote.ts'
+import type { KeyCountsNamespace } from './key-counts-remote.ts'
 import { en, NS, zh } from './locales.ts'
 import { bindWebSearchSettingsSection } from './section.tsx'
 import { WebFetchToolviewRow } from './fetch-row.tsx'
@@ -77,6 +79,12 @@ export function apply(ctx: Context): void {
 /** Adapt the injected `ctx.remote` namespaces onto the controller's port face. */
 function adaptRemote(ctx: Context): WebSearchSettingsPorts {
   const remote = ctx.remote
+  // Lazy mount of the plugin-owned key-count namespace: the first count fetch
+  // mounts it in this fiber; a host without the service leaves every call
+  // `ok: false` (counts stay undefined, the badge stays hidden).
+  let keyCounts: Promise<KeyCountsNamespace> | undefined
+  const keyCountsRemote = (): Promise<KeyCountsNamespace> =>
+    (keyCounts ??= mountKeyCountsRemote(ctx))
   return {
     describeSettings: () => remote.settings.describe(),
     updateSettings: (ns, patch, expectedRevision) =>
@@ -85,6 +93,14 @@ function adaptRemote(ctx: Context): WebSearchSettingsPorts {
       // must not import at type level) — one cast at this boundary.
       remote.settings.update(ns, patch as Parameters<typeof remote.settings.update>[1], expectedRevision),
     describeCredentials: (refs) => remote.credentials.describe([...refs]),
+    describeKeyCounts: async (refs) => {
+      try {
+        return await (await keyCountsRemote()).describeKeyCounts([...refs])
+      } catch {
+        // Mount or transport failure: no counts, not a settings-page error.
+        return { ok: false, error: new Error('dshws key-count remote unavailable') }
+      }
+    },
     setCredential: (ref, value) => remote.credentials.set(ref, value),
     unsetCredential: (ref) => remote.credentials.unset(ref),
     onReferenceUpdated: (handler) =>

@@ -50,6 +50,8 @@ export interface SectionProps {
   onSetFallbackMember: (member: SectionSnapshot['fallbackSelection']) => Promise<ActionResult>
   /** Universal web_fetch takeover toggle (S15a). */
   onSetFetchTakeover: (active: boolean) => Promise<ActionResult>
+  /** Re-fetch key counts (badge freshness on card expand). */
+  onRefreshKeyCounts: () => Promise<void>
 }
 
 /**
@@ -82,6 +84,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetSearchLanguage={(language) => controller.setSearchLanguage(language)}
         onSetSearchDomains={(kind, domains) => controller.setSearchDomains(kind, domains)}
         onMoveFetch={(id, delta) => controller.moveFetchChainEntry(id, delta)}
+        onRefreshKeyCounts={() => controller.refreshCounts()}
       />
     )
   }
@@ -298,7 +301,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -516,6 +519,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             onSetKeySelection={onSetKeySelection}
             onSetBaseURL={onSetBaseURL}
             onSetMemberOption={onSetMemberOption}
+            onRefreshKeyCounts={onRefreshKeyCounts}
           />
         ))}
         {/* S22b (user ruling): the takeover row adopts the member-card fold —
@@ -903,6 +907,74 @@ const unsavedPillStyle = {
 
 function UnsavedPill(props: { t: (key: DshWsLocaleKey) => string, testid: string }) {
   return <span data-testid={props.testid} style={unsavedPillStyle}>{props.t('unsavedPending')}</span>
+}
+
+/** Pool cap mirrored from the node half's `MAX_KEYS_PER_POOL` (tooltip copy). */
+const MAX_KEYS_PER_POOL = 10
+
+const keyCountBadgeBaseStyle = {
+  flex: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 999,
+  fontSize: 11,
+  lineHeight: '16px',
+  fontWeight: 500,
+  whiteSpace: 'nowrap',
+  padding: '0 6px',
+  marginLeft: 6,
+} as const
+
+const keyCountZeroStyle = {
+  ...keyCountBadgeBaseStyle,
+  width: 8,
+  height: 8,
+  padding: 0,
+  borderRadius: '50%',
+  background: 'var(--dsw-alias-bg-layer-1)',
+  border: '1.5px solid var(--dsw-alias-border-l3)',
+} as const
+
+const keyCountCountStyle = {
+  ...keyCountBadgeBaseStyle,
+  // DeepSeek brand blue (theme-independent static token): the count pill must
+  // read as "lit" in both themes; `--dsw-alias-brand-primary` resolves to a
+  // neutral (near-white dark / near-black light) and fails that.
+  border: '1px solid var(--dsw-static-deepseek-450)',
+  color: 'var(--dsw-static-deepseek-450)',
+} as const
+
+const keyCountOverStyle = {
+  ...keyCountBadgeBaseStyle,
+  border: '1px solid var(--dsw-alias-state-warn-label)',
+  color: 'var(--dsw-alias-state-warn-label)',
+} as const
+
+/**
+ * Per-member API-key count chip (expanded header only): gray hollow circle at
+ * 0, brand-colored count pill at 1..cap, warn-colored at over-cap (the pool
+ * draws loudly fail over the limit, ADR-0011). `undefined` never reaches here
+ * — the caller hides the badge until counts load.
+ */
+function KeyCountBadge(props: { count: number, t: (key: DshWsLocaleKey) => string, testid: string }) {
+  const { count, t, testid } = props
+  if (count === 0) {
+    return <span role="img" aria-label={t('keyCountZeroTitle')} title={t('keyCountZeroTitle')} data-testid={testid} data-state="zero" style={keyCountZeroStyle} />
+  }
+  const title = t('keyCountTitle').replace('{count}', String(count)).replace('{max}', String(MAX_KEYS_PER_POOL))
+  return (
+    <span
+      role="img"
+      aria-label={title}
+      title={title}
+      data-testid={testid}
+      data-state={count > MAX_KEYS_PER_POOL ? 'over' : 'count'}
+      style={count > MAX_KEYS_PER_POOL ? keyCountOverStyle : keyCountCountStyle}
+    >
+      {count}
+    </span>
+  )
 }
 
 /**
@@ -1351,8 +1423,9 @@ function MemberCard(props: {
   onSetKeySelection: SectionProps['onSetKeySelection']
   onSetBaseURL: SectionProps['onSetBaseURL']
   onSetMemberOption: SectionProps['onSetMemberOption']
+  onRefreshKeyCounts: SectionProps['onRefreshKeyCounts']
 }) {
-  const { member, t, onSaveKey, onClearKey, onToggleEnabled, onSetKeySelection, onSetBaseURL, onSetMemberOption } = props
+  const { member, t, onSaveKey, onClearKey, onToggleEnabled, onSetKeySelection, onSetBaseURL, onSetMemberOption, onRefreshKeyCounts } = props
   const [draft, setDraft] = useState('')
   // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
   const [editing, setEditing] = useState(false)
@@ -1411,11 +1484,19 @@ function MemberCard(props: {
           data-dshws-focusable=""
           aria-expanded={open}
           aria-label={`${member.label} ${t('configure')}`}
-          onClick={() => { setOpen((value) => !value) }}
+          onClick={() => {
+            setOpen((value) => {
+              if (!value) void onRefreshKeyCounts()
+              return !value
+            })
+          }}
           style={{ ...cardHeadStyle, flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', padding: 0 }}
         >
           <span role="img" aria-label={statusText} title={statusText} style={statusDotStyle(member.configured)} />
           <strong style={nameStyle}>{member.label}</strong>
+          {open && member.keyCount !== undefined
+            ? <KeyCountBadge count={member.keyCount} t={t} testid={`dshws-keycount-${member.key}`} />
+            : null}
           {hasUnsavedDraft ? <UnsavedPill t={t} testid={`dshws-unsaved-${member.key}`} /> : null}
           <span style={{ flex: 1 }} />
           {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}

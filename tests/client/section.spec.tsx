@@ -50,6 +50,7 @@ function member(key: string, label: string, overrides: Partial<MemberSnapshot> =
     label,
     memberId: `dshws-${key}`,
     refName: `${key.toUpperCase()}_API_KEY`,
+    keyCount: undefined,
     enabled: true,
     configured: true,
     keySelection: 'round-robin',
@@ -135,6 +136,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetSearchLanguage: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetSearchDomains: vi.fn(async () => ({ ok: true }) as ActionResult),
     onMoveFetch: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onRefreshKeyCounts: vi.fn(async () => {}),
     ...overrides,
   }
 }
@@ -1228,3 +1230,43 @@ describe('S26 T1: fallback row dot leads the row (host member-card parity)', () 
   })
 })
 
+describe('KeyCountBadge (展开态 APIKEY 计数徽标)', () => {
+  it('is hidden while the card is collapsed and appears on expand, firing the count refresh', () => {
+    const onRefresh = vi.fn(async () => {})
+    render(<WebSearchSettingsSection {...makeProps({ onRefreshKeyCounts: onRefresh, snapshot: makeSnapshot([member('tavily', 'Tavily', { keyCount: 2 })]) })} t={t} />)
+    expect(screen.queryByTestId('dshws-keycount-tavily')).toBeNull()
+    expand('tavily')
+    expect(screen.getByTestId('dshws-keycount-tavily')).toBeTruthy()
+    expect(onRefresh).toHaveBeenCalled()
+  })
+
+  it('renders the gray hollow circle with no digit at count 0', () => {
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot([member('tavily', 'Tavily', { keyCount: 0 })]) })} t={t} />)
+    expand('tavily')
+    const badge = screen.getByTestId('dshws-keycount-tavily')
+    expect(badge.getAttribute('data-state')).toBe('zero')
+    expect(badge.textContent).toBe('')
+    expect(badge.getAttribute('title')).toBe(en.keyCountZeroTitle)
+  })
+
+  it('renders the brand count pill with the number and {count}/{max} title at count 3', () => {
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot([member('tavily', 'Tavily', { keyCount: 3 })]) })} t={t} />)
+    expand('tavily')
+    const badge = screen.getByTestId('dshws-keycount-tavily')
+    expect(badge.getAttribute('data-state')).toBe('count')
+    expect(badge.textContent).toBe('3')
+    expect(badge.getAttribute('title')).toBe(en.keyCountTitle.replace('{count}', '3').replace('{max}', '10'))
+  })
+
+  it('switches to the warn state over the pool cap', () => {
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot([member('tavily', 'Tavily', { keyCount: 11 })]) })} t={t} />)
+    expand('tavily')
+    expect(screen.getByTestId('dshws-keycount-tavily').getAttribute('data-state')).toBe('over')
+  })
+
+  it('stays hidden when counts are not loaded (undefined is not 0)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expand('tavily')
+    expect(screen.queryByTestId('dshws-keycount-tavily')).toBeNull()
+  })
+})

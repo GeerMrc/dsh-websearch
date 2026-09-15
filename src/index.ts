@@ -32,6 +32,7 @@ import type { MemberGates } from './chain/core.ts'
 import { Config, resolveConfig } from './config.ts'
 import type { UnifiedSearchFanout } from './config.ts'
 import { CredentialGate } from './credentials.ts'
+import { DshWsKeyCountsRemote } from './key-counts.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
 import { AnysearchSearchProvider, resolveAnysearchMemberOptions } from './providers/anysearch.ts'
@@ -59,6 +60,7 @@ export type { DeepSeekMemberOptions } from './providers/deepseek.ts'
 export type { AnysearchMemberOptions } from './providers/anysearch.ts'
 export { CHAIN_ERROR_CODES, DshwsError, MEMBER_ERROR_CODES } from './errors.ts'
 export { CredentialGate } from './credentials.ts'
+export { DshWsKeyCountsRemote, KEY_COUNTS_NAMESPACE } from './key-counts.ts'
 export { LiveResolvedConfig, SETTINGS_NAMESPACE, attachSettingsSection } from './settings.ts'
 export {
   DEEPSEEK_MEMBER_ID,
@@ -97,6 +99,9 @@ export { Config }
 
 /** The bundled members, keyed by their config section. */
 type MemberKey = 'tavily' | 'exa' | 'firecrawl' | 'deepseek' | 'anysearch'
+
+/** The five member section keys, iteration order for live-ref whitelisting. */
+const MEMBER_KEYS = ['tavily', 'exa', 'firecrawl', 'deepseek', 'anysearch'] as const satisfies readonly MemberKey[]
 
 /**
  * Plugin entry point: build the priority chains and the five bundled members,
@@ -189,6 +194,13 @@ export function apply(ctx: Context, config: Config): void {
   for (const member of [resolved.tavily, resolved.exa, resolved.firecrawl, resolved.deepseek, resolved.anysearch]) {
     credentialRef(member.apiKeyEnv)
   }
+
+  // Key-count Remote (settings-page badge): whitelisted to the five members'
+  // live refs; values stay in-process, only the integer count crosses.
+  new DshWsKeyCountsRemote(ctx, {
+    allowedRefs: () => new Set<string>(MEMBER_KEYS.map((key) => live.current()[key].apiKeyEnv)),
+    resolve: async (ref) => (await credentials.resolve(credentialRef(ref)))?.value,
+  })
 
   const gate = new CredentialGate({
     credentials,

@@ -12,6 +12,24 @@
 
 ---
 
+## 2026-09-16 — Key 计数徽标批：v0.1.1（Session 29，设置页展开态 APIKEY 计数提示）
+
+**新增**
+- **`dshws-websearch` 自有 Remote 命名空间**（`src/key-counts.ts` host 半 + `src/client/key-counts-remote.ts` client 半手写 contribution 经 `$mount` 挂载）：`describeKeyCounts(refs)` 回 `Record<ref, count>`——值不出进程，只回整数计数；refs 白名单=五成员当前解析 ref（`apiKeyEnv ?? defaultRef`），外部 ref 一律 0（防跨凭据探测）。零接触宿主主树（gateway SRC 动态发现 + `@deepseek-ai/dsh-typert-protocol@0.1.5-rc.2` 钉版防装饰器 marker 双实例）。
+- **KeyCountBadge**（`src/client/section.tsx`）：仅展开态显示；0=灰空心圆、1-10=品牌色数字 pill（悬停 `已配置 N/10`）、>10=警示色（池超限是请求期 loud failure，ADR-0011）；计数未加载（undefined）不渲染（不与 0 混淆）；展开瞬间幂等 `refreshCounts()`（env 外部变更无事件也能在查看时刻刷新）。旧宿主+新客户端优雅降级=无徽标无报错。
+- 测试：`tests/key-counts.test.ts`（计数/白名单/去重/resolve 失败保守 0/值不下发）+ `tests/key-counts.artifact.test.ts`（构建产物参数名↔wire 字段对齐冒烟，陈旧 lib 自动 skip）+ controller 5 例（counts 入快照/pending≠0/setKey 联动/事件带刷/失败保守）+ section 5 例（收起隐藏/0 灰/3 彩/11 警示/pending 不渲染/展开触发刷新）。vitest 加装饰器预变换插件（esbuild 不认 stage-3 装饰器，harness `standardDecoratorPlugin` 同形）。
+- 门禁：test 476 passed / typecheck / oxlint / check:i18n 全绿。
+- **3423 GUI 实测全过**（v0.1.1 tgz 装于 scratch profile）：0=灰空心圆（悬停「暂无有效 API Key」）/ 1 key=蓝 1 徽标 / 3 key=蓝 3 徽标（悬停「已配置 API Key：3/10」）/ 收起隐藏-展开重现-展开即刷新 / 页面刷新后持久正确 / 清除回灰圆；深浅双主题徽标均为品牌蓝 rgb(86,134,254)（`--dsw-static-deepseek-450`，主题无关；`--dsw-alias-brand-primary` 双主题均为中性近白/近黑不满足「彩色点亮」被否）。截图两帧在档（会话工件）。
+- **三项通路技术定谳**（插件自建 Typert remote 的实现约束，后续同类功能直接引用）：① 客户端 `$mount` 的 contribution 必须 strict codec（zod schema），`src-json` 会被 `requireStrictCodec` 拒；② gateway 以 traceable proxy 作 receiver 调 SRC 方法——方法体内不得访问 `#private` 字段（穿透 proxy 抛 TypeError→`gateway/internal`）；③ rolldown 不降级 stage-3 装饰器（harness 走 tsc 预编译故无此问题）——本包用 `Remote(fn, context)` 公开调用面在模块加载期运行时标记，源码零装饰器语法（vitest 亦无需装饰器插件）。
+
+**诚实标注（遗留项）**
+- 生产（3080）升级待用户指令；发布扫尾（推送远程/安装方法/分支规整）为独立后续阶段。
+
+**跟踪**
+- 下一棒：发布扫尾（推送远程/安装方法/分支规整）独立阶段。
+
+---
+
 ## 2026-09-13 — 生产切换批：v0.1.0 上生产（Session 27，用户 2.5 批准路线 B）
 
 **新增（生产部署）**

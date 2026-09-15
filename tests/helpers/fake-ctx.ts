@@ -33,6 +33,8 @@ export interface FakeCtx {
     update: (ns: string, patch: Record<string, unknown>) => Promise<void>
   } }) => void) => void
   on: (event: string, handler: (ref: CredentialRef) => void) => () => void
+  /** Minimal `reflect.provide` so a cordis Service (the key-count Remote) constructs. */
+  reflect: { provide: (name: string, instance: object, check?: (ctx: unknown) => boolean) => void }
 }
 
 export interface FakeCtxHandle {
@@ -105,6 +107,7 @@ export function fakeCtx(options?: { withSettings?: boolean; values?: Record<stri
       if (event === 'credentials/reference-updated') eventHandlers.add(handler)
       return () => eventHandlers.delete(handler)
     },
+    reflect: { provide: () => {} },
   }
   const emitUpdated = (ref: string) => {
     for (const handler of eventHandlers) handler(ref as CredentialRef)
