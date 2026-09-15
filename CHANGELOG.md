@@ -12,6 +12,19 @@
 
 ---
 
+## 2026-09-16 — 上游适配与生产升级批：0.1.6-alpha.1 + v0.1.1 上生产（Session 30，用户裁定插件+DSH 一并升）
+
+**新增（升级审核与切换）**
+- **上游兼容性审核**（双独立审核代理，GitHub 逐目录 commits/patch 取证）：0.1.5-rc.2 → 0.1.6-alpha.1 约 800 commits 中插件依赖缝（web/credentials/settings/typert protocol/gateway/cordis-host-runner/slots/locale/ui-primitives/ModuleLoader 契约/CSS token/cordis 4.0.2）零变更或纯加法；peer `>=0.1.5-rc.1 <0.1.6` 按 semver 覆盖 0.1.6-alpha.1 无需放宽。两注意点：loader 非事务化（插件失败 fiber FAILED 不回滚整树）；subpath loader 条目 fail-loud（本插件整包引用不受影响）。
+- **3423 升级验证**：新 worktree dsh-harness-016a1 @ dsh-v0.1.6-alpha.1（fetch tag → pnpm install → **pnpm run build**——缺 build 则 profile symlink 报 typert.host.js 缺失，已记 docs/upgrade.md）→ 3423 供版切换 → 横幅 0.1.6-alpha.1-0a15e36、插件零错误、四工具徽标计数（真实 key 5/1/2/5）、启停开关/web_fetch 接管/链卡全过。
+- **3080 生产切换**（用户裁定插件+DSH 一并升）：备份 profile package.json 与 tgz 至 /tmp/dshws-s30/backup/ → profile 依赖切 v0.1.1 tgz → 3080 以 016a1 worktree 重启（symlink healing 自动指向新树）→ 横幅/徽标计数/会话树无损全过。**回滚预案**：profile 依赖指回 /tmp/dshws-s29/dsh-websearch-0.1.0.tgz + 进程切回 dsh-harness-015 供版重启。
+- **文档**：README 中英新增「安装、升级与注意事项」章节；docs/upgrade.md 补 v0.1.1 版本行与 0.1.6-alpha.1 升级实操记录。
+
+**诚实标注（遗留项）**
+- 3080 真实搜索端到端（served-by 徽标亲见）留用户验收择机；远程仓库推送待用户给出地址后执行。
+
+---
+
 ## 2026-09-16 — Key 计数徽标批：v0.1.1（Session 29，设置页展开态 APIKEY 计数提示）
 
 **新增**

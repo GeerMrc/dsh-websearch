@@ -13,6 +13,7 @@
 | 0.5.x–0.6.x | patch | P1/P2/P3 参数对齐上游、统一语言/区域/域名入口（ADR-0015/0018）、fetch 链接管（ADR-0019——**用户可见行为变更非 breaking**：web_fetch 改由插件链服务） |
 | 0.7.x–0.9.x | patch | UI/UX 对齐宿主 0.8.0、上游 0.1.5-rc.2 适配 |
 | **v0.1.0**（定档） | 版本线重置 | ADR-0020：内部编号归历史档；正式线从 v0.1.0 起，补丁位细迭代 |
+| **v0.1.1** | feature | 设置页成员卡展开态 APIKEY 计数徽标（`dshws-websearch` 自有 Typert remote；三项通路定谳见 CHANGELOG） |
 
 ## 2. 升级演练步骤（插件版本升级）
 
@@ -28,6 +29,8 @@
 8. **GUI 冒烟**：排序拖动 / 折叠展开 / 兜底选择器 / web_fetch 两态开关各操作一次。
 
 ## 3. 宿主 dsh 版本升级演练（peer 域变更时）
+
+> 2026-09-16 实测记录：0.1.5-rc.2 → 0.1.6-alpha.1 升级审核结论=插件零适配（依赖缝零变更/纯加法，双独立审核）。实操两步：① 新 worktree `git worktree add <dir> dsh-v0.1.6-alpha.1 && pnpm install && pnpm run build`（**必须 build**，否则 profile symlink 解析不到 `lib/`，报 `typert.host.js` 缺失）；② 重启 web 进程（profile 链接自动 healing 指向新树）。3423 与 3080 均按此流程完成切换验证（横幅/徽标计数/接管开关全过）。回滚=进程切回旧 worktree 重启。
 
 以 0.1.5 采纳为例（S24/S25 实战，Note s24 是详细正本）：
 

@@ -36,6 +36,23 @@ dsh --profile web --dump-config
 
 **卸载**：`dsh plugin --profile web remove dsh-websearch`。已知残留（诚实披露）：settings 默认值与预设目录不随 remove 清理（无害，用户自撰同名目录永不覆写）。
 
+## 安装、升级与注意事项
+
+**安装**（宿主 peer 域 `dsh >=0.1.5-rc.1 <0.1.6`，覆盖 0.1.5-rc 线与 0.1.6 预发布线）：
+
+```sh
+dsh plugin --profile web add <dsh-websearch-tarball>   # 或 profile package.json 依赖 file: 指向 tarball 后 pnpm install
+```
+
+安装即接管 web_search / web_fetch（bundle 钉扎安装序，后写者赢）；卸载自动复原宿主默认。换包后浏览器整页刷新（client 走 `/plugins/*?rev=` 运行时路由）。
+
+**升级**：完整演练手册见 [docs/upgrade.md](docs/upgrade.md)（打包→换包→dump 对照→GUI 冒烟→搜索→降级六步）。同版本号换包会被跳过——预览场景先 bump 版本。
+
+**注意事项**：
+- key 值永不下发客户端；设置页徽标只显示整数计数（refs 白名单限定五成员，防跨凭据探测）。
+- 宿主升级换供版 worktree 后需先在该 worktree `pnpm install && pnpm run build`，profile 链接（symlink healing）才能解析到完整 `lib/`。
+- 0.1.6-alpha.1 起 loader 非事务化：插件启动失败表现为 fiber FAILED + 日志（不再整树回滚），排障看 `<dshHome>/logs/`。
+
 ## 从 anysearch 插件迁移（ADR-0013）
 
 原 `@anysearch/anysearch-dsh` 用户：**先卸载再安装**即完成切换（bundle 钉扎安装序，后写者赢）：

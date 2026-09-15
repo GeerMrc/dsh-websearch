@@ -36,6 +36,24 @@ dsh --profile web --dump-config
 
 **Uninstall**: `dsh plugin --profile web remove dsh-websearch`. Known residue (honest disclosure): settings defaults and preset directories are not cleaned by remove (harmless; user-authored same-name directories are never overwritten).
 
+
+## Install, upgrade, and notes
+
+**Install** (host peer range `dsh >=0.1.5-rc.1 <0.1.6`, covering the 0.1.5-rc line and 0.1.6 pre-releases):
+
+```sh
+dsh plugin --profile web add <dsh-websearch-tarball>   # or a file: tarball dependency in the profile package.json + pnpm install
+```
+
+Installing takes over web_search / web_fetch (bundle-pinned install order, last writer wins); uninstalling restores the host defaults. Reload the page after swapping the package (the client bundle is served from `/plugins/*?rev=` runtime routes).
+
+**Upgrade**: full rehearsal manual at [docs/upgrade.md](docs/upgrade.md) (pack → swap → dump diff → GUI smoke → search → degradation). Same-version swaps are skipped — bump the version first for preview installs.
+
+**Notes**:
+- Key values never reach the client; the settings badge shows integer counts only (refs whitelisted to the five members, blocking cross-credential probing).
+- After a host upgrade swaps the serving worktree, run `pnpm install && pnpm run build` in that worktree first so the profile links (symlink healing) resolve complete `lib/` outputs.
+- From 0.1.6-alpha.1 the loader is non-transactional: a plugin startup failure surfaces as a FAILED fiber + log line (no whole-tree rollback); check `<dshHome>/logs/`.
+
 ## Migrating from the anysearch plugin (ADR-0013)
 
 Uninstall first, then install — the bundle pin resolves by install order, last writer wins:
