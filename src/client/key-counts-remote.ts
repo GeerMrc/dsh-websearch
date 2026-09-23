@@ -14,6 +14,11 @@
  * @module dsh-websearch/client/key-counts-remote
  */
 import type { Context } from '@deepseek-ai/cordis'
+// Side-effect types: the mounted-Remote service face on Context (`ctx.remote`)
+// arrives through the gateway client types that dsh-api-remotes re-exports;
+// importing it here keeps this module self-contained in either tsconfig
+// project (the node project reaches it via tests).
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { RemoteResult, TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import { z } from 'zod'
 
@@ -22,7 +27,25 @@ export interface KeyCountsNamespace {
   describeKeyCounts(refs: string[]): Promise<RemoteResult<Record<string, number>>>
 }
 
-const keyCountsContribution: TypertRemoteContribution = {
+const refsSchema = z.array(z.string())
+const resultSchema = z.record(z.string(), z.number())
+
+/**
+ * Cross-generation strict codec (S32 ADR-0021 family): 0.1.5/0.1.6 clients
+ * parse call inputs client-side through the `schema` zod instance (their
+ * `parseInput` calls `codec.schema.parse` — a missing schema crashes at call
+ * time, surfaced by the 015rc3 drill as the silently hidden badge), while
+ * 0.1.7 loaders require a `create()` factory instead. Both fields coexist:
+ * each generation validates and reads only its own (no exhaustive-key
+ * rejection on either side), so one bundle serves every host in the peer
+ * range.
+ */
+const refsCodec = { mode: 'strict' as const, typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:refs', schema: refsSchema, create: () => refsSchema }
+
+const resultCodec = { mode: 'strict' as const, typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:result', schema: resultSchema, create: () => resultSchema }
+
+/** The client contribution (exported for cross-generation shape tests). */
+export const keyCountsContribution: TypertRemoteContribution = {
   package: 'dsh-websearch',
   descriptors: [
     {
@@ -34,9 +57,9 @@ const keyCountsContribution: TypertRemoteContribution = {
       // The Client Gateway requires strict codecs on mounted contributions;
       // the schemas mirror the Host method's declared types exactly.
       parameters: [
-        { name: 'refs', wire: 'refs', source: 'json', codec: { mode: 'strict', typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:refs', create: () => z.array(z.string()) } },
+        { name: 'refs', wire: 'refs', source: 'json', codec: refsCodec },
       ],
-      result: { mode: 'strict', typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:result', create: () => z.record(z.string(), z.number()) },
+      result: resultCodec,
     },
   ],
 }
