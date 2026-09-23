@@ -1,6 +1,6 @@
 # AGENTS.md — dsh-websearch 项目宪法
 
-DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）。技术栈一句话：TypeScript + cordis 插件协议 + vitest，宿主为 deepseek-harness（`dsh`）0.1.2-alpha.x。
+DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）。技术栈一句话：TypeScript + cordis 插件协议 + vitest，宿主为 deepseek-harness（`dsh`）官方 npm 线——devDeps 钉版与生产供版树以 package.json 与 `/Volumes/IPFSJK/Zcode/dsh-ops-3080-runbook.md` 为正本（勿以本行为准；截至 S32 启动：devDeps=0.1.5-rc.2 线〔T3 刷新中〕、生产供版 016a1=dsh-v0.1.6-alpha.1）。
 
 ## 治理硬约束（session-governance）
 
@@ -41,5 +41,7 @@ DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）�
 
 - node ≥ 22.19（宿主 dsh engines 要求）；本机默认 v20——构建/测试前必须切 nvm。环境验证命令：`node --version && pnpm --version`。
 - 大版本跳跃或换树后先 `pnpm install` 再跑测试；报告测试结果必须附命令原文与实测数字。
-- **开发/调试实例 = 3423 端口固定**（用户裁定 2026-09-12）：宿主仓 cwd 启动 `DSH_HOME=/tmp/dshws-s14a/home node --import tsx/esm apps/cli/src/bin.ts --profile web --port 3423 --no-open`；scratch 家目录（`/tmp/dshws-s14a/home`）为插件 file: tarball 安装/换包/浏览器实测专用。换包重启属预告类操作（先告知后动）；同版本 tarball 换包须删 `node_modules/dsh-websearch` 强制 pnpm 重装。
+- **开发/调试实例端口分配（用户裁定 2026-09-23 更新）**：常驻 dev = **3423**（用户裁定 2026-09-12）：宿主仓 cwd 启动 `DSH_HOME=/tmp/dshws-s14a/home node --import tsx/esm apps/cli/src/bin.ts --profile web --port 3423 --no-open`；scratch 家目录（`/tmp/dshws-s14a/home`）为插件 file: tarball 安装/换包/浏览器实测专用。换包重启属预告类操作（先告知后动）；同版本 tarball 换包须删 `node_modules/dsh-websearch` 强制 pnpm 重装。
+- **3424 = dsh-selfupdate 插件保留位（用户裁定 2026-09-23）**：另一独立插件仓的 U 线开发/调试专用，本仓一切工作禁占用。
+- **3434 = 本仓升级/专项验证窗口（用户裁定 2026-09-23）**：上游升级演练、适配验证等专项工作用——分线 scratch home（`/tmp/dshws-s32/home-<线名>`）+ `--port 3434 --no-open`，终态清场（无残留进程、凭据副本删除）。
 - **默认生产环境 `~/.dsh`（3080）禁触**（用户裁定 2026-09-12，红线）：一切开发/调试/换包/实测只走 3423 scratch；不得安装、卸载、改依赖、改 settings/凭据于 `~/.dsh`。仅当用户**明确指令**（如交付后要求把插件编译安装进本地生产 DSH）时方可操作，且操作前须复述用户指令原文留痕。

@@ -25,6 +25,7 @@
 
 **新增（升级审核与切换）**
 - **上游兼容性审核**（双独立审核代理，GitHub 逐目录 commits/patch 取证）：0.1.5-rc.2 → 0.1.6-alpha.1 约 800 commits 中插件依赖缝（web/credentials/settings/typert protocol/gateway/cordis-host-runner/slots/locale/ui-primitives/ModuleLoader 契约/CSS token/cordis 4.0.2）零变更或纯加法；peer `>=0.1.5-rc.1 <0.1.6` 按 semver 覆盖 0.1.6-alpha.1 无需放宽。两注意点：loader 非事务化（插件失败 fiber FAILED 不回滚整树）；subpath loader 条目 fail-loud（本插件整包引用不受影响）。
+  - **〔勘误 2026-09-23 S32 T0 实测〕**上一句「按 semver 覆盖 0.1.6-alpha.1」为**误判**：node-semver 预发布排除规则下 `satisfies('0.1.6-alpha.1','>=0.1.5-rc.1 <0.1.6') === false`（semver 6.3.1/7.8.4/7.8.5 三副本一致）——生产 3080（0.1.6-alpha.1 树 + 插件 v0.1.1）自切换日起实处于 peer 未满足状态（运行时零影响：web seam 零变更；后续 profile 内任何 pnpm install 将报 unmet peer）。peer 域放宽由 S32 T3 执行；dont-do 已沉淀「semver 预发布覆盖断言须实测」。
 - **3423 升级验证**：新 worktree dsh-harness-016a1 @ dsh-v0.1.6-alpha.1（fetch tag → pnpm install → **pnpm run build**——缺 build 则 profile symlink 报 typert.host.js 缺失，已记 docs/upgrade.md）→ 3423 供版切换 → 横幅 0.1.6-alpha.1-0a15e36、插件零错误、四工具徽标计数（真实 key 5/1/2/5）、启停开关/web_fetch 接管/链卡全过。
 - **3080 生产切换**（用户裁定插件+DSH 一并升）：备份 profile package.json 与 tgz 至 /tmp/dshws-s30/backup/ → profile 依赖切 v0.1.1 tgz → 3080 以 016a1 worktree 重启（symlink healing 自动指向新树）→ 横幅/徽标计数/会话树无损全过。**回滚预案**：profile 依赖指回 /tmp/dshws-s29/dsh-websearch-0.1.0.tgz + 进程切回 dsh-harness-015 供版重启。
 - **文档**：README 中英新增「安装、升级与注意事项」章节；docs/upgrade.md 补 v0.1.1 版本行与 0.1.6-alpha.1 升级实操记录。
@@ -50,6 +51,14 @@
 
 **跟踪**
 - 下一棒：发布扫尾（推送远程/安装方法/分支规整）独立阶段。
+
+---
+
+## 2026-09-13 — 徽标解耦微批（Session 28；**补账条目 2026-09-23 S32 T1**——当日漏登，正本=git 9e6591c/e9dce94 + docs/sessions/2026-09-16-sessions-28-31-backfill.md）
+
+**新增**
+- served-by 徽标渲染与宿主 toolview 结构解耦（全卡扫描替代定点结构匹配）+ web_fetch 溯源徽标（fetch-row.tsx/fetch-view.spec）。
+- 版本裁定（用户）：本批并入 v0.1.0 定档基线不独立发版（e9dce94 回折版本号；远端 tag v0.1.0 移钉最终实现）。
 
 ---
 

@@ -143,8 +143,8 @@
 ===================================================================
 
 项目名：dsh-websearch
-技术栈：TypeScript + cordis 插件协议 + vitest，宿主 deepseek-harness（dsh）0.1.2-alpha.x
-当前阶段：里程碑 M1-M6（治理与规划/可行性 spike/宿主包/设置页 GUI/验证与文档/上游验收）；当前 M1 治理与规划定稿（✅ 2026-09-02），下一棒 M2
+技术栈：TypeScript + cordis 插件协议 + vitest，宿主 deepseek-harness（dsh）官方 npm 线（版本正本=package.json 与 ops runbook，勿以本行为准）
+当前阶段：M1-M6+M7 全段；进度权威=docs/STATUS.md 当前位置块（本行仅参考）
 
 核心文档：
   docs/00-architecture.md        — 整体架构
