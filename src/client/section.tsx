@@ -14,7 +14,8 @@
  * @module dsh-websearch/client/section
  */
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button, IconChevronDownOutline14, IconQuestionOutline14, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { ChevronDownIcon, QuestionIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
@@ -352,7 +353,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           multi-key format moved into each card's input placeholder. */}
           <Tooltip label={t('description')} side="bottom" delayMs={400} maxWidth={360}>
             <button type="button" aria-label={t('description')} style={infoButtonStyle}>
-              <IconQuestionOutline14 />
+              <QuestionIcon />
             </button>
           </Tooltip>
         </h3>
@@ -383,7 +384,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 data-dshws-chain-state={snapshot.searchChainPinned ? 'pinned' : 'default'}
                 style={infoButtonStyle}
               >
-                <IconQuestionOutline14 />
+                <QuestionIcon />
               </button>
             </Tooltip>
             <span style={{ flex: 1 }} />
@@ -487,7 +488,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             {advancedDirty ? <UnsavedPill t={t} testid="dshws-unsaved-advanced" /> : null}
             {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
             <span aria-hidden="true" data-dshws-chevron="" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: advancedOpen ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
-              <IconChevronDownOutline14 />
+              <ChevronDownIcon />
             </span>
           </button>
           {advancedOpen ? (
@@ -581,7 +582,7 @@ function MaxUsesRow(props: {
         {t('maxUsesLabel')}
         <Tooltip label={hint} side="bottom" delayMs={400} maxWidth={320}>
           <button type="button" aria-label={hint} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
+            <QuestionIcon />
           </button>
         </Tooltip>
       </span>
@@ -722,7 +723,7 @@ function FallbackToolRow(props: {
         <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
         <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
           <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
+            <QuestionIcon />
           </button>
         </Tooltip>
         <span style={{ flex: 1 }} />
@@ -797,13 +798,13 @@ function FetchTakeoverRow(props: {
           <strong style={nameStyle}>{t('fetchTakeoverLabel')}</strong>
           <Tooltip label={t('fetchTakeoverNoteS21')} side="bottom" delayMs={400} maxWidth={380}>
             <button type="button" aria-label={t('fetchTakeoverNoteS21')} style={infoButtonStyle}>
-              <IconQuestionOutline14 />
+              <QuestionIcon />
             </button>
           </Tooltip>
           <span style={{ flex: 1 }} />
           {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
           <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
-            <IconChevronDownOutline14 />
+            <ChevronDownIcon />
           </span>
         </button>
         <button
@@ -857,7 +858,7 @@ function FetchChainRows(props: {
             data-testid="dshws-fetch-chain-info"
             style={infoButtonStyle}
           >
-            <IconQuestionOutline14 />
+            <QuestionIcon />
           </button>
         </Tooltip>
         {feedback ? <span role="status" data-testid="dshws-fetch-chain-feedback" style={{ ...hintStyle, color: 'var(--dsw-alias-state-error-primary)' }}>{t(feedback)}</span> : null}
@@ -913,7 +914,7 @@ function UnsavedPill(props: { t: (key: DshWsLocaleKey) => string, testid: string
 const MAX_KEYS_PER_POOL = 10
 
 // 14px circular footprint — the same size as the header's ? info icon
-// (IconQuestionOutline14), so the badge sits in the established icon rhythm.
+// (QuestionIcon), so the badge sits in the established icon rhythm.
 // Widths are content-box: 12+2×1px (counted) and 11+2×1.5px (zero) both
 // render exactly 14px including borders.
 const keyCountBadgeBaseStyle = {
@@ -1010,7 +1011,7 @@ function MemberEndpointField(props: {
         {t('endpointLabel')}
         <Tooltip label={t('endpointNote')} side="bottom" delayMs={400} maxWidth={320}>
           <button type="button" aria-label={t('endpointNote')} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
+            <QuestionIcon />
           </button>
         </Tooltip>
       </span>
@@ -1151,7 +1152,7 @@ function MemberParamField(props: {
           {control.noteKey !== undefined ? (
             <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
               <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
-                <IconQuestionOutline14 />
+                <QuestionIcon />
               </button>
             </Tooltip>
           ) : null}
@@ -1187,7 +1188,7 @@ function MemberParamField(props: {
           {control.noteKey !== undefined ? (
             <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
               <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
-                <IconQuestionOutline14 />
+                <QuestionIcon />
               </button>
             </Tooltip>
           ) : null}
@@ -1227,7 +1228,7 @@ function MemberParamField(props: {
         {control.noteKey !== undefined ? (
           <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
             <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
-              <IconQuestionOutline14 />
+              <QuestionIcon />
             </button>
           </Tooltip>
         ) : null}
@@ -1324,7 +1325,7 @@ function DomainField(props: {
         {t(labelKey)}
         <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={380}>
           <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
+            <QuestionIcon />
           </button>
         </Tooltip>
       </span>
@@ -1385,7 +1386,7 @@ function GeoField(props: {
         {t(labelKey)}
         <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={360}>
           <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
-            <IconQuestionOutline14 />
+            <QuestionIcon />
           </button>
         </Tooltip>
       </span>
@@ -1507,7 +1508,7 @@ function MemberCard(props: {
           <span style={{ flex: 1 }} />
           {/* S23 D1: the host chevron icon; 160ms rotation (D16 exemption lands with the T4 style block). */}
           <span aria-hidden="true" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }} data-dshws-chevron="">
-            <IconChevronDownOutline14 />
+            <ChevronDownIcon />
           </span>
         </button>
         <button
@@ -1542,7 +1543,7 @@ function MemberCard(props: {
               data-testid={`dshws-keysel-info-${member.key}`}
               style={infoButtonStyle}
             >
-              <IconQuestionOutline14 />
+              <QuestionIcon />
             </button>
           </Tooltip>
         </span>

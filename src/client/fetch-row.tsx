@@ -19,7 +19,7 @@
  */
 import { useState } from 'react'
 import type { ReactElement } from 'react'
-import { IconGlobeOutline14 } from '@deepseek-ai/dsh-client-ui-primitives'
+import { GlobeIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 
@@ -180,7 +180,7 @@ export function WebFetchToolviewRow(props: WebFetchToolviewProps): ReactElement 
         aria-expanded={open}
         onClick={() => { setOpen((value) => !value) }}
       >
-        <IconGlobeOutline14 size={14} />
+        <GlobeIcon size={14} />
         <span style={titleStyle}>{t('fetchTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
         {badge !== undefined && fetch !== null && fetch.servedBy.length > 0 && (

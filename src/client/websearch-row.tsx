@@ -29,7 +29,7 @@
  */
 import { useState } from 'react'
 import type { ReactElement } from 'react'
-import { IconGlobeOutline14 } from '@deepseek-ai/dsh-client-ui-primitives'
+import { GlobeIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 
@@ -232,7 +232,7 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
         aria-expanded={open}
         onClick={() => { setOpen((value) => !value) }}
       >
-        <IconGlobeOutline14 size={14} />
+        <GlobeIcon size={14} />
         <span style={titleStyle}>{t('toolTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
         {badge !== undefined && web !== null && web.servedBy.length > 0 && (
