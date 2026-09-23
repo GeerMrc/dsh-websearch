@@ -34,9 +34,9 @@ const keyCountsContribution: TypertRemoteContribution = {
       // The Client Gateway requires strict codecs on mounted contributions;
       // the schemas mirror the Host method's declared types exactly.
       parameters: [
-        { name: 'refs', wire: 'refs', source: 'json', codec: { mode: 'strict', typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:refs', schema: z.array(z.string()) } },
+        { name: 'refs', wire: 'refs', source: 'json', codec: { mode: 'strict', typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:refs', create: () => z.array(z.string()) } },
       ],
-      result: { mode: 'strict', typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:result', schema: z.record(z.string(), z.number()) },
+      result: { mode: 'strict', typeSymbol: 'dsh-websearch#dshws-websearch/describeKeyCounts:result', create: () => z.record(z.string(), z.number()) },
     },
   ],
 }
