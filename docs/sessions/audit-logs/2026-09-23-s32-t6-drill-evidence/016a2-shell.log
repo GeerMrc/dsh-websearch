@@ -1,0 +1,10 @@
+dsh: reasoning:
+The user is asking me to run the shell command `echo tool-ok` and reply with the output exactly as is.
+
+This is a simple task. Let's run the command.
+
+
+
+
+
+dsh: UNKNOWN: Cannot read properties of undefined (reading 'prepare')

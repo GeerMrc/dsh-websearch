@@ -1,0 +1,38 @@
+dsh: initialized profile web at /tmp/dshws-s32/home-017a2/profiles/web
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ dsh-websearch file:/Volumes/IPFSJK/Zcode/dsh-websearch/dist-artifacts/dsh-websearch-0.1.2.tgz
+
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+Added 4 entries to minimumReleaseAgeExclude in pnpm-workspace.yaml (set minimumReleaseAgeStrict to true to gate these updates with a prompt):
+  @deepseek-ai/cosmokit@1.8.5
+  @deepseek-ai/dsh-brand@0.1.7-alpha.2
+  @deepseek-ai/dsh-typert-protocol@0.1.7-alpha.2
+  @deepseek-ai/schemastery@3.18.4
+Done in 355ms using pnpm v11.23.0
+dsh: initialized profile headless at /tmp/dshws-s32/home-017a2/profiles/headless
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ dsh-websearch file:/Volumes/IPFSJK/Zcode/dsh-websearch/dist-artifacts/dsh-websearch-0.1.2.tgz
+
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+Added 4 entries to minimumReleaseAgeExclude in pnpm-workspace.yaml (set minimumReleaseAgeStrict to true to gate these updates with a prompt):
+  @deepseek-ai/cosmokit@1.8.5
+  @deepseek-ai/dsh-brand@0.1.7-alpha.2
+  @deepseek-ai/dsh-typert-protocol@0.1.7-alpha.2
+  @deepseek-ai/schemastery@3.18.4
+Done in 349ms using pnpm v11.23.0

@@ -12,6 +12,31 @@
 
 ---
 
+## 2026-09-23 — 上游全跨度升级适配批：v0.1.2（Session 32，用户三裁定：全跨度适配/修死 tgz 树不切/授权凭据复制）
+
+**新增（依赖域与源码适配，ADR-0021）**
+- **peer 域全跨度**：六条 `@deepseek-ai/dsh-*` peer 放宽为 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`——semver 三副本（6.3.1/7.8.4/7.8.5）实测 7 个已发布版本全 true、0.1.8 封顶（dont-do「semver 预发布覆盖断言须实测」入册）。
+- **devDeps 0.1.5-rc.2 → 0.1.7-alpha.2**（14 包）+ cordis 4.0.4 + schemastery 3.18.4 + typert-protocol runtime dep 0.1.7-alpha.2 + ui-primitives 未声明传递依赖补偿（simple-icons/diff/workspace-path/client-store/zustand/immer）。
+- **settings 双径（ADR-0021）**：`buildConfigSchema(markVolatile)` 双 schema（Config volatile 标注 / ConfigLegacy 无标注）；`attachSettingsSection` 运行时探测 `installSection`——旧径全钩子保留，0.1.7+ 径走 `setVolatileSource` 读时求值 + `settings/document-updated` re-prime；`materializeConfig` 统一解包层（schema 调用即包装，与宿主版本无关）。
+- **图标双名回退**（`src/client/host-icons.tsx`）：`*OutlineRegular`（0.1.7+）优先、`*Outline14`（旧宿主）局部模块增强回退，单一 client bundle 跨线。
+- **typert strict codec**：key-counts client 半区 `schema:` → `create: () =>`（0.1.6+ 字段更名；wire 对 `refs` 不变）。
+- 测试：双径分派 ×3 + volatile schema/materialize 断言 ×1 + controller mock 适配（autoGenerate/applies 收窄）+ ResizeObserver jsdom 桩（0.1.7 Tooltip 尺寸测量）；真实 seam 旧服务生命周期测试（依赖已删除的 SettingsProvider）退役，其覆盖由双径分派与 A/B 钩子测试承接。**全量 480 passed | 13 skipped（493）**（基线 476；T6 演练追加跨代 codec 测试后终态，阶段 4 复跑精确一致）；typecheck 双工程 / oxlint 0w0e / build（client.js 300.74 kB）/ check:i18n（144 键）全绿。
+- **pnpm 11.7 处方入册**：默认 minimumReleaseAge=24h 命中新发布包自动追加 exclude；依赖变更后 `pnpm clean --lockfile && pnpm install` 重建；verify-deps 校验环节不读 exclude 已关闭（`verifyDepsBeforeRun: false`，显式安装年龄门保留）。
+- **产物持久化**：`dist-artifacts/`（gitignore）存 v0.1.2 tarball + v0.1.1 回滚副本（tag 重建）；生产 profile 死 tgz 路径修复（T7）。
+
+**治理**
+- 计划 032 两轮审核（NEEDS REVISION→APPROVED）；T0 前序审核 PASS（🔴0/🟡4/🟢6，基线 476）；机械变更豁免独立确认（T3 六子项 + 两附加条件）。
+- **S28–S31 补账**（合并记录 + STATUS/roadmap 刷新 + S28 CHANGELOG 补条 + S30 semver 勘误 + AGENTS/.session-start 头部与端口表更新：3423 常驻/3424=selfupdate 保留/3434=本仓升级验证窗口）。
+- T2 三线兼容矩阵 Note（A 零适配 / B 2 项 / C +2 硬破坏 + 运行时必测清单）。
+
+**诚实标注（遗留项）**
+- 3434 三线演练（T6）与生产修复（T7）已收官：A 线（0.1.5-rc.3）全腿 PASS；**B 线（0.1.6-alpha.2）工具腿 BLOCKED-by-upstream**（宿主 TOOL_RUNTIME_SCHEDULER.prepare 缺陷——无插件净 home 复现，非本插件问题；其余腿 PASS）；C 线（0.1.7-alpha.2）全腿 PASS（volatile 端到端/双工具 served-by 徽标/GUI 提交降级）。生产 3080 已换持久路径 v0.1.2（树维持 016a1）。
+- 每次新装/重装 profile 会见 `[WARN] @deepseek-ai/dsh-typert-protocol@0.1.7-alpha.2 requires cordis ~4.0.4` 类 unmet-peer 提示——typert-protocol 0.1.7 线 peer 钉 ~4.0.4 而 0.1.5/0.1.6 宿主 vendored cordis 4.0.2；告警级非错误，三线演练+生产实测运行正常（处置与实证见 docs/upgrade.md）。
+- 0.1.7+ 路径自定义校验降级为 resolve 时 loud 失败（ADR-0021 已知差异）。
+- ui-primitives 未声明传递依赖补偿为 devDeps（测试解析用；运行时由宿主 bundle 提供）——上游若声明化可移除。
+
+---
+
 ## 2026-09-16 — 开源发布批：公开仓库上线（Session 31）
 
 **新增**
@@ -25,6 +50,7 @@
 
 **新增（升级审核与切换）**
 - **上游兼容性审核**（双独立审核代理，GitHub 逐目录 commits/patch 取证）：0.1.5-rc.2 → 0.1.6-alpha.1 约 800 commits 中插件依赖缝（web/credentials/settings/typert protocol/gateway/cordis-host-runner/slots/locale/ui-primitives/ModuleLoader 契约/CSS token/cordis 4.0.2）零变更或纯加法；peer `>=0.1.5-rc.1 <0.1.6` 按 semver 覆盖 0.1.6-alpha.1 无需放宽。两注意点：loader 非事务化（插件失败 fiber FAILED 不回滚整树）；subpath loader 条目 fail-loud（本插件整包引用不受影响）。
+  - **〔勘误 2026-09-23 S32 T0 实测〕**上一句「按 semver 覆盖 0.1.6-alpha.1」为**误判**：node-semver 预发布排除规则下 `satisfies('0.1.6-alpha.1','>=0.1.5-rc.1 <0.1.6') === false`（semver 6.3.1/7.8.4/7.8.5 三副本一致）——生产 3080（0.1.6-alpha.1 树 + 插件 v0.1.1）自切换日起实处于 peer 未满足状态（运行时零影响：web seam 零变更；后续 profile 内任何 pnpm install 将报 unmet peer）。peer 域放宽由 S32 T3 执行；dont-do 已沉淀「semver 预发布覆盖断言须实测」。
 - **3423 升级验证**：新 worktree dsh-harness-016a1 @ dsh-v0.1.6-alpha.1（fetch tag → pnpm install → **pnpm run build**——缺 build 则 profile symlink 报 typert.host.js 缺失，已记 docs/upgrade.md）→ 3423 供版切换 → 横幅 0.1.6-alpha.1-0a15e36、插件零错误、四工具徽标计数（真实 key 5/1/2/5）、启停开关/web_fetch 接管/链卡全过。
 - **3080 生产切换**（用户裁定插件+DSH 一并升）：备份 profile package.json 与 tgz 至 /tmp/dshws-s30/backup/ → profile 依赖切 v0.1.1 tgz → 3080 以 016a1 worktree 重启（symlink healing 自动指向新树）→ 横幅/徽标计数/会话树无损全过。**回滚预案**：profile 依赖指回 /tmp/dshws-s29/dsh-websearch-0.1.0.tgz + 进程切回 dsh-harness-015 供版重启。
 - **文档**：README 中英新增「安装、升级与注意事项」章节；docs/upgrade.md 补 v0.1.1 版本行与 0.1.6-alpha.1 升级实操记录。
@@ -50,6 +76,14 @@
 
 **跟踪**
 - 下一棒：发布扫尾（推送远程/安装方法/分支规整）独立阶段。
+
+---
+
+## 2026-09-13 — 徽标解耦微批（Session 28；**补账条目 2026-09-23 S32 T1**——当日漏登，正本=git 9e6591c/e9dce94 + docs/sessions/2026-09-16-sessions-28-31-backfill.md）
+
+**新增**
+- served-by 徽标渲染与宿主 toolview 结构解耦（全卡扫描替代定点结构匹配）+ web_fetch 溯源徽标（fetch-row.tsx/fetch-view.spec）。
+- 版本裁定（用户）：本批并入 v0.1.0 定档基线不独立发版（e9dce94 回折版本号；远端 tag v0.1.0 移钉最终实现）。
 
 ---
 

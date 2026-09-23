@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, ORDERABLE_SEARCH_MEMBER_ORDER, resolveConfig, validateExaSectionFilterRule, validateFirecrawlTbsRule } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, ConfigLegacy, ORDERABLE_SEARCH_MEMBER_ORDER, materializeConfig, resolveConfig, validateExaSectionFilterRule, validateFirecrawlTbsRule } from '../src/config.ts'
 
 describe('resolveConfig', () => {
   it('applies the built-in member order to empty chains — four tools (S19: perplexity removed), no appended tail (ADR-0014)', () => {
@@ -257,8 +257,24 @@ describe('resolveConfig', () => {
 })
 
 describe('Config schema', () => {
-  it('normalizes an empty configuration object to the structural skeleton', () => {
-    expect(Config({})).toEqual({
+  it('normalizes an empty configuration object to the structural skeleton (legacy schema, S32 ADR-0021)', () => {
+    expect(ConfigLegacy({})).toEqual({
+      searchChain: [],
+      fetchChain: [],
+      deepseek: {},
+      tavily: {},
+      firecrawl: {},
+      exa: {},
+      anysearch: {},
+    })
+  })
+
+  it('S32 ADR-0021: the volatile schema resolves fields into handles; materializeConfig unwraps them', () => {
+    const runtime = Config({})
+    // Every volatile-marked field resolves through a live handle…
+    expect(typeof (runtime as Record<string, { get?: unknown }>).searchChain?.get).toBe('function')
+    // …and one materialize pass restores the plain skeleton shape.
+    expect(materializeConfig(runtime as never)).toEqual({
       searchChain: [],
       fetchChain: [],
       deepseek: {},

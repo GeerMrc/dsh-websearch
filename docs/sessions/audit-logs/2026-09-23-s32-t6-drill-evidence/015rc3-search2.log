@@ -1,0 +1,46 @@
+dsh: reasoning:
+The user wants to do a web search for the latest pricing of Exa's search API. This is a simple web search task. Let's execute it.
+
+
+dsh: reasoning:
+Let me get the latest pricing directly from Exa's official pricing page to confirm.
+
+
+dsh: reasoning:
+Now I have the latest official pricing info from exa.ai/pricing. Let me put together a clear answer for the user in Chinese (the user is writing in Chinese).
+
+
+
+
+根据 Exa 官方定价页面（exa.ai/pricing）的最新信息：
+
+## Exa Search API 最新定价
+
+### 按用量付费（Pay-as-you-go）
+
+| 端点 | 基础价格（含前 10 条结果） | 超出 10 条每条结果 |
+|------|--------------------------|-------------------|
+| **Search**（实时搜索） | **$7 / 1,000 请求** | $1 / 1,000 条 |
+| **Deep Search**（多步研究） | **$12 / 1,000 请求** | $1 / 1,000 条 |
+| **Deep-Reasoning Search**（高推理深度） | **$15 / 1,000 请求** | $1 / 1,000 条 |
+| **Contents**（完整页面内容） | **$1 / 1,000 页**（按内容类型） | — |
+| **Monitors**（定时监控） | **$15 / 1,000 请求** | $1 / 1,000 条 |
+| **Answer**（带引用的 LLM 回答） | **$5 / 1,000 请求** | — |
+
+- **AI 页面摘要**：$1 / 1,000 页
+
+### Agent（异步深度研究）
+- 按固定 effort 模式计费：Minimal $0.012 → X-high $1.00 / 请求
+- Agent 计算单元（ACU）：$0.10 / ACU
+- 搜索工具调用：$0.005 / 次
+- 联系信息富化：邮箱 $0.02、电话 $0.07 / 条
+
+### 套餐
+- **免费（Starter）**：注册送 $20 额度 + 每月 $10 免费额度，无需支付方式，10 QPS，可用全部端点
+- **开发者（PAYG）**：按量付费，最高 25 QPS，SOC 2 Type II
+- **企业**：定制价格，支持 HIPAA、零数据保留、自定义索引、最高 1,000 条结果/次搜索
+
+### 注意
+搜索定价近期从 $5/1k 上调到了 $7/1k（约 2026 年 3 月更新）。前 10 条搜索结果的费用已包含在内（含文本 + 高亮），超出部分每条加收 $1/1k。
+
+来源：[Exa 官方定价页](https://exa.ai/pricing)、[Exa 文档定价页](https://exa.ai/docs/admin/pricing)

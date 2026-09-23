@@ -29,8 +29,8 @@ import { createChainFileLog } from './chain-log.ts'
 import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
-import { Config, resolveConfig } from './config.ts'
-import type { UnifiedSearchFanout } from './config.ts'
+import { Config, materializeConfig, resolveConfig } from './config.ts'
+import type { ConfigRuntime, UnifiedSearchFanout } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { DshWsKeyCountsRemote } from './key-counts.ts'
 import { KeyPool } from './keys.ts'
@@ -115,9 +115,13 @@ function throwMissingChain(): never {
   throw new Error('dsh-websearch: fetch chain not constructed before first gated call')
 }
 
-export function apply(ctx: Context, config: Config): void {
-  const live = new LiveResolvedConfig(config)
-  const resolved = resolveConfig(config)
+export function apply(ctx: Context, config: ConfigRuntime): void {
+  // One unwrap per apply: plain fields pass through, 0.1.7+ volatile handles
+  // snapshot here for the initial state (ADR-0021 — live re-reads flow
+  // through the settings path, not this object).
+  const entry = materializeConfig(config)
+  const live = new LiveResolvedConfig(entry)
+  const resolved = resolveConfig(entry)
 
   /**
    * Hot-backed member options (S17 D1): every property read re-resolves
@@ -391,7 +395,7 @@ export function apply(ctx: Context, config: Config): void {
   // (entry config authoritative) otherwise. A committed change re-primes the
   // gate AFTER the refresh so newly added pool refs start being observed
   // (prime is additive-idempotent; ADR-0008).
-  attachSettingsSection(ctx, Config, config, live, {
+  attachSettingsSection(ctx, config, live, {
     onCommitted: () => {
       void gate.prime(Object.values(pools).flatMap((pool) => pool.refs())).catch((error: unknown) => {
         log(`[dshws-websearch] credential gate re-priming failed unexpectedly: ${String(error)}`)

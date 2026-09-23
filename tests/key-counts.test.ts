@@ -54,3 +54,27 @@ describe('DshWsKeyCountsRemote.describeKeyCounts', () => {
     expect(resolve).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('cross-generation strict codec (S32 ADR-0021 family, 3434 drill finding)', () => {
+  it('carries BOTH the zod instance (0.1.5/0.1.6 clients parse inputs through codec.schema) and the create factory (0.1.7 loaders)', async () => {
+    const { keyCountsContribution } = await import('../src/client/key-counts-remote.ts')
+    const descriptor = keyCountsContribution.descriptors[0]
+    const codec = descriptor.parameters[0].codec as unknown as Record<string, unknown>
+    expect(codec.mode).toBe('strict')
+    // 0.1.5/0.1.6 client: parseInput calls codec.schema.parse(value) — a
+    // missing schema is an undefined.parse crash at call time (the silent
+    // badge loss the 015rc3 drill caught).
+    const schema = codec.schema as { _zod?: unknown, parse?: (value: unknown) => unknown }
+    expect(schema).toBeDefined()
+    expect('_zod' in schema).toBe(true)
+    expect(typeof schema.parse).toBe('function')
+    // 0.1.7 loader: requireStrictCodec demands create().
+    const create = codec.create as () => unknown
+    expect(typeof create).toBe('function')
+    expect('_zod' in (create() as Record<string, unknown>)).toBe(true)
+    // The result codec rides the same dual shape.
+    const result = descriptor.result as unknown as Record<string, unknown>
+    expect('_zod' in (result.schema as Record<string, unknown>)).toBe(true)
+    expect(typeof result.create).toBe('function')
+  })
+})

@@ -35,7 +35,8 @@ class FakeRemote {
         ns: 'dsh-websearch',
         schema: {},
         value: this.nsValue,
-        applies: 'live',
+        autoGenerate: true,
+        applies: 'live' as const,
         secrets: [],
         revision: this.revision,
       },
@@ -58,7 +59,7 @@ class FakeRemote {
     // host view type once, at the fake's edge.
     return Promise.resolve({
       ok: true,
-      value: { ns, schema: {}, value: this.nsValue, applies: 'live', secrets: [], revision: this.revision } as SettingsNamespaceView,
+      value: { ns, schema: {}, value: this.nsValue, autoGenerate: true, applies: 'live' as const, secrets: [], revision: this.revision } as SettingsNamespaceView,
     })
   }
 

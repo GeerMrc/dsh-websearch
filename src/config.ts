@@ -382,21 +382,67 @@ export interface Config {
   anysearch?: AnysearchSettings
 }
 
-/** Validation schema the cordis loader applies to the `dsh-websearch` config section. */
-export const Config: z<Config> = z.object({
-  searchChain: z.array(z.string()),
+/**
+ * A volatile handle as the host hands it to `apply` on 0.1.7+ (upstream
+ * `Volatile<T>`): reading through `get()` evaluates the field against the
+ * live configuration. Structural — no compile-time cordis-version tie.
+ */
+interface VolatileHandle<T> {
+  get(): T
+}
+
+/**
+ * The configuration shape `apply` receives at runtime. On 0.1.7+ hosts every
+ * volatile-marked field (the whole schema, S32/ADR-0021) arrives as a handle;
+ * on 0.1.5/0.1.6 hosts the same fields arrive as plain values, so every
+ * consumer normalizes through {@link materializeConfig} before resolving.
+ */
+export type ConfigRuntime = { [K in keyof Config]?: Config[K] | VolatileHandle<Config[K]> }
+
+/**
+ * Unwrap a runtime config into the plain {@link Config} shape: handle fields
+ * read through `get()` (snapshot at call time), plain fields pass through.
+ * Shallow by construction — volatile marks sit exactly on the top-level
+ * fields and the five member objects, never deeper.
+ * @param runtime - the config object the host handed the plugin.
+ * @returns the plain snapshot for one resolve pass.
+ */
+export function materializeConfig(runtime: ConfigRuntime): Config {
+  const out: Record<string, unknown> = {}
+  for (const key of Object.keys(runtime) as (keyof Config)[]) {
+    const value: unknown = runtime[key]
+    out[key] = value !== null && typeof value === 'object' && typeof (value as VolatileHandle<unknown>).get === 'function'
+      ? (value as VolatileHandle<unknown>).get()
+      : value
+  }
+  return out as Config
+}
+
+
+/**
+ * Validation schema the cordis loader applies to the `dsh-websearch` config
+ * section. Every editable field is `.volatile()` (S32, ADR-0021): on 0.1.7+
+ * hosts that registers the namespace as a live settings form (the whole
+ * subtree under a volatile node is form-editable, upstream `volatileForm`);
+ * on 0.1.5/0.1.6 hosts the marker is inert metadata and values arrive plain
+ * (see {@link ConfigRuntime}).
+ */
+function buildConfigSchema(markVolatile: boolean): z {
+  const vol = (node: z): z => (markVolatile ? node.volatile() : node)
+  return z.object({
+  searchChain: vol(z.array(z.string())),
   // 'dshws-perplexity' stays as a legacy alias (S19): stored values load, resolveConfig normalizes to 'auto'.
-  fallbackMember: z.union(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-deepseek']),
-  fallbackProvider: z.union(['deepseek', 'none', 'auto', 'fetch']),
-  chainLogFile: z.boolean(),
-  fetchTakeover: z.boolean(),
-  searchCountry: z.string(),
-  searchLanguage: z.string(),
-  searchIncludeDomains: z.string(),
-  searchExcludeDomains: z.string(),
-  fetchChain: z.array(z.string()),
-  perMemberTimeoutMs: z.number().step(1).min(1),
-  deepseek: z.object({
+  fallbackMember: vol(z.union(['auto', 'dshws-tavily', 'dshws-exa', 'dshws-perplexity', 'dshws-firecrawl', 'dshws-anysearch', 'dshws-deepseek'])),
+  fallbackProvider: vol(z.union(['deepseek', 'none', 'auto', 'fetch'])),
+  chainLogFile: vol(z.boolean()),
+  fetchTakeover: vol(z.boolean()),
+  searchCountry: vol(z.string()),
+  searchLanguage: vol(z.string()),
+  searchIncludeDomains: vol(z.string()),
+  searchExcludeDomains: vol(z.string()),
+  fetchChain: vol(z.array(z.string())),
+  perMemberTimeoutMs: vol(z.number().step(1).min(1)),
+  deepseek: vol(z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
@@ -404,8 +450,8 @@ export const Config: z<Config> = z.object({
     maxTokens: z.number().step(1).min(1),
     maxUses: z.number().step(1).min(1),
     keySelection: z.union(['order', 'round-robin', 'random']),
-  }),
-  tavily: z.object({
+  })),
+  tavily: vol(z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
@@ -421,8 +467,8 @@ export const Config: z<Config> = z.object({
     endDate: z.string(),
     exactMatch: z.boolean(),
     keySelection: z.union(['order', 'round-robin', 'random']),
-  }),
-  firecrawl: z.object({
+  })),
+  firecrawl: vol(z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
@@ -432,8 +478,8 @@ export const Config: z<Config> = z.object({
     sources: z.union(['', 'news', 'web+news']),
     categories: z.union(['', 'developer', 'research', 'pdf']),
     keySelection: z.union(['order', 'round-robin', 'random']),
-  }),
-  exa: z.object({
+  })),
+  exa: vol(z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
@@ -448,15 +494,31 @@ export const Config: z<Config> = z.object({
     includeSections: z.string(),
     excludeSections: z.string(),
     keySelection: z.union(['order', 'round-robin', 'random']),
-  }),
-  anysearch: z.object({
+  })),
+  anysearch: vol(z.object({
     enabled: z.boolean(),
     apiKeyEnv: z.string(),
     baseURL: z.string(),
     zone: z.union(['cn', 'intl']),
     keySelection: z.union(['order', 'round-robin', 'random']),
-  }),
+  })),
 })
+}
+
+/**
+ * Validation schema the cordis loader applies to the `dsh-websearch` config
+ * section — every editable field volatile-marked (S32, ADR-0021): 0.1.7+
+ * hosts register the namespace as a live settings form from these marks and
+ * resolve the fields into `Volatile` handles.
+ */
+export const Config: z = buildConfigSchema(true)
+
+/**
+ * The 0.1.5/0.1.6 `installSection` face of the same schema — identical
+ * fields with the volatile marks stripped, because a legacy host's settings
+ * GUI would serialize a `Volatile` handle as an empty object (ADR-0021).
+ */
+export const ConfigLegacy: z = buildConfigSchema(false)
 
 /** Fully defaulted settings for one member. */
 export interface DeepSeekMemberConfig extends Required<Pick<DeepSeekSettings, 'enabled' | 'apiKeyEnv'>> {
@@ -647,99 +709,102 @@ export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
  * order, a missing timeout budget becomes 30s, and each member section gets
  * `enabled: true` plus its credential-ref env name. Provider-specific option
  * defaults (base URLs, models, result counts) stay with the provider
- * implementations (S04/S05a); their values pass through untouched.
+ * implementations (S04/S05a); their values pass through untouched. Input is
+ * normalized through {@link materializeConfig} first, so plain configs and
+ * 0.1.7+ handle-wrapped runtime configs resolve identically (ADR-0021).
  */
-export function resolveConfig(config: Config): ResolvedWebSearchConfig {
-  validateUnifiedDomainRule(config)
-  validateExaSectionFilterRule(config)
-  validateFirecrawlTbsRule(config)
-  const fallbackMember: FallbackMember = config.fallbackMember === 'dshws-perplexity'
+export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearchConfig {
+  const plain = materializeConfig(config)
+  validateUnifiedDomainRule(plain)
+  validateExaSectionFilterRule(plain)
+  validateFirecrawlTbsRule(plain)
+  const fallbackMember: FallbackMember = plain.fallbackMember === 'dshws-perplexity'
     // S19 legacy alias: the removed member's designation degrades to auto.
     ? 'auto'
-    : config.fallbackMember !== undefined
-      ? config.fallbackMember
+    : plain.fallbackMember !== undefined
+      ? plain.fallbackMember
       // Legacy alias (ADR-0014): 'deepseek' names the paid floor; 'none',
       // 'auto', and the deleted 'fetch' free floor all mean the chain-order tail.
-      : (config.fallbackProvider === 'deepseek' ? DEEPSEEK_FALLBACK_MEMBER_ID : 'auto')
+      : (plain.fallbackProvider === 'deepseek' ? DEEPSEEK_FALLBACK_MEMBER_ID : 'auto')
   return {
     searchChain: withDesignatedFallback(
-      config.searchChain?.length ? [...config.searchChain] : ORDERABLE_SEARCH_MEMBER_ORDER,
+      plain.searchChain?.length ? [...plain.searchChain] : ORDERABLE_SEARCH_MEMBER_ORDER,
       fallbackMember,
     ),
     fallbackMember,
-    fetchTakeover: config.fetchTakeover ?? true,
+    fetchTakeover: plain.fetchTakeover ?? true,
     // ADR-0015 canonical forms: country uppercase, language lowercase; blank drops.
-    searchCountry: config.searchCountry?.trim().length ? config.searchCountry.trim().toUpperCase() : undefined,
-    searchLanguage: config.searchLanguage?.trim().length ? config.searchLanguage.trim().toLowerCase() : undefined,
-    searchIncludeDomains: splitDomainList(config.searchIncludeDomains),
-    searchExcludeDomains: splitDomainList(config.searchExcludeDomains),
-    fetchChain: config.fetchChain?.length
-      ? [...config.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
+    searchCountry: plain.searchCountry?.trim().length ? plain.searchCountry.trim().toUpperCase() : undefined,
+    searchLanguage: plain.searchLanguage?.trim().length ? plain.searchLanguage.trim().toLowerCase() : undefined,
+    searchIncludeDomains: splitDomainList(plain.searchIncludeDomains),
+    searchExcludeDomains: splitDomainList(plain.searchExcludeDomains),
+    fetchChain: plain.fetchChain?.length
+      ? [...plain.fetchChain].filter((id) => id !== DEEPSEEK_FALLBACK_MEMBER_ID)
       : [...FETCH_CHAIN_DEFAULT_ORDER],
-    perMemberTimeoutMs: config.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
+    perMemberTimeoutMs: plain.perMemberTimeoutMs ?? DEFAULT_PER_MEMBER_TIMEOUT_MS,
     deepseek: {
       // S14d (user ruling): the paid fallback is OPT-IN — default off keeps the
       // install at zero paid reach until the user chooses it in the settings.
-      enabled: config.deepseek?.enabled ?? false,
-      apiKeyEnv: config.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY',
-      keySelection: config.deepseek?.keySelection ?? 'round-robin',
-      baseURL: config.deepseek?.baseURL?.trim() === '' ? undefined : config.deepseek?.baseURL,
-      model: config.deepseek?.model,
-      maxTokens: config.deepseek?.maxTokens,
-      maxUses: config.deepseek?.maxUses,
+      enabled: plain.deepseek?.enabled ?? false,
+      apiKeyEnv: plain.deepseek?.apiKeyEnv ?? 'DEEPSEEK_API_KEY',
+      keySelection: plain.deepseek?.keySelection ?? 'round-robin',
+      baseURL: plain.deepseek?.baseURL?.trim() === '' ? undefined : plain.deepseek?.baseURL,
+      model: plain.deepseek?.model,
+      maxTokens: plain.deepseek?.maxTokens,
+      maxUses: plain.deepseek?.maxUses,
     },
     tavily: {
-      enabled: config.tavily?.enabled ?? true,
-      apiKeyEnv: config.tavily?.apiKeyEnv ?? 'TAVILY_API_KEY',
-      keySelection: config.tavily?.keySelection ?? 'round-robin',
-      baseURL: config.tavily?.baseURL?.trim() === '' ? undefined : config.tavily?.baseURL,
-      maxResults: config.tavily?.maxResults,
-      topic: config.tavily?.topic || undefined,
-      timeRange: config.tavily?.timeRange || undefined,
-      searchDepth: config.tavily?.searchDepth || undefined,
+      enabled: plain.tavily?.enabled ?? true,
+      apiKeyEnv: plain.tavily?.apiKeyEnv ?? 'TAVILY_API_KEY',
+      keySelection: plain.tavily?.keySelection ?? 'round-robin',
+      baseURL: plain.tavily?.baseURL?.trim() === '' ? undefined : plain.tavily?.baseURL,
+      maxResults: plain.tavily?.maxResults,
+      topic: plain.tavily?.topic || undefined,
+      timeRange: plain.tavily?.timeRange || undefined,
+      searchDepth: plain.tavily?.searchDepth || undefined,
       // S17 D4: the free generated answer is ON at the basic tier by default.
-      includeAnswer: config.tavily?.includeAnswer ?? 'basic',
-      chunksPerSource: config.tavily?.chunksPerSource,
-      filterByLanguage: config.tavily?.filterByLanguage,
-      startDate: config.tavily?.startDate?.trim().length ? config.tavily.startDate.trim() : undefined,
-      endDate: config.tavily?.endDate?.trim().length ? config.tavily.endDate.trim() : undefined,
-      exactMatch: config.tavily?.exactMatch,
-      includeDomainsMode: config.tavily?.includeDomainsMode,
+      includeAnswer: plain.tavily?.includeAnswer ?? 'basic',
+      chunksPerSource: plain.tavily?.chunksPerSource,
+      filterByLanguage: plain.tavily?.filterByLanguage,
+      startDate: plain.tavily?.startDate?.trim().length ? plain.tavily.startDate.trim() : undefined,
+      endDate: plain.tavily?.endDate?.trim().length ? plain.tavily.endDate.trim() : undefined,
+      exactMatch: plain.tavily?.exactMatch,
+      includeDomainsMode: plain.tavily?.includeDomainsMode,
     },
     firecrawl: {
-      enabled: config.firecrawl?.enabled ?? true,
-      apiKeyEnv: config.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
-      keySelection: config.firecrawl?.keySelection ?? 'round-robin',
-      baseURL: config.firecrawl?.baseURL?.trim() === '' ? undefined : config.firecrawl?.baseURL,
-      tbs: config.firecrawl?.tbs?.trim().length ? config.firecrawl.tbs.trim() : undefined,
-      safe: config.firecrawl?.safe,
-      sources: config.firecrawl?.sources || undefined,
-      categories: config.firecrawl?.categories || undefined,
-      location: config.firecrawl?.location?.trim() === '' ? undefined : config.firecrawl?.location,
+      enabled: plain.firecrawl?.enabled ?? true,
+      apiKeyEnv: plain.firecrawl?.apiKeyEnv ?? 'FIRECRAWL_API_KEY',
+      keySelection: plain.firecrawl?.keySelection ?? 'round-robin',
+      baseURL: plain.firecrawl?.baseURL?.trim() === '' ? undefined : plain.firecrawl?.baseURL,
+      tbs: plain.firecrawl?.tbs?.trim().length ? plain.firecrawl.tbs.trim() : undefined,
+      safe: plain.firecrawl?.safe,
+      sources: plain.firecrawl?.sources || undefined,
+      categories: plain.firecrawl?.categories || undefined,
+      location: plain.firecrawl?.location?.trim() === '' ? undefined : plain.firecrawl?.location,
     },
     exa: {
-      enabled: config.exa?.enabled ?? true,
-      apiKeyEnv: config.exa?.apiKeyEnv ?? 'EXA_API_KEY',
-      keySelection: config.exa?.keySelection ?? 'round-robin',
-      baseURL: config.exa?.baseURL?.trim() === '' ? undefined : config.exa?.baseURL,
-      numResults: config.exa?.numResults,
-      type: config.exa?.type,
+      enabled: plain.exa?.enabled ?? true,
+      apiKeyEnv: plain.exa?.apiKeyEnv ?? 'EXA_API_KEY',
+      keySelection: plain.exa?.keySelection ?? 'round-robin',
+      baseURL: plain.exa?.baseURL?.trim() === '' ? undefined : plain.exa?.baseURL,
+      numResults: plain.exa?.numResults,
+      type: plain.exa?.type,
       // S17 D4: text fallback is ON by default — it fixes dropped results.
-      textFallback: config.exa?.textFallback ?? true,
-      startPublishedDate: config.exa?.startPublishedDate?.trim().length ? config.exa.startPublishedDate.trim() : undefined,
-      category: config.exa?.category || undefined,
-      maxAgeHours: config.exa?.maxAgeHours,
-      endPublishedDate: config.exa?.endPublishedDate?.trim().length ? config.exa.endPublishedDate.trim() : undefined,
-      textVerbosity: config.exa?.textVerbosity || undefined,
-      includeSections: config.exa?.includeSections?.trim().length ? config.exa.includeSections.trim() : undefined,
-      excludeSections: config.exa?.excludeSections?.trim().length ? config.exa.excludeSections.trim() : undefined,
+      textFallback: plain.exa?.textFallback ?? true,
+      startPublishedDate: plain.exa?.startPublishedDate?.trim().length ? plain.exa.startPublishedDate.trim() : undefined,
+      category: plain.exa?.category || undefined,
+      maxAgeHours: plain.exa?.maxAgeHours,
+      endPublishedDate: plain.exa?.endPublishedDate?.trim().length ? plain.exa.endPublishedDate.trim() : undefined,
+      textVerbosity: plain.exa?.textVerbosity || undefined,
+      includeSections: plain.exa?.includeSections?.trim().length ? plain.exa.includeSections.trim() : undefined,
+      excludeSections: plain.exa?.excludeSections?.trim().length ? plain.exa.excludeSections.trim() : undefined,
     },
     anysearch: {
-      enabled: config.anysearch?.enabled ?? true,
-      apiKeyEnv: config.anysearch?.apiKeyEnv ?? 'ANYSEARCH_API_KEY',
-      baseURL: config.anysearch?.baseURL?.trim() === '' ? undefined : config.anysearch?.baseURL,
-      zone: config.anysearch?.zone,
-      keySelection: config.anysearch?.keySelection ?? 'round-robin',
+      enabled: plain.anysearch?.enabled ?? true,
+      apiKeyEnv: plain.anysearch?.apiKeyEnv ?? 'ANYSEARCH_API_KEY',
+      baseURL: plain.anysearch?.baseURL?.trim() === '' ? undefined : plain.anysearch?.baseURL,
+      zone: plain.anysearch?.zone,
+      keySelection: plain.anysearch?.keySelection ?? 'round-robin',
     },
   }
 }

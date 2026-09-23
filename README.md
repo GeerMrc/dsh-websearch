@@ -17,7 +17,7 @@
 
 ## 快速开始
 
-前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.6`）、node ≥ 22.19。
+前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`，S32 全跨度——显式钉已演练预发布版）、node ≥ 22.19。
 
 ```sh
 # 1. 打包（仓库根）
@@ -38,7 +38,7 @@ dsh --profile web --dump-config
 
 ## 安装、升级与注意事项
 
-**安装**（宿主 peer 域 `dsh >=0.1.5-rc.1 <0.1.6`，覆盖 0.1.5-rc 线与 0.1.6 预发布线）：
+**安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版，上限 0.1.8）：
 
 ```sh
 # 方式一：从本仓库发布页取 tarball
@@ -135,7 +135,7 @@ dsh-websearch:
                 maxTokens: 0, maxUses: 5, keySelection: round-robin }
 ```
 
-组合限制（双路径 fail-loud：settings validate hook 拒写 + cordis.yml 加载报错）：
+组合限制（fail-loud：0.1.5/0.1.6 宿主 settings validate hook 写前拒写；0.1.7+ 宿主降级为读取时 loud 失败——ADR-0021；cordis.yml 加载报错两代恒在）：
 - `searchIncludeDomains` 与 `searchExcludeDomains` 互斥（ADR-0018）。
 - `exa.includeSections/excludeSections` 须配 `exa.maxAgeHours: 0` 或 `-1`（官方约束）。
 - `firecrawl.tbs` 须为官方 tbs 文法（`qdr:*` / `sbd:1` / `cdr:1,cd_min:…,cd_max:…` 逗号组合）。
