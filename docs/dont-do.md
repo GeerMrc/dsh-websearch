@@ -72,3 +72,11 @@
 - **错误**：以 `0.1.6-alpha.1 < 0.1.6` 的数值序直觉断言「peer `>=0.1.5-rc.1 <0.1.6` 覆盖 0.1.6-alpha.1 无需放宽」（S30 CHANGELOG 原句）。node-semver 预发布排除规则：预发布版仅当**同一 [major,minor,patch] tuple 且带预发布的比较子**存在时才被放行——本例唯一预发布比较子是 tuple 0.1.5 的下界，0.1.6 预发布一律 false。结果：生产 0.1.6-alpha.1 树 + 插件 v0.1.1 自切换日起 peer 未满足（false-green 审核被双重独立审核同时漏过，7 天后才被实测纠偏）。
 - **正确**：任何「范围覆盖 X」断言必须以真实 semver（node_modules 内任一副本即可）跑 `satisfies(X, range)` 实测留痕再落笔；含预发布版的 peer 域用「稳定区间 + 逐个预发布显式钉」（如 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || …`），并随上游每个新预发布逐钉扩展。
 - **来源**：S32 阶段 0/2 独立审核实锤（semver 6.3.1/7.8.4/7.8.5 三副本一致判定；audit-logs 2026-09-23-s32-t0-stage0-audit.md §3b）；CHANGELOG S30 条勘误 2026-09-23。
+
+## 跨版本兼容分类（Session 32 T6 入册）
+
+### ❌ 不要把上游「字段/协议改名」判为纯编译级——必须核对每一消费代的运行时读取点
+
+- **错误**：T2 兼容矩阵将 typert strict codec `schema`→`create` 更名定为「纯编译级破坏，运行时零感知」（沿用上游注释的字段意图推断）。实况：0.1.5/0.1.6 client 的 `parseInput` 在**每次调用时**执行 `codec.schema.parse(value)`——`create` 单字段在旧宿主= `undefined.parse` 崩溃，key-count 徽标静默消失（无报错、无日志）。3434 015rc3 演练首轮抓获。
+- **正确**：凡跨代兼容断言，逐一列出各消费代的**运行时校验/读取代码路径**（旧 client parseInput、旧 loader requireStrictCodec、新 loader create 工厂）再下分类结论；跨代协议字段用「双字段并存」（各代只读己方、两侧均无逐键排斥）保单一构建。最终裁决只能来自 3434 实例演练，不来自源码注释推断。
+- **来源**：S32 T6 演练抓获 + 44488b7 修复（tests/key-counts.test.ts 跨代 shape 测试红→绿）；upgrade.md 三线矩阵与 ADR-0021「同族适配模式库」。

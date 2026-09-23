@@ -583,3 +583,24 @@ gate 生命周期/空池文案对齐 ADR 正本/T0 清偿范围；建议 ×7）�
 - **阶段 4/5**: 独立 Agent R1-R5 全 PASS（audit-logs/2026-09-13-s27-stage45-verification.md）
 - **遗留**: 2 条验证会话 + dsh-harness-015 工作区留检验；主树 merge housekeeping 待排
 - **正本**: docs/sessions/2026-09-13-session-27.md
+
+---
+
+## S32 批次台账（2026-09-23，上游全跨度升级适配 v0.1.2）
+
+### 任务表（plan 032，全部 ✅）
+
+P0 计划两轮审核 APPROVED / T0 前序 PASS（🔴0🟡4🟢6）/ T1 补账（S28–S31+erratum+dont-do）/ T2 三线矩阵（A 零适配 B 2 C +2）/ T3 依赖域全跨度（semver 七版本全 true）/ T4 三项适配（codec+图标+settings 双径 ADR-0021）/ T5 v0.1.2 产物 / T6 三线演练（A 全过·B 工具腿上游缺陷·C 全过）/ T7 生产持久路径 / T8 阶段4 PASS+阶段5 COMPLETE-WITH-NOTES（8 必修全落 T9）/ T9 收官。
+
+### 债务变动
+
+- 清偿：T0 🟡×4 全清（S30 erratum / 死 tgz / S28–S31 补账 / AGENTS 头部）。
+- 新增 🟢×3：0.1.2-alpha.4 陈旧 exclude 清理；volatile 路径无效对 path 级测试；T6 部分腿复合证据注记。另：B 线工具腿 BLOCKED-by-upstream（0.1.6-alpha.2 宿主 prepare 缺陷，等上游修复后重演——记录性遗留，非本仓债务）。
+- dont-do 新增：跨版本兼容分类条（跨代运行时读取点核对）。
+
+### 已验锚点（S32 新增）
+
+- 门墙终态：typecheck/lint/build/i18n EXIT=0 + **test 480 passed | 13 skipped（493）**（阶段 4 亲跑一致）。
+- 3434 三线：A dump:351/:352 钉扎+徽标 5/10+served-by anysearch×3+降级 tavily/firecrawl；B 装卸循环基座复原；C volatile 端到端+双工具 `· AnySearch` 徽标+Tavily 禁用零 draw。证据库 audit-logs/2026-09-23-s32-t6-drill-evidence/（23 文件）。
+- 生产：3080=pid 69290 cwd 016a1、profile 指向 dist-artifacts v0.1.2、dump 钉扎 :351/:352/:560、GUI 徽标 5/10。
+- dist-artifacts/：v0.1.2（115,781B）+ v0.1.1 回滚（111,905B，tag 重建）。

@@ -92,7 +92,7 @@
 | 29 | 2026-09-16 | v0.1.1：设置页展开态 APIKEY 计数徽标（自有 Typert remote `dshws-websearch`） | ✅ | 补账记录同上；CHANGELOG 2026-09-16 Key 计数徽标批条目；全量 476 passed；3423 GUI 全过 + 四工具计数实测（5/1/2/5） | 🟢 三项通路定谳注记在档 |
 | 30 | 2026-09-16 | 上游 0.1.6-alpha.1 适配（文档面）+ 3423/3080 供版树切换（016a1 worktree） | ✅ | 补账记录同上；CHANGELOG 2026-09-16 上游适配批条目；**S30 semver 断言误判（erratum 已随 S32 T1 落盘；peer 放宽转 S32 T3）** | 🟡 生产 profile 死 tgz 路径（/tmp 已清）——S32 T7 处置 |
 | 31 | 2026-09-16 | 开源发布批：LICENSE/README 三方式/敏感扫描/公开仓库 | ✅ | 补账记录同上；CHANGELOG 2026-09-16 开源发布批条目；github.com/GeerMrc/dsh-websearch（master+tags v0.1.0/v0.1.1） | 无新债 |
-| 32 | 2026-09-23 | 上游全跨度升级适配批（0.1.5-rc.3/0.1.6-alpha.2/0.1.7-alpha.2 + 生产死 tgz 修复——用户三裁定） | 🚧 | plan docs/plans/2026-09-23-032-s32-upstream-fullspan-plan.md（阶段 2 APPROVED；T0 PASS 🔴0/🟡4/🟢6）；audit-logs：stage2 计划审核 + T0 前序审核 | 🟡×4 认领：①S30 erratum（T1 清偿中）②死 tgz（T7）③S28–S31 补账（T1 清偿中）④AGENTS 头部（T3） |
+| 32 | 2026-09-23 | 上游全跨度升级适配批（0.1.5-rc.3/0.1.6-alpha.2/0.1.7-alpha.2 + 生产死 tgz 修复——用户三裁定） | ✅ | docs/sessions/2026-09-23-session-32.md；v0.1.2 定版（门墙 480\|13(493) 全绿，阶段 4 复跑一致）；ADR-0021 双径 + Note s32 矩阵 + 演练证据库；生产 3080=v0.1.2@016a1；阶段 4 PASS / 阶段 5 COMPLETE-WITH-NOTES 八必修全落 | 🟡×4 全清偿；🟢+3（exclude 清理/volatile path 测试/复合证据注记）；B 线工具腿 BLOCKED-by-upstream 留档 |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -103,10 +103,10 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: **Session 32 🚧 2026-09-23——上游全跨度升级适配批**（用户指令：插件与最新 DSH 官方升级冲突的全面审核+适配；三裁定=全跨度适配 / 修死 tgz 树不切 / 授权凭据复制；开发验证端口 **3434**〔3424=selfupdate 保留，3423 常驻不动〕）。plan 032 阶段 2 APPROVED；T0 前序审核 PASS（🔴0/🟡4/🟢6，audit-logs 在档）；T1 补账批执行中
+- **当前 session**: 无进行中（**Session 32 ✅ 2026-09-23——上游全跨度升级适配收官**：v0.1.2 定版，peer 域覆盖 0.1.5-rc.1…0.1.7-alpha.2 全部已发布版本（semver 七版本实测全 true）；devDeps=0.1.7-alpha.2 线；ADR-0021 settings 双径跨三线；3434 三线演练 A/C 全过（B 线工具腿=上游 0.1.6-alpha.2 宿主缺陷，净环境复现留档）；生产 3080 已换持久路径 v0.1.2（树维持 016a1，死 tgz 地雷消除）；门墙 480|13(493) 全绿）
 > （S27 收官态历史注记：生产切换完成——~/.dsh = 0.1.5-rc.2 worktree 供版〔S30 已切 016a1=0.1.6-alpha.1〕+ dsh-websearch v0.1.1；sessions 旧数据全清；3080 运行中真实搜索实证）
-- **所处里程碑**: **M7 ✅ + 定档 v0.1.1 + M5 ✅（2026-09-23 补账勘正：e2e 腿 S08 + 文档腿 S26 Tier B + S27 真实搜索实证）**。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
-- **上一棒**: Sessions 28–31（补账记录 docs/sessions/2026-09-16-sessions-28-31-backfill.md；S30 semver 断言误判 erratum 已落 CHANGELOG+dont-do）
-- **下一棒**: S32 完成（T2 上游钉板→T3 依赖域→T6 3434 三线演练→T7 生产死 tgz 修复→T8 独立审核）
-- **活跃债务**: 🔴×0 🟡×4（S32 T0 判定，本棒全认领：①S30 semver erratum T1 ②生产死 tgz T7 ③S28–S31 补账 T1 ④AGENTS.md 头部 T3）🟢 池维持 + L-2 + 观察（正本：progress-M7 台账；tsdown/vitest、i18n CI、卸载残留、AnySearch key 探针等 🟢×6 见 T0 audit-log）
-- **更新时间**: 2026-09-23（S32 启动 + T1 补账批进行中）
+- **所处里程碑**: **M7 ✅ + 定档 v0.1.2 + M5 ✅**。M4 ✅。M3 宿主包完备（🚧 机械面 ✅；余用户 with-key 槽位回填——不阻塞）。M6 ⏳（准备棒 S16）
+- **上一棒**: Session 32（docs/sessions/2026-09-23-session-32.md；B 线 BLOCKED-by-upstream 留档 + 🟢×3 新延后项见 progress-M7 S32 台账）
+- **下一棒**: 候选（待用户定向）——① 上游 0.1.6-alpha.3/0.1.7 新线跟进（peer 逐钉+矩阵演练；B 线工具缺陷修复后补演）② 🟢 池清理批 ③ npm publish 交付腿（需用户显式指令）
+- **活跃债务**: 🔴×0 🟡×0 🟢 池维持（T0 🟢×6 + S32 新增 🟢×3：exclude 陈旧清理/volatile path 级测试/复合证据注记——正本 progress-M7 S32 台账）+ L-2 + 观察
+- **更新时间**: 2026-09-23（S32 收官 ✅ 阶段 6 原子收尾序列）
