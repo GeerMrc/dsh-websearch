@@ -1,3 +1,8 @@
+# pnpm 11.7 verify-deps runs the lockfile policy check in a mode that ignores
+# minimumReleaseAgeExclude, so every `pnpm run` fails while freshly published
+# @deepseek-ai prereleases are inside the 24h age window. The age gate itself
+# stays active on explicit installs; this repo always installs explicitly.
+verifyDepsBeforeRun: false
 minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-brand@0.1.2-alpha.4'
   - '@deepseek-ai/dsh-llm@0.1.2-alpha.4'
@@ -57,3 +62,5 @@ minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-util-values@0.1.7-alpha.2'
   - '@deepseek-ai/dsh-web@0.1.7-alpha.2'
   - '@deepseek-ai/schemastery@3.18.4'
+  - '@deepseek-ai/dsh-util-workspace-path@0.1.7-alpha.2'
+  - '@deepseek-ai/dsh-client-store@0.1.7-alpha.2'

@@ -1,38 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import { SettingsProvider } from '@deepseek-ai/dsh-settings'
-import type { SettingsNamespace } from '@deepseek-ai/dsh-settings'
-import { Config } from '../src/config.ts'
 import { SETTINGS_NAMESPACE, LiveResolvedConfig, attachSettingsSection } from '../src/settings.ts'
-
-/**
- * Minimal real SettingsProvider subclass (upstream settings.spec.ts fixture
- * pattern): storage is an in-memory document, so the real installSection
- * attach → commit → detach lifecycle drives the plugin wiring here. Fields
- * stay public on purpose — cordis proxies plugin classes, and true `#private`
- * members are unreachable through the proxy.
- */
-class MemorySettings extends SettingsProvider {
-  doc: Record<string, unknown>
-
-  constructor(ctx: ConstructorParameters<typeof SettingsProvider>[0], options?: { doc?: Record<string, unknown> }) {
-    super(ctx)
-    this.doc = structuredClone(options?.doc ?? {})
-  }
-
-  get writable(): boolean {
-    return true
-  }
-
-  protected load(): Promise<Record<string, unknown>> {
-    return Promise.resolve(structuredClone(this.doc))
-  }
-
-  protected persist(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void> {
-    this.doc[ns] = structuredClone(section)
-    return Promise.resolve()
-  }
-}
 
 describe('LiveResolvedConfig', () => {
   it('starts as the resolved loader config', () => {
@@ -105,11 +73,13 @@ describe('attachSettingsSection', () => {
     const { ctx, captured } = fakeSettingsCtx()
     const entry = { searchChain: ['dshws-tavily'] }
     const live = new LiveResolvedConfig(entry)
-    attachSettingsSection(ctx, Config, entry, live)
+    attachSettingsSection(ctx, entry, live)
 
     expect(captured.ns).toBe(SETTINGS_NAMESPACE)
     expect(SETTINGS_NAMESPACE).toBe('dsh-websearch')
-    expect(captured.entry).toBe(entry)
+    // ADR-0021: the legacy branch hands the service a materialized snapshot
+    // of the runtime entry, not the runtime object itself.
+    expect(captured.entry).toStrictEqual(entry)
     // installSection calls setSource(scope.get) then onChange() at attach time;
     // driving them in service order must move the live state.
     captured.hooks!.setSource(() => ({ searchChain: ['dshws-deepseek', 'dshws-tavily'] }))
@@ -124,7 +94,7 @@ describe('attachSettingsSection', () => {
   it('S20 T1: the domain exclusivity validator rides the validate hook (rejects before persist, ADR-0018)', () => {
     const { ctx, captured } = fakeSettingsCtx()
     const live = new LiveResolvedConfig({})
-    attachSettingsSection(ctx, Config, {}, live)
+    attachSettingsSection(ctx, {}, live)
     const hooks = captured.hooks as { validate?: (value: unknown) => void }
     expect(hooks.validate).toBeTypeOf('function')
     const validate = hooks.validate!
@@ -137,7 +107,7 @@ describe('attachSettingsSection', () => {
   it('S22 T3: the Firecrawl tbs guard rides the same validate hook (rejects before persist)', () => {
     const { ctx, captured } = fakeSettingsCtx()
     const live = new LiveResolvedConfig({})
-    attachSettingsSection(ctx, Config, {}, live)
+    attachSettingsSection(ctx, {}, live)
     const hooks = captured.hooks as { validate?: (value: unknown) => void }
     const validate = hooks.validate!
     expect(() => validate({ firecrawl: { tbs: 'banana' } })).toThrow(/tbs/)
@@ -147,7 +117,7 @@ describe('attachSettingsSection', () => {
   it('S22 T2: the Exa section-filter guard rides the same validate hook (rejects before persist)', () => {
     const { ctx, captured } = fakeSettingsCtx()
     const live = new LiveResolvedConfig({})
-    attachSettingsSection(ctx, Config, {}, live)
+    attachSettingsSection(ctx, {}, live)
     const hooks = captured.hooks as { validate?: (value: unknown) => void }
     const validate = hooks.validate!
     expect(() => validate({ exa: { includeSections: 'body' } })).toThrow(/maxAgeHours/)
@@ -156,26 +126,63 @@ describe('attachSettingsSection', () => {
   })
 })
 
-describe('attachSettingsSection against the real settings service (S-1 真实 seam)', () => {
-  it('drives the live state through attach, a live commit, and detach fallback', async () => {
-    const ctx = new Context()
-    const entry = { searchChain: ['dshws-tavily'] }
-    const live = new LiveResolvedConfig(entry)
-    attachSettingsSection(ctx, Config, entry, live)
+describe('attachSettingsSection dual-path dispatch (S32, ADR-0021)', () => {
+  /**
+   * A 0.1.7+ settings service face: no `installSection` (deleted upstream in
+   * favor of volatile forms). Captures the `settings/document-updated`
+   * subscription the C path registers for commit-side re-prime.
+   */
+  function volatileHostCtx() {
+    const events: { name?: string, listener?: (...args: unknown[]) => void } = {}
+    const ctx = {
+      inject: (_names: readonly string[], cb: (sctx: { settings: Record<string, never> }) => void) => {
+        cb({ settings: {} })
+      },
+      on: (name: string, listener: (...args: unknown[]) => void) => {
+        events.name = name
+        events.listener = listener
+        return () => {}
+      },
+    }
+    return { ctx: ctx as unknown as Context, events }
+  }
 
-    // No settings service mounted: nothing ran, the entry stays authoritative.
+  it('adopts read-time evaluation when the host settings service has no installSection (0.1.7+ volatile path)', () => {
+    const { ctx } = volatileHostCtx()
+    // A volatile-shaped runtime config: each field arrives as a handle that
+    // re-reads its backing store on every .get(), like the host's Volatile
+    // wrappers on 0.1.7+.
+    let chain: unknown = ['dshws-tavily']
+    const entry = { searchChain: { get: () => chain } }
+    const live = new LiveResolvedConfig({ searchChain: ['dshws-firecrawl'] })
+    attachSettingsSection(ctx, entry as never, live)
+
+    // The volatile source takes over immediately…
     expect(live.current().searchChain).toEqual(['dshws-tavily'])
+    // …and every read re-evaluates: a committed change (new backing value)
+    // reaches current() with NO refresh() call — the 0.1.7 hot path.
+    chain = ['dshws-exa']
+    expect(live.current().searchChain).toEqual(['dshws-exa'])
+  })
 
-    const fiber = ctx.plugin(MemorySettings, { doc: { 'dsh-websearch': { searchChain: ['dshws-deepseek', 'dshws-tavily'] } } })
-    await fiber
-    // The committed pre-S14c shape drops the dead deepseek id (ADR-0014).
-    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-tavily']))
+  it('registers settings/document-updated for the plugin namespace and re-primes on own-ns commits only (C path)', () => {
+    const { ctx, events } = volatileHostCtx()
+    const committed: number[] = []
+    const live = new LiveResolvedConfig({})
+    attachSettingsSection(ctx, {} as never, live, { onCommitted: () => committed.push(1) })
 
-    await ctx.settings.update('dsh-websearch', { searchChain: ['dshws-exa'] })
-    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-exa']))
+    expect(events.name).toBe('settings/document-updated')
+    events.listener!(SETTINGS_NAMESPACE, 7)
+    expect(committed).toHaveLength(1)
+    // Foreign namespaces do not re-prime the credential gate.
+    events.listener!('llm-deepseek', 8)
+    expect(committed).toHaveLength(1)
+  })
 
-    // Provider detach falls back to the entry config.
-    await fiber.dispose()
-    await vi.waitFor(() => expect(live.current().searchChain).toEqual(['dshws-tavily']))
+  it('plain runtime values pass through the volatile source unchanged (0.1.5/0.1.6 never enter this branch)', () => {
+    const { ctx } = volatileHostCtx()
+    const live = new LiveResolvedConfig({})
+    attachSettingsSection(ctx, { searchChain: ['dshws-exa'] } as never, live)
+    expect(live.current().searchChain).toEqual(['dshws-exa'])
   })
 })

@@ -52,6 +52,7 @@
     "@deepseek-ai/dsh-agent": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-api-remotes": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-client-locale": "0.1.7-alpha.2",
+    "@deepseek-ai/dsh-client-store": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-client-ui-primitives": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-client-ui-renderer": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-client-ui-settings": "0.1.7-alpha.2",
@@ -62,6 +63,7 @@
     "@deepseek-ai/dsh-system-prompt": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-tools": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-typert-protocol": "0.1.7-alpha.2",
+    "@deepseek-ai/dsh-util-workspace-path": "0.1.7-alpha.2",
     "@deepseek-ai/dsh-web": "0.1.7-alpha.2",
     "@deepseek-ai/schemastery": "3.18.4",
     "@shikijs/langs": "^4.4.3",
@@ -74,6 +76,7 @@
     "anser": "^2.3.5",
     "clsx": "^2.1.1",
     "diff": "~9.0.0",
+    "immer": "~10.2.0",
     "jsdom": "~29.1.1",
     "katex": "^0.18.7",
     "mdast-util-from-markdown": "^2.0.3",
@@ -95,7 +98,8 @@
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8",
-    "zod": "^4.5.4"
+    "zod": "^4.5.4",
+    "zustand": "~4.4.7"
   },
   "dsh": {
     "bundle": {
