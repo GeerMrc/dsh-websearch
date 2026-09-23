@@ -12,6 +12,30 @@
 
 ---
 
+## 2026-09-23 — 上游全跨度升级适配批：v0.1.2（Session 32，用户三裁定：全跨度适配/修死 tgz 树不切/授权凭据复制）
+
+**新增（依赖域与源码适配，ADR-0021）**
+- **peer 域全跨度**：六条 `@deepseek-ai/dsh-*` peer 放宽为 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`——semver 三副本（6.3.1/7.8.4/7.8.5）实测 7 个已发布版本全 true、0.1.8 封顶（dont-do「semver 预发布覆盖断言须实测」入册）。
+- **devDeps 0.1.5-rc.2 → 0.1.7-alpha.2**（14 包）+ cordis 4.0.4 + schemastery 3.18.4 + typert-protocol runtime dep 0.1.7-alpha.2 + ui-primitives 未声明传递依赖补偿（simple-icons/diff/workspace-path/client-store/zustand/immer）。
+- **settings 双径（ADR-0021）**：`buildConfigSchema(markVolatile)` 双 schema（Config volatile 标注 / ConfigLegacy 无标注）；`attachSettingsSection` 运行时探测 `installSection`——旧径全钩子保留，0.1.7+ 径走 `setVolatileSource` 读时求值 + `settings/document-updated` re-prime；`materializeConfig` 统一解包层（schema 调用即包装，与宿主版本无关）。
+- **图标双名回退**（`src/client/host-icons.tsx`）：`*OutlineRegular`（0.1.7+）优先、`*Outline14`（旧宿主）局部模块增强回退，单一 client bundle 跨线。
+- **typert strict codec**：key-counts client 半区 `schema:` → `create: () =>`（0.1.6+ 字段更名；wire 对 `refs` 不变）。
+- 测试：双径分派 ×3 + volatile schema/materialize 断言 ×1 + controller mock 适配（autoGenerate/applies 收窄）+ ResizeObserver jsdom 桩（0.1.7 Tooltip 尺寸测量）；真实 seam 旧服务生命周期测试（依赖已删除的 SettingsProvider）退役，其覆盖由双径分派与 A/B 钩子测试承接。**全量 479 passed | 13 skipped（492）**（基线 476）；typecheck 双工程 / oxlint 0w0e / build（client.js 300.54 kB）/ check:i18n（144 键）全绿。
+- **pnpm 11.7 处方入册**：默认 minimumReleaseAge=24h 命中新发布包自动追加 exclude；依赖变更后 `pnpm clean --lockfile && pnpm install` 重建；verify-deps 校验环节不读 exclude 已关闭（`verifyDepsBeforeRun: false`，显式安装年龄门保留）。
+- **产物持久化**：`dist-artifacts/`（gitignore）存 v0.1.2 tarball + v0.1.1 回滚副本（tag 重建）；生产 profile 死 tgz 路径修复（T7）。
+
+**治理**
+- 计划 032 两轮审核（NEEDS REVISION→APPROVED）；T0 前序审核 PASS（🔴0/🟡4/🟢6，基线 476）；机械变更豁免独立确认（T3 六子项 + 两附加条件）。
+- **S28–S31 补账**（合并记录 + STATUS/roadmap 刷新 + S28 CHANGELOG 补条 + S30 semver 勘误 + AGENTS/.session-start 头部与端口表更新：3423 常驻/3424=selfupdate 保留/3434=本仓升级验证窗口）。
+- T2 三线兼容矩阵 Note（A 零适配 / B 2 项 / C +2 硬破坏 + 运行时必测清单）。
+
+**诚实标注（遗留项）**
+- 3434 三线端到端演练（T6）与生产死 tgz 修复（T7）进行中——本条目随 T9 收官更新结论。
+- 0.1.7+ 路径自定义校验降级为 resolve 时 loud 失败（ADR-0021 已知差异）。
+- ui-primitives 未声明传递依赖补偿为 devDeps（测试解析用；运行时由宿主 bundle 提供）——上游若声明化可移除。
+
+---
+
 ## 2026-09-16 — 开源发布批：公开仓库上线（Session 31）
 
 **新增**
