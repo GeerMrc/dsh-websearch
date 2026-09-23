@@ -1,0 +1,68 @@
+dsh: reasoning:
+The user wants a web search for Exa lab's latest blog topics. Let me search.
+
+This is a simple task. Let me use web_search.
+
+Note: "Exa lab" likely "Exa Labs" (exa.ai). Let me search.
+dsh: reasoning:
+Let me organize the answer. Maybe fetch the blog page for the latest posts. The search results give a good picture. Let me try fetching exa.ai/blog to confirm latest posts order.
+
+Note dates appear to be 2026 (session presumably set in future). Latest: "Dynamic Highlights" August 28, 2026? Actually blog page listing shows "Dynamic Highlights" Aug 28, 2026, "Exa is now powering search in Firefox" Aug 17 2026, "SOTA Search Over Academic Publications" July 23 2026, and research page shows May 2026 "How Search Quality Shapes RL Outcomes", April 2026 "Exa Highlights". Hmm, but X post said Aug 28 without year. Let me fetch to be accurate.
+
+Let me fetch exa.ai/blog and exa.ai/research.
+dsh: reasoning:
+Now compose the answer in Chinese. Note: "Exa lab" — there might be ambiguity between Exa Labs (exa.ai, search) and Exa Laboratories (chips). The main one is Exa (ExaAILabs). I should note that the search results also surfaced "Exa Laboratories" (chips) which is a different company. Mention briefly.
+
+Latest blog topics, in reverse chronological order:
+1. Introducing Exa Snapshot (Sep 17, 2026) — 400B historical webpage snapshots, search the past, backtesting.
+2. Dynamic Highlights (Aug 28, 2026) — query-adaptive highlights, ~95%/94% fewer tokens.
+3. Exa powering search in Firefox (Aug 17, 2026) — from X/blog listing? Actually listed as blog item "Exa is now powering search in Firefox" and Vercel partnership Aug 25.
+4. SOTA Search Over Academic Publications (Jul 23, 2026)
+5. Perfect Search for a World of Agents — SuperAI 2026 talk (Jun 17)
+6. How Exa is Building the Perfect Search Engine | a16z (Jun 4)
+7. Exa raises $250M Series C (May 20, 2026)
+8. How Search Quality Shapes RL Outcomes (May 13, 2026)
+9. Exa and Google Partnership (Apr 28, 2026)
+10. Composing a Search Engine (Canon) (Apr 17, 2026)
+11. Exa Land in Singapore (Mar 30, 2026)
+12. WebCode (Mar 23, 2026)
+13. Exa Highlights (Apr 22) 
+14. Deep Max, Exa Deep, Exa Instant (product posts)
+
+Themes: agentic search, token efficiency, infra/evals, funding/partnerships.
+
+Cite URLs.
+
+Note: the search summary claimed dates like "May 14 2025" etc. from a cached listing; the fetched live pages show 2026. I'll trust the fetched page.
+
+Also note ambiguity: "Exa Laboratories" chip startup (Feb 2026, 27.6x efficiency) is a different company.
+
+Let me write a concise organized answer.
+## Exa（Exa Labs，exa.ai）最新博客主题
+
+我抓取了官方博客页 [exa.ai/blog](https://exa.ai/blog) 与技术博客 [exa.ai/research](https://exa.ai/research)，截至目前的**倒序最新主题**如下：
+
+| 时间 | 主题 | 核心内容 |
+|---|---|---|
+| 2026-09-17 | [Introducing Exa Snapshot](https://exa.ai/blog/exa-snapshot) | “网页时间机器”：4000 亿历史网页快照索引，可按过去时间点检索，用于预测模型回测、RL 训练、研究 pre-AI 互联网 |
+| 2026-08-28 | [Dynamic Highlights](https://exa.ai/blog/dynamic-highlights) | 动态高亮：模型联合扫描整组页面，按查询自适应裁剪冗余信息，平均减少约 95% token 消耗 |
+| 2026-08-17 | Exa is now powering search in Firefox | 与 Mozilla Firefox 的搜索集成 |
+| 2026-07-23 | [SOTA Search Over Academic Publications](https://exa.ai/blog/publications-search) | 学术论文/技术出版物的 SOTA 检索 |
+| 2026-06-17 / 06-04 | [SuperAI 2026 演讲](https://www.youtube.com/watch?v=nxAyBRGqMfY) / [a16z Deep Dives](https://www.youtube.com/watch?v=k6OkMkDdbUY) | Will Bryk 讲“面向 Agent 世界的完美搜索”与 Exa 的搜索架构 |
+| 2026-05-20 | [Exa raises $250M Series C](https://exa.ai/blog/announcing-series-c) | 2.5 亿美元 C 轮，估值 22 亿美元，用于扩建基础设施与模型训练 |
+| 2026-05-13 | [How Search Quality Shapes RL Outcomes](https://exa.ai/blog/rl-search-outcomes) | 用 Exa 替代 Google 基线训练搜索 Agent，pass@k 更高、更快、更便宜 |
+| 2026-04-28 | [Exa and Google Partnership](https://exa.ai/blog/exa-google-cloud) | 与 Google Cloud 的合作 |
+| 2026-04-22 | [Exa Highlights](https://exa.ai/blog/highlights-for-agents) | 面向 Agent 的高质量、低 token 摘录，部分评测省约 94% token |
+| 2026-04-17 | [Composing a Search Engine](https://exa.ai/blog/composing-a-search-engine) | 自研搜索流水线编排器 Canon |
+| 2026-03-30 | [Exa Lands in Singapore](https://exa.ai/blog/exa-singapore) | 新加坡落地/扩张 |
+| 2026-03-23 | [WebCode](https://exa.ai/blog/webcode) | 面向编码 Agent 的开放搜索评测 |
+| 2026-03 起产品线 | [Exa Deep](https://exa.ai/blog/exa-deep)、[Deep Max](https://exa.ai/blog/deep-max)、[Exa Instant](https://exa.ai/blog/exa-instant) | Agent 化搜索端点：结构化输出、字段级溯源、sub-200ms 延迟 |
+
+**几条主线**：
+1. **Agentic Search（面向 AI Agent 的检索）** —— Deep/Max/Instant 三条端点 + Dynamic Highlights，主打延迟、成本、质量的 Pareto 优势。
+2. **Token 效率** —— Highlights / Dynamic Highlights 系列反复强调“省 94–95% token”。
+3. **自建基础设施与评测** —— Canon 编排器、Exacluster GPU 集群、BM25 内存优化、WebCode/公司检索基准。
+4. **数据与时间维度** —— Exa Snapshot（历史网页）、exa-d 数据处理框架。
+5. **商业化叙事** —— C 轮 2.5 亿美元、Google Cloud / Vercel / Firefox 合作。
+
+⚠️ 注意同名歧义：搜索结果里还出现了 **Exa Laboratories**（[fondo.com 报道](https://fondo.com/blog/exa-laboratories-launches)，2026-02，做可重构 AI 芯片、宣称能效高 27.6 倍），那是另一家公司，不属于 exa.ai 的 Exa Labs。

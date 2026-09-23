@@ -1,0 +1,40 @@
+dsh: reasoning:
+The user is asking me to search the web for the latest news/updates on DeepSeek models and provide a brief summary. Let me use the web_search tool.
+
+
+dsh: reasoning:
+Let me gather a bit more detail. The search results mention DeepSeek V4.1 Flash, which is the latest. To get more specific information, let me fetch the change log.
+
+
+dsh: reasoning:
+I now have comprehensive information about the latest DeepSeek model updates. Let me summarize it concisely for the user in Chinese.
+
+
+
+
+## DeepSeek 最新模型动态（截至 2026 年 9 月）
+
+**1. DeepSeek-V4.1-Flash（2026-09-10 发布，最新）**
+- 全新模型结构系列中最小尺寸，**原生多模态视觉理解**能力
+- 设计目标：更高能力上限、更快推理、更大吞吐、可扩展到更大参数
+- 基准亮点：GPQA Diamond 90.9、Codeforces 3471、Terminal-Bench 2.1 达 90.6、DeepSWE 74.2
+- API 模型名改为 `deepseek-flash`；旧版 V4 Flash / Vision Exp 下线（旧名暂时路由到 V4.1）
+- API 价格同步下调；V4 Pro API 在 9 月 14 日后继续提供服务
+
+**2. DeepSeek-V4-Pro（2026-08-13 正式版）**
+- Agent 能力大幅提升（生产环境尤其显著），Terminal Bench 2.1 达 87.9
+- **原生支持 OpenAI Responses API**，针对性适配 Codex
+- 思考模式支持 low / high / max 三档强度
+- 采用峰谷定价（闲时价格为一半），8 月 17 日起生效
+
+**3. DeepSeek-V4-Flash-Vision-Exp（2026-08-21）**
+- 实验性多模态视觉模型；纯文本能力与 V4-Flash 正式版持平
+- 视觉 Agent 能力大幅跃升，官方称多模态 Agent 能力已接近 Opus-4.8
+
+**4. 更早节点**
+- 2026-04-24：DeepSeek-V4（Pro + Flash）API 上线；旧名 `deepseek-chat` / `deepseek-reasoner` 于 2026-07-24 停用
+- 2026-02：V4 预览版发布（春节前后），被定位为挑战 OpenAI / Anthropic 的最强开源平台
+
+**趋势**：V4 系列全面转向"新架构 + 多模态 + 强 Agent 能力"，价格持续走低（峰谷定价、API 降价），并原生兼容 OpenAI Responses API / Codex 生态。
+
+来源：[DeepSeek API 更新日志（中文）](https://api-docs.deepseek.com/zh-cn/updates)、[DeepSeek-V4.1-Flash 官方公告](https://www.deepseek.com/en/news/deepseek-v4-1-flash/)、[Axios 报道](https://www.axios.com/2026/08/01/deepseek-model-cheap-ai-price-war)

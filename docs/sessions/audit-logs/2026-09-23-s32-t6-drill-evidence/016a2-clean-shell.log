@@ -1,0 +1,8 @@
+dsh: reasoning:
+The user is asking to run the shell command `echo clean-ok` and reply with its output as-is. This is a trivial, single-step task. Let's execute it.
+
+
+
+
+
+dsh: UNKNOWN: Cannot read properties of undefined (reading 'prepare')
