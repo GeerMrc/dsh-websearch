@@ -17,6 +17,8 @@
 
 ## Quick start
 
+> ⚠️ **Known upstream host issue (not this plugin)**: host `dsh` **0.1.6-alpha.2** has a host-side tool-scheduling defect — every tool call (including shell/web_search) crashes with `TOOL_RUNTIME_SCHEDULER.prepare`, reproducible in a plugin-free environment. Avoid that host version (use 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7-alpha.x) or wait for the upstream fix. See the drill matrix in [docs/upgrade.md](docs/upgrade.md).
+
 Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`, S32 full span — each rehearsed pre-release pinned explicitly), node >= 22.19.
 
 ```sh

@@ -17,6 +17,8 @@
 
 ## 快速开始
 
+> ⚠️ **已知上游宿主问题（非本插件缺陷）**：`dsh` **0.1.6-alpha.2** 宿主自身工具调度缺陷——任意工具调用（含 shell/web_search）崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`，无插件净环境可复现。请避开该宿主版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7-alpha.x），或等上游修复。详见 [docs/upgrade.md](docs/upgrade.md) 三线矩阵。
+
 前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`，S32 全跨度——显式钉已演练预发布版）、node ≥ 22.19。
 
 ```sh
