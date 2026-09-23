@@ -17,7 +17,7 @@
 
 ## Quick start
 
-Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.6`), node >= 22.19.
+Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`, S32 full span — each rehearsed pre-release pinned explicitly), node >= 22.19.
 
 ```sh
 # 1. Pack (repo root)
@@ -39,7 +39,7 @@ dsh --profile web --dump-config
 
 ## Install, upgrade, and notes
 
-**Install** (host peer range `dsh >=0.1.5-rc.1 <0.1.6`, covering the 0.1.5-rc line and 0.1.6 pre-releases):
+**Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6 and 0.1.7 pre-release lines, and future 0.1.6/0.1.7 stables, capped below 0.1.8):
 
 ```sh
 # Option 1: grab the tarball from this repository's releases page
@@ -136,7 +136,7 @@ dsh-websearch:
                 maxTokens: 0, maxUses: 5, keySelection: round-robin }
 ```
 
-Combination constraints (dual-path fail-loud: settings validate hook rejects the write + cordis.yml load throws):
+Combination constraints (fail-loud: on 0.1.5/0.1.6 hosts the settings validate hook rejects the write up front; on 0.1.7+ hosts this degrades to a loud resolve-time failure — ADR-0021; the cordis.yml load throw holds on both generations):
 - `searchIncludeDomains` and `searchExcludeDomains` are mutually exclusive (ADR-0018).
 - `exa.includeSections/excludeSections` require `exa.maxAgeHours: 0` or `-1` (upstream constraint).
 - `firecrawl.tbs` must follow the official tbs grammar (`qdr:*` / `sbd:1` / `cdr:1,cd_min:…,cd_max:…`, comma-combined).

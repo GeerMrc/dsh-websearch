@@ -20,7 +20,7 @@
 - **settings 双径（ADR-0021）**：`buildConfigSchema(markVolatile)` 双 schema（Config volatile 标注 / ConfigLegacy 无标注）；`attachSettingsSection` 运行时探测 `installSection`——旧径全钩子保留，0.1.7+ 径走 `setVolatileSource` 读时求值 + `settings/document-updated` re-prime；`materializeConfig` 统一解包层（schema 调用即包装，与宿主版本无关）。
 - **图标双名回退**（`src/client/host-icons.tsx`）：`*OutlineRegular`（0.1.7+）优先、`*Outline14`（旧宿主）局部模块增强回退，单一 client bundle 跨线。
 - **typert strict codec**：key-counts client 半区 `schema:` → `create: () =>`（0.1.6+ 字段更名；wire 对 `refs` 不变）。
-- 测试：双径分派 ×3 + volatile schema/materialize 断言 ×1 + controller mock 适配（autoGenerate/applies 收窄）+ ResizeObserver jsdom 桩（0.1.7 Tooltip 尺寸测量）；真实 seam 旧服务生命周期测试（依赖已删除的 SettingsProvider）退役，其覆盖由双径分派与 A/B 钩子测试承接。**全量 479 passed | 13 skipped（492）**（基线 476）；typecheck 双工程 / oxlint 0w0e / build（client.js 300.54 kB）/ check:i18n（144 键）全绿。
+- 测试：双径分派 ×3 + volatile schema/materialize 断言 ×1 + controller mock 适配（autoGenerate/applies 收窄）+ ResizeObserver jsdom 桩（0.1.7 Tooltip 尺寸测量）；真实 seam 旧服务生命周期测试（依赖已删除的 SettingsProvider）退役，其覆盖由双径分派与 A/B 钩子测试承接。**全量 480 passed | 13 skipped（493）**（基线 476；T6 演练追加跨代 codec 测试后终态，阶段 4 复跑精确一致）；typecheck 双工程 / oxlint 0w0e / build（client.js 300.74 kB）/ check:i18n（144 键）全绿。
 - **pnpm 11.7 处方入册**：默认 minimumReleaseAge=24h 命中新发布包自动追加 exclude；依赖变更后 `pnpm clean --lockfile && pnpm install` 重建；verify-deps 校验环节不读 exclude 已关闭（`verifyDepsBeforeRun: false`，显式安装年龄门保留）。
 - **产物持久化**：`dist-artifacts/`（gitignore）存 v0.1.2 tarball + v0.1.1 回滚副本（tag 重建）；生产 profile 死 tgz 路径修复（T7）。
 
@@ -30,7 +30,8 @@
 - T2 三线兼容矩阵 Note（A 零适配 / B 2 项 / C +2 硬破坏 + 运行时必测清单）。
 
 **诚实标注（遗留项）**
-- 3434 三线端到端演练（T6）与生产死 tgz 修复（T7）进行中——本条目随 T9 收官更新结论。
+- 3434 三线演练（T6）与生产修复（T7）已收官：A 线（0.1.5-rc.3）全腿 PASS；**B 线（0.1.6-alpha.2）工具腿 BLOCKED-by-upstream**（宿主 TOOL_RUNTIME_SCHEDULER.prepare 缺陷——无插件净 home 复现，非本插件问题；其余腿 PASS）；C 线（0.1.7-alpha.2）全腿 PASS（volatile 端到端/双工具 served-by 徽标/GUI 提交降级）。生产 3080 已换持久路径 v0.1.2（树维持 016a1）。
+- 每次新装/重装 profile 会见 `[WARN] @deepseek-ai/dsh-typert-protocol@0.1.7-alpha.2 requires cordis ~4.0.4` 类 unmet-peer 提示——typert-protocol 0.1.7 线 peer 钉 ~4.0.4 而 0.1.5/0.1.6 宿主 vendored cordis 4.0.2；告警级非错误，三线演练+生产实测运行正常（处置与实证见 docs/upgrade.md）。
 - 0.1.7+ 路径自定义校验降级为 resolve 时 loud 失败（ADR-0021 已知差异）。
 - ui-primitives 未声明传递依赖补偿为 devDeps（测试解析用；运行时由宿主 bundle 提供）——上游若声明化可移除。
 
