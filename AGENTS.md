@@ -22,7 +22,7 @@ DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）�
 
 - 只依赖公开面：`@deepseek-ai/dsh-web` 的 provider 接口与 `ctx.web` 注册 API（type-only import）、credentials / settings 服务注入、client 公共 API（slots / locale / remote）。禁 import 上游内部模块、禁依赖上游私有注册表。
 - provider id 全前缀隔离：本插件注册的一切 provider id 以 `dshws-` 开头（如 `dshws-chain`、`dshws-tavily`），杜绝与上游已注册 provider id 及第三方 id（`deepseek-official`/`exa`/`perplexity`/`http`/`anysearch`）撞名触发 `WEB_DUPLICATE_PROVIDER`。
-- peer 依赖版本域：`@deepseek-ai/cordis` 钉 `>=4.0.1-rc.1 <5`（宿主 vendored cordis 实为 4.0.2；anysearch 先例同域），`@deepseek-ai/dsh-web` 钉 `>=0.1.5-rc.1 <0.1.6`（S25 适配批；升级时以 `npm view` 实测为准刷新）——上游升级必须跑升级演练手册（`docs/upgrade.md`）后才可声明兼容。
+- peer 依赖版本域：`@deepseek-ai/cordis` 钉 `>=4.0.1-rc.1 <5`（宿主 0.1.7-alpha.2 线 vendored cordis 4.0.4，npm 4.0.4 已发布），`@deepseek-ai/dsh-*` 六条钉 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`（S32 全跨度批——node-semver 预发布排除规则下显式钉每个已演练预发布版；上游每发新预发布逐钉扩展 + 跑演练手册 `docs/upgrade.md` 后才可声明兼容）——断言「范围覆盖 X」必须 semver 实测（dont-do 见 docs/dont-do.md semver 条）。
 
 ## 测试要求
 
