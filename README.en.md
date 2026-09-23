@@ -43,6 +43,14 @@ dsh --profile web --dump-config
 
 **Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6 and 0.1.7 pre-release lines, and future 0.1.6/0.1.7 stables, capped below 0.1.8):
 
+Option 1 (npm registry, recommended):
+
+```sh
+dsh plugin --profile web add @maricgeer/dsh-websearch
+```
+
+(npm page: https://www.npmjs.com/package/@maricgeer/dsh-websearch — the bare name `dsh-websearch` was rejected by npm's typo-squatting policy as too similar to the existing `dsh-web-search`, hence the scoped distribution name; the plugin registers as `dsh-websearch` either way, identical behavior to a local tarball install)
+
 ```sh
 # Option 1: grab the tarball from this repository's releases page
 dsh plugin --profile web add <dsh-websearch-tarball>

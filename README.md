@@ -42,6 +42,14 @@ dsh --profile web --dump-config
 
 **安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版，上限 0.1.8）：
 
+方式一（npm registry，推荐）：
+
+```sh
+dsh plugin --profile web add @maricgeer/dsh-websearch
+```
+
+（npm 包页 https://www.npmjs.com/package/@maricgeer/dsh-websearch ；裸名 `dsh-websearch` 因 npm 防仿冒政策与既有包 `dsh-web-search` 过近被拒，故用 scope 分发——插件注册 id 仍为 `dsh-websearch`，功能与本地 tarball 安装完全一致）
+
 ```sh
 # 方式一：从本仓库发布页取 tarball
 dsh plugin --profile web add <dsh-websearch-tarball>

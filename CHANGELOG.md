@@ -12,6 +12,19 @@
 
 ---
 
+## 2026-09-23 — npm 发布批：@maricgeer/dsh-websearch@0.1.2 上架（Session 32 增补，用户指令）
+
+**新增（分发）**
+- **npm registry 发布**：`@maricgeer/dsh-websearch@0.1.2`（public，tag latest）。裸名 `dsh-websearch` 被 npm 防仿冒政策拒绝（与既有包 `dsh-web-search` 过近）——改用 npm 官方建议的 scope 名；插件注册 id/patch/功能不变。
+- 发布元数据补齐（repository/bugs/homepage/keywords + README.en.md 入包）；全新 scratch 环境 `dsh plugin add @maricgeer/dsh-websearch` 从 registry 2 秒拉装 + dump 钉扎即生效（npm 分发链路黄金验证）。
+- README 中英安装节增「方式一：npm registry（推荐）」并注明裸名被拒缘由。
+
+**诚实标注**
+- 生产 3080 仍指向本地持久路径 tarball（内名 `dsh-websearch` 裸名版 0.1.2，功能等价）；后续生产切换 npm 源另定。
+- dist-artifacts/ 现存双名 tarball：`dsh-websearch-0.1.2.tgz`（生产在用，勿删）+ `maricgeer-dsh-websearch-0.1.2.tgz`（与 npm 一致）。
+
+---
+
 ## 2026-09-23 — 上游全跨度升级适配批：v0.1.2（Session 32，用户三裁定：全跨度适配/修死 tgz 树不切/授权凭据复制）
 
 **新增（依赖域与源码适配，ADR-0021）**
