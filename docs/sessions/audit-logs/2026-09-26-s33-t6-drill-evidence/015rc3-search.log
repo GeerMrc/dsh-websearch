@@ -1,0 +1,51 @@
+dsh: reasoning:
+The user wants me to search the web for "Firecrawl 免费额度" (Firecrawl free quota). Let me do that.
+dsh: reasoning:
+The search returned good info. Let me summarize. Maybe fetch the billing page for more detail? The search already gave detailed content. I'll give a concise answer in Chinese.
+
+Maybe also mention the n8n promo. But that's a third-party Zhihu source, could mention cautiously. Let me just present the core facts.
+
+Let me possibly fetch the pricing page for the paid tiers to add context. The user only asked about free quota. I have enough. But adding a bit of the credit cost per endpoint would be useful. The search snippet mentions Agent dynamic, 5 daily runs free. Let me fetch the English billing doc to be accurate on per-endpoint credit costs.
+dsh: reasoning:
+Now summarize in Chinese.
+## Firecrawl 免费额度（Free 套餐）
+
+**核心：每月 1,000 额度（credits），无需信用卡，额度每月周期开始时重置，用不完不顺延。**
+
+### 免费套餐包含什么
+- **1,000 credits / 月**，约等于爬取 1,000 个页面
+- **2 个并发浏览器**；排队任务上限 50,000（与付费自助套餐相同）
+- **速率限制**：`/scrape`、`/map`、`/search` 为 10 次/分钟；`/crawl`、`/agent`、`/interact` 为 2 次/分钟
+- 所有核心接口可用：scrape、crawl、map、search、extract、batch scrape、interact、monitor
+- **不含** 按量付费（pay-as-you-go）、额度结转、DPA、Slack 支持
+
+### 额度怎么消耗（关键，容易超支）
+| 接口 | 消耗 |
+|---|---|
+| Scrape | 1 credit / 页 |
+| Crawl | 1 credit / 页 |
+| Map | 1 credit / 次调用 |
+| Search | 2 credits / 10 条结果（向上取整，11 条 = 4 credits） |
+| Interact | 2–7 credits / 浏览器分钟（最低 1 分钟） |
+| Agent | 动态计费，每天 5 次免费 |
+
+额外选项会叠加：JSON/LLM 提取 +4、PDF 解析 +1/页、ZDR +1/页、`question`/`highlights`/`audio`/`video`/PII 脱敏各 +4。例如「JSON 提取 + ZDR」= 1+4+1 = **6 credits/页**。
+
+注意：**X（x.com/twitter.com）链接走 Grok API**，单次约 30 credits（1 基础 + 29 Grok），免费额度很容易被几条推文吃光。
+
+### 额度耗尽后
+免费套餐**不能按量付费**，消耗额度的请求会返回 **HTTP 402 (Payment Required)**，直到下个月度周期重置。（仅当 Firecrawl 完全没返回文档时才不计费；返回 403/404 文档仍扣 1 credit。）
+
+### 另外：无密钥免费层
+`/scrape`、`/search`、`/interact` 在**完全不带 API Key** 时也可用，限制是按 **IP 按天**封顶，而不是走 credit 额度。
+
+### 付费档位对比（供参考）
+Hobby 5,000 / Standard 100,000 / Growth 500,000 / Scale 1,000,000 credits 每月，并发浏览器分别为 5 / 25 / 50 / 100。
+
+**来源：**
+- [Firecrawl Billing 官方文档](https://docs.firecrawl.dev/billing)
+- [计费（中文）](https://docs.firecrawl.dev/zh/billing)
+- [速率限制（中文）](https://docs.firecrawl.dev/zh/rate-limits)
+- [Pricing 页面](https://www.firecrawl.dev/pricing)
+
+> 提醒：搜索中还出现了第三方信息（如「注册 n8n Cloud 送 100,000 积分」的知乎文章、[ScrapeGraphAI 的第三方对比博客](https://scrapegraphai.com/blog/firecrawl-pricing)），这些非官方来源的说法未经核实，且活动时效性强，建议以官方文档为准。
