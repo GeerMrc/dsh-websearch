@@ -1,3 +1,11 @@
+## 2026-09-26 — 生产切换批：3080 → 0.1.7-rc.2(+fork) + v0.1.3（用户批准呈批件）
+
+- 备份先行（237M/652 文件+sha256 清单，dsh-ops-backups/3080-pre-rc2-20260926-0200）；profile 唯一行改指 v0.1.3；供版树 017a2→**017rc2**（fix/readonly-stack-rc2）。
+- 验证全过：零报错起服/cwd/dump 钉扎/徽标 5/10/生产链序保留/真实搜索 served-by anysearch+网络抖动降级 tavily/credentials+settings 零触碰（mtime 归属）。
+- 回滚位：017a2+v0.1.2（一级，分钟级）；数据级=备份目录恢复。正本 audit-log `2026-09-26-s33-prod-switch-rc2.md`。
+
+---
+
 ## 2026-09-26 — 随上游 rc 线适配批：v0.1.3（Session 33）
 
 **新增（适配与发布前置）**
@@ -9,7 +17,7 @@
 
 **诚实标注（遗留项）**
 - 3434 三线演练（T6）已收官：rc.2+fork 全腿 PASS（readonly-stack 回归/legacy 迁移/volatile 写/真实故障降级链/装卸循环）+ 015rc3/016a1 冒烟 PASS。
-- **多端发布（T7）**：npm @0.1.3 已成功（2026-09-26 01:44 经重试编排器，镜像校验 shasum 一致）；**GitHub push（master+v0.1.3 tag）与 gh Release 双 tarball 仍被网络阻断**（github.com SSL 不可达，编排器续试至 03:44 本地）——恢复后自动/手动补推；拉装冒烟随 GitHub 腿补做。registry.npmjs.org 间歇不可达为环境债（镜像全程可用）。
+- **多端发布（T7）收官**：npm @0.1.3（01:44 窗口，shasum 校验一致）；GitHub master+tag 推送（02:4x 窗口，2b2f1c0..5282e14）；**fork 分支 fix/readonly-stack-rc2 已推 GeerMrc/deepseek-harness（8a① 偏差消除——真凶=lefthook pre-push 钩子在 node20 下崩溃，node22 下通过）**；gh Release v0.1.3 双 tarball 在档；registry 拉装冒烟过（1.7s 装上+钉扎生效）。网络间歇窗口由重试编排器+手动连击抓取，全程日志入库。
 
 ---
 # CHANGELOG
