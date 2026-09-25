@@ -105,10 +105,10 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: 无进行中（**Session 33 ✅ 2026-09-26——随上游 rc 线适配收官**：v0.1.3 定版〔零源码适配，peer 域九版本全覆盖 0.1.5-rc.1→0.1.7-rc.2〕；npm @maricgeer/dsh-websearch@0.1.3 已发布=latest；fork 修复 rc.2 收编〔fix/readonly-stack-rc2，上游已修 importer 站点+fork 守卫补 CJS-anchor，回归 235/235〕；3434 三线演练全 PASS〔含真实故障降级链〕；GitHub push/Release 网络受阻编排器续试；**生产 3080 未动=0.1.7-alpha.2+fork+插件 v0.1.2，切换呈批件待用户人工批示**〔audit-logs 2026-09-26-s33-production-switch-proposal.md〕）
+- **当前 session**: 无进行中（**Session 33 ✅ 2026-09-26——随上游 rc 线适配收官**：v0.1.3 定版〔零源码适配，peer 域九版本全覆盖 0.1.5-rc.1→0.1.7-rc.2〕；npm @maricgeer/dsh-websearch@0.1.3 已发布=latest；fork 修复 rc.2 收编〔fix/readonly-stack-rc2，上游已修 importer 站点+fork 守卫补 CJS-anchor，回归 235/235〕；3434 三线演练全 PASS〔含真实故障降级链〕；GitHub push/Release 网络受阻编排器续试；**生产 3080 已切=0.1.7-rc.2+fork（017rc2 树）+插件 v0.1.3**（用户批准呈批件后执行，备份先行 237M，验证全过，回滚位 017a2 一级；正本 audit-log prod-switch-rc2））
 > （S32 收官态历史注记：v0.1.2 全跨度适配 + 生产持久路径修复 + npm/Release 发布 + 同日切树 017a2——详见台账 32/32a 行）
 - **所处里程碑**: M7 ✅ + 定档 v0.1.3（npm latest）+ M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 33（docs/sessions/2026-09-26-session-33.md）
-- **下一棒**: 候选（待用户定向）——①**批示生产呈批件**（备份→切 017rc2+v0.1.3→验证）②GitHub 腿收尾确认（编排器日志+fork 分支推送标记）③上游 0.1.7 正式版/0.1.8 跟进
+- **下一棒**: 候选（待用户定向）——①GitHub 腿收尾确认（编排器日志+fork 分支推送标记，网络恢复自动落）②上游 0.1.7 正式版/0.1.8 跟进（新钉新演）③🟢 池清理
 - **活跃债务**: 🔴×0 🟡×0 🟢 池维持 + S33 🟢×3（README 前置串随 0.1.4/tail 清理/GitHub 腿收尾确认）+ L-2 + 观察（正本 progress-M7 S33 台账）
 - **更新时间**: 2026-09-26（S33 收官 ✅ 阶段 6 原子收尾序列；3080 全程零改动）
