@@ -1,0 +1,38 @@
+[01:44:19] github ssh unreachable (attempt 1)
+npm notice
+npm notice 📦  @maricgeer/dsh-websearch@0.1.3
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 12.4kB README.en.md
+npm notice 11.9kB README.md
+npm notice 191B cordis.patch.yml
+npm notice 300.7kB lib/client.js
+npm notice 47.6kB lib/index.d.ts
+npm notice 103.2kB lib/index.js
+npm notice 5.1kB package.json
+npm notice Tarball Details
+npm notice name: @maricgeer/dsh-websearch
+npm notice version: 0.1.3
+npm notice filename: maricgeer-dsh-websearch-0.1.3.tgz
+npm notice package size: 116.9 kB
+npm notice unpacked size: 482.2 kB
+npm notice shasum: b2d93491b1e06775b51b7af0cfeb1aa1bfc6011b
+npm notice integrity: sha512-M6vUe0N+q5X3z[...]w31aG5h5662fQ==
+npm notice total files: 8
+npm notice
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+npm notice Your package is being processed and may take a few minutes to become available.
++ @maricgeer/dsh-websearch@0.1.3
+[01:44:19] NPM PUBLISH OK (attempt 1)
+[01:45:21] github ssh unreachable (attempt 2)
+[01:46:21] github ssh unreachable (attempt 3)
+[01:47:21] github ssh unreachable (attempt 4)
+[01:48:21] github ssh unreachable (attempt 5)
+[01:49:21] github ssh unreachable (attempt 6)
+[01:50:21] github ssh unreachable (attempt 7)
+[01:51:22] github ssh unreachable (attempt 8)
+[01:52:22] github ssh unreachable (attempt 9)
+[01:53:22] github ssh unreachable (attempt 10)
+[01:54:22] github ssh unreachable (attempt 11)
+[01:55:22] github ssh unreachable (attempt 12)
+[01:56:22] github ssh unreachable (attempt 13)
