@@ -1,6 +1,7 @@
 # Plan 033 — S33 随上游 0.1.7-rc.1/rc.2 迭代适配批（多版本全跨度 + fork 修复审计 + 发布与生产切换呈批）
 
 > Session 33 | 2026-09-26 | 用户指令正本：「0.1.7-rc.2 DSH 上游有更新，基于之前的经验对当前我们本地独立开发的插件-`网页搜索`做全链版本跌代升级适配相关工作，并同步更新到npm 与我们的github 仓……需要你独立启用一个端口进行版本适配调试验证……前提是本地通过实测各版本适配没有bug，同时我们当前版本:3080中有本地独立fork了一个修复官方上游DSH bug的问题的实现，也需要同步进行审核确认类似问题是否修复，未修复也需要进行同步优化完善」。
+> 阶段 2 独立审核（2026-09-26）：NEEDS REVISION → 已吸收 4 条（T9 备份对象改实测枚举前置——生产 settings.yaml 已被 0.1.7 importLegacyDocument 改名 .imported，假设式清单违规；ops runbook 陈旧刷新入 T1；rc.1 同线连续性论证+矩阵行；AGENTS 头部刷新并入 T1/T3）；复审结论见本文件 git 历史。
 > 计划期裁定（2026-09-26，AskUserQuestion 生产处置问）：**多版本适配+测试端全验证 → GitHub+npm 多端同步 → 最后才是 3080 且须用户人工审核确认（本轮只呈批不执行）**；测试端授权复用生产模型配置与插件 APIKEY（验后删）；生产备份/安全回退方案为硬性交付物先行设计。端口=**3434**（空闲；3424 被另一 session 占用且与 3080 共用 017a2 树）。
 
 ## 0. 关键事实（计划期实测）
@@ -19,16 +20,16 @@
 |---|---|---|
 | P0 | 本计划落盘 + 独立 Agent 审核（阶段 2） | APPROVED |
 | T0 | 前序审核（独立 Agent）：S32 收官态实测+债务三分级 | audit-log 带 file:line |
-| T1 | 治理补账：提交遗留 CHANGELOG 段；STATUS 位置块刷新（生产=017a2-fork 真相）；roadmap S33 插行 | 三处一致 |
+| T1 | 治理补账：提交遗留 CHANGELOG 段；STATUS 位置块刷新（生产=017a2-fork 真相）；roadmap S33 插行；AGENTS.md 头部版本行刷新；**ops runbook（/Volumes/IPFSJK/Zcode/dsh-ops-3080-runbook.md）纠偏**——仍写 016a1/015，改为 017a2-fork 供版 + 016a1 一级/015 二级回滚 + 「fork 树供版」规则补记（未来供版树=rc.2±fork 候选需此规则背书） | 各处一致；runbook 与实际供版相符 |
 | T2 | 上游钉板：fetch tags → worktree `dsh-harness-017rc2` @ dsh-v0.1.7-rc.2 → install+build → 独立 Agent diff 矩阵（12 seam + 三问：①readonly-stack 是否已修 ②prepare 缺陷是否已修 ③ui-primitives 传递依赖有无新增）→ Note | 树绿；矩阵带证据；三问有结论 |
 | T2b | fork 携带（条件）：上游未修 → rc.2 起的新分支 cherry-pick `03bffa9454` → 重建+其自带测试过；不碰 017a2 | cherry-pick 干净+build 绿；已修则证据关闭 |
 | T3 | 依赖域：peer 六条 +`0.1.7-rc.1 \|\| 0.1.7-rc.2`；devDeps 16 条 dsh-\*→rc.2；typert-protocol dep→rc.2；顺手清偿 🟢（prune 19 条 0.1.2-alpha.4 exclude）；`pnpm clean --lockfile && pnpm install`；全量门墙 | semver 9 版本全 true；门墙绿+数字 |
 | T4 | 源码适配（条件，TDD 先红后绿；零适配则证据关闭） | 每项红→绿→commit |
 | T5 | v0.1.3：bump；CHANGELOG；双名 tarball 入 dist-artifacts；upgrade.md rc 线矩阵+经验 | 产物就位（发布待 T6 后） |
-| T6 | 3434 多版本演练（复用生产配置——授权）：rc.2(±fork) 全腿 + 015rc3 冒烟（跨代 typert 面）+ 016a1 冒烟（回滚位可信）；证据直接入库；清场（3434 无监听、凭据副本删） | 三线证据链齐 |
-| T7 | 多端同步发布（T6 全过后）：合 master→push→tag v0.1.3→gh Release（双 tarball）→npm publish（registry.npmjs.org；不可达如实报阻+重试预案）→拉装冒烟 | 各端在档 |
+| T6 | 3434 多版本演练（复用生产配置——授权）：rc.2(±fork) 全腿 + 015rc3 冒烟（跨代 typert 面）+ 016a1 冒烟（回滚位可信）；**rc.1 不单独设线**（同线连续性：T2 fetch 时核 rc.1⊂rc.2 血缘即 alpha.2→rc.1→rc.2 线性包含，upgrade.md 矩阵记一行）——S32 alpha.1 先例；证据直接入库；清场（3434 无监听、凭据副本删） | 三线证据链齐 + rc.1 连续性论证在档 |
+| T7 | 多端同步发布（T6 全过后）：合 master→push→tag v0.1.3→gh Release（双 tarball）→**发布前置检查（whoami+连通性探测，F5 网络风险）**→npm publish（registry.npmjs.org；不可达如实报阻+重试预案）→拉装冒烟 | 各端在档（或受阻如实记录） |
 | T8 | 独立审核（阶段 4：矩阵+门墙复跑）+ 交叉验证（阶段 5） | PASS/COMPLETE(-WITH-NOTES)；必修当轮清 |
-| T9 | 收尾六件套 + **生产切换呈批件**（3080→rc.2(±fork)+v0.1.3 方案 + 备份/回退方案：对象=settings.yaml/.credentials.yaml/.anonymous-user-id/profiles 依赖清单/sessions//storages/；持久带日期+校验和目录非 /tmp；恢复步骤；一级回滚=017a2-fork）——**呈用户人工审核，未批不动 3080** | 呈批件在档；3080 零改动 |
+| T9 | 收尾六件套 + **生产切换呈批件**（3080→rc.2(±fork)+v0.1.3 方案 + 备份/回退方案）。备份对象清单以**只读实测枚举为准**（阶段 2 发现：生产 settings.yaml 已被 0.1.7 迁移改名 settings.yaml.imported——禁假设式清单，违反本仓红线；枚举 ~/.dsh 顶层+profiles 依赖清单+sessions/+storages/ 实际在位物）+ 持久带日期+校验和目录（非 /tmp）+ 恢复步骤 + 一级回滚=017a2-fork——**呈用户人工审核，未批不动 3080** | 呈批件在档（对象清单带实测证据）；3080 零改动 |
 
 ## 2. 验证矩阵
 
