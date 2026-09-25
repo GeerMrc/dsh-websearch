@@ -33,6 +33,21 @@
 
 ---
 
+## 2026-09-26 — 随上游 rc 线适配批：v0.1.3（Session 33）
+
+**新增（适配与发布前置）**
+- peer 域扩展 `|| 0.1.7-rc.1 || 0.1.7-rc.2`（semver 九版本全 true 实测；rc 线 app-boot 新增插件 peer 预检 includePrerelease 语义——运行时可过但安装器默认判否，枚举为安装期必需）。
+- devDeps 16 条 → 0.1.7-rc.2；typert-protocol dep → 0.1.7-rc.2（tarball 级三版逐字节相同，零风险换钉）；**新增补偿 devDep `@deepseek-ai/dsh-util-code-language@0.1.7-rc.2`**（ui-primitives rc.2 新增未声明顶层导入，独立矩阵复核发现——主上下文机械初判漏项）。
+- 清偿 🟢：19 条 0.1.2-alpha.4 陈旧 minimumReleaseAgeExclude（lockfile 零引用实证）。
+- **源码适配：零**（Note s33 矩阵：9 核心 seam 三版 lib/types 逐字节相同；消费面全加法；host-icons 回退继续有效）。门墙与 v0.1.2 基线逐位一致：typecheck/lint 0w0e、test 480|13(493)、build 300.74kB、i18n 144 键。T4 依此证据关闭。
+- **fork 修复 rc.2 收编（T2b）**：上游 rc.2 已以 `replaceErrorMessage`（Reflect.set+defineProperty）修复 readonly-stack 的 importer 站点；本地 fork 残余价值=CJS-anchor 站点守卫——新分支 fix/readonly-stack-rc2（ebd42731c9，基于 tag 477b4f4205）保留上游机制并以同一助手移植 CJS 站点；回归 235/235 + 树构建绿。017a2 原树零触碰。
+
+**诚实标注（遗留项）**
+- 3434 rc.2(±fork) 全腿 + 015rc3/016a1 冒烟（T6）与多端发布（T7，github SSH 间歇可用/npmjs 仍不可达）进行中——本条目随 T9 收官更新。
+- registry.npmjs.org 直连不可达（环境债）；镜像 npmmirror 正常（安装/验证全走镜像）。
+
+---
+
 ## 2026-09-23 — 上游全跨度升级适配批：v0.1.2（Session 32，用户三裁定：全跨度适配/修死 tgz 树不切/授权凭据复制）
 
 **新增（依赖域与源码适配，ADR-0021）**
