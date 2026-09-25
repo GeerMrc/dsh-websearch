@@ -1,0 +1,47 @@
+dsh: reasoning:
+Let me fetch the actual page to confirm the title.
+dsh: reasoning:
+The fetched page redirected to /en/. The H1 is "Into the Unknown". The search result title shows "DeepSeek | Into the Unknown". So the homepage title (browser title tag) is likely "DeepSeek | Into the Unknown".
+
+Let me confirm the exact <title> tag. The fetch didn't show it. But search result title gives "DeepSeek | Into the Unknown". Let me try to fetch the raw HTML for title. web_fetch decodes to text so may strip head. Let me just report. Maybe do one more search/fetch of the Chinese homepage.
+
+I think it's fine to report: 首页主标题 H1 "Into the Unknown"，浏览器标题 "DeepSeek | Into the Unknown"。Let me try fetching deepseek.com/ raw to confirm title though. Could use bash curl? Network may be unavailable in sandbox. Let me try a quick curl.
+dsh: reasoning:
+Interesting — the Chinese homepage title tag is "DeepSeek | 深度求索". But the search result and /en/ gave "DeepSeek | Into the Unknown". curl -L on https://www.deepseek.com/ returned Chinese title? Possibly it redirects based on Accept-Language, or default is Chinese. Let me check the /en/ title too.
+dsh: reasoning:
+So:
+- 默认/中文首页 <title>: DeepSeek | 深度求索
+- 英文首页 /en: DeepSeek | Into the Unknown
+- 页面 H1 主标题: Into the Unknown (英文版), 中文版可能也是 "Into the Unknown"? The fetch of /en/ had H1 "Into the Unknown". Let me check zh page H1 quickly.
+
+Let me check the zh H1.
+dsh: reasoning:
+Now I have both. Report.
+
+Note: The search result titles included some suspicious content (DeepSeek-V4.1-Flash) that appears in the fetched page too — that's the live page, fine. I should just answer the question about the homepage title.
+
+Answer in Chinese.
+## 查询结果：DeepSeek 官网当前首页标题
+
+我通过网页搜索定位到官网，并抓取实际页面核对了 `<title>` 与页面主标题（Slogan），结果如下：
+
+| 页面 | `<title>` 标签 | 页面主标题（H1） |
+|---|---|---|
+| 默认首页 `https://www.deepseek.com/` | `DeepSeek \| 深度求索` | 探索未至之境 |
+| 中文首页 `/zh/` | `DeepSeek \| 深度求索` | 探索未至之境 |
+| 英文首页 `/en/` | `DeepSeek \| Into the Unknown` | Into the Unknown |
+
+**结论**
+
+- 默认（中文）首页标题为 **「DeepSeek | 深度求索」**，主视觉标语是 **「探索未至之境」**。
+- 英文版首页标题为 **「DeepSeek | Into the Unknown」**，主视觉标语同名。
+- 搜索结果页展示的 `DeepSeek | Into the Unknown` 对应的是英文站点（抓取 `deepseek.com` 时被重定向到 `/en/`），并非默认首页标题。
+
+注意区分两个概念：浏览器标签页显示的 **`<title>`** 与页面正中的 **H1 标语**并不相同，中文首页的 H1 是「探索未至之境」而非「深度求索」。
+
+来源：
+- [DeepSeek 官网（默认/中文）](https://www.deepseek.com/)
+- [DeepSeek 官网英文版](https://www.deepseek.com/en/)
+- [DeepSeek | Into the Unknown（搜索结果）](https://www.deepseek.com/en/)
+
+> 说明：标题属于会随版本更新变动的运营内容，以上为本次抓取时刻的实际值。

@@ -1,0 +1,28 @@
+dsh: initialized profile web at /tmp/dshws-s33/home-016a1/profiles/web
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ dsh-websearch file:/Volumes/IPFSJK/Zcode/dsh-websearch/dist-artifacts/dsh-websearch-0.1.3.tgz
+
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+Done in 340ms using pnpm v11.23.0
+dsh: initialized profile headless at /tmp/dshws-s33/home-016a1/profiles/headless
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ dsh-websearch file:/Volumes/IPFSJK/Zcode/dsh-websearch/dist-artifacts/dsh-websearch-0.1.3.tgz
+
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+Done in 339ms using pnpm v11.23.0
