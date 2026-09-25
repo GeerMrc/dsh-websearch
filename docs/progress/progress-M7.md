@@ -604,3 +604,25 @@ P0 计划两轮审核 APPROVED / T0 前序 PASS（🔴0🟡4🟢6）/ T1 补账�
 - 3434 三线：A dump:351/:352 钉扎+徽标 5/10+served-by anysearch×3+降级 tavily/firecrawl；B 装卸循环基座复原；C volatile 端到端+双工具 `· AnySearch` 徽标+Tavily 禁用零 draw。证据库 audit-logs/2026-09-23-s32-t6-drill-evidence/（23 文件）。
 - 生产：3080=pid 69290 cwd 016a1、profile 指向 dist-artifacts v0.1.2、dump 钉扎 :351/:352/:560、GUI 徽标 5/10。
 - dist-artifacts/：v0.1.2（115,781B）+ v0.1.1 回滚（111,905B，tag 重建）。
+
+---
+
+## S33 批次台账（2026-09-26，随上游 rc 线适配 v0.1.3）
+
+### 任务表（plan 033 rev1，全部 ✅ 除网络受阻腿）
+
+P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（镜像 tarball 独立复核推翻主上下文两初判）+git 血缘 / T2b fork 收编（ebd42731c9，回归 235/235 阶段5 复跑正本）/ T3 依赖域 rc.2（semver 九版本全 true）/ T4 零适配关闭 / T5 v0.1.3 双名包 / T6 三线演练全 PASS（证据 10 文件+编排器脚本日志）/ T7 npm@0.1.3 成功·GitHub 腿网络受阻续试 / T8 阶段4 PASS+阶段5 COMPLETE-WITH-NOTES 六必修全落 / T9 六件套+生产呈批件（3080 零改动）。
+
+### 债务变动
+
+- 清偿：T0 🟡×4（三项治理+网络债转 T7 前置门处置）；🟢「0.1.2-alpha.4 exclude 清理」。
+- 新增 🟢×3：README 前置串 rc 覆盖（随 0.1.4）；陈旧 tail 会话清理；GitHub 腿收尾确认项（master/tag/Release/拉装冒烟/fork 分支推送——环境恢复后核对）。
+- 环境债：github.com SSL 不可达（SSH 间歇）；npmjs 间歇（01:44 窗口完成发布）。
+
+### 已验锚点（S33 新增）
+
+- 门墙 480|13(493) 双独立复跑逐位一致；src/tests 零 diff（v0.1.2..master）。
+- semver：九版本全 true、0.1.8-alpha.1 封顶 false、六 peer 串一致（阶段4 复证）。
+- 3434 三线：017rc2=anysearch×5+firecrawl×2（含 tavily/exa 故障降级链）；015rc3=firecrawl×4+跨代徽标「API keys configured: 5 of 10」；016a1=firecrawl×4。
+- npm：@maricgeer/dsh-websearch@0.1.3 latest（shasum b2d93491…011b 镜像校验一致）。
+- 生产零触碰：pid 92540 全程未重启（T0/T4/T8 三点亲证）。
