@@ -12,6 +12,14 @@
 
 ---
 
+## 2026-09-23 — 生产宿主切换批：3080 → DSH 0.1.7-alpha.2（用户指令）
+
+**新增（生产）**
+- 3080 供版树 016a1（0.1.6-alpha.1）→ **017a2（0.1.7-alpha.2）**，插件 v0.1.2 不变；healing 自动换树，settings/credentials 零触碰。
+- 验证全过：cwd/dump 钉扎/横幅/volatile 设置节/**生产链序完整迁移**（AnySearch 首位）/徽标 5/10/真实搜索 `served-by: dshws-anysearch`×3+多 key 轮换。回滚位：016a1（一级）/015（二级）。正本 audit-log `2026-09-23-s32-prod-switch-017a2.md`。
+
+---
+
 ## 2026-09-23 — npm 发布批：@maricgeer/dsh-websearch@0.1.2 上架（Session 32 增补，用户指令）
 
 **新增（分发）**

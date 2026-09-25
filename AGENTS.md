@@ -1,6 +1,6 @@
 # AGENTS.md — dsh-websearch 项目宪法
 
-DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）。技术栈一句话：TypeScript + cordis 插件协议 + vitest，宿主为 deepseek-harness（`dsh`）官方 npm 线——devDeps 钉版与生产供版树以 package.json 与 `/Volumes/IPFSJK/Zcode/dsh-ops-3080-runbook.md` 为正本（勿以本行为准；S32 后：devDeps=0.1.7-alpha.2 线、生产插件 v0.1.2 @ 供版树 016a1=dsh-v0.1.6-alpha.1）。
+DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）。技术栈一句话：TypeScript + cordis 插件协议 + vitest，宿主为 deepseek-harness（`dsh`）官方 npm 线——devDeps 钉版与生产供版树以 package.json 与 `/Volumes/IPFSJK/Zcode/dsh-ops-3080-runbook.md` 为正本（勿以本行为准；S33 时点：devDeps=0.1.7-alpha.2 线〔T3 升 rc.2 中〕、npm 名 @maricgeer/dsh-websearch@0.1.2、生产=017a2 树〔0.1.7-alpha.2+fork 修复〕+ 插件 v0.1.2）。
 
 ## 治理硬约束（session-governance）
 
