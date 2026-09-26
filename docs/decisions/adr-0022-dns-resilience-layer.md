@@ -20,18 +20,18 @@ proposed（2026-09-27，Session 35 阶段 1 起草；随 T6 拦截层落地复�
 
 ## Decision（决策）
 
-在插件进程内以 **`dns.lookup`（callback 形态）+ `dns.promises.lookup` 晚期 patch** 实现 DNS 韧性层，编号决策点：
+在插件进程内以 **`dns.lookup`（callback 形态）晚期 patch** 实现 DNS 韧性层，编号决策点：
 
-- **D1 拦截 seam = dns 模块 patch**（spike 实证，非推断）：undici（global fetch）按调用时属性访问 `dns.lookup` 解析 hostname——node v20.18.3 与 v22.23.2 双版本实测：晚期 patch 被 fetch 路径调用（`{hints:1024, all:true}` 形态），patched lookup 返回注入地址后 fetch 端到端 200；disposer 还原即回落。证据：`docs/sessions/audit-logs/2026-09-27-s35-t0-spike/`。
+- **D1 拦截 seam = dns 模块 patch，仅 `dns.lookup` 单 patch 面**（spike 实证，非推断）：undici（global fetch）按调用时属性访问 `dns.lookup` 解析 hostname——node v20.18.3 与 v22.23.2 双版本实测：晚期 patch 被 fetch 路径调用（`{hints:1024, all:true}` 形态），patched lookup 返回注入地址后 fetch 端到端 200；disposer 还原即回落。`dns.promises.lookup` 不 patch——spike 证实 fetch 不走 promises face（「applied but unused by fetch」），fetch-gate 改造（D8）后亦不走，无已命名目标消费者；少一个 patch 面与一组还原断言。证据：`docs/sessions/audit-logs/2026-09-27-s35-t0-spike/`。
 - **D2 解析链（不劣化原则）**：缓存命中 → DoH 节点按序（350ms/节点预算，连败 3 次冷却 30s）→ NXDOMAIN 尊重（确定性答案不换节点）→ 投毒过滤（A/AAAA 落保留段丢弃；过滤后空回退原应答）→ 出口预检 → 全灭回退原 `dns.lookup`（最坏 = 配置前状态）。
 - **D3 出口预检**：对 A 记录并行 `net.connect(ip, 443)`（仅 TCP 握手，无 TLS/SNI/HTTP——服务端应用层不可见，零配额/零风控信号，多 KEY 池零交互）；成功保留失败丢弃；全灭保留原列表；结果缓存 30s。
-- **D4 auto 模式证据制**：以运行时配置的成员 baseURL host 集合为 canary，系统 `dns.lookup` 应答命中保留段 = 污染高置信信号（唯一判定依据；不认"探测失败"防误报）；系统解析自身失败 → inconclusive 保守启用（DNS 全盲比污染更糟）；**无证据永不启用（红线）**；决策进程生命周期缓存 1 次，UI 重检按钮强制重跑；检测异步不阻塞首搜。
+- **D4 auto 模式证据制**：以运行时配置的成员 baseURL host 集合为 canary，系统 `dns.lookup` 应答命中保留段 = 污染高置信信号（唯一判定依据；不认"探测失败"防误报）；分支动作：全部干净→SKIPPED，**任一命中→ENABLED（证据=命中 host+IP 清单）**，系统解析自身失败→inconclusive 保守启用（DNS 全盲比污染更糟），canary 集为空→跳过；**无证据永不启用（红线）**；决策进程生命周期缓存 1 次，UI 重检按钮强制重跑；**触发时机 = lazy**（首次 scope 内 lookup 时触发检测；auto 默认下 apply() 不触发——单测密闭性红线，装配类测试零外呼零 patch）。
 - **D5 scope 过滤**：默认 `members`——仅成员 host（live 读取随设置热变）走 DoH，其余 hostname 透传原 lookup；`all` 可选（覆盖 fetch-gate OFF 路径任意域名）。进程全局副作用压缩到最小。
-- **D6 区域预设池 + bootstrap**：默认池 AliDNS/DNSPod/Cloudflare/Google/Quad9（全 JSON DoH，443/TLS，SNI 与 Host 分离）；`preset=auto` 启用时并行探测可达性+RTT 取前 2；`cn`/`global` 手动钉扎；`custom` 用户自填节点表。适配国内（AliDNS/DNSPod 可达）与海外（Cloudflare/Google 可达）用户开箱即用。
-- **D7 代理环境自动暂停**：`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` 存在且目标不在 `NO_PROXY` → 层暂停（诊断码 + UI 状态）——代理模式解析与预检均移至代理侧，本地 DoH 无意义且预检失真；为 DSH 正式版代理 seam 预留对接点。
+- **D6 区域预设池 + bootstrap**：默认池 AliDNS/DNSPod/Cloudflare/Google/Quad9（全 JSON DoH，SNI 与 Host 分离；节点表含 `port` 字段：Quad9 专用 **:5053** `/dns-query` + `application/dns-json`，其余 :443）。五厂商 JSON face 已核验：Quad9 官方博客 / ControlD docs / netmeister.org、DNSPod doh.pub 文档、Cloudflare（dns-json）/Google（/resolve）官方文档；本网络可直达者（AliDNS/DNSPod）由 T2 实测取样。`preset=auto` 启用时并行探测可达性+RTT 取前 2（非标端口被封的网络由探测剔除兜底）；`cn`/`global` 手动钉扎；`custom` 用户自填节点表。适配国内（AliDNS/DNSPod 可达）与海外（Cloudflare/Google 可达）用户开箱即用。
+- **D7 代理环境自动暂停**：`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` 存在且目标不在 `NO_PROXY` → 层暂停（诊断码 + UI 状态）——代理模式解析与预检均移至代理侧，本地 DoH 无意义且预检失真；为 DSH 正式版代理 seam 预留对接点。`NO_PROXY` 语义：目标 = 本次解析请求的成员 host；CSV 列表，后缀匹配（host 等于条目或以 `.条目` 结尾），`*` 通配全部（与主流代理实现一致）。
 - **D8 fetch-gate 改造**：`src/fetch-gate.ts` SSRF 预检的 `import { lookup } from 'node:dns/promises'` 为 ESM 不可变绑定（运行时 patch 不可触达，spike 附带证实），改为经 dns 层导出 `resolveForGuard()`——层关闭时等价回落系统解析，行为零变化。
 - **D9 隐私红线**：chain-log 与 ring buffer 仅 scope 内成员 host 明文；scope=all 时非成员域名截断脱敏（保留 TLD+哈希尾缀）；诊断码/计数不涉查询名。
-- **D10 生命周期**：`ctx.effect()` 注册，disposer 还原两个 patch；HMR 完整丢弃重建（单层包装断言入回归）；`mode on↔off` 设置热切换即时生效（ADR-0021 volatile 路径复用）。
+- **D10 生命周期**：`ctx.effect()` 注册，disposer 还原 `dns.lookup` patch（单 patch 面）；HMR 完整丢弃重建（单层包装断言入回归）；`mode on↔off` 设置热切换即时生效（ADR-0021 volatile 路径复用）；scope 随设置热变（成员 host 集合 live 读取）。
 - **D11 诊断不进链路径**：`DSHWS_DNS_*` 为诊断级错误码（日志/inspect/UI），解析失败仍走既有"成员失败→链降级"语义（ADR-0002），不新增链终态。
 
 **显式副作用声明（红线级透明）**：`dns.lookup` patch 是进程全局拦截——同进程其他模块经 `require('dns')` 属性访问的解析一并被接管（经 ESM import 绑定捕获的不受影响）。以 D4 证据制 + D5 scope + D10 disposer + R2 干净环境零 patch 断言约束。
