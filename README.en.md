@@ -17,7 +17,9 @@
 
 ## Quick start
 
-> ⚠️ **Known upstream host issue (not this plugin)**: host `dsh` **0.1.6-alpha.2** has a host-side tool-scheduling defect — every tool call (including shell/web_search) crashes with `TOOL_RUNTIME_SCHEDULER.prepare`, reproducible in a plugin-free environment. Avoid that host version (use 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7-alpha.x) or wait for the upstream fix. See the drill matrix in [docs/upgrade.md](docs/upgrade.md).
+> ⚠️ **Known upstream host issues (not this plugin)** — see **[docs/known-upstream-issues.md](docs/known-upstream-issues.md)** (in Chinese; symptoms/affected versions/workarounds/self-check commands):
+> 1. `dsh` **0.1.6-alpha.2**: every tool call crashes with `TOOL_RUNTIME_SCHEDULER.prepare` — avoid that version (use 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+).
+> 2. `dsh` **0.1.7-alpha.2/rc.1 (half-fixed in rc.2)**: with tsx source launches the host logs `Plugin metadata … TypeError: Cannot assign to read only property 'stack'` at startup — npm-installed / built-output users are unaffected; source-launch users can use the [fork fix branch](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2).
 
 Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`, S32 full span — each rehearsed pre-release pinned explicitly), node >= 22.19.
 
@@ -160,6 +162,7 @@ Combination constraints (fail-loud: on 0.1.5/0.1.6 hosts the settings validate h
 - **Upgrades**: see [docs/upgrade.md](docs/upgrade.md).
 
 ## More docs
+- [docs/known-upstream-issues.md](docs/known-upstream-issues.md) — known upstream DSH issues register (zh; symptoms/workarounds/self-checks, incl. the fork fix-branch usage)
 
 - Architecture: [docs/00-architecture.md](docs/00-architecture.md)
 - Decision records: [docs/decisions/](docs/decisions/) (ADR-0001..0020)
