@@ -86,3 +86,81 @@
 - N5 吸收：定死 lazy 触发（首次 scope 内 lookup 触发检测；auto 默认下 apply() 不触发——单测密闭性断言入 T5）。
 - 建议 1-9 全部吸收（R5 scope 热变入 T6 回归第 5 条；T7 补时延入日志行；known-upstream-issues 检查项挂 T6+T11；CHANGELOG 0.2.0 撞名澄清挂 T11；dns.promises patch 缩面删除——仅 patch dns.lookup；D4 补单污染分支动作=任一命中即 ENABLED；T11 补 README zh/en「DNS 韧性」功能节；NO_PROXY 语义=成员 host 目标 + CSV 后缀匹配 + `*` 通配；验证矩阵 fetch-gate 行改「适配后全绿（禁证红）」+ chain-log 前缀定 `[dshws-dns]`）。
 - 周边发现处置：M7 复活口径（总览行 🚧 复开 + 阶段 6 三载体一致）并入 T0① 清偿范围。
+
+---
+
+# 复审轮（同阶段续用同一审核 Agent，2026-09-27）
+
+- **提示词参数头**: 骨架库版本 v2（six-stage.md 阶段 2 复审轮）｜阶段 2 复审｜Session 35｜输入指针：修订后 plan 正本 + ADR-0022 + 本 audit-log 末节处置记录；修订 commit 4edc5b1｜相对骨架偏离说明：无
+
+以下为复审 Agent 输出原文（逐字落盘，未修改）：
+
+---
+
+# 复审结论：APPROVED
+
+（附 6 条非阻塞残留建议，供执行期 T5/T7/T11 落定时吸收；无剩余必改）
+
+修订范围核对：`git show 4edc5b1 --stat` 确认改动仅落在 plan / ADR-0022 / session-35 记录 / 处置记录四件，无夹带源码或其他文档改动；plan 与 ADR 全文已逐行重读。
+
+---
+
+## 一、N1-N5 逐条核验（全部实质落实，非表面措辞）
+
+**N1 — 已落实。** plan R4（第 63 行）改为「回退原 lookup 且**不劣于配置前基线**（本网络配置前部分成员间歇属预期，不主张全绿；断言降级链诊断码序列 DOH_UNREACHABLE→FALLBACK_SYSTEM）」；T10（第 54 行）同步改为「断言不劣于配置前基线 + 降级链诊断码序列——本网络配置前部分成员间歇属预期，不主张全绿」。R4 与 T10 同一腿口径现已一致，且与 ADR D2「最坏 = 配置前状态」及技术报告 §3.5 降级语义对齐。验收在本网络上可达成。
+
+**N2 — 已落实，佐证主张成立且落入正文。** 三点核验：
+1. **来源标注在正文而非口头**：plan 第 34 行默认池正文写明「五厂商 JSON face 已核验（Quad9 官方博客/ControlD docs/netmeister.org、doh.pub 文档、Cloudflare/Google 官方文档…）」；ADR D6 同样落正文（含逐厂商来源枚举）。处置记录之外的两个正本都承载了佐证。
+2. **节点表补 `port` 字段**（Quad9 专用 ：5053 /dns-query + application/dns-json，其余 ：443），plan 第 20/34 行 + ADR D6 一致；并新增风险节条目「Quad9 非标端口 5053…bootstrap 探测剔除兜底」（plan 第 92 行），`preset=global` 子集仍含 CF/Google 四节点的退化路径已论证。
+3. **独立复核 Quad9 主张**：本审核自行检索确证 `https://9.9.9.9:5053/dns-query` + `Accept: application/dns-json` 返回 JSON 为真实存在的公开用法，且 plan 点名的 netmeister.org 来源属实（其页面给出 `curl -H 'Accept: application/dns-json' 'https://9.9.9.9:5053/dns-query...'` 原例）。T2 验收要点（第 46 行）同时补了「五节点 JSON 端点形态核验（可直达者〔AliDNS/DNSPod〕实测取样；被阻断者按已核验文档锁定形态并标注来源）」——本网络不可直达的三个节点有文档锁定 + 达者有实测取样双保险。原「报告 §7.1 标 wire」的冲突以新增证据消解，无需触发向用户的事实勘误披露（裁定文本「全 JSON DoH」成立，:5053 属补充事实非矛盾）。
+
+**N3 — 已落实。** plan T1（第 45 行）WBS 增补「**`src/settings.ts` validate-hook 接线**（跨字段规则双路径：settings 写路径拒写 + cordis.yml 路径 load 报错——S20 M-1 砖机 pitfall 防复发）」，验收要点含「双路径用例」。S20 M-1 复发路径已被任务承接。
+
+**N4 — 已落实。** T8 前置列改「T7」（第 52 行）；T7（第 51 行）定义 remote 三方法面 `describeDnsStatus` / `readDnsTrace` / `requestDnsRecheck`（粒度对照 key-counts 先例），验收要点含「remote 方法契约测试」。T8 的「检测状态与证据/重检按钮」自此有明确后端依赖。
+
+**N5 — 已落实。** ADR D4 定死「**触发时机 = lazy**（首次 scope 内 lookup 时触发检测；auto 默认下 apply() 不触发——单测密闭性红线，装配类测试零外呼零 patch）」；T5 验收要点含「触发时机用例（lazy…auto 默认下 apply() 零检测零外呼断言）」。R1 的 480 基线威胁解除，且与 R2 断言形态（lookup 后断 SKIPPED）自洽。
+
+## 二、建议 1-9 与周边发现处置核验
+
+| 项 | 落点核验 | 结论 |
+|---|---|---|
+| 1 R5 scope 热变 | T6 回归改 **5 条**，第 5 条即「scope 随设置热变」（第 50 行）；ADR D10 同步 | 落实 |
+| 2 时延入 chain-log | T7「含每次解析时延数字」+ 验收「含时延字段」（第 51 行） | 落实 |
+| 3 known-upstream-issues | 挂 T6 验收（第 50 行）；处置记录称「挂 T6+T11」但 plan T11 未列——plan 为正本，T6 已足，处置记录微 overstated（见残留 5） | 落实（单点） |
+| 4 0.2.0 撞名 | T11「CHANGELOG 0.2.0 撞名澄清…CHANGELOG:552 已有内部 0.2.0 条目」（第 55 行）；README.md:4 版本线句的澄清未逐字点名（见残留 4） | 部分落实，残余为一句话 |
+| 5 dns.promises patch | 采纳缩面方案：plan 方案要点/T6/ADR D1/D10 四处一致改为「仅 dns.lookup 单 patch 面」+ 消费者论证入 D1 正文；全文无 dangling 引用 | 落实（选了更优的缩面项） |
+| 6 单污染分支 | D4/T5 改「任一命中→ENABLED〔证据=命中 host+IP 清单〕」，动作已定义；但 T5 验收仍写「决策表 **5** 分支」而正文枚举 4 分支（见残留 1） | 实质落实，计数残留 |
+| 7 README 功能节 | T11「README zh/en『DNS 韧性』功能节（设置块/Inspect/隐私红线/代理暂停语义）」（第 55 行） | 落实 |
+| 8 NO_PROXY 语义 | T5 + ADR D7 双处定义（目标=本次解析的成员 host；CSV+后缀匹配〔等于条目或以 `.条目` 结尾〕+`*` 通配），可测 | 落实 |
+| 9 措辞级 | 矩阵 fetch-gate 行改「适配后全绿（适配既有测试，禁证红）」（第 74 行，与仓内「重构禁证红」纪律一致）；前缀定 `[dshws-dns]` | 落实 |
+| 周边 M7 矛盾 | T0① 增补「M7 复活口径〔总览行 🚧 复开 S35，三载体一致〕」（第 44 行）；STATUS 单源规则（「两者状态表述以本文件为准」）给该处置提供了权威序，roadmap :63 历史 ✅ 行不必回改 | 已处置入 T0 |
+
+## 三、修订引入新问题检查
+
+未发现阻塞级新问题。diff 全量核对，改动均映射到上一轮发现，无夹带。以下为核出的小颗粒残留（全部非阻塞，建议在对应任务落定时顺手吸收）：
+
+1. **T5「决策表 5 分支」vs 正文枚举 4 分支**（plan 第 49 行）：合并单污染/全污染为「任一命中」后计数未同步。且合并暴露一个未定义混合态：canary 部分 host 解析干净、部分 host 系统解析失败但零保留段命中——按 D4 红线「无证据永不启用」应 SKIPPED，按「系统解析自身失败→inconclusive 保守启用」应启用，两条规则在该态碰撞。建议 T5 落定时改「4 分支」或把该混合态显式定义为第 5 分支（推荐后者，一行字）。**这是残留中最值得处理的一条。**
+2. **R4 诊断码简写无前缀**（第 63 行「DOH_UNREACHABLE→FALLBACK_SYSTEM」）：T7 交付的是 `DSHWS_DNS_*` 族；建议 T7 定码名时写全（`DSHWS_DNS_DOH_UNREACHABLE`→`DSHWS_DNS_FALLBACK_SYSTEM`），避免验收时与 errors.ts 实际常量对不上。
+3. **transport 节点抽象 vs accept 头**：节点表为 {host, sni, path, port}（第 20 行），而 DNSPod/Cloudflare 的 JSON face 依赖 `accept: application/dns-json`（第 34 行）。若 transport 统一固定携带该 Accept（对 AliDNS/Google 路径式 JSON 无害）则抽象自洽；建议 T2 实现时明示这一常量决策，勿使其成为隐式行为。
+4. **README.md:4 版本线句**（「内部开发编号 0.2.0–0.9.0 归历史档」）在真实 v0.2.0 发布后的澄清未在 T11 逐字点名（CHANGELOG 澄清已点名）；T11 本就重写 README 节，加半句即可。
+5. **处置记录与 plan 的一处微差**：处置称 known-upstream-issues「挂 T6+T11」，plan 仅 T6 承接——以 plan 为正本则无缺口，建议在 session 记录或处置记录补一句以 T6 为准，免收官核对时按处置记录找不到 T11 条目。
+6. **风险节「测试确定性」条未同步引用新缓解**（第 95 行仍是「IP 字面量天然跳过」的旧论证）；实际缓解已升格为 D4 lazy 触发红线 + T5 密闭性断言，风险节该条可顺手补引，非必须。
+
+## 四、佐证来源（N2 独立复核所用）
+
+- netmeister.org — DNS Security: Threat Modeling DNSSEC, DoT, and DoH（plan/ADR 点名来源，页面含 9.9.9.9:5053/dns-query + application/dns-json 原例）
+- Gist (matt40k) — DoH endpoint A-record lookup（:5053/dns-query + accept=application/dns-json 用法）
+- FINSIN — DNS script（Quad9 9.9.9.10:5053 JSON API 用法）
+
+**总评**：N1-N5 全部实质清偿（N2 经独立检索二次确证），建议 9 条与周边发现均有真实落点，修订未引入阻塞级新问题。残留 6 条均为一句话/计数级颗粒，已给出任务落点（T5 两条、T7 两条、T11 两条），不构成再修 round 的理由——可进入 2.5 用户终审。
+
+---
+
+# 残留 6 条吸收记录（主 Agent，同日；计划内微调，验收标准不变，不触发重审）
+
+1. T5 决策表定为显式 5 分支（混合态=第 4 分支：有干净样本即证未污染→SKIPPED，失败侧出 DETECT_INCONCLUSIVE 诊断码）；ADR D4 同步判定优先级语义。
+2. R4 诊断码写全（DSHWS_DNS_DOH_UNREACHABLE→DSHWS_DNS_FALLBACK_SYSTEM）。
+3. T2 补「统一固定携带 accept: application/dns-json（对路径式 JSON 端点无害，显式常量决策）」。
+4. T11 补 README.md:4/README.en.md:4 版本线句同步澄清。
+5. 勘正本节处置记录：known-upstream-issues 检查项**以 plan T6 为准**（单点承接；处置记录「挂 T6+T11」系笔误）。
+6. 风险节「测试确定性」条补引 D4 lazy 触发红线 + T5 密闭性断言。
