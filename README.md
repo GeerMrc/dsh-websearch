@@ -17,7 +17,9 @@
 
 ## 快速开始
 
-> ⚠️ **已知上游宿主问题（非本插件缺陷）**：`dsh` **0.1.6-alpha.2** 宿主自身工具调度缺陷——任意工具调用（含 shell/web_search）崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`，无插件净环境可复现。请避开该宿主版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7-alpha.x），或等上游修复。详见 [docs/upgrade.md](docs/upgrade.md) 三线矩阵。
+> ⚠️ **已知上游宿主问题（非本插件缺陷）**，详见 **[docs/known-upstream-issues.md](docs/known-upstream-issues.md)**（现象/影响版本/规避/自查命令，照做即可）：
+> 1. `dsh` **0.1.6-alpha.2**：任意工具调用崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`——避开该版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+）。
+> 2. `dsh` **0.1.7-alpha.2/rc.1（rc.2 半修）**：tsx 源码启动下宿主启动期报 `Plugin metadata … TypeError: Cannot assign to read only property 'stack'`——npm 安装/构建产物用户不受影响；源码启动用户可用 [fork 修复分支](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2)。
 
 前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`，S32 全跨度——显式钉已演练预发布版）、node ≥ 22.19。
 
@@ -159,6 +161,7 @@ dsh-websearch:
 - **升级**：见 [docs/upgrade.md](docs/upgrade.md)。
 
 ## 更多文档
+- [docs/known-upstream-issues.md](docs/known-upstream-issues.md) —— 已知上游 DSH 问题登记表（现象/规避/自查命令，含 fork 修复分支用法）
 
 - 架构正本：[docs/00-architecture.md](docs/00-architecture.md)
 - 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0020）

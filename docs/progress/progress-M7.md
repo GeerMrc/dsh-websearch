@@ -626,3 +626,7 @@ P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（�
 - 3434 三线：017rc2=anysearch×5+firecrawl×2（含 tavily/exa 故障降级链）；015rc3=firecrawl×4+跨代徽标「API keys configured: 5 of 10」；016a1=firecrawl×4。
 - npm：@maricgeer/dsh-websearch@0.1.3 latest（shasum b2d93491…011b 镜像校验一致）。
 - 生产零触碰：pid 92540 全程未重启（T0/T4/T8 三点亲证）。
+
+## S34 批次台账（2026-09-26，上游问题经验沉淀文档批）
+
+任务链 P0（两阶段审核）→T1 登记表→T2 README 联动→T3 Release 块→T4 修正→T5 六件套 全 ✅。产物：docs/known-upstream-issues.md（三问题登记+销项规则）、README zh/en、v0.1.3 notes 块。债务：🟢 沿 S33（README 串随 0.1.4；Release/fork 远端活体目验待窗口）。锚点：check:i18n EXIT=0；diff 仅 docs/+README；远程 body grep=1。
