@@ -1,3 +1,15 @@
+## 2026-09-26 — 上游问题经验沉淀文档批（Session 34）
+
+**新增（文档）**
+- **docs/known-upstream-issues.md**：已知上游 DSH 问题登记表（小白可照做）——①readonly-stack「插件元数据 TypeError」全指南（版本矩阵/根因/触发面〔仅 tsx 源码启动〕/fork 分支三行命令/自查 grep/沿革折叠）②0.1.6-alpha.2 工具崩溃 ③预发布 peer 预检语义；登记与销项规则（四要素+实测销项）。
+- README zh/en 警告块扩为两条已知问题摘要+链接；更多文档节新增第 5 链接；Release v0.1.3 notes 追加 Known upstream host issues 块。
+- 治理：阶段 2/4 独立审核（APPROVED/PASS，版本矩阵拆行修正落档）；node22 推送纪律（lefthook pre-push 教训）落 session-34。
+
+**诚实标注**
+- npm 包内 README 仍为 0.1.3 时点版（漂移随下版 🟢 沿 S33）；Release 页/fork 分支远端活体目验待网络窗口（本地证据 grep=1）。
+
+---
+
 ## 2026-09-26 — 生产切换批：3080 → 0.1.7-rc.2(+fork) + v0.1.3（用户批准呈批件）
 
 - 备份先行（237M/652 文件+sha256 清单，dsh-ops-backups/3080-pre-rc2-20260926-0200）；profile 唯一行改指 v0.1.3；供版树 017a2→**017rc2**（fix/readonly-stack-rc2）。

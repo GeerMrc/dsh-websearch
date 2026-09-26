@@ -99,6 +99,8 @@
 
 | **33** | 随上游 0.1.7-rc.1/rc.2 迭代适配批（用户指令 2026-09-26：多版本全跨度+fork 修复审计+多端发布+生产切换呈批） | 正本 plan 033（rev1 APPROVED）+ Note s33 矩阵；T0-T9 + T2b/T7 前置门 | R1-R11 见 plan 033 §2（含网络受阻如实记录条款） | 1 天 | ✅ 2026-09-26（v0.1.3 定版+npm 发布+三线演练全 PASS+生产呈批件待批示；GitHub 腿网络续试） |
 
+| **34** | 上游问题经验沉淀文档批（用户指令 2026-09-26） | 正本 plan 034；known-upstream-issues 登记表+README/Release 联动 | R1-R6 见 plan 034 §三（阶段2 APPROVED/阶段4 PASS） | 0.5 天 | ✅ 2026-09-26（docs/sessions/2026-09-26-session-34.md） |
+
 ## 上游验收（M6 上游验收通过）
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
