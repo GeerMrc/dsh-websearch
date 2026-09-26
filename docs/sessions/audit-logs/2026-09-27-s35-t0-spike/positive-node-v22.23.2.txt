@@ -1,0 +1,6 @@
+[env] node v22.23.2 | loopback 127.0.0.1:59502
+  [p1] patched dns.lookup called: doh-spike-artificial.test opts={"hints":1024,"all":true}
+[p1] POSITIVE fetch: status=200 body="spike-ok" — dns.lookup seam 让 fetch 使用注入解析 ✓
+[p2] dns.lookup restored: true
+[p2] after-restore fetch err: ENOTFOUND (expected ENOTFOUND)
+[p2] undici 调用形态记录（1 次）: [{"hostname":"doh-spike-artificial.test","options":{"hints":1024,"all":true}}]
