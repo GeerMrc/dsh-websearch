@@ -24,7 +24,8 @@ Plugin metadata for <某个插件包名>: TypeError: Cannot assign to read only 
 |---|---|
 | 0.1.7-alpha.2 / 0.1.7-rc.1 | ❌ 两处代码路径全裸（都会踩） |
 | **0.1.7-rc.2** | ⚠️ **半修复**：ESM importer 路径官方已修；`MODULE_NOT_FOUND` 的 CJS require-stack 路径**仍未修** |
-| 0.1.5-rc.x / 0.1.6-alpha.1 | 未观察到此问题（该机制面较新） |
+| 0.1.5-rc.x | ✅ 不受影响——该解析器改写机制在这些版本尚不存在（树中无 `profile-resolution/` 模块） |
+| 0.1.6-alpha.1 | ✅ 机制在（两处裸赋值），但未观察到触发——实测证据见 [S33 演练](sessions/audit-logs/2026-09-26-s33-t6-drill.md)（该线冒烟零症状，生产曾长期在役） |
 
 **触发条件（重要）**：只在 **tsx 源码方式启动宿主**（`node --import tsx/esm apps/cli/src/bin.ts ...`）时出现——npm 正式安装、跑构建产物（`lib/`）的用户**不受影响**。
 
