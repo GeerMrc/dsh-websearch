@@ -107,7 +107,7 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 35 🚧（DNS 韧性层批 v0.2.0——用户主计划批准+四裁定〔版本 0.2.0/设置页底部独立块/区域预设池+自动探测/v1 含 Inspect trace〕；阶段 0 独立审核 PASS 🟡×4〔audit-log 2026-09-27-s35-stage0-audit-of-s34.md〕；拦截 seam spike 实证：**dns.lookup 晚期 patch 于 node 20.18.3/22.23.2 双版本拦截 global fetch（正例 200），Socket.prototype.connect 注入实测不可达→否决**〔audit-logs/2026-09-27-s35-t0-spike/〕；plan 035 + ADR-0022（proposed）已落盘；阶段 2 已过；执行期 T0-T10+阶段4/5 完成；**增补批 plan 036 进行中**（用户两项提议+两裁定：启动预热/负反馈缓存作废/UI 对齐；T4 复测与 T11/T12 发版切换仍候用户门控））
+- **当前 session**: Session 35 🚧（DNS 韧性层批 v0.2.0——用户主计划批准+四裁定〔版本 0.2.0/设置页底部独立块/区域预设池+自动探测/v1 含 Inspect trace〕；阶段 0 独立审核 PASS 🟡×4〔audit-log 2026-09-27-s35-stage0-audit-of-s34.md〕；拦截 seam spike 实证：**dns.lookup 晚期 patch 于 node 20.18.3/22.23.2 双版本拦截 global fetch（正例 200），Socket.prototype.connect 注入实测不可达→否决**〔audit-logs/2026-09-27-s35-t0-spike/〕；plan 035 + ADR-0022（proposed）已落盘；阶段 2 已过；执行期 T0-T10+阶段4/5 完成；plan 036 ✅ + plan 037 快降级 ✅（连接级失败不烧 key 额度）+ **plan 038 进行中**（rc.4 验证轮 + connect-flap 日志降噪含运行关联键；T3=probe.method 设计裁定随附；T11/T12 发版切换仍候用户门控））
 > （S33/S34 收官态历史注记：v0.1.3 定版〔peer 域九版本全覆盖〕+ npm latest + **生产 3080=0.1.7-rc.2+fork（017rc2 树）+插件 v0.1.3**（备份先行 237M，回滚位 017a2 一级）；S34 文档批 known-upstream-issues 三问题登记+README/Release 联动，Release/fork 远端活体已由 S35 阶段 0 亲验〔远端 master=5d34b2f、fork head=ebd42731c9〕——详见台账 33/34 行）
 - **所处里程碑**: M7 功能扩展 🚧（S35 进行中）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16）
 - **上一棒**: Session 34（docs/sessions/2026-09-26-session-34.md）
