@@ -64,6 +64,14 @@ export interface DnsLayerDeps {
   readonly bootstrap?: BootstrapFn
   /** Event sink for the observability face. */
   readonly onEvent?: (event: DnsLayerEvent) => void
+  /**
+   * Boot warmup delay (plan 036): after this many ms the layer eagerly runs
+   * the canary in the background and (when armed) pre-resolves every scope
+   * host through the public lookup path — the first user search then hits a
+   * warm cache instead of racing the lazy detection. Undefined = never warm
+   * (vitest; see {@link resolveWarmupDelayMs}).
+   */
+  readonly warmupDelayMs?: number
 }
 
 /** The layer handle: the installed lookup plus lifecycle and observability seams. */
@@ -98,6 +106,18 @@ function systemAddresses(systemLookup: DnsModule['lookup'], hostname: string): P
 }
 
 /**
+ * The boot-warmup gate (plan 036): warm only outside a vitest worker — the
+ * warmup is a network side effect and the unit-suite hermeticity red line
+ * (ADR-0022 D4) outranks it. New-introduced pattern for this repo, declared
+ * in the ADR addendum.
+ * @param env - the environment to consult (process.env in production).
+ * @returns the warmup delay in ms, or undefined to never warm.
+ */
+export function resolveWarmupDelayMs(env: Readonly<Record<string, string | undefined>>): number | undefined {
+  return env.VITEST === undefined ? 2500 : undefined
+}
+
+/**
  * Install the interception. Auto mode installs the (pass-through) wrapper now
  * and decides lazily; mode on arms asynchronously (bootstrap for the auto
  * preset trims the pool); mode off never installs. Disposal restores the
@@ -127,6 +147,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
   let settling: Promise<void> | null = null
   let armingPromise: Promise<void> | null = null
   let dohInFlight = 0
+  let warmupTimer: ReturnType<typeof setTimeout> | undefined
 
   const env = (): Readonly<Record<string, string | undefined>> => deps.env ?? process.env
 
@@ -140,6 +161,54 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
     if (!installed) return
     installed = false
     dnsModule.lookup = restoreTarget
+  }
+
+  /**
+   * Prewarm one pass over the scope hosts (plan 036): each host goes through
+   * the PUBLIC lookup path — the same family-0 cache key the first real
+   * search will use, and the same resolve-event stream into the chain log —
+   * with a no-op consumer discarding the answer. Serial by design so the
+   * dohInFlight self-recursion guard never sees its own warm traffic.
+   */
+  async function prewarm(): Promise<void> {
+    if (disposed || !armed || resolver === null) return
+    for (const host of deps.scopeHosts()) {
+      if (disposed) return
+      await new Promise<void>((resolve) => {
+        (layerLookup as (hostname: string, options: { all: boolean }, callback: () => void) => unknown)(host, { all: true }, () => resolve())
+      })
+    }
+  }
+
+  /**
+   * The eager boot pass (plan 036): run the lazy machinery ahead of the first
+   * user search. Mode on already armed at install, so the timer only waits
+   * for that arming; auto triggers the canary (a settled decision makes this
+   * a no-op). Prewarm runs unconditionally after — a skip decision leaves it
+   * a harmless system-path pass through the uninstalled wrapper.
+   */
+  function scheduleWarmup(): void {
+    if (deps.warmupDelayMs === undefined || disposed) return
+    warmupTimer = setTimeout(() => {
+      warmupTimer = undefined
+      void (async () => {
+        if (disposed) return
+        let mode: ResolvedDnsConfig['mode']
+        try {
+          mode = deps.config().mode
+        } catch {
+          return
+        }
+        if (mode === 'off') return
+        if (mode === 'on') {
+          if (armingPromise !== null) await armingPromise
+        } else {
+          await triggerDetection()
+        }
+        if (disposed) return
+        await prewarm()
+      })()
+    }, deps.warmupDelayMs)
   }
 
   async function arm(): Promise<void> {
@@ -342,6 +411,10 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
     },
     dispose: () => {
       disposed = true
+      if (warmupTimer !== undefined) {
+        clearTimeout(warmupTimer)
+        warmupTimer = undefined
+      }
       uninstall()
       armed = false
       resolver = null
@@ -359,5 +432,6 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
     install()
     if (initialMode === 'on') void arm()
   }
+  scheduleWarmup()
   return layer
 }

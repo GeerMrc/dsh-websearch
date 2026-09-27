@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createServer } from 'node:http'
 import dnsDefault from 'node:dns'
 import { installDnsLayer } from '../../src/dns/intercept.ts'
@@ -309,5 +309,86 @@ describe('S35 T6: end-to-end seam proof — the patched module answer drives a r
       server.close()
     }
     expect(dnsDefault.lookup).toBe(ORIGINAL_LOOKUP)
+  })
+})
+
+describe('S36 T1: boot warmup (plan 036) — eager detection + pool build + prewarm', () => {
+  it('resolveWarmupDelayMs: unset VITEST warms at 2500ms; a vitest process never warms', async () => {
+    const { resolveWarmupDelayMs } = await import('../../src/dns/intercept.ts')
+    expect(resolveWarmupDelayMs({})).toBe(2500)
+    expect(resolveWarmupDelayMs({ VITEST: 'true' })).toBeUndefined()
+  })
+
+  it('warmup timer runs the canary, arms, and prewarms every scope host through the public lookup path (family-0 key, resolve events)', async () => {
+    vi.useFakeTimers()
+    try {
+      const resolver = scriptedResolver({ 'api.tavily.com': outcome(['5.5.5.5']), 'api.exa.ai': outcome(['6.6.6.6']) })
+      const events: Array<{ kind: string; host?: string }> = []
+      const layer = installDnsLayer(makeDeps({
+        warmupDelayMs: 100,
+        scopeHosts: () => ['api.tavily.com', 'api.exa.ai'],
+        canarySystemLookup: async (host) => (host === 'api.tavily.com' ? ['198.18.0.5'] : ['104.0.0.1']),
+        makeResolver: () => resolver,
+        onEvent: (event) => { events.push({ kind: event.kind, ...(event.kind === 'resolve' ? { host: event.host } : {}) }) },
+      } as Partial<DnsLayerDeps>))
+      expect(layer.state().armed).toBe(false)
+      await vi.advanceTimersByTimeAsync(150)
+      // Decision made + armed without any user lookup.
+      expect(layer.state().decision?.verdict).toBe('poisoned')
+      expect(layer.state().armed).toBe(true)
+      // Prewarm resolved EVERY scope host (family 0) and emitted resolve events.
+      expect(resolver.calls.sort()).toEqual(['api.exa.ai', 'api.tavily.com'])
+      expect(events.filter((event) => event.kind === 'resolve').map((event) => event.host).sort()).toEqual(['api.exa.ai', 'api.tavily.com'])
+      // The next user lookup answers from the (already-warmed) DoH path —
+      // the first-search race is gone. Cache-hit semantics live in the
+      // resolver suite; here the armed answer itself is the proof.
+      const first = await callLookup(layer, 'api.tavily.com', { all: true })
+      expect(first).toEqual([{ address: '5.5.5.5', family: 4 }])
+      layer.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('dispose cancels the pending warmup timer — no detection, no resolver calls, no canary', async () => {
+    vi.useFakeTimers()
+    try {
+      const resolver = scriptedResolver({ 'api.tavily.com': outcome(['5.5.5.5']) })
+      const canary = vi.fn(async () => ['104.0.0.1'])
+      const layer = installDnsLayer(makeDeps({
+        warmupDelayMs: 100,
+        makeResolver: () => resolver,
+        canarySystemLookup: canary as unknown as () => Promise<string[]>,
+      } as Partial<DnsLayerDeps>))
+      layer.dispose()
+      await vi.advanceTimersByTimeAsync(500)
+      expect(canary).not.toHaveBeenCalled()
+      expect(resolver.calls).toEqual([])
+      expect(dnsDefault.lookup).toBe(ORIGINAL_LOOKUP)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('clean network: warmup skips, the patch uninstalls (zero-patch holds), prewarm degrades to system lookups — harmless', async () => {
+    vi.useFakeTimers()
+    try {
+      const system = scriptedSystem({ 'api.tavily.com': ['104.18.1.1'] })
+      const layer = installDnsLayer(makeDeps({
+        warmupDelayMs: 100,
+        systemLookup: system.systemLookup as unknown as typeof dnsDefault.lookup,
+        canarySystemLookup: async () => ['104.0.0.1'],
+      } as Partial<DnsLayerDeps>))
+      await vi.advanceTimersByTimeAsync(150)
+      expect(layer.state().decision?.action).toBe('skip')
+      // Skip uninstalls the wrapper — zero-patch after the clean warmup.
+      expect(dnsDefault.lookup).toBe(ORIGINAL_LOOKUP)
+      // Clean network: prewarm never runs (not armed) — beyond the canary
+      // itself the warmup produced zero traffic.
+      expect(system.calls).toEqual([])
+      layer.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

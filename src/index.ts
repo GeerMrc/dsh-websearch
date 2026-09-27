@@ -47,7 +47,7 @@ import { FIRECRAWL_DEFAULT_BASE_URL } from './providers/firecrawl.ts'
 import { TavilySearchProvider, resolveTavilyMemberOptions } from './providers/tavily.ts'
 import { TAVILY_DEFAULT_BASE_URL } from './providers/tavily.ts'
 import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
-import { installDnsLayer } from './dns/intercept.ts'
+import { installDnsLayer, resolveWarmupDelayMs } from './dns/intercept.ts'
 import { DnsObservability, sanitizeHostFactory } from './dns/observability.ts'
 import { DshWsDnsRemote } from './dns/remote.ts'
 
@@ -224,6 +224,9 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
     config: () => live.current().dns,
     scopeHosts: dnsScopeHosts,
     onEvent: (event) => dnsObservability.record(event, dnsSanitize),
+    // S36 (plan 036): eager boot warmup outside vitest — canary + pool build
+    // + scope-host prewarm, so the first user search hits a warm cache.
+    warmupDelayMs: resolveWarmupDelayMs(process.env),
   })
   ctx.effect(() => () => dnsLayer.dispose())
 
