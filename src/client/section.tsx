@@ -1328,14 +1328,14 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
 const selectStyle = {
   ...fieldInputStyle,
   width: 'auto',
-  minWidth: 120,
+  minWidth: 0,
   margin: 0,
   appearance: 'none',
   WebkitAppearance: 'none',
-  paddingRight: 32,
+  paddingRight: 24,
   backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2381858C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
   backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 12px center',
+  backgroundPosition: 'right 6px center',
 } as const
 
 /** One rendered S17 member parameter: selects/toggles commit immediately; text/number stage a draft. */
