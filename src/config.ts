@@ -353,6 +353,8 @@ export interface DnsSettings {
   preset?: DnsPreset
   /** Custom node list; required non-empty iff `preset: 'custom'` (dual-path validated). */
   nodes?: DohNode[]
+  /** Per-node DoH query budget in ms; defaults to 350 (distinct from the TCP precheck budget). */
+  nodeTimeoutMs?: number
   /** Egress reachability precheck (TCP-443 handshake only); defaults enabled with a 350ms parallel budget and 30s result cache. */
   probe?: { enabled?: boolean; timeoutMs?: number; cacheTtlS?: number }
   /** Resolution cache; positive TTLs clamp to [posMinS, posMaxS], negative answers cache negS. */
@@ -569,6 +571,7 @@ function buildConfigSchema(markVolatile: boolean): z {
     mode: z.union(['auto', 'on', 'off']),
     scope: z.union(['members', 'all']),
     preset: z.union(['auto', 'cn', 'global', 'custom']),
+    nodeTimeoutMs: z.number().step(1).min(50).max(5000),
     nodes: z.array(z.object({
       host: z.string(),
       sni: z.string(),
@@ -704,6 +707,8 @@ export interface ResolvedDnsConfig {
   readonly scope: DnsScope
   /** Node region preset; default `'auto'`. */
   readonly preset: DnsPreset
+  /** Per-node DoH query budget; default 350ms. */
+  readonly nodeTimeoutMs: number
   /** Custom nodes, copied; empty unless `preset: 'custom'` supplies a validated list. */
   readonly nodes: readonly DohNode[]
   /** Egress precheck; defaults `{ enabled: true, timeoutMs: 350, cacheTtlS: 30 }`. */
@@ -934,6 +939,7 @@ export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearch
       mode: plain.dns?.mode ?? 'auto',
       scope: plain.dns?.scope ?? 'members',
       preset: plain.dns?.preset ?? 'auto',
+      nodeTimeoutMs: plain.dns?.nodeTimeoutMs ?? 350,
       nodes: plain.dns?.nodes?.length
         ? plain.dns.nodes.map((node) => ({ host: node.host, sni: node.sni, path: node.path, port: node.port }))
         : [],

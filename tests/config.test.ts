@@ -353,6 +353,7 @@ describe('S35 T1: dns section defaults and passthrough (ADR-0022)', () => {
     expect(resolved.dns.mode).toBe('auto')
     expect(resolved.dns.scope).toBe('members')
     expect(resolved.dns.preset).toBe('auto')
+    expect(resolved.dns.nodeTimeoutMs).toBe(350)
     expect(resolved.dns.nodes).toEqual([])
     expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 350, cacheTtlS: 30 })
     expect(resolved.dns.cache).toEqual({ posMinS: 30, posMaxS: 300, negS: 10 })
