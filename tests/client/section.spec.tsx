@@ -114,7 +114,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     searchLanguage: undefined,
     searchIncludeDomains: undefined,
     searchExcludeDomains: undefined,
-    dns: { mode: 'auto', scope: 'members', preset: 'auto', nodesText: '', status: undefined, trace: [] },
+    dns: { mode: 'auto', scope: 'members', preset: 'auto', probeMethod: 'tcp', nodesText: '', status: undefined, trace: [] },
     revision: 0,
     writable: true,
   }
@@ -131,6 +131,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsMode: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsScope: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onSetDnsProbeMethod: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsPreset: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsNodes: vi.fn(async () => ({ ok: true }) as ActionResult),
     onRecheckDns: vi.fn(async () => ({ ok: true }) as ActionResult),

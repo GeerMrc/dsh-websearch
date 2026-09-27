@@ -56,6 +56,8 @@ export interface SectionProps {
   /** S35 DNS resilience block (ADR-0022): mode/scope/preset/custom-nodes writes. */
   onSetDnsMode: (mode: 'auto' | 'on' | 'off') => Promise<ActionResult>
   onSetDnsScope: (scope: 'members' | 'all') => Promise<ActionResult>
+  /** S39 (plan 038 T3): egress probe method (tcp/tls-hello). */
+  onSetDnsProbeMethod: (method: 'tcp' | 'tls-hello') => Promise<ActionResult>
   onSetDnsPreset: (preset: 'auto' | 'cn' | 'global' | 'custom') => Promise<ActionResult>
   onSetDnsNodes: (text: string) => Promise<ActionResult>
   /** S35: force a fresh canary pass (the re-check button). */
@@ -97,6 +99,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onRefreshKeyCounts={() => controller.refreshCounts()}
         onSetDnsMode={(mode) => controller.setDnsMode(mode)}
         onSetDnsScope={(scope) => controller.setDnsScope(scope)}
+        onSetDnsProbeMethod={(method) => controller.setDnsProbeMethod(method)}
         onSetDnsPreset={(preset) => controller.setDnsPreset(preset)}
         onSetDnsNodes={(text) => controller.setDnsNodesText(text)}
         onRecheckDns={() => controller.recheckDns()}
@@ -317,7 +320,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -549,8 +552,8 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         t={t}
         snapshot={snapshot}
         onSetDnsMode={onSetDnsMode}
-        onSetDnsScope={onSetDnsScope}
-        onSetDnsPreset={onSetDnsPreset}
+                onSetDnsScope={onSetDnsScope}
+        onSetDnsProbeMethod={onSetDnsProbeMethod} onSetDnsPreset={onSetDnsPreset}
         onSetDnsNodes={onSetDnsNodes}
         onRecheckDns={onRecheckDns}
         onRefreshDnsFace={onRefreshDnsFace}
@@ -581,12 +584,13 @@ function DnsResilienceCard(props: {
   snapshot: SectionSnapshot
   onSetDnsMode: (mode: 'auto' | 'on' | 'off') => Promise<ActionResult>
   onSetDnsScope: (scope: 'members' | 'all') => Promise<ActionResult>
+  onSetDnsProbeMethod: (method: 'tcp' | 'tls-hello') => Promise<ActionResult>
   onSetDnsPreset: (preset: 'auto' | 'cn' | 'global' | 'custom') => Promise<ActionResult>
   onSetDnsNodes: (text: string) => Promise<ActionResult>
   onRecheckDns: () => Promise<ActionResult>
   onRefreshDnsFace: () => Promise<void>
 }) {
-  const { t, snapshot, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace } = props
+  const { t, snapshot, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
   const dns = snapshot.dns
   const [open, setOpen] = useState(false)
   const [nodesDraft, setNodesDraft] = useState<string | null>(null)
@@ -709,6 +713,19 @@ function DnsResilienceCard(props: {
               <option value="global">{t('dnsPresetGlobal')}</option>
               <option value="custom">{t('dnsPresetCustom')}</option>
             </select>
+          <div style={paramRowStyle}>
+            <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsProbeMethodLabel')}
+              <Tooltip label={t('dnsProbeMethodHint')} side="bottom" delayMs={400} maxWidth={320}>
+                <button type="button" aria-label={t('dnsProbeMethodLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
+                  <QuestionIcon />
+                </button>
+              </Tooltip>
+            </label>
+            <select data-testid="dshws-dns-probe-method" data-dshws-focusable="" value={dns.probeMethod} onChange={(event) => { void run(() => onSetDnsProbeMethod(event.target.value as 'tcp' | 'tls-hello')) }} style={dnsSelectStyle}>
+              <option value="tcp">{t('dnsProbeMethodTcp')}</option>
+              <option value="tls-hello">{t('dnsProbeMethodTlsHello')}</option>
+            </select>
+          </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={fieldLabelStyle}>{t('dnsNodesLabel')}</label>

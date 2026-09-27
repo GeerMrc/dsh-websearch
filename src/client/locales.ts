@@ -179,6 +179,10 @@ export type DshWsLocaleKey =
   | 'dnsPresetHint'
   | 'dnsNodesLabel'
   | 'dnsNodesHint'
+  | 'dnsProbeMethodLabel'
+  | 'dnsProbeMethodTcp'
+  | 'dnsProbeMethodTlsHello'
+  | 'dnsProbeMethodHint'
   | 'dnsStatusLabel'
   | 'dnsStatusArmed'
   | 'dnsStatusIdle'
@@ -368,6 +372,10 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsPresetHint: 'Auto probes the built-in pool and keeps the two fastest reachable nodes — the right default on both sides of the wall.',
   dnsNodesLabel: 'Custom nodes',
   dnsNodesHint: 'One node per line: host,sni,path,port — host is usually an IP literal, path defaults to /dns-query, port to 443.',
+  dnsProbeMethodLabel: 'Probe method',
+  dnsProbeMethodTcp: 'TCP (bare)',
+  dnsProbeMethodTlsHello: 'TLS-Hello (SNI-aware)',
+  dnsProbeMethodHint: 'TLS-Hello sends a real TLS ClientHello with the hostname, so (SNI,IP)-filtered networks (side-router class) produce an accurate reachability signal. TCP is lighter but blind on such networks.',
   dnsStatusLabel: 'Status',
   dnsStatusArmed: 'DoH active',
   dnsStatusIdle: 'System resolver',
@@ -552,6 +560,10 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsPresetHint: '自动模式并行探测内置节点池，保留最快的两个可达节点——墙内外都是正确的默认值。',
   dnsNodesLabel: '自定义节点',
   dnsNodesHint: '每行一个节点：host,sni,path,port——host 通常写 IP 字面量，path 默认 /dns-query，端口默认 443。',
+  dnsProbeMethodLabel: '探测方式',
+  dnsProbeMethodTcp: 'TCP（裸探测）',
+  dnsProbeMethodTlsHello: 'TLS-Hello（带SNI）',
+  dnsProbeMethodHint: 'TLS-Hello 发送带域名的真实 TLS ClientHello，(SNI,IP) 过滤网络（旁路由类）下可产生准确的可达性信号；TCP 更轻量但在此类网络上全盲。',
   dnsStatusLabel: '状态',
   dnsStatusArmed: 'DoH 生效中',
   dnsStatusIdle: '系统解析',
