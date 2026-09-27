@@ -1,6 +1,6 @@
 ---
 title: "ADR-0022: 进程级 DNS 韧性层（DoH 解析 + 出口预检 + 区域预设池）"
-status: proposed
+status: accepted
 date: 2026-09-27
 type: feat
 origin: roadmap S35（用户主计划批准 2026-09-27）+ doh-dns 技术报告证据链 + S14v/S14w fake-ip 笔记；前置：ADR-0002（链语义延伸）、ADR-0019（fetch 接管同受益）、ADR-0021（dns 段热路径）
@@ -10,7 +10,7 @@ origin: roadmap S35（用户主计划批准 2026-09-27）+ doh-dns 技术报告�
 
 ## Status
 
-proposed（2026-09-27，Session 35 阶段 1 起草；随 T6 拦截层落地复核后转 accepted）
+accepted（2026-09-27 起草于 Session 35 阶段 1；2026-09-28 转 accepted——逐成员实测矩阵 8/8 + 阶段 4/5 二轮 PASS/COMPLETE 后随 v0.2.0 定版复核转正；转正证据链见 session-35 记录 T11 节）
 
 ## Context（背景）
 

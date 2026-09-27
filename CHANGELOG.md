@@ -1,3 +1,14 @@
+## 2026-09-28 — v0.2.0（DNS 韧性层定版）
+
+**本条为版本面向条目；功能全录见上方 S35 批（2026-09-28）与 S35 执行批（2026-09-27 起）。**
+
+- **v0.2.0** = 进程级 DNS 韧性层（ADR-0022 accepted）：DoH 加密解析 + 投毒自动检测 + tls-hello SNI 出口预检 + 连接级快降级 + 设置页 DNS 韧性卡与 Inspect trace。ADR-0020 版本线：v0.1.0 起，v0.2.x = 特大架构子系统。
+- **分发**：npm `@maricgeer/dsh-websearch@0.2.0`（裸名 `dsh-websearch` 因 npm 反抢注政策不可注册——tarball 附 GitHub Release 供 profile 安装）；双名打包脚本化 `node scripts/pack.mjs`。
+- **CI**：master 推送/PR 全量门禁（node 22/24）；`v*` 标签全自动发布（tag 推送=确认点）。
+- **前置**：宿主 `dsh` peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2`；node `^22.19 || >=24`。
+
+---
+
 ## 2026-09-28 — DNS 韧性层批收官 + 错误保真双修复 + 对齐纪律立册（Session 35 完结；v0.2.0 定版随 S36）
 
 **新增（功能，S35 全链）**

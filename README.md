@@ -1,9 +1,9 @@
 # dsh-websearch
 
 > **语言权威声明**：本文件为中文事实正本；`README.en.md` 为英文镜像，两文件不一致时以本文件为准。
-> 版本线：**v0.1.0** 起（ADR-0020）。内部开发编号 0.2.0–0.9.0 归历史档，见 CHANGELOG。
+> 版本线：v0.1.0 起（ADR-0020）；**v0.2.0 = DNS 韧性层**（ADR-0022，特大架构子系统依 ADR-0020 升 0.2.x）。内部开发编号 0.2.0–0.9.0 归历史档，见 CHANGELOG。
 
-`dsh-websearch` 是 [deepseek-harness](https://github.com/)（`dsh`）的**外挂式统一网页搜索管理插件**：零内核侵入，把多家搜索供应商收编进一个标准插件，提供用户可配置的优先级链、完整高可用降级、多 API key 池、统一 web_fetch 接管，以及 Web 设置页管理 GUI。
+`dsh-websearch` 是 deepseek-harness（`dsh`）的**外挂式统一网页搜索管理插件**：零内核侵入，把多家搜索供应商收编进一个标准插件，提供用户可配置的优先级链、完整高可用降级、多 API key 池、统一 web_fetch 接管，以及 Web 设置页管理 GUI。
 
 **成员准入标准**（ADR-0017）：高可用 + 有免费额度 + 支持多 API key + 功能实现对齐上游官方 API。
 
@@ -21,7 +21,7 @@
 > 1. `dsh` **0.1.6-alpha.2**：任意工具调用崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`——避开该版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+）。
 > 2. `dsh` **0.1.7-alpha.2/rc.1（rc.2 半修）**：tsx 源码启动下宿主启动期报 `Plugin metadata … TypeError: Cannot assign to read only property 'stack'`——npm 安装/构建产物用户不受影响；源码启动用户可用 [fork 修复分支](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2)。
 
-前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`，S32 全跨度——显式钉已演练预发布版）、node ≥ 22.19。
+前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2`（S32/S33 全跨度——显式钉已演练预发布版，semver satisfies 实测在案））、node ≥ 22.19。
 
 ```sh
 # 1. 打包（仓库根）
@@ -63,7 +63,9 @@ pnpm install && pnpm run build && npm pack   # 产出 dsh-websearch-<ver>.tgz
 
 安装即接管 web_search / web_fetch（bundle 钉扎安装序，后写者赢）；卸载自动复原宿主默认。换包后浏览器整页刷新（client 走 `/plugins/*?rev=` 运行时路由）。
 
-**升级**：完整演练手册见 [docs/upgrade.md](docs/upgrade.md)（打包→换包→dump 对照→GUI 冒烟→搜索→降级六步）。同版本号换包会被跳过——预览场景先 bump 版本。
+**升级**：完整演练手册见 [docs/upgrade.md](docs/upgrade.md)（打包→换包→dump 对照→GUI 冒烟→搜索→降级六步 + 发版前上游对齐确认）。同版本号换包会被跳过——预览场景先 bump 版本。
+
+**CI/发布**（v0.2.0 起）：master 推送/PR 跑全量门禁（typecheck/lint/test/i18n/build，node 22/24 矩阵）；推送 `v*` 标签自动发布——双名 tarball 附 GitHub Release、scoped 包发布至 npmjs.org（标签推送即发布确认点）。
 
 **注意事项**：
 - key 值永不下发客户端；设置页徽标只显示整数计数（refs 白名单限定五成员，防跨凭据探测）。
@@ -98,6 +100,7 @@ key 一律走宿主 credentials 服务（credential-ref = 环境变量名），*
 - **搜索链 / Web Fetch 链**：双链独立排序（ADR-0019），启停即时生效（下一次搜索）。
 - **详细配置折叠区**：兜底搜索选择器、超时预算、DeepSeek maxUses、统一语言/区域（ADR-0015）。
 - **溯源徽标**（ADR-0010）：会话工具行显示 `[served-by: <成员id>]`，模型可据实引用来源。
+- **DNS 韧性卡**（v0.2.0，ADR-0022）：成员卡同构头部（启停 Switch），模式（自动/开启/关闭）、DoH 预设（自动/国内/海外/自定义节点）、探测方式（TCP/TLS）、检测状态与证据、Inspect 最近解析 trace；详见下节。
 
 ## 链语义（ADR-0002 / ADR-0014）
 
@@ -114,6 +117,17 @@ key 一律走宿主 credentials 服务（credential-ref = 环境变量名），*
 - **接管开**（`fetchTakeover: true`，默认）：web_fetch 由内部 fetch 链服务——Firecrawl → Tavily → AnySearch 降序降级（Exa 无上游 fetch 能力，永不进链）。云端抓取不受本机代理/SSRF 限制。
 - **接管关**：gate 回落内置 http 直抓（官方行为等价近似；patch 钉死下官方 provider 实例永不被选）。
 - 两态开关在 GUI 与 settings 热生效（下一个 agent / 下一次调用）。
+
+## DNS 韧性层（v0.2.0，ADR-0022）
+
+旁路由/受控网络下的进程级解析高可用（对本插件的全部上游请求生效；不影响插件外进程）：
+
+- **自动检测**（默认 `mode: auto`）：启动金丝雀对成员域名做双路对照，命中投毒证据（如 198.18.0.0/15 fake-ip）自动启用 DoH；干净网络零行为变化（零命中即卸载补丁）。
+- **DoH 加密解析**：绕开 53 端口透明拦截；区域预设池（国内 AliDNS/DNSPod，海外 Cloudflare/Google/Quad9）+ bootstrap 自动选点（RTT 排序）。
+- **出口预检**（`dns.probe.method`）：TCP-443 或 TLS-Hello（带 SNI，默认 tcp）探测 IP 可达性，过滤 CDN 轮换滞后的不可达 IP——(SNI, IP) 元组过滤网络的实测有效项。
+- **多级降级**：DoH 全灭回退系统解析恰一次；连接级失败 fresh 解析后重试一次即降级下一成员（不烧 key 额度）。
+- **隐私红线**：日志/trace 的主机名脱敏（非成员域名哈希+末两标）；代理环境变量在位时自动暂停（走系统路径）。
+- 链路日志 `[dshws-dns]`/`[dshws-chain] connect-flap` 行含 4-hex 运行键，可并行归属。
 
 ## 配置参考（cordis.yml `dsh-websearch` 节）
 
