@@ -694,8 +694,8 @@ function DnsResilienceCard(props: {
               </Tooltip>
             </label>
             <select data-testid="dshws-dns-mode" data-dshws-focusable="" value={dns.mode} onChange={(event) => { void run(() => onSetDnsMode(event.target.value as 'auto' | 'on' | 'off')) }} style={dnsSelectStyle}>
-              <option value="auto" title={t('dnsModeAuto')}>{t('dnsModeAuto')}</option>
-              <option value="on">{t('dnsModeOn')}</option>
+              <option value="auto" title={t('dnsModeAuto')}>{t('dnsModeAutoShort')}</option>
+              <option value="on" title={t('dnsModeOn')}>{t('dnsModeOnShort')}</option>
               <option value="off">{t('dnsModeOff')}</option>
             </select>
           </div>
@@ -739,17 +739,18 @@ function DnsResilienceCard(props: {
               <textarea
                 data-testid="dshws-dns-nodes"
                 data-dshws-focusable=""
+                data-dshws-input=""
                 rows={3}
                 spellCheck={false}
                 value={nodesValue}
                 placeholder={'223.5.5.5,dns.alidns.com,/resolve,443'}
                 onChange={(event) => { setNodesDraft(event.target.value) }}
-                style={{ ...dnsSelectStyle, resize: 'vertical' }}
+                onBlur={() => { if (nodesDraft !== null && nodesDraft !== dns.nodesText) { void run(() => onSetDnsNodes(nodesValue)) } }}
+                style={{ ...dnsSelectStyle, resize: 'vertical', border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-1)', padding: '4px 8px', lineHeight: '18px' }}
               />
             </div>
           ) : null}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Button variant="primary" size="sm" disabled={nodesDraft === null || nodesDraft === dns.nodesText} aria-label={t('save')} onClick={() => { void run(() => onSetDnsNodes(nodesValue)) }}>{t('save')}</Button>
             <Button variant="outline" size="sm" disabled={rechecking} aria-label={t('dnsRecheck')} onClick={() => { void recheck() }}>{rechecking ? t('dnsRechecking') : t('dnsRecheck')}</Button>
             {feedback !== undefined ? <span role="status" data-testid="dshws-dns-feedback" style={{ ...hintStyle, flex: undefined }}>{t(feedback)}</span> : null}
           </div>

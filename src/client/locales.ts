@@ -163,6 +163,8 @@ export type DshWsLocaleKey =
   | 'dnsTitle'
   | 'dnsDescription'
   | 'dnsModeLabel'
+  | 'dnsModeAutoShort'
+  | 'dnsModeOnShort'
   | 'dnsModeAuto'
   | 'dnsModeOn'
   | 'dnsModeOff'
@@ -359,6 +361,8 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsTitle: 'DNS resilience',
   dnsDescription: 'Encrypted DoH resolution plus egress precheck for the members above — bypasses resolver blackholes and CDN-rotation timeouts on restricted networks. Auto mode enables itself only on reserved-range evidence; a clean network keeps the system resolver untouched (zero overhead).',
   dnsModeLabel: 'Mode',
+  dnsModeAutoShort: 'Auto',
+  dnsModeOnShort: 'On',
   dnsModeAuto: 'Auto (evidence-based)',
   dnsModeOn: 'Always on',
   dnsModeOff: 'Off',
@@ -550,6 +554,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsTitle: 'DNS 韧性',
   dnsDescription: '为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。',
   dnsModeLabel: '模式',
+  dnsModeAutoShort: '自动',
+  dnsModeOnShort: '开启',
   dnsModeAuto: '自动（按证据）',
   dnsModeOn: '始终开启',
   dnsModeOff: '关闭',
