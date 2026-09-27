@@ -25,7 +25,7 @@
 
 ```sh
 # 1. 打包（仓库根）
-pnpm install && pnpm run build && npm pack   # 产出 dsh-websearch-<version>.tgz
+pnpm install && pnpm run build && node scripts/pack.mjs   # 双名 tarball：裸名 dsh-websearch-<ver>.tgz（profile 安装）+ scoped（npm）
 
 # 2. 安装进 web profile（装即接管，ADR-0013）
 dsh plugin --profile web add /path/to/dsh-websearch-<version>.tgz
@@ -57,7 +57,7 @@ dsh plugin --profile web add @maricgeer/dsh-websearch
 dsh plugin --profile web add <dsh-websearch-tarball>
 # 方式二：从源码自行打包
 git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
-pnpm install && pnpm run build && npm pack   # 产出 dsh-websearch-<ver>.tgz
+pnpm install && pnpm run build && node scripts/pack.mjs   # 双名 tarball 入 dist-artifacts/
 # 方式三：profile package.json 依赖 file: 指向 tarball 后 pnpm install
 ```
 
@@ -178,6 +178,6 @@ dsh-websearch:
 - [docs/known-upstream-issues.md](docs/known-upstream-issues.md) —— 已知上游 DSH 问题登记表（现象/规避/自查命令，含 fork 修复分支用法）
 
 - 架构正本：[docs/00-architecture.md](docs/00-architecture.md)
-- 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0020）
+- 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0022）
 - 升级演练手册：[docs/upgrade.md](docs/upgrade.md)
 - 治理看板：[docs/STATUS.md](docs/STATUS.md)

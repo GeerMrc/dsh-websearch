@@ -1,0 +1,204 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ↓ tests/e2e.real/chain.real.test.ts > dshws-chain real API (deepseek member) > serves a real query through the chain with the served-by first line
+ ↓ tests/e2e.real/chain.real.test.ts > dshws-chain real API (deepseek member) > keeps the member type surface intact (search provider contract)
+ ↓ tests/e2e.real/deepseek.real.test.ts > dshws-deepseek real API > returns sources for a live query
+ ↓ tests/e2e.real/deepseek.real.test.ts > dshws-deepseek real-API default anchors > keeps the documented endpoint and model anchors
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > returns sources for a live query
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > S17: news topic + include_answer returns news sources and a synthesized answer (roadmap 验收例)
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > S21: extract face fetches a live URL as markdown
+ ↓ tests/e2e.real/exa.real.test.ts > dshws-exa real API > returns sources for a live query
+ ↓ tests/e2e.real/exa.real.test.ts > dshws-exa real API > S17: text fallback keeps every returned result snippeted (丢结果修复)
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > returns sources for a live search query
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > S17: tbs week filter serves results for a live query
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > fetches a page as text through the scrape face
+ ↓ tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > returns sources for a live query
+ ↓ tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > S21: extract face fetches a live URL as denoised markdown (probe contract live re-verification)
+ × tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist) 10523ms
+   → expected 'Firecrawl search request failed: Type…' to contain '401'
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real-API default anchors > keeps the documented endpoint anchor
+ × tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist) 10523ms
+   → expected 'Tavily search request failed: TypeErr…' to contain '401'
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real-API default anchors > keeps the documented endpoint anchor
+ × tests/e2e.real/exa.real.test.ts > dshws-exa real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist) 10524ms
+   → expected 'Exa search request failed: TypeError:…' to contain '401'
+ ↓ tests/e2e.real/exa.real.test.ts > dshws-exa real-API default anchors > keeps the documented endpoint anchor
+ × tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > error path: a non-existent article rides the upstream 422 detail in the error message (alignment checklist live anchor) 10525ms
+   → expected 'DSHWS_ANYSEARCH_REQUEST_FAILED' to be 'DSHWS_ANYSEARCH_HTTP_ERROR' // Object.is equality
+ ↓ tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real-API default anchors > keeps the documented endpoint anchor
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > error path: a non-existent article rides the upstream 422 detail in the error message (alignment checklist live anchor)
+AssertionError: expected 'DSHWS_ANYSEARCH_REQUEST_FAILED' to be 'DSHWS_ANYSEARCH_HTTP_ERROR' // Object.is equality
+
+Expected: "DSHWS_ANYSEARCH_HTTP_ERROR"
+Received: "DSHWS_ANYSEARCH_REQUEST_FAILED"
+
+ ❯ tests/e2e.real/anysearch.real.test.ts:50:26
+     48|     const thrown = await provider.fetch({ url: 'https://zh.wikipedia.o…
+     49|       .then(() => null, (error: unknown) => error as { code?: string, …
+     50|     expect(thrown?.code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+       |                          ^
+     51|     expect(thrown?.message).toContain('422')
+     52|     expect(thrown?.message).toContain('Unable to extract content from …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/e2e.real/exa.real.test.ts > dshws-exa real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)
+AssertionError: expected 'Exa search request failed: TypeError:…' to contain '401'
+
+Expected: "401"
+Received: "Exa search request failed: TypeError: fetch failed"
+
+ ❯ tests/e2e.real/exa.real.test.ts:45:29
+     43|     ))
+     44|     const thrown = await provider.search({ query: 'alignment check' })…
+     45|     expect(thrown?.message).toContain('401')
+       |                             ^
+     46|     expect(thrown?.message).toContain('Invalid API key')
+     47|   }, 30_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)
+AssertionError: expected 'Firecrawl search request failed: Type…' to contain '401'
+
+Expected: "401"
+Received: "Firecrawl search request failed: TypeError: fetch failed"
+
+ ❯ tests/e2e.real/firecrawl.real.test.ts:59:29
+     57|     ))
+     58|     const thrown = await provider.fetch({ url: 'https://example.com' }…
+     59|     expect(thrown?.message).toContain('401')
+       |                             ^
+     60|     expect(thrown?.message).toContain('Unauthorized: Invalid token')
+     61|   }, 30_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)
+AssertionError: expected 'Tavily search request failed: TypeErr…' to contain '401'
+
+Expected: "401"
+Received: "Tavily search request failed: TypeError: fetch failed"
+
+ ❯ tests/e2e.real/tavily.real.test.ts:57:29
+     55|     ))
+     56|     const thrown = await provider.search({ query: 'alignment check' })…
+     57|     expect(thrown?.message).toContain('401')
+       |                             ^
+     58|     expect(thrown?.message).toContain('Unauthorized: missing or invali…
+     59|   }, 30_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed | 2 skipped (6)
+      Tests  4 failed | 18 skipped (22)
+   Start at  03:28:45
+   Duration  10.67s (transform 271ms, setup 69ms, import 285ms, tests 42.10s, environment 0ms)
+
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ↓ tests/e2e.real/deepseek.real.test.ts > dshws-deepseek real API > returns sources for a live query
+ ↓ tests/e2e.real/deepseek.real.test.ts > dshws-deepseek real-API default anchors > keeps the documented endpoint and model anchors
+ ↓ tests/e2e.real/chain.real.test.ts > dshws-chain real API (deepseek member) > serves a real query through the chain with the served-by first line
+ ↓ tests/e2e.real/chain.real.test.ts > dshws-chain real API (deepseek member) > keeps the member type surface intact (search provider contract)
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > returns sources for a live search query
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > S17: tbs week filter serves results for a live query
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > fetches a page as text through the scrape face
+ ↓ tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > returns sources for a live query
+ ↓ tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > S21: extract face fetches a live URL as denoised markdown (probe contract live re-verification)
+ ↓ tests/e2e.real/exa.real.test.ts > dshws-exa real API > returns sources for a live query
+ ↓ tests/e2e.real/exa.real.test.ts > dshws-exa real API > S17: text fallback keeps every returned result snippeted (丢结果修复)
+ × tests/e2e.real/exa.real.test.ts > dshws-exa real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist) 10537ms
+   → expected 'Exa search request failed: TypeError:…' to contain '401'
+ ↓ tests/e2e.real/exa.real.test.ts > dshws-exa real-API default anchors > keeps the documented endpoint anchor
+ × tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > error path: a non-existent article rides the upstream 422 detail in the error message (alignment checklist live anchor) 10539ms
+   → expected 'DSHWS_ANYSEARCH_REQUEST_FAILED' to be 'DSHWS_ANYSEARCH_HTTP_ERROR' // Object.is equality
+ ↓ tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real-API default anchors > keeps the documented endpoint anchor
+ × tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist) 10542ms
+   → expected 'Firecrawl search request failed: Type…' to contain '401'
+ ↓ tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real-API default anchors > keeps the documented endpoint anchor
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > returns sources for a live query
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > S17: news topic + include_answer returns news sources and a synthesized answer (roadmap 验收例)
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > S21: extract face fetches a live URL as markdown
+ × tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist) 10547ms
+   → expected 'Tavily search request failed: TypeErr…' to contain '401'
+ ↓ tests/e2e.real/tavily.real.test.ts > dshws-tavily real-API default anchors > keeps the documented endpoint anchor
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/e2e.real/anysearch.real.test.ts > dshws-anysearch real API > error path: a non-existent article rides the upstream 422 detail in the error message (alignment checklist live anchor)
+AssertionError: expected 'DSHWS_ANYSEARCH_REQUEST_FAILED' to be 'DSHWS_ANYSEARCH_HTTP_ERROR' // Object.is equality
+
+Expected: "DSHWS_ANYSEARCH_HTTP_ERROR"
+Received: "DSHWS_ANYSEARCH_REQUEST_FAILED"
+
+ ❯ tests/e2e.real/anysearch.real.test.ts:50:26
+     48|     const thrown = await provider.fetch({ url: 'https://zh.wikipedia.o…
+     49|       .then(() => null, (error: unknown) => error as { code?: string, …
+     50|     expect(thrown?.code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+       |                          ^
+     51|     expect(thrown?.message).toContain('422')
+     52|     expect(thrown?.message).toContain('Unable to extract content from …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/e2e.real/exa.real.test.ts > dshws-exa real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)
+AssertionError: expected 'Exa search request failed: TypeError:…' to contain '401'
+
+Expected: "401"
+Received: "Exa search request failed: TypeError: fetch failed"
+
+ ❯ tests/e2e.real/exa.real.test.ts:45:29
+     43|     ))
+     44|     const thrown = await provider.search({ query: 'alignment check' })…
+     45|     expect(thrown?.message).toContain('401')
+       |                             ^
+     46|     expect(thrown?.message).toContain('Invalid API key')
+     47|   }, 30_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/e2e.real/firecrawl.real.test.ts > dshws-firecrawl real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)
+AssertionError: expected 'Firecrawl search request failed: Type…' to contain '401'
+
+Expected: "401"
+Received: "Firecrawl search request failed: TypeError: fetch failed"
+
+ ❯ tests/e2e.real/firecrawl.real.test.ts:59:29
+     57|     ))
+     58|     const thrown = await provider.fetch({ url: 'https://example.com' }…
+     59|     expect(thrown?.message).toContain('401')
+       |                             ^
+     60|     expect(thrown?.message).toContain('Unauthorized: Invalid token')
+     61|   }, 30_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/e2e.real/tavily.real.test.ts > dshws-tavily real API > error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)
+AssertionError: expected 'Tavily search request failed: TypeErr…' to contain '401'
+
+Expected: "401"
+Received: "Tavily search request failed: TypeError: fetch failed"
+
+ ❯ tests/e2e.real/tavily.real.test.ts:57:29
+     55|     ))
+     56|     const thrown = await provider.search({ query: 'alignment check' })…
+     57|     expect(thrown?.message).toContain('401')
+       |                             ^
+     58|     expect(thrown?.message).toContain('Unauthorized: missing or invali…
+     59|   }, 30_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  4 failed | 2 skipped (6)
+      Tests  4 failed | 18 skipped (22)
+   Start at  03:30:53
+   Duration  10.69s (transform 288ms, setup 70ms, import 302ms, tests 42.17s, environment 0ms)
+

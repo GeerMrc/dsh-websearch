@@ -130,7 +130,6 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetKeySelection: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetMaxUses: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsMode: vi.fn(async () => ({ ok: true }) as ActionResult),
-    onSetDnsScope: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsProbeMethod: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsPreset: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsNodes: vi.fn(async () => ({ ok: true }) as ActionResult),

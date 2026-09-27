@@ -25,7 +25,7 @@ Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alph
 
 ```sh
 # 1. Pack (repo root)
-pnpm install && pnpm run build && npm pack   # produces dsh-websearch-<version>.tgz
+pnpm install && pnpm run build && node scripts/pack.mjs   # dual tarballs: bare dsh-websearch-<ver>.tgz (profile installs) + scoped (npm)
 
 # 2. Install into the web profile (install-driven takeover, ADR-0013)
 dsh plugin --profile web add /path/to/dsh-websearch-<version>.tgz
@@ -58,7 +58,7 @@ dsh plugin --profile web add @maricgeer/dsh-websearch
 dsh plugin --profile web add <dsh-websearch-tarball>
 # Option 2: pack from source
 git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
-pnpm install && pnpm run build && npm pack   # produces dsh-websearch-<ver>.tgz
+pnpm install && pnpm run build && node scripts/pack.mjs   # dual tarballs into dist-artifacts/
 # Option 3: a file: tarball dependency in the profile package.json + pnpm install
 ```
 
@@ -179,6 +179,6 @@ Combination constraints (fail-loud: on 0.1.5/0.1.6 hosts the settings validate h
 - [docs/known-upstream-issues.md](docs/known-upstream-issues.md) — known upstream DSH issues register (zh; symptoms/workarounds/self-checks, incl. the fork fix-branch usage)
 
 - Architecture: [docs/00-architecture.md](docs/00-architecture.md)
-- Decision records: [docs/decisions/](docs/decisions/) (ADR-0001..0020)
+- Decision records: [docs/decisions/](docs/decisions/) (ADR-0001..0022)
 - Upgrade rehearsal manual: [docs/upgrade.md](docs/upgrade.md)
 - Governance board: [docs/STATUS.md](docs/STATUS.md)

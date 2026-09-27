@@ -24,10 +24,11 @@
 **工程与治理**
 - **上游对齐验证纪律立册**（用户裁定常备门槛）：docs/upstream-alignment-checklist.md（成员×面×端点×双路矩阵 + 实测认证错误信封表）+ dont-do 三条新沉淀（请求面同族对称/agent shell node 绝对路径——node20 静默退出两现/逐成员×逐面双路确认）。
 - **双名打包脚本化** scripts/pack.mjs（rc.15 实证；裸名翻转失败亦字节级还原）；upgrade.md §2 接线对齐确认为发版必做步。
-- e2e.real 四成员确定性错误路径用例（skip-gated，不烧配额）；全套件 592/592、tsc 0、lint 0e、i18n 195。
+- e2e.real 四成员确定性错误路径用例（skip-gated，不烧配额）；全套件 593/593（阶段4 时点 592，S-1 用例加入后收官批勘正）、双面 tsc 0、lint 0e、i18n 195。
+- e2e.real 实网验证：02:42 好窗口 3/4 PASS（exa 未获观察）；03:2x 两轮重跑遇直连黑洞窗全超时（fetch-failed 连接级 + curl 000）——重跑工件归档 audit-logs/2026-09-28-s36-t4-e2e-error-path-rerun.log。
 
 **诚实标注**
-- e2e.real 实跑受 02:45-02:50 直连出口黑洞窗口影响（curl HTTP 000 证据）；错误路径四用例在 02:42 好窗口各至少一次 PASS 实证（anysearch 2544ms/tavily 890ms/firecrawl 5303ms）。
+- e2e.real 实网验证：02:42 好窗口 3/4 PASS（anysearch 2544ms/tavily 890ms/firecrawl 5303ms；exa 未获 PASS 观察）；此后直连出口黑洞窗反复（02:45-03:3x，curl HTTP 000 佐证），重跑全超时——工件在档。
 - v0.2.0 定版（版本 bump/ADR-0022 accepted/README 刷新/npm 发版/生产 3080 切换）随 S36 呈批推进；R6 截图腿 en/light 双主题未补（zh/dark 已亲验）。
 
 ---

@@ -13,9 +13,9 @@
 | M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
 | M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S05b；余用户 with-key 槽位回填——指引 docs/notes/2026-09-02-s05b-install-runbook.md §4） |
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06+S07） |
-| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | 🚧（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
+| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | ✅（e2e 收口腿 ✅ 2026-09-02 S08；文档腿 S15——2026-09-04 重排） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳ |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010）+ 装即接管（ADR-0013 插行增补） | ✅ 2026-09-06（S09-S14 全收官 + S14a 插行收官；证据 = session-14/14a + 各自 stage45 PASS/COMPLETE + 徽标浏览器亲见 + 装卸三态 dump） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010）+ 装即接管（ADR-0013 插行增补） | ✅ 2026-09-06；**二次收官 2026-09-28**（S35 DNS 韧性层批，v0.2.0 定版随 S36）（S09-S14 全收官 + S14a 插行收官；证据 = session-14/14a + 各自 stage45 PASS/COMPLETE + 徽标浏览器亲见 + 装卸三态 dump） |
 
 ## 进行中
 
@@ -633,7 +633,7 @@ P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（�
 
 ## S35 批次台账（2026-09-27/28，DNS 韧性层批 v0.2.0——M7 二次收官棒）
 
-任务链 plan 035 T0-T10 + 增补 plan 036（预热/负反馈/UI 对齐）+ plan 037（连接级快降级）+ plan 038（connect-flap 日志降噪 + tls-hello 探测）+ 用户驱动 UI 微批 039-044（含 30bfc59 诚实回滚）+ T11 逐工具实测腿 全 ✅。收官前二轮：阶段 4 PASS（**全套件 592/592、tsc 0、lint 0e、i18n 195**，audit-logs/2026-09-28-s35-stage4-full-verification.md）+ 阶段 5 COMPLETE（S-1/F-1/F-2 当批清偿，audit-logs/2026-09-28-s35-stage5-crossvalidation.md）。
+任务链 plan 035 T0-T10 + 增补 plan 036（预热/负反馈/UI 对齐）+ plan 037（连接级快降级）+ plan 038（connect-flap 日志降噪 + tls-hello 探测）+ 用户驱动 UI 微批 039-044（含 30bfc59 诚实回滚）+ T11 逐工具实测腿 全 ✅。收官前二轮：阶段 4 PASS（**全套件 592→593/593〔S-1 用例后，收官批勘正〕、tsc 0、lint 0e、i18n 195**，audit-logs/2026-09-28-s35-stage4-full-verification.md）+ 阶段 5 COMPLETE（S-1/F-1/F-2 当批清偿，audit-logs/2026-09-28-s35-stage5-crossvalidation.md）。
 
 关键交付：进程级 DoH 拦截层（canary 自动检测/预热/负反馈作废/tls-hello SNI 预检/compact flap 日志 runKey 归属）、设置页 DNS 韧性卡（039-044 六轮用户目验迭代）、逐工具实测矩阵 8/8（audit-logs/2026-09-28-s36-t8-rc15-evidence/）、错误保真双修复（dd5a9df anysearch fetch 面 + f8e0a3f 嵌套 detail.error 形态——上游对齐 checklist 立册 docs/upstream-alignment-checklist.md + dont-do 三条新沉淀）、双名打包脚本化（scripts/pack.mjs，rc.15 实证）。
 
