@@ -17,6 +17,15 @@
 | firecrawl | scrape（fetch 面） | `{baseURL}/v2/scrape` | POST | `{url, formats…}` + Bearer | HTTP 200 `data`（markdown） | 同上 |
 | deepseek | search | `{baseURL}`（searcher 端点） | POST | x-api-key + Bearer 双头 | HTTP 200 sources | invalid-key 4xx 消息含上游 detail |
 
+**已实测认证的错误信封形态**（curl 直证 2026-09-28，unfolds 均已回归锁定）：
+
+| 成员 | 触发 | 状态 | 信封形态 |
+|---|---|---|---|
+| anysearch | 不存在词条 fetch | 422 | `{code:-1, message:"Unable to extract content from the URL.", error_code:"extract_failed"}`（top-level message） |
+| tavily | invalid key | 401 | `{"detail":{"error":"Unauthorized: missing or invalid API key."}}`（**嵌套 detail.error**——曾逃逸 pick()，f8e0a3f 修复） |
+| exa | invalid key | 401 | `{"error":"Invalid API key. …","tag":"INVALID_API_KEY"}`（top-level error） |
+| firecrawl | invalid key | 401 | `{"success":false,"error":"Unauthorized: Invalid token"}`（top-level error） |
+
 注：exa/deepseek 无独立 fetch 面（链配置 `fetchChain` 不含二者）；矩阵列「面」以 `src/providers/*.ts` 实有请求面为准——新增面时先扩本表再写码。
 
 ## 二、逐格确认项（每格四查）
