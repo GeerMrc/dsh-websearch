@@ -18,9 +18,10 @@
 
 ## 2. 升级演练步骤（插件版本升级）
 
-前置：node ≥ 22.19（nvm 切换）；升级目标 tarball。
+前置：node ≥ 22.19（nvm 切换，**一律绝对路径启动**）；升级目标 tarball（双名打包：`node scripts/pack.mjs`，见步骤 1）。
 
-1. **打包**：`pnpm install && pnpm run build && npm pack`。
+1. **打包**：`pnpm install && pnpm run build && node scripts/pack.mjs`——一次产出 scoped（npm 分发名）与裸名（profile 安装名）双 tarball 入 `dist-artifacts/`（裸名经临时翻转 package.json name、失败亦字节级还原；工艺细节见 S35 记录 T11 节）。
+   - **上游对齐确认（必做）**：按 [upstream-alignment-checklist.md](upstream-alignment-checklist.md) 逐成员 × 逐面 happy + error 双路核对——涉及上游 API 适配的变更缺格不得发版（[dont-do 入册](dont-do.md#上游适配验证纪律session-35-t11-入册用户裁定升级为常备门槛)）。
 2. **换包**：`dsh plugin --profile web remove dsh-websearch && dsh plugin --profile web add <新 tarball>`。同版本号会被跳过——预览场景须 bump 版本号再 pack。
 3. **dump 对照**：`dsh --profile web --dump-config`——`searchProvider: dshws-chain` / `fetchProvider: dshws-fetch-gate` / insert 行三处落盘。
 4. **浏览器 reload**：插件 client 走 `/plugins/*?rev=` 运行时路由，换包后必须整页刷新。
