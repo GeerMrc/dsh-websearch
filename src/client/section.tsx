@@ -562,19 +562,6 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
   )
 }
 
-const dnsSelectStyle = {
-  padding: '2px 6px',
-  borderRadius: 6,
-  border: '1px solid var(--dsw-alias-line-bold)',
-  background: 'var(--dsw-alias-fill-primary)',
-  color: 'inherit',
-  font: 'inherit',
-  fontSize: 12,
-  width: 'auto',
-  minWidth: 80,
-  flexShrink: 0,
-} as const
-
 /**
  * The DNS resilience block (S35, user ruling: bottom of the「网页搜索」
  * section): mode/scope/preset selectors, the custom-node textarea, the live
@@ -693,7 +680,7 @@ function DnsResilienceCard(props: {
                 </button>
               </Tooltip>
             </label>
-            <select data-testid="dshws-dns-mode" data-dshws-focusable="" value={dns.mode} onChange={(event) => { void run(() => onSetDnsMode(event.target.value as 'auto' | 'on' | 'off')) }} style={dnsSelectStyle}>
+            <select data-testid="dshws-dns-mode" data-dshws-focusable="" data-dshws-input="" value={dns.mode} onChange={(event) => { void run(() => onSetDnsMode(event.target.value as 'auto' | 'on' | 'off')) }} style={selectStyle}>
               <option value="auto" title={t('dnsModeAuto')}>{t('dnsModeAutoShort')}</option>
               <option value="on" title={t('dnsModeOn')}>{t('dnsModeOnShort')}</option>
               <option value="off">{t('dnsModeOff')}</option>
@@ -707,7 +694,7 @@ function DnsResilienceCard(props: {
                 </button>
               </Tooltip>
             </label>
-            <select data-testid="dshws-dns-probe-method" data-dshws-focusable="" value={dns.probeMethod} onChange={(event) => { void run(() => onSetDnsProbeMethod(event.target.value as 'tcp' | 'tls-hello')) }} style={dnsSelectStyle}>
+            <select data-testid="dshws-dns-probe-method" data-dshws-focusable="" data-dshws-input="" value={dns.probeMethod} onChange={(event) => { void run(() => onSetDnsProbeMethod(event.target.value as 'tcp' | 'tls-hello')) }} style={selectStyle}>
               <option value="tcp" title={t('dnsProbeMethodTcp')}>TCP</option>
               <option value="tls-hello" title={t('dnsProbeMethodTlsHello')}>TLS</option>
             </select>
@@ -720,7 +707,7 @@ function DnsResilienceCard(props: {
                 </button>
               </Tooltip>
             </label>
-            <select data-testid="dshws-dns-preset" data-dshws-focusable="" value={dns.preset} onChange={(event) => { void run(() => onSetDnsPreset(event.target.value as 'auto' | 'cn' | 'global' | 'custom')) }} style={dnsSelectStyle}>
+            <select data-testid="dshws-dns-preset" data-dshws-focusable="" data-dshws-input="" value={dns.preset} onChange={(event) => { void run(() => onSetDnsPreset(event.target.value as 'auto' | 'cn' | 'global' | 'custom')) }} style={selectStyle}>
               <option value="auto" title={t('dnsPresetAuto')}>{t('dnsPresetAutoShort')}</option>
               <option value="cn" title={t('dnsPresetCn')}>{t('dnsPresetCnShort')}</option>
               <option value="global" title={t('dnsPresetGlobal')}>{t('dnsPresetGlobalShort')}</option>
@@ -746,7 +733,7 @@ function DnsResilienceCard(props: {
                 placeholder={'223.5.5.5,dns.alidns.com,/resolve,443'}
                 onChange={(event) => { setNodesDraft(event.target.value) }}
                 onBlur={() => { if (nodesDraft !== null && nodesDraft !== dns.nodesText) { void run(() => onSetDnsNodes(nodesValue)) } }}
-                style={{ ...dnsSelectStyle, resize: 'vertical', border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-1)', padding: '4px 8px', lineHeight: '18px' }}
+                style={{ ...fieldInputStyle, height: 'auto', padding: '6px 10px', lineHeight: '18px', resize: 'vertical' }}
               />
             </div>
           ) : null}
@@ -972,30 +959,17 @@ function FallbackToolRow(props: {
         <span style={{ flex: 1 }} />
         <select
           aria-label={t('fallbackRowLabel')}
-          data-testid="dshws-fallback-select"
+          data-testid="dshws-fallback-select" data-dshws-focusable="" data-dshws-input=""
           value={effective}
           onChange={(event) => {
             const next = event.target.value as SectionSnapshot['fallbackSelection']
             void onChoose(next).then((result) => setFeedback(result.ok ? 'saved' : 'failed'))
           }}
-          style={{
-            ...fieldInputStyle,
-            width: 'auto',
-            minWidth: 0,
-            margin: 0,
-            // Native chrome only: swap the edge-flush system arrow for an
-            // inset chevron so it keeps its distance from the border.
-            appearance: 'none',
-            WebkitAppearance: 'none',
-            paddingRight: 32,
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2381858C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")",
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'right 12px center',
-          }}
+          style={{ ...selectStyle, minWidth: 0 }}
         >
-          <option value="auto">{t('fallbackAutoOption')}</option>
+          <option value="auto" title={t('fallbackAutoOption')}>{t('fallbackAutoShort')}</option>
           {toolOptions.map((id) => <option key={id} value={id}>{labelOf(id)}</option>)}
-          {offerDeepseek ? <option value="dshws-deepseek">{t('fallbackDeepseekOption')}</option> : null}
+          {offerDeepseek ? <option value="dshws-deepseek" title={t('fallbackDeepseekOption')}>{t('fallbackDeepseekShort')}</option> : null}
         </select>
       </div>
       {note !== undefined ? (
@@ -1404,12 +1378,14 @@ function MemberParamField(props: {
           <select
             aria-label={ariaLabel}
             data-testid={testid}
+            data-dshws-focusable=""
+            data-dshws-input=""
             value={value}
             onChange={(event) => { void commit(event.target.value) }}
             style={selectStyle}
           >
             {control.options.map((option) => (
-              <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
+              <option key={option.value} value={option.value} title={t(option.labelKey)}>{t(option.labelKey)}</option>
             ))}
           </select>
           {feedback !== undefined ? (

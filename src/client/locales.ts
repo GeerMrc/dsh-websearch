@@ -163,6 +163,13 @@ export type DshWsLocaleKey =
   | 'dnsTitle'
   | 'dnsDescription'
   | 'dnsModeLabel'
+  | 'fallbackAutoShort'
+  | 'depthAdvancedShort'
+  | 'answerAdvancedShort'
+  | 'modeBoostShort'
+  | 'catPersonalShort'
+  | 'srcWebNewsShort'
+  | 'fallbackDeepseekShort'
   | 'dnsModeAutoShort'
   | 'dnsModeOnShort'
   | 'dnsModeAuto'
@@ -361,6 +368,13 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsTitle: 'DNS resilience',
   dnsDescription: 'Encrypted DoH resolution plus egress precheck for the members above — bypasses resolver blackholes and CDN-rotation timeouts on restricted networks. Auto mode enables itself only on reserved-range evidence; a clean network keeps the system resolver untouched (zero overhead).',
   dnsModeLabel: 'Mode',
+  fallbackAutoShort: 'Auto',
+  depthAdvancedShort: 'Adv',
+  answerAdvancedShort: 'Adv',
+  modeBoostShort: 'Boost',
+  catPersonalShort: 'Personal',
+  srcWebNewsShort: 'Dual',
+  fallbackDeepseekShort: 'Paid',
   dnsModeAutoShort: 'Auto',
   dnsModeOnShort: 'On',
   dnsModeAuto: 'Auto (evidence-based)',
@@ -476,12 +490,12 @@ export const zh: Record<DshWsLocaleKey, string> = {
   topicFinance: '财经',
   tavilyTimeRangeLabel: '时间范围',
   tavilyDepthLabel: '搜索深度',
-  depthAdvanced: '增强（2× 消耗）',
+  depthAdvanced: '增强',
   depthFast: '快速',
   depthUltraFast: '极速',
   tavilyAnswerLabel: '生成答案',
   answerBasic: '基础',
-  answerAdvanced: '高级（更详细）',
+  answerAdvanced: '高级',
   exaTypeLabel: '搜索类型',
   typeInstant: '即时',
   typeFast: '快速',
@@ -521,15 +535,15 @@ export const zh: Record<DshWsLocaleKey, string> = {
   domainsLabel: '域名过滤',
   domainsNote: '两个互斥列表：仅含 = 白名单，排除 = 黑名单。设置其一自动清除另一。',
   modeFilter: '过滤',
-  modeBoost: '加权（仍搜全网）',
+  modeBoost: '加权',
   catCompany: '公司',
   catPublication: '出版物',
   catNews: '新闻',
-  catPersonalSite: '个人站点',
+  catPersonalSite: '个人',
   catFinancialReport: '财报',
   catPeople: '人物',
   srcNews: '仅新闻',
-  srcWebNews: '网页 + 新闻',
+  srcWebNews: '双源',
   fcCatDeveloper: '开发者',
   fcCatResearch: '研究',
   fcCatPdf: 'PDF',
@@ -554,6 +568,13 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsTitle: 'DNS 韧性',
   dnsDescription: '为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。',
   dnsModeLabel: '模式',
+  fallbackAutoShort: '自动',
+  depthAdvancedShort: '增强',
+  answerAdvancedShort: '高级',
+  modeBoostShort: '加权',
+  catPersonalShort: '个人',
+  srcWebNewsShort: '双源',
+  fallbackDeepseekShort: '付费',
   dnsModeAutoShort: '自动',
   dnsModeOnShort: '开启',
   dnsModeAuto: '自动（按证据）',
