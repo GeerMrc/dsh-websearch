@@ -193,6 +193,19 @@ describe('S35 T6: intercept — decision lifecycle (ADR-0022 D4/D5/D10)', () => 
     layer.dispose()
   })
 
+  it('stage-5 S-1: a throwing onEvent sink (hostile volatile write) never rejects settling and never breaks lookups', async () => {
+    const resolver = scriptedResolver({ 'api.tavily.com': outcome(['5.5.5.5']) })
+    const layer = installDnsLayer(makeDeps({
+      config: () => dnsConfig({ mode: 'on' }),
+      makeResolver: () => resolver,
+      canarySystemLookup: async () => ['104.0.0.1'],
+      onEvent: () => { throw new Error('hostile sink') },
+    }))
+    await expect(layer.whenArmed()).resolves.toBeUndefined()
+    expect(await callLookup(layer, 'api.tavily.com', { all: true })).toEqual([{ address: '5.5.5.5', family: 4 }])
+    layer.dispose()
+  })
+
   it('stage-5 C2: the explicit three-arg null/undefined options form delegates like the original lookup', async () => {
     const system = scriptedSystem({ 'api.tavily.com': ['104.18.1.1'] })
     const layer = installDnsLayer(makeDeps({

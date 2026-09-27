@@ -55,7 +55,6 @@ export interface SectionProps {
   onRefreshKeyCounts: () => Promise<void>
   /** S35 DNS resilience block (ADR-0022): mode/scope/preset/custom-nodes writes. */
   onSetDnsMode: (mode: 'auto' | 'on' | 'off') => Promise<ActionResult>
-  onSetDnsScope: (scope: 'members' | 'all') => Promise<ActionResult>
   /** S39 (plan 038 T3): egress probe method (tcp/tls-hello). */
   onSetDnsProbeMethod: (method: 'tcp' | 'tls-hello') => Promise<ActionResult>
   onSetDnsPreset: (preset: 'auto' | 'cn' | 'global' | 'custom') => Promise<ActionResult>
@@ -98,7 +97,6 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onMoveFetch={(id, delta) => controller.moveFetchChainEntry(id, delta)}
         onRefreshKeyCounts={() => controller.refreshCounts()}
         onSetDnsMode={(mode) => controller.setDnsMode(mode)}
-        onSetDnsScope={(scope) => controller.setDnsScope(scope)}
         onSetDnsProbeMethod={(method) => controller.setDnsProbeMethod(method)}
         onSetDnsPreset={(preset) => controller.setDnsPreset(preset)}
         onSetDnsNodes={(text) => controller.setDnsNodesText(text)}
@@ -320,7 +318,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -552,7 +550,6 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         t={t}
         snapshot={snapshot}
         onSetDnsMode={onSetDnsMode}
-                onSetDnsScope={onSetDnsScope}
         onSetDnsProbeMethod={onSetDnsProbeMethod} onSetDnsPreset={onSetDnsPreset}
         onSetDnsNodes={onSetDnsNodes}
         onRecheckDns={onRecheckDns}
@@ -573,7 +570,6 @@ function DnsResilienceCard(props: {
   t: (key: DshWsLocaleKey) => string
   snapshot: SectionSnapshot
   onSetDnsMode: (mode: 'auto' | 'on' | 'off') => Promise<ActionResult>
-  onSetDnsScope: (scope: 'members' | 'all') => Promise<ActionResult>
   onSetDnsProbeMethod: (method: 'tcp' | 'tls-hello') => Promise<ActionResult>
   onSetDnsPreset: (preset: 'auto' | 'cn' | 'global' | 'custom') => Promise<ActionResult>
   onSetDnsNodes: (text: string) => Promise<ActionResult>

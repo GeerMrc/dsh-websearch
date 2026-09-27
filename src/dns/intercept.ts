@@ -129,7 +129,24 @@ export function resolveWarmupDelayMs(env: Readonly<Record<string, string | undef
  * @param deps - the live config/scope/env seams.
  * @returns the layer handle.
  */
+/**
+ * Wrap the event sink so a hostile throwing `onEvent` (volatile-path write,
+ * stage-5 S-1) can never reject `settling` or fail a lookup — events are
+ * observability-only; process-wide resolution outranks them.
+ */
+function makeSafeEmitter(onEvent: DnsLayerDeps['onEvent']): (event: DnsLayerEvent) => void {
+  return (event) => {
+    try {
+      onEvent?.(event)
+    } catch {
+      // Nothing else can reach here: the sink is host-supplied and only this
+      // layer calls it; a throwing sink loses its event, nothing more.
+    }
+  }
+}
+
 export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
+  const emit = makeSafeEmitter(deps.onEvent)
   activeLayer?.dispose()
   // The restore target is whatever the module export holds at install time —
   // never the delegation seam, which tests replace with fakes.
@@ -240,7 +257,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
         poisonRanges: deps.config().poisonRanges,
       })
       decision = outcome
-      deps.onEvent?.({ kind: 'decision', outcome })
+      emit({ kind: 'decision', outcome })
       if (outcome.action === 'enable') {
         await arm()
       } else {
@@ -283,7 +300,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
       return delegate.call(this, args)
     }
     if (config.mode === 'off' || proxySuspendsFor(hostname, env()) || !inScope(hostname)) {
-      if (config.mode !== 'off' && proxySuspendsFor(hostname, env())) deps.onEvent?.({ kind: 'suspend', host: hostname })
+      if (config.mode !== 'off' && proxySuspendsFor(hostname, env())) emit({ kind: 'suspend', host: hostname })
       return delegate.call(this, args)
     }
     if (!armed) {
@@ -301,18 +318,18 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
         dohInFlight += 1
         const resolution = resolver !== null ? await resolver.resolve(hostname, family) : null
         if (resolution === null) {
-          deps.onEvent?.({ kind: 'fallback', host: hostname, reason: 'doh-dead' })
+          emit({ kind: 'fallback', host: hostname, reason: 'doh-dead' })
           return delegate.call(this, args)
         }
         if (resolution.negative) {
           const error = Object.assign(new Error(`getaddrinfo ENOTFOUND ${hostname}`), { code: 'ENOTFOUND' })
-          deps.onEvent?.({ kind: 'fallback', host: hostname, reason: 'neg' })
+          emit({ kind: 'fallback', host: hostname, reason: 'neg' })
           return void (callback as (err: Error | null) => void)(error)
         }
         let candidates = resolution.addresses
         if (family === 4 || family === 6) candidates = candidates.filter((entry) => entry.family === family)
         if (candidates.length === 0) {
-          deps.onEvent?.({ kind: 'fallback', host: hostname, reason: 'error' })
+          emit({ kind: 'fallback', host: hostname, reason: 'error' })
           return delegate.call(this, args)
         }
         let kept = candidates
@@ -346,7 +363,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
           // filter here crashed on the null verdict and silently degraded to
           // the system path, breaking the never-worse promise).
         }
-        deps.onEvent?.({
+        emit({
           kind: 'resolve',
           host: hostname,
           via: resolution.via,
@@ -361,7 +378,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
           (callback as unknown as (err: null, address: string, family: number) => void)(null, kept[0].address, kept[0].family)
         }
       } catch {
-        deps.onEvent?.({ kind: 'fallback', host: hostname, reason: 'error' })
+        emit({ kind: 'fallback', host: hostname, reason: 'error' })
         delegate.call(this, args)
       } finally {
         dohInFlight -= 1
