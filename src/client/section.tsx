@@ -570,8 +570,8 @@ const dnsSelectStyle = {
   color: 'inherit',
   font: 'inherit',
   fontSize: 12,
-  minWidth: 160,
-  maxWidth: '60%',
+  width: 'auto',
+  minWidth: 80,
   flexShrink: 0,
 } as const
 
@@ -639,32 +639,36 @@ function DnsResilienceCard(props: {
       <div style={cardHeadStyle}>
         <button
           type="button"
+          data-testid="dshws-dns-toggle"
           data-dshws-focusable=""
           aria-expanded={open}
-          aria-label={t('dnsTitle')}
+          aria-label={`${t('dnsTitle')} ${t('configure')}`}
           onClick={toggle}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer', padding: 0 }}
+          style={{ ...cardHeadStyle, flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', padding: 0 }}
         >
+          <span role="img" aria-label={t(statusCopy)} title={t(statusCopy)} style={statusDotStyle(dns.status?.armed === true)} />
+          <strong style={nameStyle}>{t('dnsTitle')}</strong>
+          <Tooltip label={t('dnsDescription')} side="bottom" delayMs={400} maxWidth={360}>
+            <button type="button" aria-label={t('dnsDescription')} data-testid="dshws-dns-info" style={{ ...infoButtonStyle, border: 'none', background: 'transparent' }}>
+              <QuestionIcon />
+            </button>
+          </Tooltip>
+          <span style={{ flex: 1 }} />
           <span aria-hidden="true" data-dshws-chevron="" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
             <ChevronDownIcon />
           </span>
-          {t('dnsTitle')}
         </button>
-        {/* S36 (plan 036): the description rides the page ⓘ pattern (section
-        header precedent) instead of a standalone paragraph. */}
-        <Tooltip label={t('dnsDescription')} side="bottom" delayMs={400} maxWidth={360}>
-          <button type="button" aria-label={t('dnsDescription')} data-testid="dshws-dns-info" style={infoButtonStyle}>
-            <QuestionIcon />
-          </button>
-        </Tooltip>
-        <span style={{ flex: 1 }} />
-        <span data-testid="dshws-dns-status" style={{ ...roleChipStyle, ...(dns.status?.armed === true ? { color: 'var(--dsw-alias-state-success-primary)' } : {}) }}>{t(statusCopy)}</span>
-        <Switch
-          data-testid="dshws-dns-switch"
-          checked={dns.mode !== 'off'}
-          label={t('dnsTitle')}
-          onChange={(next: boolean) => { void run(() => onSetDnsMode(next ? 'auto' : 'off')) }}
-        />
+        <button
+          type="button"
+          role="switch"
+          data-dshws-focusable=""
+          aria-checked={dns.mode !== 'off'}
+          aria-label={`${t('dnsTitle')} ${t('enabled')}`}
+          onClick={() => { void run(() => onSetDnsMode(dns.mode === 'off' ? 'auto' : 'off')) }}
+          style={{ ...switchStyle(true, dns.mode !== 'off'), cursor: 'pointer' }}
+        >
+          <span style={thumbStyle(dns.mode !== 'off')} />
+        </button>
       </div>
       <p role="status" data-testid="dshws-dns-decision" style={hintStyle}>{t(decisionCopy)}</p>
       {dns.status?.decision?.hits.length ? (
@@ -696,19 +700,6 @@ function DnsResilienceCard(props: {
             </select>
           </div>
           <div style={paramRowStyle}>
-            <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsScopeLabel')}
-              <Tooltip label={t('dnsScopeHint')} side="bottom" delayMs={400} maxWidth={320}>
-                <button type="button" aria-label={t('dnsScopeLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
-                  <QuestionIcon />
-                </button>
-              </Tooltip>
-            </label>
-            <select data-testid="dshws-dns-scope" data-dshws-focusable="" value={dns.scope} onChange={(event) => { void run(() => onSetDnsScope(event.target.value as 'members' | 'all')) }} style={dnsSelectStyle}>
-              <option value="members">{t('dnsScopeMembers')}</option>
-              <option value="all">{t('dnsScopeAll')}</option>
-            </select>
-          </div>
-          <div style={paramRowStyle}>
             <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsProbeMethodLabel')}
               <Tooltip label={t('dnsProbeMethodHint')} side="bottom" delayMs={400} maxWidth={320}>
                 <button type="button" aria-label={t('dnsProbeMethodLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
@@ -717,8 +708,8 @@ function DnsResilienceCard(props: {
               </Tooltip>
             </label>
             <select data-testid="dshws-dns-probe-method" data-dshws-focusable="" value={dns.probeMethod} onChange={(event) => { void run(() => onSetDnsProbeMethod(event.target.value as 'tcp' | 'tls-hello')) }} style={dnsSelectStyle}>
-              <option value="tcp">{t('dnsProbeMethodTcp')}</option>
-              <option value="tls-hello">{t('dnsProbeMethodTlsHello')}</option>
+              <option value="tcp" title={t('dnsProbeMethodTcp')}>TCP</option>
+              <option value="tls-hello" title={t('dnsProbeMethodTlsHello')}>TLS</option>
             </select>
           </div>
           <div style={paramRowStyle}>
@@ -758,7 +749,7 @@ function DnsResilienceCard(props: {
             </div>
           ) : null}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <Button variant="outline" size="sm" disabled={nodesDraft === null || nodesDraft === dns.nodesText} aria-label={t('save')} onClick={() => { void run(() => onSetDnsNodes(nodesValue)) }}>{t('save')}</Button>
+            <Button variant="primary" size="sm" disabled={nodesDraft === null || nodesDraft === dns.nodesText} aria-label={t('save')} onClick={() => { void run(() => onSetDnsNodes(nodesValue)) }}>{t('save')}</Button>
             <Button variant="outline" size="sm" disabled={rechecking} aria-label={t('dnsRecheck')} onClick={() => { void recheck() }}>{rechecking ? t('dnsRechecking') : t('dnsRecheck')}</Button>
             {feedback !== undefined ? <span role="status" data-testid="dshws-dns-feedback" style={{ ...hintStyle, flex: undefined }}>{t(feedback)}</span> : null}
           </div>
