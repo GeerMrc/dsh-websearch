@@ -168,6 +168,15 @@ describe('dshws-anysearch wire behavior (mock HTTP)', () => {
     expect(thrown!.message).toContain('429')
   })
 
+  it('unfolds a JSON error body into the search-face HTTP error message (regression lock)', async () => {
+    const provider = makeProvider()
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ message: 'rate limit exceeded for this key' }, 429)))
+    const thrown = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown!.message).toContain('429')
+    expect(thrown!.message).toContain('rate limit exceeded for this key')
+  })
+
   it('maps a network refusal to the request-failure code', async () => {
     const provider = makeProvider()
     vi.stubGlobal('fetch', vi.fn(async () => {

@@ -59,17 +59,20 @@ export function memberBadResponse(codes: MemberErrorFamily, label: string, error
 
 /**
  * First non-empty detail string among the wire error shapes seen across
- * providers: `error` (string or `{ message }`), `detail` (string or
- * `{ message }`), then top-level `message`. Non-JSON bodies never reach this
- * (the caller's `response.json()` throws first).
+ * providers: `error` (string or `{ message }` or `{ error }`), `detail`
+ * (same three forms), then top-level `message`. The nested `{ error }` form
+ * is the live Tavily 401 body (`{"detail":{"error":"Unauthorized: …"}}`,
+ * verified 2026-09-28) — a `{ message }`-only pick silently degrades that
+ * response to a bare status. Non-JSON bodies never reach this (the caller's
+ * `response.json()` throws first).
  */
 export function unfoldHttpErrorDetail(parsed: {
-  readonly error?: string | { readonly message?: string } | null
-  readonly detail?: string | { readonly message?: string }
+  readonly error?: string | { readonly message?: string, readonly error?: string } | null
+  readonly detail?: string | { readonly message?: string, readonly error?: string }
   readonly message?: string
 }): string | undefined {
-  const pick = (value: string | { readonly message?: string } | undefined | null): string | undefined =>
-    typeof value === 'string' ? value : value?.message
+  const pick = (value: string | { readonly message?: string, readonly error?: string } | undefined | null): string | undefined =>
+    typeof value === 'string' ? value : value?.message ?? (typeof value?.error === 'string' ? value.error : undefined)
   return [pick(parsed.error), pick(parsed.detail), parsed.message]
     .find((candidate) => candidate !== undefined && candidate.length > 0)
 }

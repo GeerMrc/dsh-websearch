@@ -39,6 +39,18 @@ maybe('dshws-anysearch real API', () => {
     if (result.body.kind === 'text') expect(result.body.content).toContain('Example Domain')
     expect(result.truncated).toBe(false)
   }, 40_000)
+
+  it('error path: a non-existent article rides the upstream 422 detail in the error message (alignment checklist live anchor)', async () => {
+    const provider = new AnysearchSearchProvider(resolveAnysearchMemberOptions(
+      { enabled: true, apiKeyEnv: 'ANYSEARCH_API_KEY'  },
+      async () => apiKey,
+    ))
+    const thrown = await provider.fetch({ url: 'https://zh.wikipedia.org/wiki/2027\u5e74\u8bfa\u8d1d\u5c14\u5956' })
+      .then(() => null, (error: unknown) => error as { code?: string, message?: string })
+    expect(thrown?.code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown?.message).toContain('422')
+    expect(thrown?.message).toContain('Unable to extract content from the URL.')
+  }, 40_000)
 })
 
 describe('dshws-anysearch real-API default anchors', () => {
