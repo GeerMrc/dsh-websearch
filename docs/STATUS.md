@@ -26,7 +26,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | ✅ 2026-09-13（e2e 腿 S08 + 文档腿 S26〔Tier B〕；真实搜索实证 S27 生产重建回填——2026-09-23 S32 T1 补账勘正） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳（准备棒 = S16，2026-09-04 重排编号） |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012）+ 装即接管（ADR-0013）+ DNS 韧性层（S35，ADR-0022） | 🚧 2026-09-27 复开（S35 进行中）；S09-S14 + S14a 插行已于 2026-09-06 全收官（证据 = 徽标浏览器亲见 + 宿主零 diff + 装卸三态 dump + 各自 stage45 PASS/COMPLETE） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012）+ 装即接管（ADR-0013）+ DNS 韧性层（S35，ADR-0022） | ✅ 2026-09-28 二次收官（S35 完成：DNS 韧性层全量落地 + 逐工具实测 8/8 + plans 035-044 + 阶段4/5 二轮 PASS/COMPLETE；v0.2.0 定版发版面随 S36 呈批）；首段 S09-S14 + S14a 2026-09-06 收官 |
 
 ## Session 台账（一行一棒）
 
@@ -96,7 +96,8 @@
 | 32a | 2026-09-23 | 会话后增补批（用户即时指令）：README 上游缺陷注记 e43fb22 / npm 发布+改名 @maricgeer 57b7f97 / 生产切树 016a1→017a2 2b2f1c0 | ✅ | CHANGELOG 三条目 + audit-log prod-switch-017a2 + Release v0.1.2 双 tarball；npm@0.1.2 拉装冒烟过（当时网络尚通）；治理欠账由 S33 T1 本批补齐 | 网络债：github/npmjs 09-26 起不可达（环境，见 S33 T0） |
 | 33 | 2026-09-26 | 随上游 0.1.7-rc.1/rc.2 迭代适配批（多版本全跨度 + fork 修复审计 + 发布与生产切换呈批——用户四裁定） | ✅ | docs/sessions/2026-09-26-session-33.md；v0.1.3 定版（零源码适配；门墙 480\|13(493)）；npm@0.1.3 已发布（GitHub 腿网络受阻续试）；fork 修复收编 fix/readonly-stack-rc2（回归 235/235）；三线演练全 PASS；生产切换已执行（用户批准；备份先行 237M；正本 audit-log prod-switch-rc2） | 🟡×4 全清；🟢+3（README 前置串/tail 清理/GitHub 腿收尾确认——第三项已随 c8057be 闭合） |
 | 34 | 2026-09-26 | 上游问题经验沉淀文档批（用户指令：README/Tag/文档沉淀 fork 修复经验供小白复用+推送远端） | ✅ | docs/sessions/2026-09-26-session-34.md；docs/known-upstream-issues.md（三问题登记表）+README zh/en 联动+Release v0.1.3 notes 块；阶段2 APPROVED/阶段4 PASS | 🟢 沿 S33（README 前置串+占位链接+tail 清理——**归属随 v0.2.0**〔S35 T0 勘正，原「随 0.1.4」〕；npm 包内 README 漂移随发版消除；Release/fork 远端活体目验——已由 S35 阶段 0 亲验销项） |
-| 35 | 2026-09-27 | DNS 韧性层批 v0.2.0（进程级 DoH 解析+出口预检+区域预设池+Inspect trace；用户主计划批准+四裁定） | 🚧 | docs/sessions/2026-09-27-session-35.md；阶段 0 独立审核 PASS（audit-log 2026-09-27-s35-stage0-audit-of-s34.md）+ 拦截 seam spike 实证（audit-logs/2026-09-27-s35-t0-spike/：dns.lookup patch 双 node 版 fetch 正例 200）+ plan 035 + ADR-0022（proposed） | 🟡+4（S34 收官卫生债，S35 T0 先债后新清偿）；🟢-1（Release/fork 活体目验销项）；🟢 归属改乘 1（README 前置串+占位链接→v0.2.0 T11） |
+| 35 | 2026-09-27 | DNS 韧性层批 v0.2.0（进程级 DoH 解析+出口预检+区域预设池+Inspect trace；用户主计划批准+四裁定） | ✅ | docs/sessions/2026-09-27-session-35.md（含 plans 039-044 补登记 + T11-A/B/C/D 测试腿全录）；plan 035 R1-R8（R6 截图腿 zh/dark 亲验、en/light 随 S36 补；R8 治理收官本动作）+ plans 036/037/038 ✅ + 增补链 039-044（含 30bfc59 诚实回滚）；阶段4/5 二轮 **PASS/COMPLETE**（audit-logs 2026-09-28-s35-stage4-full-verification.md + …-stage5-crossvalidation.md；S-1/F-1/F-2 当批清偿）；逐工具实测 8/8 + 用户窗口级联降级实录；dd5a9df+f8e0a3f 双错误保真修复；rc.15 双名脚本化（scripts/pack.mjs）；全套件 592/592 | 🟡 清零（S34 四债 T0 清偿）；🟢 新增：DNS chip 轮询/onSetDnsScope 清瘦余项/request_id 增强（正本 plan 035 债务表）；v0.2.0 定版/发版/生产切换随 S36（高危门控不变） |
+| 36 | 2026-09-28 | S35 收官 + CI 就绪与 v0.2.0 归档准备（用户三线指令：经验沉淀/GitHub+npm CI/清场定版；推送与发布逐项确认门控） | 🚧 | docs/sessions/2026-09-28-session-36.md；阶段 0 独立审核 S35 现状 **PASS 有条件→三红全清**（audit-logs 2026-09-28-s36-stage0-audit-of-s35.md；T8 提前清 R-1/R-2、T1 清 R-3）；用户决策三裁定（gh secret set 注入/tag v* 全自动/仅 master+tag 推送） | —（执行期） |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -107,10 +108,10 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 35 🚧（DNS 韧性层批 v0.2.0——用户主计划批准+四裁定〔版本 0.2.0/设置页底部独立块/区域预设池+自动探测/v1 含 Inspect trace〕；阶段 0 独立审核 PASS 🟡×4〔audit-log 2026-09-27-s35-stage0-audit-of-s34.md〕；拦截 seam spike 实证：**dns.lookup 晚期 patch 于 node 20.18.3/22.23.2 双版本拦截 global fetch（正例 200），Socket.prototype.connect 注入实测不可达→否决**〔audit-logs/2026-09-27-s35-t0-spike/〕；plan 035 + ADR-0022（proposed）已落盘；阶段 2 已过；执行期 T0-T10+阶段4/5 完成；plan 036 ✅ + plan 037 快降级 ✅（连接级失败不烧 key 额度）+ **plan 038 进行中**（rc.4 验证轮 + connect-flap 日志降噪含运行关联键；T3=probe.method 设计裁定随附；T11/T12 发版切换仍候用户门控））
+- **当前 session**: Session 36 🚧（S35 收官 + CI 就绪与 v0.2.0 归档准备——阶段 A：S35 收官与经验沉淀 T0-T6 ✅（阶段0 三红清偿/T11 腿入册/dont-do 三条/对齐 checklist 立册/dd5a9df+f8e0a3f 双修复/阶段4/5 二轮 PASS+COMPLETE）；阶段 B 执行中：T8 pack.mjs ✅ → T9/T10 workflows → T11 版本就绪 → T12 合并 → T13 清场 → T14 3080 备 → T15 验证 → T16 呈批；**推送 master+tag / npm publish / 3080 切换均为用户逐项确认门控**）
 > （S33/S34 收官态历史注记：v0.1.3 定版〔peer 域九版本全覆盖〕+ npm latest + **生产 3080=0.1.7-rc.2+fork（017rc2 树）+插件 v0.1.3**（备份先行 237M，回滚位 017a2 一级）；S34 文档批 known-upstream-issues 三问题登记+README/Release 联动，Release/fork 远端活体已由 S35 阶段 0 亲验〔远端 master=5d34b2f、fork head=ebd42731c9〕——详见台账 33/34 行）
-- **所处里程碑**: M7 功能扩展 🚧（S35 进行中）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16）
+- **所处里程碑**: M7 功能扩展 ✅ 2026-09-28（S35 二次收官）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16；S36 属发版收口非 M6 验收棒）
 - **上一棒**: Session 34（docs/sessions/2026-09-26-session-34.md）
 - **下一棒**: 本棒执行期（plan 035 T0-T12；T11 npm 发版/T12 生产 3080 切换为高危门控——须用户确认/明确指令）；后续候选——上游 0.1.7 正式版/0.1.8 跟进、npm 发布 CI 化
-- **活跃债务**: 🔴×0；🟡×4（S34 收官卫生债，S35 T0 先债后新清偿：①位置块滞后〔**本块刷新即清偿**〕+三载体 🟢 枚举统一 ②session-34 记录补「开发规范强化说明★」「当前项目状态快照」两节 ③S32-S34 audit-log 补 v2 参数头 ④接力指令格式裁定——正本 audit-log s35-stage0）；🟢 池维持 + README 前置串与占位链接（**归属改随 v0.2.0 T11**）+ tail 清理 + L-2 + 观察（正本 progress-M7）
-- **更新时间**: 2026-09-27（S35 启动：阶段 0 PASS + 阶段 1 计划落盘）
+- **活跃债务**: 🔴×0；🟡×0（S34 四债 S35 T0 清偿完毕）；🟢 池：README 前置串与占位链接（随 S36 T11 v0.2.0 定版清偿）+ DNS chip 轮询 + onSetDnsScope 清瘦余项 + request_id 8 面增强 + tail 清理 + L-2（正本 plan 035 债务表 + progress-M7）
+- **更新时间**: 2026-09-28（S35 阶段 6 原子收官 + S36 执行期中途）

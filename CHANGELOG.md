@@ -1,3 +1,26 @@
+## 2026-09-28 — DNS 韧性层批收官 + 错误保真双修复 + 对齐纪律立册（Session 35 完结；v0.2.0 定版随 S36）
+
+**新增（功能，S35 全链）**
+- **进程级 DNS 韧性层**（ADR-0022）：canary 投毒自动检测（4 成员 198.18.x 证据制）→ DoH 加密解析（区域预设池 CN/Global + bootstrap RTT 选点）→ tls-hello SNI 出口预检（过滤 CDN 轮换不可达 IP）→ 多级降级（连接级失败 fresh-resolve 重试×1 即降级、不烧 key 额度）→ compact connect-flap 日志（runKey 并行归属）；auto 模式干净网络零行为变化（零命中即卸载 patch）。启动预热消除首搜竞速；负反馈作废（连接失败触发三键缓存作废）。
+- **设置页「DNS 韧性」卡**：与成员卡同构头部（dot+i+chevron+Switch）、四选择器（mode/preset/探测方式/自定义节点）、检测状态与证据、Inspect 解析 trace；039-044 六轮用户目验迭代（含 plan044 align=end 诚实回滚——视口钳制不保护对话框边界）。
+- **逐工具实测矩阵 8/8**（anysearch/tavily/exa/firecrawl 单开 + 全开综合；用户授权复用生产 KEY；3423 干净闭环纪律）：含用户真实会话三成员级联降级实录（anysearch 瞬断→retry→tavily 瞬断→firecrawl 兜底 served）。
+
+**修复**
+- **dd5a9df**：anysearch fetch 面错误保真——8 个请求面中唯一缺失 `unfoldHttpErrorDetail` 展开的面（上游 422「Unable to extract content from the URL.」被丢弃成裸状态码）；根因=上游对不存在词条的正确拒绝 + 插件错误路径不对称，双因链全录（T11-B）。
+- **f8e0a3f**：`unfoldHttpErrorDetail` 嵌套 `detail.error` 形态（tavily 线上 401 实形 curl 直证）——mock 形态与线上不符致逃逸。
+- **S-1**（阶段 5）：敌意 onEvent 抛出致 canary settling 悬挂/查找失败——七处 emit 统一 safeEmitter 守卫（TDD 红绿）。
+
+**工程与治理**
+- **上游对齐验证纪律立册**（用户裁定常备门槛）：docs/upstream-alignment-checklist.md（成员×面×端点×双路矩阵 + 实测认证错误信封表）+ dont-do 三条新沉淀（请求面同族对称/agent shell node 绝对路径——node20 静默退出两现/逐成员×逐面双路确认）。
+- **双名打包脚本化** scripts/pack.mjs（rc.15 实证；裸名翻转失败亦字节级还原）；upgrade.md §2 接线对齐确认为发版必做步。
+- e2e.real 四成员确定性错误路径用例（skip-gated，不烧配额）；全套件 592/592、tsc 0、lint 0e、i18n 195。
+
+**诚实标注**
+- e2e.real 实跑受 02:45-02:50 直连出口黑洞窗口影响（curl HTTP 000 证据）；错误路径四用例在 02:42 好窗口各至少一次 PASS 实证（anysearch 2544ms/tavily 890ms/firecrawl 5303ms）。
+- v0.2.0 定版（版本 bump/ADR-0022 accepted/README 刷新/npm 发版/生产 3080 切换）随 S36 呈批推进；R6 截图腿 en/light 双主题未补（zh/dark 已亲验）。
+
+---
+
 ## 2026-09-26 — 上游问题经验沉淀文档批（Session 34）
 
 **新增（文档）**
