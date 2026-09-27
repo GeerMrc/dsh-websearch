@@ -309,6 +309,67 @@ export interface UnifiedSearchFanout {
   readonly excludeDomains?: readonly string[]
 }
 
+/**
+ * DNS resilience layer mode (ADR-0022 D4): `'auto'` = lazy canary detection
+ * enables the layer only on reserved-range evidence (default), `'on'` =
+ * unconditional, `'off'` = full bypass (zero overhead, system resolution).
+ */
+export type DnsMode = 'auto' | 'on' | 'off'
+
+/**
+ * Which hostnames the DNS layer resolves over DoH (ADR-0022 D5): `'members'`
+ * (default) = the live member baseURL host set only; `'all'` = every hostname
+ * routed through the patched lookup.
+ */
+export type DnsScope = 'members' | 'all'
+
+/**
+ * DoH node region preset (ADR-0022 D6): `'auto'` = bootstrap probes the
+ * built-in pool and keeps the two fastest reachable nodes (default), `'cn'` /
+ * `'global'` = pinned region subsets, `'custom'` = the user-supplied
+ * {@link DnsSettings.nodes} list (validated non-empty).
+ */
+export type DnsPreset = 'auto' | 'cn' | 'global' | 'custom'
+
+/** One JSON-DoH endpoint (ADR-0022 D6): `host` is the connect target (usually an IP literal), `sni` the TLS server name, so SNI and Host stay separable. */
+export interface DohNode {
+  /** Connect target — an IP literal avoids bootstrapping the resolver itself. */
+  host: string
+  /** TLS server name for certificate validation (e.g. `dns.alidns.com`). */
+  sni: string
+  /** Query path; absent = the node family default set by the dns transport. */
+  path?: string
+  /** Connect port; absent = 443 (Quad9's JSON face is the documented `:5053`). */
+  port?: number
+}
+
+/** DNS resilience settings (ADR-0022); every field optional and defaulted by `resolveConfig`. */
+export interface DnsSettings {
+  /** Resolver mode; defaults to `'auto'` (no evidence, no interception). Hot: on↔off applies immediately via the intercept disposer. */
+  mode?: DnsMode
+  /** Hostname scope; defaults to `'members'`. Hot: the next resolution reads the live set. */
+  scope?: DnsScope
+  /** Node region preset; defaults to `'auto'` (bootstrap-selected). */
+  preset?: DnsPreset
+  /** Custom node list; required non-empty iff `preset: 'custom'` (dual-path validated). */
+  nodes?: DohNode[]
+  /** Egress reachability precheck (TCP-443 handshake only); defaults enabled with a 350ms parallel budget and 30s result cache. */
+  probe?: { enabled?: boolean; timeoutMs?: number; cacheTtlS?: number }
+  /** Resolution cache; positive TTLs clamp to [posMinS, posMaxS], negative answers cache negS. */
+  cache?: { posMinS?: number; posMaxS?: number; negS?: number }
+  /** Reserved IPv4 ranges whose answers are dropped as poisoned (the side-router blackhole signature). */
+  poisonRanges?: string[]
+}
+
+/** Default poison ranges: RFC 2544 benchmarking + RFC 5737 documentation + this-network-observed blackhole segments. */
+export const DEFAULT_DNS_POISON_RANGES: readonly string[] = [
+  '198.18.0.0/15',
+  '192.0.2.0/24',
+  '203.0.113.0/24',
+  '0.0.0.0/8',
+  '240.0.0.0/4',
+]
+
 /** User-facing plugin configuration; every field is optional and defaulted by {@link resolveConfig}. */
 export interface Config {
   /** Search priority chain by member id. Empty = {@link BUILT_IN_MEMBER_ORDER}. Unknown ids are skipped at call time. Hot: settings changes apply to the next search. */
@@ -380,6 +441,8 @@ export interface Config {
   exa?: ExaSettings
   /** Anysearch member settings (ADR-0009). */
   anysearch?: AnysearchSettings
+  /** DNS resilience settings (ADR-0022). */
+  dns?: DnsSettings
 }
 
 /**
@@ -502,6 +565,28 @@ function buildConfigSchema(markVolatile: boolean): z {
     zone: z.union(['cn', 'intl']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   })),
+  dns: vol(z.object({
+    mode: z.union(['auto', 'on', 'off']),
+    scope: z.union(['members', 'all']),
+    preset: z.union(['auto', 'cn', 'global', 'custom']),
+    nodes: z.array(z.object({
+      host: z.string(),
+      sni: z.string(),
+      path: z.string(),
+      port: z.number().step(1).min(1).max(65535),
+    })),
+    probe: z.object({
+      enabled: z.boolean(),
+      timeoutMs: z.number().step(1).min(50).max(5000),
+      cacheTtlS: z.number().step(1).min(1).max(600),
+    }),
+    cache: z.object({
+      posMinS: z.number().step(1).min(1).max(3600),
+      posMaxS: z.number().step(1).min(1).max(86400),
+      negS: z.number().step(1).min(1).max(600),
+    }),
+    poisonRanges: z.array(z.string()),
+  })),
 })
 }
 
@@ -611,12 +696,32 @@ export interface AnysearchMemberConfig extends Required<Pick<AnysearchSettings, 
   keySelection?: KeySelection
 }
 
+/** Fully defaulted DNS resilience settings consumed by the dns layer (ADR-0022). */
+export interface ResolvedDnsConfig {
+  /** Resolver mode; default `'auto'` (canary evidence required before any interception). */
+  readonly mode: DnsMode
+  /** Hostname scope; default `'members'` (live member host set only). */
+  readonly scope: DnsScope
+  /** Node region preset; default `'auto'`. */
+  readonly preset: DnsPreset
+  /** Custom nodes, copied; empty unless `preset: 'custom'` supplies a validated list. */
+  readonly nodes: readonly DohNode[]
+  /** Egress precheck; defaults `{ enabled: true, timeoutMs: 350, cacheTtlS: 30 }`. */
+  readonly probe: { readonly enabled: boolean; readonly timeoutMs: number; readonly cacheTtlS: number }
+  /** Resolution cache; defaults `{ posMinS: 30, posMaxS: 300, negS: 10 }`. */
+  readonly cache: { readonly posMinS: number; readonly posMaxS: number; readonly negS: number }
+  /** Reserved ranges dropped as poisoned; defaults {@link DEFAULT_DNS_POISON_RANGES}. */
+  readonly poisonRanges: readonly string[]
+}
+
 /** Fully defaulted plugin configuration; the chain providers consume this, not the raw `Config`. */
 export interface ResolvedWebSearchConfig {
   /** Canonical designated fallback (legacy `fallbackProvider` normalized away; ADR-0014). */
   readonly fallbackMember: FallbackMember
   /** Universal web_fetch takeover toggle, resolved default true (S15a). */
   readonly fetchTakeover: boolean
+  /** DNS resilience settings (ADR-0022). */
+  readonly dns: ResolvedDnsConfig
   /** Unified search region (ISO 3166-1 alpha-2, uppercase); absent = not sent (S17 P1, ADR-0015). */
   readonly searchCountry?: string
   /** Unified search language (ISO 639-1, lowercase); absent = not sent (S17 P1, ADR-0015). */
@@ -705,6 +810,24 @@ export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
 }
 
 /**
+ * The dns custom-preset node rule (ADR-0022 D6): `preset: 'custom'` requires a
+ * non-empty node list with a non-blank `host` and `sni` on every node. Dual-path
+ * like the ADR-0018 domain rule — the settings write path rejects through the
+ * installSection validate hook before persist, the cordis.yml load path throws
+ * here inside `resolveConfig` (a watcher throw must not be relied on for the
+ * settings path; see {@link validateUnifiedDomainRule}).
+ * @param value - the config section carrying the dns settings.
+ */
+export function validateDnsPresetRule(value: Pick<Config, 'dns'>): void {
+  const dns = value.dns
+  if (dns === undefined || dns.preset !== 'custom') return
+  const nodes = dns.nodes ?? []
+  if (nodes.length === 0 || nodes.some((node) => (node.host?.trim().length ?? 0) === 0 || (node.sni?.trim().length ?? 0) === 0)) {
+    throw new Error('dns.preset "custom" requires a non-empty nodes list with host and sni on every node (ADR-0022 D6)')
+  }
+}
+
+/**
  * Apply every default explicitly: empty chains become the built-in member
  * order, a missing timeout budget becomes 30s, and each member section gets
  * `enabled: true` plus its credential-ref env name. Provider-specific option
@@ -718,6 +841,7 @@ export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearch
   validateUnifiedDomainRule(plain)
   validateExaSectionFilterRule(plain)
   validateFirecrawlTbsRule(plain)
+  validateDnsPresetRule(plain)
   const fallbackMember: FallbackMember = plain.fallbackMember === 'dshws-perplexity'
     // S19 legacy alias: the removed member's designation degrades to auto.
     ? 'auto'
@@ -805,6 +929,25 @@ export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearch
       baseURL: plain.anysearch?.baseURL?.trim() === '' ? undefined : plain.anysearch?.baseURL,
       zone: plain.anysearch?.zone,
       keySelection: plain.anysearch?.keySelection ?? 'round-robin',
+    },
+    dns: {
+      mode: plain.dns?.mode ?? 'auto',
+      scope: plain.dns?.scope ?? 'members',
+      preset: plain.dns?.preset ?? 'auto',
+      nodes: plain.dns?.nodes?.length
+        ? plain.dns.nodes.map((node) => ({ host: node.host, sni: node.sni, path: node.path, port: node.port }))
+        : [],
+      probe: {
+        enabled: plain.dns?.probe?.enabled ?? true,
+        timeoutMs: plain.dns?.probe?.timeoutMs ?? 350,
+        cacheTtlS: plain.dns?.probe?.cacheTtlS ?? 30,
+      },
+      cache: {
+        posMinS: plain.dns?.cache?.posMinS ?? 30,
+        posMaxS: plain.dns?.cache?.posMaxS ?? 300,
+        negS: plain.dns?.cache?.negS ?? 10,
+      },
+      poisonRanges: plain.dns?.poisonRanges?.length ? [...plain.dns.poisonRanges] : [...DEFAULT_DNS_POISON_RANGES],
     },
   }
 }

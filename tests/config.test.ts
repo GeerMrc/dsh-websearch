@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BUILT_IN_MEMBER_ORDER, Config, ConfigLegacy, ORDERABLE_SEARCH_MEMBER_ORDER, materializeConfig, resolveConfig, validateExaSectionFilterRule, validateFirecrawlTbsRule } from '../src/config.ts'
+import { BUILT_IN_MEMBER_ORDER, Config, ConfigLegacy, ORDERABLE_SEARCH_MEMBER_ORDER, materializeConfig, resolveConfig, validateDnsPresetRule, validateExaSectionFilterRule, validateFirecrawlTbsRule } from '../src/config.ts'
+import type { ConfigRuntime } from '../src/config.ts'
 
 describe('resolveConfig', () => {
   it('applies the built-in member order to empty chains — four tools (S19: perplexity removed), no appended tail (ADR-0014)', () => {
@@ -257,7 +258,7 @@ describe('resolveConfig', () => {
 })
 
 describe('Config schema', () => {
-  it('normalizes an empty configuration object to the structural skeleton (legacy schema, S32 ADR-0021)', () => {
+  it('normalizes an empty configuration object to the structural skeleton (legacy schema, S32 ADR-0021; dns subtree since S35/ADR-0022)', () => {
     expect(ConfigLegacy({})).toEqual({
       searchChain: [],
       fetchChain: [],
@@ -266,6 +267,7 @@ describe('Config schema', () => {
       firecrawl: {},
       exa: {},
       anysearch: {},
+      dns: { nodes: [], probe: {}, cache: {}, poisonRanges: [] },
     })
   })
 
@@ -282,6 +284,7 @@ describe('Config schema', () => {
       firecrawl: {},
       exa: {},
       anysearch: {},
+      dns: { nodes: [], probe: {}, cache: {}, poisonRanges: [] },
     })
   })
 
@@ -341,5 +344,64 @@ describe('S22 T3: Firecrawl tbs combo guard (dual-path)', () => {
   })
   it('resolveConfig throws on the same mismatch (cordis.yml load path)', () => {
     expect(() => resolveConfig({ firecrawl: { tbs: 'banana' } } as never)).toThrow(/tbs/)
+  })
+})
+
+describe('S35 T1: dns section defaults and passthrough (ADR-0022)', () => {
+  it('materializes dns defaults from an empty config: auto mode / members scope / auto preset, probe 350ms/30s, cache 30–300s/10s, five reserved poison ranges', () => {
+    const resolved = resolveConfig({})
+    expect(resolved.dns.mode).toBe('auto')
+    expect(resolved.dns.scope).toBe('members')
+    expect(resolved.dns.preset).toBe('auto')
+    expect(resolved.dns.nodes).toEqual([])
+    expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 350, cacheTtlS: 30 })
+    expect(resolved.dns.cache).toEqual({ posMinS: 30, posMaxS: 300, negS: 10 })
+    expect(resolved.dns.poisonRanges).toEqual(['198.18.0.0/15', '192.0.2.0/24', '203.0.113.0/24', '0.0.0.0/8', '240.0.0.0/4'])
+  })
+
+  it('keeps explicit dns overrides; partial sub-objects default per-field, node arrays are copied not aliased', () => {
+    const nodes = [{ host: '223.5.5.5', sni: 'dns.alidns.com' }]
+    const resolved = resolveConfig({ dns: { mode: 'on', scope: 'all', preset: 'custom', nodes, probe: { timeoutMs: 500 }, poisonRanges: ['10.0.0.0/8'] } })
+    expect(resolved.dns.mode).toBe('on')
+    expect(resolved.dns.scope).toBe('all')
+    expect(resolved.dns.preset).toBe('custom')
+    expect(resolved.dns.nodes).toEqual([{ host: '223.5.5.5', sni: 'dns.alidns.com' }])
+    expect(resolved.dns.nodes).not.toBe(nodes)
+    // Partial sub-object: only the given field overrides, siblings default.
+    expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 500, cacheTtlS: 30 })
+    expect(resolved.dns.cache).toEqual({ posMinS: 30, posMaxS: 300, negS: 10 })
+    expect(resolved.dns.poisonRanges).toEqual(['10.0.0.0/8'])
+  })
+
+  it('resolves a volatile dns handle through materializeConfig (ADR-0021 live face)', () => {
+    const runtime = { dns: { get: () => ({ mode: 'off' }) } } as never as ConfigRuntime
+    const resolved = resolveConfig(runtime)
+    expect(resolved.dns.mode).toBe('off')
+    expect(resolved.dns.scope).toBe('members')
+  })
+})
+
+describe('S35 T1: dns preset=custom node rule (dual-path, S20 M-1 brick prevention)', () => {
+  it('custom without nodes throws on the validate rule (settings path) and on resolveConfig (cordis.yml load path)', () => {
+    expect(() => validateDnsPresetRule({ dns: { preset: 'custom', nodes: [] } })).toThrow(/custom/)
+    expect(() => resolveConfig({ dns: { preset: 'custom' } })).toThrow(/custom/)
+  })
+
+  it('custom with a blank host or sni is rejected', () => {
+    expect(() => validateDnsPresetRule({ dns: { preset: 'custom', nodes: [{ host: '  ', sni: 'dns.example' }] } })).toThrow(/custom/)
+    expect(() => validateDnsPresetRule({ dns: { preset: 'custom', nodes: [{ host: '223.5.5.5', sni: '' }] } })).toThrow(/custom/)
+  })
+
+  it('built-in presets need no nodes — the region pools live in the dns layer (ADR-0022 D6)', () => {
+    expect(() => validateDnsPresetRule({ dns: { preset: 'auto' } })).not.toThrow()
+    expect(() => validateDnsPresetRule({ dns: { preset: 'cn' } })).not.toThrow()
+    expect(() => validateDnsPresetRule({})).not.toThrow()
+  })
+
+  it('schema rejects invalid dns enum values and out-of-range numbers (YAML-facing surface)', () => {
+    expect(() => Config({ dns: { mode: 'banana' } as never })).toThrow()
+    expect(() => Config({ dns: { scope: 'everywhere' } as never })).toThrow()
+    expect(() => Config({ dns: { probe: { timeoutMs: 1 } } })).toThrow()
+    expect(() => Config({ dns: { nodes: [{ host: 'x', sni: 'y', port: 0 }] } })).toThrow()
   })
 })
