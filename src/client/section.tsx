@@ -53,6 +53,13 @@ export interface SectionProps {
   onSetFetchTakeover: (active: boolean) => Promise<ActionResult>
   /** Re-fetch key counts (badge freshness on card expand). */
   onRefreshKeyCounts: () => Promise<void>
+  /** S35 DNS resilience block (ADR-0022): mode/scope/preset/custom-nodes writes. */
+  onSetDnsMode: (mode: 'auto' | 'on' | 'off') => Promise<ActionResult>
+  onSetDnsScope: (scope: 'members' | 'all') => Promise<ActionResult>
+  onSetDnsPreset: (preset: 'auto' | 'cn' | 'global' | 'custom') => Promise<ActionResult>
+  onSetDnsNodes: (text: string) => Promise<ActionResult>
+  /** S35: force a fresh canary pass (the re-check button). */
+  onRecheckDns: () => Promise<ActionResult>
 }
 
 /**
@@ -86,6 +93,11 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetSearchDomains={(kind, domains) => controller.setSearchDomains(kind, domains)}
         onMoveFetch={(id, delta) => controller.moveFetchChainEntry(id, delta)}
         onRefreshKeyCounts={() => controller.refreshCounts()}
+        onSetDnsMode={(mode) => controller.setDnsMode(mode)}
+        onSetDnsScope={(scope) => controller.setDnsScope(scope)}
+        onSetDnsPreset={(preset) => controller.setDnsPreset(preset)}
+        onSetDnsNodes={(text) => controller.setDnsNodesText(text)}
+        onRecheckDns={() => controller.recheckDns()}
       />
     )
   }
@@ -302,7 +314,7 @@ const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): Ds
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
@@ -528,7 +540,179 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         on demand (and only while the takeover is on, S22a T3). */}
         <FetchTakeoverRow t={t} active={snapshot.fetchTakeover} onSet={onSetFetchTakeover} chain={<FetchChainRows t={t} snapshot={snapshot} onMove={onMoveFetch} />} />
       </div>
+      {/* S35 (user ruling 2026-09-27): the DNS resilience block rides at the
+      section bottom — a chain-level capability, owned by no single member. */}
+      <DnsResilienceCard
+        t={t}
+        snapshot={snapshot}
+        onSetDnsMode={onSetDnsMode}
+        onSetDnsScope={onSetDnsScope}
+        onSetDnsPreset={onSetDnsPreset}
+        onSetDnsNodes={onSetDnsNodes}
+        onRecheckDns={onRecheckDns}
+      />
     </div>
+  )
+}
+
+const dnsSelectStyle = {
+  padding: '2px 6px',
+  borderRadius: 6,
+  border: '1px solid var(--dsw-alias-line-bold)',
+  background: 'var(--dsw-alias-fill-primary)',
+  color: 'inherit',
+  font: 'inherit',
+  fontSize: 12,
+} as const
+
+/**
+ * The DNS resilience block (S35, user ruling: bottom of the「网页搜索」
+ * section): mode/scope/preset selectors, the custom-node textarea, the live
+ * detection status with its evidence, the re-check button, and the recent
+ * resolution trace. Old hosts (no DNS remote) render the config-only view —
+ * the status copy reflects the not-yet-detected state without a verdict.
+ */
+function DnsResilienceCard(props: {
+  t: (key: DshWsLocaleKey) => string
+  snapshot: SectionSnapshot
+  onSetDnsMode: (mode: 'auto' | 'on' | 'off') => Promise<ActionResult>
+  onSetDnsScope: (scope: 'members' | 'all') => Promise<ActionResult>
+  onSetDnsPreset: (preset: 'auto' | 'cn' | 'global' | 'custom') => Promise<ActionResult>
+  onSetDnsNodes: (text: string) => Promise<ActionResult>
+  onRecheckDns: () => Promise<ActionResult>
+}) {
+  const { t, snapshot, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns } = props
+  const dns = snapshot.dns
+  const [open, setOpen] = useState(false)
+  const [nodesDraft, setNodesDraft] = useState<string | null>(null)
+  const [rechecking, setRechecking] = useState(false)
+  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
+    return () => clearTimeout(timer)
+  }, [feedback])
+  const nodesValue = nodesDraft ?? dns.nodesText
+  const decisionCopy: DshWsLocaleKey = dns.status?.decision === undefined || dns.status.decision === null
+    ? 'dnsDecisionNone'
+    : dns.status.decision.verdict === 'poisoned'
+      ? 'dnsDecisionPoisoned'
+      : dns.status.decision.verdict === 'inconclusive'
+        ? 'dnsDecisionInconclusive'
+        : dns.status.decision.verdict === 'empty'
+          ? 'dnsDecisionEmpty'
+          : 'dnsDecisionClean'
+  const statusCopy: DshWsLocaleKey = dns.status?.proxyActive === true
+    ? 'dnsStatusSuspended'
+    : dns.status?.armed === true
+      ? 'dnsStatusArmed'
+      : 'dnsStatusIdle'
+  const run = async (action: () => Promise<ActionResult>): Promise<void> => {
+    const result = await action()
+    setFeedback(result.ok ? 'saved' : 'failed')
+  }
+  const recheck = async (): Promise<void> => {
+    setRechecking(true)
+    await run(onRecheckDns)
+    setRechecking(false)
+  }
+  return (
+    <section data-testid="dshws-dns-card" style={cardStyle}>
+      <div style={cardHeadStyle}>
+        <button
+          type="button"
+          data-dshws-focusable=""
+          aria-expanded={open}
+          aria-label={t('dnsTitle')}
+          onClick={() => { setOpen((value) => !value) }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer', padding: 0 }}
+        >
+          <span aria-hidden="true" data-dshws-chevron="" style={{ display: 'inline-flex', color: 'var(--dsw-alias-label-tertiary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease' }}>
+            <ChevronDownIcon />
+          </span>
+          {t('dnsTitle')}
+        </button>
+        <span data-testid="dshws-dns-status" style={roleChipStyle}>{t(statusCopy)}</span>
+      </div>
+      <p style={hintStyle}>{t('dnsDescription')}</p>
+      <p role="status" data-testid="dshws-dns-decision" style={hintStyle}>{t(decisionCopy)}</p>
+      {dns.status?.decision?.hits.length ? (
+        <p data-testid="dshws-dns-hits" style={hintStyle}>
+          {t('dnsHitsLabel')}: {dns.status.decision.hits.map((hit) => `${hit.host}→${hit.addresses.join(',')}`).join(' ')}
+        </p>
+      ) : null}
+      {dns.status?.decision?.failures.length ? (
+        <p data-testid="dshws-dns-failures" style={hintStyle}>
+          {t('dnsFailuresLabel')}: {dns.status.decision.failures.map((failure) => `${failure.host}:${failure.reason}`).join(' ')}
+        </p>
+      ) : null}
+      {open ? (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '6px 16px', alignItems: 'center' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12 }}>
+              {t('dnsModeLabel')}
+              <select data-testid="dshws-dns-mode" data-dshws-focusable="" value={dns.mode} onChange={(event) => { void run(() => onSetDnsMode(event.target.value as 'auto' | 'on' | 'off')) }} style={dnsSelectStyle}>
+                <option value="auto">{t('dnsModeAuto')}</option>
+                <option value="on">{t('dnsModeOn')}</option>
+                <option value="off">{t('dnsModeOff')}</option>
+              </select>
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12 }}>
+              {t('dnsScopeLabel')}
+              <select data-testid="dshws-dns-scope" data-dshws-focusable="" value={dns.scope} onChange={(event) => { void run(() => onSetDnsScope(event.target.value as 'members' | 'all')) }} style={dnsSelectStyle}>
+                <option value="members">{t('dnsScopeMembers')}</option>
+                <option value="all">{t('dnsScopeAll')}</option>
+              </select>
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12 }}>
+              {t('dnsPresetLabel')}
+              <select data-testid="dshws-dns-preset" data-dshws-focusable="" value={dns.preset} onChange={(event) => { void run(() => onSetDnsPreset(event.target.value as 'auto' | 'cn' | 'global' | 'custom')) }} style={dnsSelectStyle}>
+                <option value="auto">{t('dnsPresetAuto')}</option>
+                <option value="cn">{t('dnsPresetCn')}</option>
+                <option value="global">{t('dnsPresetGlobal')}</option>
+                <option value="custom">{t('dnsPresetCustom')}</option>
+              </select>
+            </label>
+          </div>
+          <p style={hintStyle}>{t('dnsModeHint')}</p>
+          <p style={hintStyle}>{t('dnsScopeHint')}</p>
+          <p style={hintStyle}>{dns.preset === 'custom' ? t('dnsNodesHint') : t('dnsPresetHint')}</p>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 12 }}>
+            {t('dnsNodesLabel')}
+            <textarea
+              data-testid="dshws-dns-nodes"
+              data-dshws-focusable=""
+              rows={3}
+              spellCheck={false}
+              value={nodesValue}
+              placeholder={'223.5.5.5,dns.alidns.com,/resolve,443'}
+              onChange={(event) => { setNodesDraft(event.target.value) }}
+              style={{ ...dnsSelectStyle, resize: 'vertical' }}
+            />
+          </label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Button variant="outline" size="sm" disabled={nodesDraft === null || nodesDraft === dns.nodesText} aria-label={t('save')} onClick={() => { void run(() => onSetDnsNodes(nodesValue)) }}>{t('save')}</Button>
+            <Button variant="outline" size="sm" disabled={rechecking} aria-label={t('dnsRecheck')} onClick={() => { void recheck() }}>{rechecking ? t('dnsRechecking') : t('dnsRecheck')}</Button>
+            {feedback !== undefined ? <span role="status" data-testid="dshws-dns-feedback" style={{ ...hintStyle, flex: undefined }}>{t(feedback)}</span> : null}
+          </div>
+          <p style={groupHeaderStyle}>{t('dnsTraceTitle')}</p>
+          {dns.trace.length === 0 ? (
+            <p style={hintStyle}>{t('dnsTraceEmpty')}</p>
+          ) : (
+            <ul data-testid="dshws-dns-trace" style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+              {dns.trace.slice(-8).reverse().map((entry, index) => (
+                <li key={`${entry.at}-${index}`} data-testid="dshws-dns-trace-entry">
+                  {entry.kind} {entry.host}
+                  {entry.via !== undefined ? ` · ${entry.via}` : ''}
+                  {entry.latencyMs !== undefined ? ` · ${t('dnsTraceLatency').replace('{ms}', String(entry.latencyMs))}` : ''}
+                  {entry.code !== undefined ? ` · ${entry.code}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      ) : null}
+    </section>
   )
 }
 

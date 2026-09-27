@@ -160,6 +160,41 @@ export type DshWsLocaleKey =
   | 'paramsGroupLabel'
   | 'fetchChainHint'
   | 'fetchTakeoverNoteS21'
+  | 'dnsTitle'
+  | 'dnsDescription'
+  | 'dnsModeLabel'
+  | 'dnsModeAuto'
+  | 'dnsModeOn'
+  | 'dnsModeOff'
+  | 'dnsModeHint'
+  | 'dnsScopeLabel'
+  | 'dnsScopeMembers'
+  | 'dnsScopeAll'
+  | 'dnsScopeHint'
+  | 'dnsPresetLabel'
+  | 'dnsPresetAuto'
+  | 'dnsPresetCn'
+  | 'dnsPresetGlobal'
+  | 'dnsPresetCustom'
+  | 'dnsPresetHint'
+  | 'dnsNodesLabel'
+  | 'dnsNodesHint'
+  | 'dnsStatusLabel'
+  | 'dnsStatusArmed'
+  | 'dnsStatusIdle'
+  | 'dnsStatusSuspended'
+  | 'dnsDecisionNone'
+  | 'dnsDecisionPoisoned'
+  | 'dnsDecisionClean'
+  | 'dnsDecisionInconclusive'
+  | 'dnsDecisionEmpty'
+  | 'dnsHitsLabel'
+  | 'dnsFailuresLabel'
+  | 'dnsRecheck'
+  | 'dnsRechecking'
+  | 'dnsTraceTitle'
+  | 'dnsTraceEmpty'
+  | 'dnsTraceLatency'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
@@ -314,6 +349,41 @@ export const en: Record<DshWsLocaleKey, string> = {
   paramsGroupLabel: 'Search parameters',
   fetchChainHint: 'The web_fetch degradation order: Firecrawl → Tavily → AnySearch, each with its own multi-key retries. Independent of the search order; member toggles apply to both chains.',
   fetchTakeoverNoteS21: 'ON: web_fetch stays visible and is served by the plugin fetch chain (Firecrawl/Tavily/AnySearch — cloud-side extraction, unaffected by local network limits). OFF: plain local HTTP fetch. Uninstalling restores the official provider.',
+  dnsTitle: 'DNS resilience',
+  dnsDescription: 'Encrypted DoH resolution plus egress precheck for the members above — bypasses resolver blackholes and CDN-rotation timeouts on restricted networks. Auto mode enables itself only on reserved-range evidence; a clean network keeps the system resolver untouched (zero overhead).',
+  dnsModeLabel: 'Mode',
+  dnsModeAuto: 'Auto (evidence-based)',
+  dnsModeOn: 'Always on',
+  dnsModeOff: 'Off',
+  dnsModeHint: 'Auto checks the member hostnames once per process on first use; a reserved-range answer (e.g. 198.18.x.x) arms the layer, a clean answer uninstalls it entirely.',
+  dnsScopeLabel: 'Scope',
+  dnsScopeMembers: 'Members only',
+  dnsScopeAll: 'All hostnames',
+  dnsScopeHint: 'Members-only limits the process-wide interception to the configured member endpoints; all hostnames also covers web_fetch targets under takeover-off.',
+  dnsPresetLabel: 'DoH nodes',
+  dnsPresetAuto: 'Auto (probe & rank)',
+  dnsPresetCn: 'China (AliDNS/DNSPod)',
+  dnsPresetGlobal: 'Global (Cloudflare/Google/Quad9)',
+  dnsPresetCustom: 'Custom',
+  dnsPresetHint: 'Auto probes the built-in pool and keeps the two fastest reachable nodes — the right default on both sides of the wall.',
+  dnsNodesLabel: 'Custom nodes',
+  dnsNodesHint: 'One node per line: host,sni,path,port — host is usually an IP literal, path defaults to /dns-query, port to 443.',
+  dnsStatusLabel: 'Status',
+  dnsStatusArmed: 'DoH active',
+  dnsStatusIdle: 'System resolver',
+  dnsStatusSuspended: 'Suspended (proxy detected)',
+  dnsDecisionNone: 'Not detected yet (auto arms on first member use)',
+  dnsDecisionPoisoned: 'Reserved-range evidence — layer enabled',
+  dnsDecisionClean: 'Network clean — layer not installed',
+  dnsDecisionInconclusive: 'System resolution unavailable — layer enabled conservatively',
+  dnsDecisionEmpty: 'No member hostnames in scope',
+  dnsHitsLabel: 'Evidence',
+  dnsFailuresLabel: 'Unresolved samples',
+  dnsRecheck: 'Re-check',
+  dnsRechecking: 'Checking…',
+  dnsTraceTitle: 'Recent resolutions',
+  dnsTraceEmpty: 'No resolutions recorded yet',
+  dnsTraceLatency: '{ms}ms',
 }
 
 /** Chinese dictionary (complete per {@link DshWsLocaleKey}; parity is typed). */
@@ -463,4 +533,39 @@ export const zh: Record<DshWsLocaleKey, string> = {
   paramsGroupLabel: '搜索参数',
   fetchChainHint: 'web_fetch 降级序：Firecrawl → Tavily → AnySearch，各含自身多 key 重试。与搜索序相互独立；成员启停对两条链同时生效。',
   fetchTakeoverNoteS21: '开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。',
+  dnsTitle: 'DNS 韧性',
+  dnsDescription: '为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。',
+  dnsModeLabel: '模式',
+  dnsModeAuto: '自动（按证据）',
+  dnsModeOn: '始终开启',
+  dnsModeOff: '关闭',
+  dnsModeHint: '自动模式在首次使用时对成员域名做一次进程级检测：应答命中保留段（如 198.18.x.x）即启用；干净应答则完全不安装拦截层。',
+  dnsScopeLabel: '生效范围',
+  dnsScopeMembers: '仅成员',
+  dnsScopeAll: '全部域名',
+  dnsScopeHint: '「仅成员」把进程级拦截限制在已配置的成员端点；「全部域名」还覆盖接管关闭时的 web_fetch 目标。',
+  dnsPresetLabel: 'DoH 节点',
+  dnsPresetAuto: '自动（探测排序）',
+  dnsPresetCn: '国内（AliDNS/DNSPod）',
+  dnsPresetGlobal: '海外（Cloudflare/Google/Quad9）',
+  dnsPresetCustom: '自定义',
+  dnsPresetHint: '自动模式并行探测内置节点池，保留最快的两个可达节点——墙内外都是正确的默认值。',
+  dnsNodesLabel: '自定义节点',
+  dnsNodesHint: '每行一个节点：host,sni,path,port——host 通常写 IP 字面量，path 默认 /dns-query，端口默认 443。',
+  dnsStatusLabel: '状态',
+  dnsStatusArmed: 'DoH 生效中',
+  dnsStatusIdle: '系统解析',
+  dnsStatusSuspended: '已暂停（检测到代理）',
+  dnsDecisionNone: '尚未检测（自动模式随首次成员使用触发）',
+  dnsDecisionPoisoned: '检出保留段证据——已启用',
+  dnsDecisionClean: '网络干净——未安装拦截层',
+  dnsDecisionInconclusive: '系统解析不可用——保守启用',
+  dnsDecisionEmpty: '范围内无成员域名',
+  dnsHitsLabel: '证据',
+  dnsFailuresLabel: '未解析样本',
+  dnsRecheck: '立即重检',
+  dnsRechecking: '检测中…',
+  dnsTraceTitle: '最近解析',
+  dnsTraceEmpty: '暂无解析记录',
+  dnsTraceLatency: '{ms}ms',
 }
