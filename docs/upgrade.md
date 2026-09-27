@@ -30,6 +30,25 @@
 7. **降级验证**：关首位成员开关（或断其 key）再搜——链降级到下一成员，日志 `<dshHome>/logs/dsh-websearch.log` 有降级轨迹。
 8. **GUI 冒烟**：排序拖动 / 折叠展开 / 兜底选择器 / web_fetch 两态开关各操作一次。
 
+### 2.1 生产 3080 升级 runbook（v0.1.3 → v0.2.0；**候令执行**——用户明确指令原文留痕后才动）
+
+前置：`dist-artifacts/dsh-websearch-0.2.0.tgz`（裸名已核）；目标树 = 017rc2（当前生产宿主，不动）。
+
+1. **备份点**（先做，全部留 sha256）：
+   - `~/.dsh/profiles/web/package.json` + `cordis.patch.yml` + `pnpm-lock.yaml`（插件行与模型/链序配置）
+   - `~/.dsh/.credentials.yaml`（只备份不触碰内容）
+   - 当前 tarball 引用行（file: 指向 0.1.3 的依赖串）抄录留痕
+2. **换包**：profile `package.json` 依赖 `dsh-websearch` 行 `file:…dsh-websearch-0.1.3.tgz → …dsh-websearch-0.2.0.tgz` → profile 目录 `pnpm install --no-frozen-lockfile`（node 22 绝对路径）。
+3. **重启 3080**（`dsh web` 进程重启；模型/凭据/会话数据不动）。
+4. **验收冒烟清单**（全过才算成）：
+   - 横幅/设置页「网页搜索」节出现，**DNS 韧性卡**在节底部（成员卡同构头部+四选择器）
+   - 成员卡 key 计数徽标与升级前一致（凭据零丢失）
+   - 链序与升级前一致（cordis.patch.yml 未被覆写）
+   - 一条真实搜索 → 工具行 `[served-by: …]`；日志 `~/.dsh/logs/dsh-websearch.log` 出现 `[dshws-dns] decision` 行（金丝雀自动检测；本网络预期 enable/poisoned）
+   - 一条 web_fetch（接管开）→ served-by 任一成员
+   - **错误路径抽验**（对齐纪律）：fetch 一个不存在词条 → 日志成员失败行携带上游 detail（422「Unable to extract…」）后降级兜底
+5. **回滚**（任一验收不过）：依赖行改回 0.1.3 tarball → `pnpm install` → 重启——分钟级一级回滚；备份目录数据级兜底。
+
 ## 3. 宿主 dsh 版本升级演练（peer 域变更时）
 
 > 2026-09-16 实测记录：0.1.5-rc.2 → 0.1.6-alpha.1 升级审核结论=插件零适配（依赖缝零变更/纯加法，双独立审核——**其 semver 覆盖断言系误判，见 CHANGELOG S30 勘误**）。实操两步：① 新 worktree `git worktree add <dir> dsh-v0.1.6-alpha.1 && pnpm install && pnpm run build`（**必须 build**，否则 profile symlink 解析不到 `lib/`，报 `typert.host.js` 缺失）；② 重启 web 进程（profile 链接自动 healing 指向新树）。3423 与 3080 均按此流程完成切换验证（横幅/徽标计数/接管开关全过）。回滚=进程切回旧 worktree 重启。
