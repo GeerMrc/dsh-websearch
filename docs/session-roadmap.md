@@ -62,6 +62,8 @@
 
 **里程碑 M7 功能扩展**：每成员多 APIKEY（单槽逗号值〔ADR-0011〕+ order/round-robin/random）+ anysearch 第六成员 + 设置页 UI/UX 对齐 + session 工具调用溯源徽标（零内核侵入）+ 装即接管（ADR-0013 插行）—— ✅ 2026-09-06（Session 14 + 14a 证据：徽标浏览器亲见 + 宿主零 diff + 装卸三态 dump + stage45×2 PASS/COMPLETE）；v2 backlog：余额/积分看板 + fetch 兜底开关（调研结论已落档 docs/notes/2026-09-06-s14-fetch-fallback-research.md，仍不排期）
 
+**M7 二次收官（2026-09-28）**：DNS 韧性层批（S35，ADR-0022 accepted，v0.2.0）+ S35 收官/CI 就绪/归档准备（S36）—— ✅ 2026-09-28（证据：session-35/36 记录 + audit-logs 2026-09-28 系 + 逐工具实测 8/8 + v0.2.0 双名 tarball）
+
 ## 验证与文档（M5 交付就绪）
 
 | Session | 目标 | WBS 项 | 验收标准 | 预估工期 | 状态 |
