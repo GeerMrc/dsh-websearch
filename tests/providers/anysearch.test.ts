@@ -250,6 +250,17 @@ describe('S21 T3: AnySearch extract face (web_fetch member, probe-backed contrac
     expect((caught as Error).message).toContain('Unable to extract')
   })
 
+  it('HTTP 422 with an extract_failed envelope rides the upstream message, not the bare status', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      code: -1, message: 'Unable to extract content from the URL.', error_code: 'extract_failed',
+      request_id: 'req-422',
+    }, 422)))
+    const thrown = await makeProvider().fetch({ url: 'https://b.test' }).then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown!.message).toContain('422')
+    expect(thrown!.message).toContain('Unable to extract content from the URL.')
+  })
+
   it('missing data.content on code 0 is a bad response (fail-loud)', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ code: 0, message: 'success', data: {} })))
     await expect(makeProvider().fetch({ url: 'https://c.test' }))

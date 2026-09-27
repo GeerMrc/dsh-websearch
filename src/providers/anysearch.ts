@@ -251,7 +251,17 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
     }
     if (!response.ok) {
       const status = response.status
-      throw new DshwsError(codes.httpError, `Anysearch API error (HTTP ${status})`, { httpStatus: status })
+      let message = `Anysearch API error (HTTP ${status})`
+      try {
+        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
+        const detail = unfoldHttpErrorDetail(parsed)
+        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
+      } catch (error: unknown) {
+        // An abort firing mid-body must surface as aborted, not be swallowed
+        // into a generic HTTP-error message.
+        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'AnySearch', signal, error)
+      }
+      throw new DshwsError(codes.httpError, message, { httpStatus: status })
     }
     let envelope: AnysearchEnvelope
     try {
