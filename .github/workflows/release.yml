@@ -1,0 +1,42 @@
+# Release pipeline (S36 T10): pushing a v* tag IS the user's release
+# confirmation point — everything below runs automatically from there.
+#   build → dual-name tarballs (scripts/pack.mjs) → GitHub Release with both
+#   tarballs → npm publish of the scoped name to registry.npmjs.org.
+# The bare-name tarball cannot go to npm (anti-squat rejection); it rides
+# the GitHub Release for profile installs.
+# Registry is pinned twice (setup-node registry-url + --registry) so a
+# contributor's local npmmirror default can never redirect the publish.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm run build
+      - name: Pack dual names
+        run: node scripts/pack.mjs
+      - name: Create GitHub Release with both tarballs
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes dist-artifacts/*.tgz
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Publish scoped package to npmjs.org
+        run: npm publish dist-artifacts/maricgeer-dsh-websearch-*.tgz --registry https://registry.npmjs.org --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
