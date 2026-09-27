@@ -172,6 +172,9 @@ export type DshWsLocaleKey =
   | 'dnsScopeAll'
   | 'dnsScopeHint'
   | 'dnsPresetLabel'
+  | 'dnsPresetAutoShort'
+  | 'dnsPresetCnShort'
+  | 'dnsPresetGlobalShort'
   | 'dnsPresetAuto'
   | 'dnsPresetCn'
   | 'dnsPresetGlobal'
@@ -365,6 +368,9 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsScopeAll: 'All hostnames',
   dnsScopeHint: 'Members-only limits the process-wide interception to the configured member endpoints; all hostnames also covers web_fetch targets under takeover-off.',
   dnsPresetLabel: 'DoH nodes',
+  dnsPresetAutoShort: 'Auto',
+  dnsPresetCnShort: 'China',
+  dnsPresetGlobalShort: 'Global',
   dnsPresetAuto: 'Auto (probe & rank)',
   dnsPresetCn: 'China (AliDNS/DNSPod)',
   dnsPresetGlobal: 'Global (Cloudflare/Google/Quad9)',
@@ -553,6 +559,9 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsScopeAll: '全部域名',
   dnsScopeHint: '「仅成员」把进程级拦截限制在已配置的成员端点；「全部域名」还覆盖接管关闭时的 web_fetch 目标。',
   dnsPresetLabel: 'DoH 节点',
+  dnsPresetAutoShort: '自动',
+  dnsPresetCnShort: '国内',
+  dnsPresetGlobalShort: '海外',
   dnsPresetAuto: '自动（探测排序）',
   dnsPresetCn: '国内（AliDNS/DNSPod）',
   dnsPresetGlobal: '海外（Cloudflare/Google/Quad9）',

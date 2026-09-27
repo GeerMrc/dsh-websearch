@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, Switch, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import { ChevronDownIcon, QuestionIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
@@ -658,7 +658,13 @@ function DnsResilienceCard(props: {
           </button>
         </Tooltip>
         <span style={{ flex: 1 }} />
-        <span data-testid="dshws-dns-status" style={roleChipStyle}>{t(statusCopy)}</span>
+        <span data-testid="dshws-dns-status" style={{ ...roleChipStyle, ...(dns.status?.armed === true ? { color: 'var(--dsw-alias-state-success-primary)' } : {}) }}>{t(statusCopy)}</span>
+        <Switch
+          data-testid="dshws-dns-switch"
+          checked={dns.mode !== 'off'}
+          label={t('dnsTitle')}
+          onChange={(next: boolean) => { void run(() => onSetDnsMode(next ? 'auto' : 'off')) }}
+        />
       </div>
       <p role="status" data-testid="dshws-dns-decision" style={hintStyle}>{t(decisionCopy)}</p>
       {dns.status?.decision?.hits.length ? (
@@ -684,7 +690,7 @@ function DnsResilienceCard(props: {
               </Tooltip>
             </label>
             <select data-testid="dshws-dns-mode" data-dshws-focusable="" value={dns.mode} onChange={(event) => { void run(() => onSetDnsMode(event.target.value as 'auto' | 'on' | 'off')) }} style={dnsSelectStyle}>
-              <option value="auto">{t('dnsModeAuto')}</option>
+              <option value="auto" title={t('dnsModeAuto')}>{t('dnsModeAuto')}</option>
               <option value="on">{t('dnsModeOn')}</option>
               <option value="off">{t('dnsModeOff')}</option>
             </select>
@@ -703,21 +709,6 @@ function DnsResilienceCard(props: {
             </select>
           </div>
           <div style={paramRowStyle}>
-            <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsPresetLabel')}
-              <Tooltip label={dns.preset === 'custom' ? t('dnsNodesHint') : t('dnsPresetHint')} side="bottom" delayMs={400} maxWidth={320}>
-                <button type="button" aria-label={t('dnsPresetLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
-                  <QuestionIcon />
-                </button>
-              </Tooltip>
-            </label>
-            <select data-testid="dshws-dns-preset" data-dshws-focusable="" value={dns.preset} onChange={(event) => { void run(() => onSetDnsPreset(event.target.value as 'auto' | 'cn' | 'global' | 'custom')) }} style={dnsSelectStyle}>
-              <option value="auto">{t('dnsPresetAuto')}</option>
-              <option value="cn">{t('dnsPresetCn')}</option>
-              <option value="global">{t('dnsPresetGlobal')}</option>
-              <option value="custom">{t('dnsPresetCustom')}</option>
-            </select>
-          </div>
-          <div style={paramRowStyle}>
             <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsProbeMethodLabel')}
               <Tooltip label={t('dnsProbeMethodHint')} side="bottom" delayMs={400} maxWidth={320}>
                 <button type="button" aria-label={t('dnsProbeMethodLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
@@ -730,25 +721,42 @@ function DnsResilienceCard(props: {
               <option value="tls-hello">{t('dnsProbeMethodTlsHello')}</option>
             </select>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={fieldLabelStyle}>{t('dnsNodesLabel')}
-              <Tooltip label={t('dnsNodesHint')} side="bottom" delayMs={400} maxWidth={320}>
-                <button type="button" aria-label={t('dnsNodesLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
+          <div style={paramRowStyle}>
+            <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsPresetLabel')}
+              <Tooltip label={dns.preset === 'custom' ? t('dnsNodesHint') : t('dnsPresetHint')} side="bottom" delayMs={400} maxWidth={320}>
+                <button type="button" aria-label={t('dnsPresetLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
                   <QuestionIcon />
                 </button>
               </Tooltip>
             </label>
-            <textarea
-              data-testid="dshws-dns-nodes"
-              data-dshws-focusable=""
-              rows={3}
-              spellCheck={false}
-              value={nodesValue}
-              placeholder={'223.5.5.5,dns.alidns.com,/resolve,443'}
-              onChange={(event) => { setNodesDraft(event.target.value) }}
-              style={{ ...dnsSelectStyle, resize: 'vertical' }}
-            />
+            <select data-testid="dshws-dns-preset" data-dshws-focusable="" value={dns.preset} onChange={(event) => { void run(() => onSetDnsPreset(event.target.value as 'auto' | 'cn' | 'global' | 'custom')) }} style={dnsSelectStyle}>
+              <option value="auto" title={t('dnsPresetAuto')}>{t('dnsPresetAutoShort')}</option>
+              <option value="cn" title={t('dnsPresetCn')}>{t('dnsPresetCnShort')}</option>
+              <option value="global" title={t('dnsPresetGlobal')}>{t('dnsPresetGlobalShort')}</option>
+              <option value="custom">{t('dnsPresetCustom')}</option>
+            </select>
           </div>
+          {dns.preset === 'custom' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={fieldLabelStyle}>{t('dnsNodesLabel')}
+                <Tooltip label={t('dnsNodesHint')} side="bottom" delayMs={400} maxWidth={320}>
+                  <button type="button" aria-label={t('dnsNodesLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
+                    <QuestionIcon />
+                  </button>
+                </Tooltip>
+              </label>
+              <textarea
+                data-testid="dshws-dns-nodes"
+                data-dshws-focusable=""
+                rows={3}
+                spellCheck={false}
+                value={nodesValue}
+                placeholder={'223.5.5.5,dns.alidns.com,/resolve,443'}
+                onChange={(event) => { setNodesDraft(event.target.value) }}
+                style={{ ...dnsSelectStyle, resize: 'vertical' }}
+              />
+            </div>
+          ) : null}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <Button variant="outline" size="sm" disabled={nodesDraft === null || nodesDraft === dns.nodesText} aria-label={t('save')} onClick={() => { void run(() => onSetDnsNodes(nodesValue)) }}>{t('save')}</Button>
             <Button variant="outline" size="sm" disabled={rechecking} aria-label={t('dnsRecheck')} onClick={() => { void recheck() }}>{rechecking ? t('dnsRechecking') : t('dnsRecheck')}</Button>
