@@ -49,6 +49,15 @@ export interface ChainOptions<P> {
   readonly perMemberTimeoutMs: number
   /** Observability sink; omit for a silent chain (tests assert through results). */
   readonly log?: ChainLogger
+  /**
+   * S36 (plan 036) negative feedback: called when a member draw fails at the
+   * CONNECTION level (cause-chain error code in the connect set) or on the
+   * member timeout — the DNS layer invalidates the host's resolver cache so
+   * the next attempt re-resolves fresh CDN rotation. HTTP-status errors never
+   * fire it (no key can change those verdicts, and the address is not the
+   * suspect).
+   */
+  readonly onMemberConnectFailure?: (memberId: string) => void
 }
 
 /** Hot-read state gates a chain member is consulted through at resolve time. */
@@ -213,6 +222,7 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // propagate it instead of degrading to further members.
           if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
           const isTimeout = error === MEMBER_TIMED_OUT
+          if (isTimeout || isConnectLevelFailure(error)) this.#options.onMemberConnectFailure?.(id)
           const status = !isTimeout && error instanceof DshwsError ? error.httpStatus : undefined
           const requestLevelStatus = status !== undefined && REQUEST_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
           const credentialLevelStatus = status !== undefined && CREDENTIAL_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
@@ -249,6 +259,24 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
 }
 
 /** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
+/** Connection-level cause codes (plan 036): an address/path problem a fresh resolution might fix. */
+const CONNECT_LEVEL_CODES: ReadonlySet<string> = new Set([
+  'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE', 'EAI_AGAIN',
+])
+
+/** Whether any error in the cause chain carries a connect-level code (UND_ERR_* undici codes included). */
+function isConnectLevelFailure(error: unknown): boolean {
+  let current: unknown = error
+  let hops = 0
+  while (typeof current === 'object' && current !== null && hops < 8) {
+    const code = (current as { code?: unknown }).code
+    if (typeof code === 'string' && (CONNECT_LEVEL_CODES.has(code) || code.startsWith('UND_ERR_'))) return true
+    current = (current as { cause?: unknown }).cause
+    hops += 1
+  }
+  return false
+}
+
 const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
 
 /**

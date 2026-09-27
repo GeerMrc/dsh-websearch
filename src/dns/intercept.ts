@@ -34,6 +34,8 @@ const dnsModule: DnsModule = (dnsNamespace as unknown as { default?: DnsModule }
 /** The structural resolver contract (DohResolver satisfies it; tests inject fakes). */
 export interface DohResolverLike {
   resolve(name: string, family: 4 | 6 | 0): Promise<DohResolution | null>
+  /** S36 (plan 036): drop positive cache entries; optional so existing fakes stay valid. */
+  invalidate?(name: string): void
 }
 
 /** Structural bootstrap seam (the real bootstrapNodes satisfies it). */
@@ -88,6 +90,8 @@ export interface DnsLayer {
   recheck(): Promise<CanaryOutcome>
   /** The fetch-gate SSRF seam (ADR-0022 D8): DoH truth when active for the host, system otherwise. */
   resolveForGuard(hostname: string): Promise<readonly string[]>
+  /** S36 (plan 036): drop the host's positive resolver cache (connect-failure feedback); no-op unarmed. */
+  invalidateHost(hostname: string): void
   /** Restore the original module export (settings off-switch, HMR teardown). */
   dispose(): void
 }
@@ -385,6 +389,9 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
       await triggerDetection()
       if (decision === null) throw new Error('dns canary decision missing after recheck')
       return decision
+    },
+    invalidateHost: (hostname: string) => {
+      resolver?.invalidate?.(hostname)
     },
     resolveForGuard: async (hostname: string) => {
       if (isIP(hostname) > 0) return [hostname]

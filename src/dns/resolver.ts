@@ -78,6 +78,21 @@ export class DohResolver {
     this.#ranges = parseIpv4Ranges(options.poisonRanges)
   }
 
+  /**
+   * S36 (plan 036) negative feedback: drop every cached POSITIVE entry for
+   * the name across all three family keys — the next resolve re-queries DoH
+   * for a fresh rotation. Negative entries stay (NXDOMAIN is respected and
+   * its TTL is 10s).
+   * @param name - the hostname whose positive cache entries drop.
+   */
+  invalidate(name: string): void {
+    const lowered = name.toLowerCase()
+    for (const key of [`${lowered}:0`, `${lowered}:4`, `${lowered}:6`]) {
+      const entry = this.#cache.get(key)
+      if (entry !== undefined && !entry.resolution.negative) this.#cache.delete(key)
+    }
+  }
+
   /** Whether a reserved-range membership drops this v4 address; v6 passes untouched (H7 follow-up owns v6 probing). */
   #isPoisoned(address: string): boolean {
     return isReservedIpv4(address, this.#ranges)

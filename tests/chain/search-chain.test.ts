@@ -766,3 +766,61 @@ describe('member budget & exhaustion aggregation (S14u)', () => {
     expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
   })
 })
+
+describe('S36 T2: connect-failure invalidation callback (plan 036)', () => {
+  const CONNECT_CODES = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_SOCKET'] as const
+
+  function connectErr(code: string, label = 'Tavily'): DshwsError {
+    const root = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('connect fail'), { code }) })
+    return new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', `${label} search request failed: ${String(root)}`, { cause: root })
+  }
+
+  function chainWith(invokeImpl: () => Promise<WebSearchResult>, onFail?: (id: string) => void) {
+    const failing: WebSearchProvider = { id: 'dshws-tavily', available: () => true, search: invokeImpl }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa answer') }
+    const core = new ChainSearchProvider({
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      members: resolver({ 'dshws-tavily': { provider: failing }, 'dshws-exa': { provider: fallback } }),
+      onMemberConnectFailure: onFail,
+    })
+    return core
+  }
+
+  it.for(CONNECT_CODES)('reports the member on a connect-level cause code (%s)', async (code) => {
+    const reported: string[] = []
+    const core = chainWith(async () => { throw connectErr(code) }, (id) => { reported.push(id) })
+    await core.search({ query: 'q' })
+    expect(reported).toEqual(['dshws-tavily'])
+  })
+
+  it('does NOT report an HTTP-status member error (request-level 404 degrades without invalidation)', async () => {
+    const reported: string[] = []
+    const httpErr = new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily search failed: HTTP 404', { httpStatus: 404 })
+    const core = chainWith(async () => { throw httpErr }, (id) => { reported.push(id) })
+    await core.search({ query: 'q' })
+    expect(reported).toEqual([])
+  })
+
+  it('does NOT report a bare credential-resolution failure sharing the requestFailed code (no connect cause)', async () => {
+    const reported: string[] = []
+    const bare = new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', 'Tavily search failed: key missing', undefined)
+    const core = chainWith(async () => { throw bare }, (id) => { reported.push(id) })
+    await core.search({ query: 'q' })
+    expect(reported).toEqual([])
+  })
+
+  it('member timeout counts as an invalidation trigger (explicit decision, plan 036)', async () => {
+    vi.useFakeTimers()
+    try {
+      const reported: string[] = []
+      const core = chainWith(() => new Promise<WebSearchResult>(() => {}), (id) => { reported.push(id) })
+      const pending = core.search({ query: 'q' })
+      await vi.advanceTimersByTimeAsync(5100)
+      await pending
+      expect(reported).toEqual(['dshws-tavily'])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})

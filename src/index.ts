@@ -214,6 +214,23 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
     fileLog(message)
   }
 
+  /** S36 (plan 036): one member id -> its live resolved base-URL host (for cache invalidation feedback). */
+  const dnsHostOfMember = (memberId: string): string | undefined => {
+    const key = memberId.replace('dshws-', '')
+    const current = live.current()
+    const section = (current as unknown as Record<string, { baseURL?: string } | undefined>)[key]
+    const fallback = {
+      tavily: TAVILY_DEFAULT_BASE_URL,
+      exa: EXA_DEFAULT_BASE_URL,
+      firecrawl: FIRECRAWL_DEFAULT_BASE_URL,
+      anysearch: ANYSEARCH_DEFAULT_BASE_URL,
+      deepseek: DEEPSEEK_DEFAULT_BASE_URL,
+    }[key]
+    const base = section?.baseURL ?? fallback
+    if (base === undefined) return undefined
+    return URL.canParse(base) ? new URL(base).hostname.toLowerCase() : undefined
+  }
+
   // The DNS observability sink (S35 T7): sanitized hosts before any surface,
   // [dshws-dns] log lines with the latency figure, and the 50-entry ring the
   // remote trace face reads. Sensitivity is live: only scope 'all' exposes
@@ -358,8 +375,13 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   // Chain options are getter-backed on purpose: the chain shells keep the
   // options object by reference, so every run reads the live chain order and
   // timeout — a settings change reaches the next search without re-registering.
+  const onMemberConnectFailure = (memberId: string): void => {
+    const host = dnsHostOfMember(memberId)
+    if (host !== undefined) dnsLayer.invalidateHost(host)
+  }
   ctx.web.registerSearchProvider(new ChainSearchProvider({
     members: searchMembers.toResolver(),
+    onMemberConnectFailure,
     get order() {
       const current = live.current()
       const chain = [...current.searchChain]
@@ -450,6 +472,7 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   }
   const fetchChain = new ChainFetchProvider({
     members: fetchMembers.toResolver(),
+    onMemberConnectFailure,
     get order() {
       return [...live.current().fetchChain]
     },
