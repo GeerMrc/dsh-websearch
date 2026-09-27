@@ -22,6 +22,7 @@ import { FULL_POOL, nodesForPreset } from './pool.ts'
 import { DohResolver } from './resolver.ts'
 import type { DohResolution } from './resolver.ts'
 import type { ResolvedDnsConfig } from '../config.ts'
+import { isPublicAddress } from '../fetch-gate.ts'
 import type { ResolvedDohNode } from './transport.ts'
 
 /** The mutable CJS exports object behind the `node:dns` ESM facade — the only writable patch face. */
@@ -178,8 +179,13 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
   }
 
   function inScope(hostname: string): boolean {
-    const config = deps.config()
-    return config.scope === 'all' || deps.scopeHosts().includes(hostname)
+    try {
+      const config = deps.config()
+      return config.scope === 'all' || deps.scopeHosts().includes(hostname)
+    } catch {
+      // Same stage-5 C4 guard: an unreadable config must read as out-of-scope.
+      return false
+    }
   }
 
   /** Delegate one call to the captured original with the caller's exact arguments. */
@@ -191,8 +197,16 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
     if (disposed || dohInFlight > 0) return delegate.call(this, args)
     const [hostname, options, maybeCallback] = args as [string, unknown, unknown]
     const callback = typeof options === 'function' ? options : maybeCallback
-    const config = deps.config()
     if (typeof hostname !== 'string' || typeof callback !== 'function' || typeof options === 'number' || isIP(hostname) > 0) {
+      return delegate.call(this, args)
+    }
+    // Stage-5 C4: the volatile settings path has no validate hook, so a
+    // hostile out-of-UI write can make every config read throw — this patch
+    // face must degrade to the system path, never break process-wide lookup.
+    let config: ResolvedDnsConfig
+    try {
+      config = deps.config()
+    } catch {
       return delegate.call(this, args)
     }
     if (config.mode === 'off' || proxySuspendsFor(hostname, env()) || !inScope(hostname)) {
@@ -204,7 +218,9 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
       else if (decision === null) void triggerDetection()
       return delegate.call(this, args)
     }
-    const lookupOptions = options as { all?: boolean; family?: number }
+    // Stage-5 C2: the three-arg form may pass null/undefined explicitly —
+    // the original lookup tolerates it, so the wrapper must too.
+    const lookupOptions = (options ?? {}) as { all?: boolean; family?: number }
     const family: 4 | 6 | 0 = lookupOptions.family === 4 ? 4 : lookupOptions.family === 6 ? 6 : 0
     const startedWallMs = Date.now()
     void (async () => {
@@ -236,9 +252,19 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
           // meaningful handshake window.
           const probeBudget = Math.max(50, config.nodeTimeoutMs - (Date.now() - startedWallMs))
           const probe = new EgressProbe({ port: 443, timeoutMs: Math.min(config.probe.timeoutMs, probeBudget), cacheTtlS: config.probe.cacheTtlS })
+          // Stage-5 S2: probe only globally-reachable addresses — a rebinding
+          // answer must not turn this process into a private-range SYN probe.
+          // Non-public addresses are never probed and always stay in the
+          // ANSWER (never-worse); the public ones filter by verdict.
+          const publicCandidates = candidates.filter((entry) => isPublicAddress(entry.address))
           dohInFlight -= 1
           try {
-            probeOutcome = await probe.filterReachable(candidates.map((entry) => entry.address))
+            if (publicCandidates.length > 0) {
+              const verdict = await probe.filterReachable(publicCandidates.map((entry) => entry.address))
+              const verdictKept = new Set(verdict.kept)
+              kept = candidates.filter((entry) => !isPublicAddress(entry.address) || verdictKept.has(entry.address))
+              probeOutcome = verdict
+            }
           } finally {
             dohInFlight += 1
           }
@@ -293,7 +319,12 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
     },
     resolveForGuard: async (hostname: string) => {
       if (isIP(hostname) > 0) return [hostname]
-      const config = deps.config()
+      let config: ResolvedDnsConfig
+      try {
+        config = deps.config()
+      } catch {
+        return await systemAddresses(originalLookup, hostname)
+      }
       if (config.mode === 'off' || !armed || resolver === null || proxySuspendsFor(hostname, env()) || !inScope(hostname)) {
         return await systemAddresses(originalLookup, hostname)
       }

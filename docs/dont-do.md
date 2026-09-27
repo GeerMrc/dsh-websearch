@@ -80,3 +80,12 @@
 - **错误**：T2 兼容矩阵将 typert strict codec `schema`→`create` 更名定为「纯编译级破坏，运行时零感知」（沿用上游注释的字段意图推断）。实况：0.1.5/0.1.6 client 的 `parseInput` 在**每次调用时**执行 `codec.schema.parse(value)`——`create` 单字段在旧宿主= `undefined.parse` 崩溃，key-count 徽标静默消失（无报错、无日志）。3434 015rc3 演练首轮抓获。
 - **正确**：凡跨代兼容断言，逐一列出各消费代的**运行时校验/读取代码路径**（旧 client parseInput、旧 loader requireStrictCodec、新 loader create 工厂）再下分类结论；跨代协议字段用「双字段并存」（各代只读己方、两侧均无逐键排斥）保单一构建。最终裁决只能来自 3434 实例演练，不来自源码注释推断。
 - **来源**：S32 T6 演练抓获 + 44488b7 修复（tests/key-counts.test.ts 跨代 shape 测试红→绿）；upgrade.md 三线矩阵与 ADR-0021「同族适配模式库」。
+
+
+## 交接证据链（Session 35 阶段 4/5 入册；两现后系统性确认）
+
+### ❌ 不要向审核方交接「枚举式」commit 清单——交接链一律以 git log 全量为准
+
+- **错误**:：给阶段 0/2/4/5 审核 Agent 的输入里手工枚举 commit hash 清单时省略 docs-only 提交（S34 收官链省略 1fb2a3b；S35 执行链声称 13 个、实际 15 个——漏 4edc5b1/6c2e360 两个治理产物提交）。内容均计划内且 session 记录有载，但审核方复核 `git log` 后须自行发现差异，消耗审核预算并留下「枚举不可信」的复发记录（两棒连现）。
+- **正确**：交接只给**范围锚点**（起点 hash + HEAD）+ 一句「自行 `git log <start>..HEAD` 复核全量」；确需点名个别提交时以 git log 输出为准现场生成，不凭记忆誊写。
+- **来源**：S34 阶段 0 🟢② + S35 阶段 4 问题 1（docs/sessions/audit-logs/2026-09-27-s35-stage4-review.md §0/§5-1）；两现跨棒，入册防第三现。

@@ -84,8 +84,12 @@ async function delegateFetch(resolution: (hostname: string) => Promise<readonly 
   }
 }
 
-/** Whether an address is globally reachable unicast (the official SSRF bar). */
-function isPublicAddress(address: string): boolean {
+/**
+ * Whether an address is globally reachable unicast (the official SSRF bar).
+ * Exported since S35 stage 5: the dns egress precheck reuses the same bar to
+ * avoid SYN-probing private ranges a rebinding answer might carry.
+ */
+export function isPublicAddress(address: string): boolean {
   const kind = isIP(address)
   if (kind === 6) {
     // Reject well-known non-public v6 ranges: loopback, link-local, unique-local.

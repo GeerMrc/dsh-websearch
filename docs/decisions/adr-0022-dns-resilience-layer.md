@@ -28,7 +28,7 @@ proposed（2026-09-27，Session 35 阶段 1 起草；随 T6 拦截层落地复�
 - **D4 auto 模式证据制**：以运行时配置的成员 baseURL host 集合为 canary，系统 `dns.lookup` 应答命中保留段 = 污染高置信信号（唯一判定依据；不认"探测失败"防误报）。判定优先级 = 有可用应答样本即以样本为准：全部干净→SKIPPED；**任一命中→ENABLED（证据=命中 host+IP 清单）**；**混合态**（部分干净 + 部分系统解析失败 + 零命中）→有干净样本即证未污染，按红线判 SKIPPED（失败侧记 `DSHWS_DNS_DETECT_INCONCLUSIVE` 诊断码，不构成启用依据）；仅当**全部样本不可得**（系统解析失败）→inconclusive 保守启用（DNS 全盲比污染更糟）；canary 集为空→跳过。**无证据永不启用（红线）**；决策进程生命周期缓存 1 次，UI 重检按钮强制重跑；**触发时机 = lazy**（首次 scope 内 lookup 时触发检测；auto 默认下 apply() 不触发——单测密闭性红线，装配类测试零外呼零 patch）。
 - **D5 scope 过滤**：默认 `members`——仅成员 host（live 读取随设置热变）走 DoH，其余 hostname 透传原 lookup；`all` 可选（覆盖 fetch-gate OFF 路径任意域名）。进程全局副作用压缩到最小。
 - **D6 区域预设池 + bootstrap**：默认池 AliDNS/DNSPod/Cloudflare/Google/Quad9（全 JSON DoH，SNI 与 Host 分离；节点表含 `port` 字段：Quad9 专用 **:5053** `/dns-query` + `application/dns-json`，其余 :443）。五厂商 JSON face 已核验：Quad9 官方博客 / ControlD docs / netmeister.org、DNSPod doh.pub 文档、Cloudflare（dns-json）/Google（/resolve）官方文档；本网络可直达者（AliDNS/DNSPod）由 T2 实测取样。`preset=auto` 启用时并行探测可达性+RTT 取前 2（非标端口被封的网络由探测剔除兜底）；`cn`/`global` 手动钉扎；`custom` 用户自填节点表。适配国内（AliDNS/DNSPod 可达）与海外（Cloudflare/Google 可达）用户开箱即用。
-- **D7 代理环境自动暂停**：`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` 存在且目标不在 `NO_PROXY` → 层暂停（诊断码 + UI 状态）——代理模式解析与预检均移至代理侧，本地 DoH 无意义且预检失真；为 DSH 正式版代理 seam 预留对接点。`NO_PROXY` 语义：目标 = 本次解析请求的成员 host；CSV 列表，后缀匹配（host 等于条目或以 `.条目` 结尾），`*` 通配全部（与主流代理实现一致）。
+- **D7 代理环境自动暂停**：`HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` 存在且目标不在 `NO_PROXY` → 层暂停（诊断码 + UI 状态）——代理模式解析与预检均移至代理侧，本地 DoH 无意义且预检失真；为 DSH 正式版代理 seam 预留对接点。`NO_PROXY` 语义：目标 = 本次解析请求的成员 host；CSV 列表，后缀匹配（host 等于条目或以 `.条目` 结尾），`*` 通配全部（与主流代理实现一致）。**S35 阶段 5 勘注**：带端口条目（`host:443`）与前导点条目（`.example.com`）不参与匹配——curl 支持两者，本实现未承诺；支持扩展登记为后续。
 - **D8 fetch-gate 改造**：`src/fetch-gate.ts` SSRF 预检的 `import { lookup } from 'node:dns/promises'` 为 ESM 不可变绑定（运行时 patch 不可触达，spike 附带证实），改为经 dns 层导出 `resolveForGuard()`——层关闭时等价回落系统解析，行为零变化。
 - **D9 隐私红线**：chain-log 与 ring buffer 仅 scope 内成员 host 明文；scope=all 时非成员域名截断脱敏（保留 TLD+哈希尾缀）；诊断码/计数不涉查询名。
 - **D10 生命周期**：`ctx.effect()` 注册，disposer 还原 `dns.lookup` patch（单 patch 面）；HMR 完整丢弃重建（单层包装断言入回归）；`mode on↔off` 设置热切换即时生效（ADR-0021 volatile 路径复用）；scope 随设置热变（成员 host 集合 live 读取）。
@@ -75,7 +75,7 @@ proposed（2026-09-27，Session 35 阶段 1 起草；随 T6 拦截层落地复�
 
 ## 后续路线（各自立项，不混入本批）
 
-节点健康评分 + race 竞争取先回、wire DoH / DoT 传输、AAAA/IPv6 预检、负反馈闭环（连接失败→IP 短黑名单）、DSH 代理 seam 正式对接（订阅宿主代理配置事件）、系统级 forwarder 组件。
+节点健康评分 + race 竞争取先回、wire DoH / DoT 传输、AAAA/IPv6 预检、负反馈闭环（连接失败→IP 短黑名单）、DSH 代理 seam 正式对接（订阅宿主代理配置事件）、系统级 forwarder 组件、Inspect trace 逐调用归属（需 session 事件通道；S35 v1 为进程级 ring 窗口）。
 
 ## 证据附录
 

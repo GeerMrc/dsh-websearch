@@ -174,6 +174,60 @@ describe('S35 T6: intercept — decision lifecycle (ADR-0022 D4/D5/D10)', () => 
     layer.dispose()
   })
 
+  it('stage-5 C4: a throwing config read (hostile volatile-path write) degrades to the system lookup, never breaks process-wide resolution', async () => {
+    const resolver = scriptedResolver({ 'api.tavily.com': outcome(['5.5.5.5']) })
+    let broken = false
+    const layer = installDnsLayer(makeDeps({
+      config: () => {
+        if (broken) throw new Error('resolveConfig: dns.preset "custom" requires a non-empty nodes list')
+        return dnsConfig({ mode: 'on' })
+      },
+      makeResolver: () => resolver,
+      canarySystemLookup: async () => ['104.0.0.1'],
+    }))
+    await layer.whenArmed()
+    broken = true
+    expect(await callLookup(layer, 'api.tavily.com', { all: true })).toEqual([{ address: '104.18.1.1', family: 4 }])
+    // The guard seam degrades identically.
+    await expect(layer.resolveForGuard('api.tavily.com')).resolves.toEqual(['104.18.1.1'])
+    layer.dispose()
+  })
+
+  it('stage-5 C2: the explicit three-arg null/undefined options form delegates like the original lookup', async () => {
+    const system = scriptedSystem({ 'api.tavily.com': ['104.18.1.1'] })
+    const layer = installDnsLayer(makeDeps({
+      systemLookup: system.systemLookup as unknown as typeof dnsDefault.lookup,
+    }))
+    // The scripted system seam answers in its all-form; the assertion is the
+    // DELEGATION (the system answer passed through verbatim, no throw).
+    const answer = await new Promise((resolve, reject) => {
+      ;(layer.lookup as unknown as (host: string, options: null, cb: (err: Error | null, ...rest: unknown[]) => void) => unknown)('api.tavily.com', null, (err, ...rest) => {
+        if (err !== null) reject(err)
+        else resolve(rest)
+      })
+    })
+    expect(answer).toEqual([[{ address: '104.18.1.1', family: 4 }]])
+    layer.dispose()
+  })
+
+  it('stage-5 C2: the numeric-family call shape delegates to the original (verbatim/hints semantics belong to the system path)', async () => {
+    const system = scriptedSystem({ 'api.tavily.com': ['104.18.1.1'] })
+    const layer = installDnsLayer(makeDeps({
+      config: () => dnsConfig({ mode: 'on' }),
+      systemLookup: system.systemLookup as unknown as typeof dnsDefault.lookup,
+      makeResolver: () => scriptedResolver({ 'api.tavily.com': outcome(['5.5.5.5']) }),
+      canarySystemLookup: async () => ['104.0.0.1'],
+    }))
+    const answer = await new Promise((resolve, reject) => {
+      ;(layer.lookup as unknown as (host: string, family: number, cb: (err: Error | null, ...rest: unknown[]) => void) => void)('api.tavily.com', 4, (err, ...rest) => {
+        if (err !== null) reject(err)
+        else resolve(rest)
+      })
+    })
+    expect(answer).toEqual([[{ address: '104.18.1.1', family: 4 }]])
+    layer.dispose()
+  })
+
   it('suspends under a proxy environment and resumes for NO_PROXY-exempt hosts', async () => {
     const resolver = scriptedResolver({ 'api.tavily.com': outcome(['5.5.5.5']), 'api.exa.ai': outcome(['6.6.6.6']) })
     const layer = installDnsLayer(makeDeps({

@@ -85,6 +85,10 @@ src/errors.ts         DSHWS_DNS_* 诊断码（诊断级，不进链失败路径�
 | Release/fork 远端活体目验 | 🟢 | **已销项**（S35 阶段 0 活体亲验：远端 master=5d34b2f 一致、fork head=ebd42731c9 一致） | audit-log s35-stage0 §维度 1d |
 | npm 包内 README 漂移 | 🟢 | v0.2.0 发版自然消除 | S34 登记 |
 | 节点健康评分/race、wire DoH/DoT、AAAA/IPv6 预检、负反馈闭环、DSH 代理 seam 正式对接、系统级 forwarder 组件 | 🟢 | 后续 ADR（各自立项） | ADR-0022「后续路线」节 |
+| Inspect trace 逐调用归属（当前=进程级 ring 窗口；逐调用需 session 事件通道） | 🟢 | 后续版本 | S35 T9 记录 + 阶段 5 F2（one-home 补登记） |
+| dns.lookup verbatim 语义未透传（v6-first 应答被重排 v4-first；当前网络无 v6 无实害） | 🟢 | 后续版本（随 AAAA/IPv6 腿） | S35 阶段 5 C2-② |
+| NO_PROXY 不支持带端口条目（host:443）与前导点条目（.example.com）——curl 支持两者 | 🟢 | ADR-0022 D7 勘注在案；支持扩展随需求 | S35 阶段 5 S4-③ |
+| 【已修复登记】阶段 5 抓获三缺陷当场清偿：C4 恶意 volatile 写→config throw→进程级 lookup 断（try/catch 透传）；C2-① options=null/undefined 三参形态 TypeError（`?? {}`）；S2 预检私网 SYN 探测面（复用 isPublicAddress 只探公网，非公网保留应答不探） | ✅ | S35 阶段 5 修复批（含 3 条回归锁，555\|13(568)） | audit-logs/2026-09-27-s35-stage5-crossvalidation.md |
 
 ## 风险
 
