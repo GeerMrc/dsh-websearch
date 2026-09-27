@@ -120,7 +120,7 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       // Single-key member (no pool): the first refusal degrades at once —
       // the compact form shows degrade(retry-cap); pooled members show the
       // retry line first. Either way the form is compact + attributable.
-      expect(flaps.some(l => /→ (retry\(fresh-resolve\)|degrade\(retry-cap\)) #[0-9a-f]{4}/.test(l))).toBe(true)
+      expect(flaps.some(l => /→ (retry\(fresh-resolve\)|degrade\((retry-cap|no-pool)\)) #[0-9a-f]{4}/.test(l))).toBe(true)
       expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-exa')
       // The dead member never reached the stub; the winner did, exactly once.
       expect(server.arrivals).toEqual(['POST /exa/search'])

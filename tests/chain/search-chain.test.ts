@@ -952,8 +952,12 @@ describe('S38 T2: connect-flap compact lines with run-key and cause-code (plan 0
       log: (line) => { logs.push(line) },
     })
     await Promise.all([core.search({ query: 'a' }), core.search({ query: 'b' })])
-    const keys = [...new Set(logs.filter(l => l.includes('connect-flap')).map(l => (l.match(/#([0-9a-f]{4})/) ?? [])[1]).filter(Boolean))]
-    expect(keys.length).toBeGreaterThanOrEqual(2)
+    const flapLines = logs.filter(l => l.includes('connect-flap'))
+    // Exactly two runs' keys across exactly four flap lines (2 per run) —
+    // per-line re-keying or cross-run bleed both break this.
+    expect(flapLines.length).toBe(4)
+    const keys = [...new Set(flapLines.map(l => (l.match(/#([0-9a-f]{4})/) ?? [])[1]).filter(Boolean))]
+    expect(keys.length).toBe(2)
   })
 
   it('real errors keep the verbose form (HTTP 404 unchanged)', async () => {

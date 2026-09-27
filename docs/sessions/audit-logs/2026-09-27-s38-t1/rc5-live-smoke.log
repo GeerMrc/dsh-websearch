@@ -1,0 +1,9 @@
+2026-09-27T13:01:41.983Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T13:01:47.343Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=140 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:01:47.696Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=177 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:01:48.049Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=95 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:01:48.389Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=183
+2026-09-27T13:01:48.488Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=59
+2026-09-27T13:02:47.706Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T13:02:48.059Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=213 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:02:51.429Z [dshws-chain] served-by: dshws-tavily

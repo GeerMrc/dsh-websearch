@@ -257,7 +257,8 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // the verbose member-failed form. Mixed request-level+connect runs
           // the verbose form (request-level is the true-failure semantics).
           if (connectLevel && requestLevelStatus === undefined) {
-            this.#options.log?.(`[dshws-chain] connect-flap ${id} ${connectCauseCode(error)} → ${degrading ? 'degrade(retry-cap)' : 'retry(fresh-resolve)'} #${runKey}`)
+            const flapArrow = !degrading ? 'retry(fresh-resolve)' : connectDegrade ? 'degrade(retry-cap)' : 'degrade(no-pool)'
+            this.#options.log?.(`[dshws-chain] connect-flap ${id} ${connectCauseCode(error)} → ${flapArrow} #${runKey}`)
           } else {
             const drawNote = degrading
               ? `; degrading to next member${requestLevelStatus !== undefined ? ` (request-level HTTP ${requestLevelStatus})` : ''}`
