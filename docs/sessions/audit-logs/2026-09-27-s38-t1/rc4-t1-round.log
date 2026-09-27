@@ -1,0 +1,35 @@
+2026-09-27T12:42:21.984Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T12:42:21.984Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-27T12:42:21.984Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-27T12:42:21.984Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-27T12:42:21.987Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-27T12:42:22.339Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=222 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T12:42:25.113Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T12:42:32.467Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); retrying on fresh resolution (connect-level)
+2026-09-27T12:42:32.468Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T12:42:32.473Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); retrying on fresh resolution (connect-level)
+2026-09-27T12:42:32.473Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-27T12:42:32.475Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); retrying on fresh resolution (connect-level)
+2026-09-27T12:42:32.475Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-27T12:42:32.477Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); retrying on fresh resolution (connect-level)
+2026-09-27T12:42:32.477Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-27T12:42:32.823Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=170 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T12:42:35.361Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T12:42:42.969Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); degrading to next member (connect-level retry cap)
+2026-09-27T12:42:42.971Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T12:42:42.977Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); degrading to next member (connect-level retry cap)
+2026-09-27T12:42:42.978Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T12:42:42.979Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); degrading to next member (connect-level retry cap)
+2026-09-27T12:42:42.980Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T12:42:43.327Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=271 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T12:42:45.316Z [dshws-chain] served-by: dshws-exa
+2026-09-27T12:42:53.475Z [dshws-chain] member dshws-exa failed (Exa search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T12:42:53.477Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-27T12:42:53.482Z [dshws-chain] member dshws-exa failed (Exa search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T12:42:53.483Z [dsh-websearch] key draw dshws-firecrawl …b9c1
+2026-09-27T12:42:53.832Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=216 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T12:42:55.473Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T12:43:03.986Z [dshws-chain] member dshws-firecrawl failed (Firecrawl search request failed: TypeError: fetch failed); retrying on fresh resolution (connect-level)
+2026-09-27T12:43:03.986Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-27T12:43:04.338Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=191 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T12:43:09.184Z [dshws-chain] served-by: dshws-firecrawl
