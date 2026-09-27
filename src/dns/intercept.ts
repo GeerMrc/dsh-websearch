@@ -206,6 +206,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
     }
     const lookupOptions = options as { all?: boolean; family?: number }
     const family: 4 | 6 | 0 = lookupOptions.family === 4 ? 4 : lookupOptions.family === 6 ? 6 : 0
+    const startedWallMs = Date.now()
     void (async () => {
       try {
         dohInFlight += 1
@@ -228,7 +229,13 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
         let kept = candidates
         let probeOutcome: ProbeOutcome | null = null
         if (config.probe.enabled) {
-          const probe = new EgressProbe({ port: 443, timeoutMs: config.probe.timeoutMs, cacheTtlS: config.probe.cacheTtlS })
+          // T10 measured finding: the DoH leg and the precheck leg must share
+          // ONE cold-path budget (serial legs at full budget measured 410–493ms
+          // against the 350ms target) — the probe gets the node-budget
+          // remainder, floored at 50ms so a slow DoH answer still gets a
+          // meaningful handshake window.
+          const probeBudget = Math.max(50, config.nodeTimeoutMs - (Date.now() - startedWallMs))
+          const probe = new EgressProbe({ port: 443, timeoutMs: Math.min(config.probe.timeoutMs, probeBudget), cacheTtlS: config.probe.cacheTtlS })
           dohInFlight -= 1
           try {
             probeOutcome = await probe.filterReachable(candidates.map((entry) => entry.address))
