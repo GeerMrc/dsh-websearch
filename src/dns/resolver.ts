@@ -8,6 +8,8 @@
  *
  * @module dsh-websearch/dns/resolver
  */
+import { isReservedIpv4, parseIpv4Ranges } from './ranges.ts'
+import type { IpRange } from './ranges.ts'
 import { dohQuery, extractDohRecords } from './transport.ts'
 import type { DohRecordType, DohRecords, NodeHttpsSend, ResolvedDohNode } from './transport.ts'
 
@@ -49,20 +51,6 @@ interface CacheEntry {
   readonly expiresAt: number
 }
 
-/** Parse one dotted-quad into a 32-bit integer; returns -1 for anything else (v6, garbage). */
-function ipv4ToInt(address: string): number {
-  const parts = address.split('.')
-  if (parts.length !== 4) return -1
-  let value = 0
-  for (const part of parts) {
-    if (!/^\d{1,3}$/.test(part)) return -1
-    const octet = Number(part)
-    if (octet > 255) return -1
-    value = (value << 8) | octet
-  }
-  return value >>> 0
-}
-
 /**
  * The DoH resolver core. One instance owns the cache, the per-node failure
  * streaks, and the cooldown bookkeeping; the intercept layer (ADR-0022 D10)
@@ -75,7 +63,7 @@ export class DohResolver {
   readonly #cooldown: { failThreshold: number; cooldownS: number }
   readonly #send: NodeHttpsSend | undefined
   readonly #clock: () => number
-  readonly #ranges: readonly { base: number; mask: number }[]
+  readonly #ranges: readonly IpRange[]
   readonly #cache = new Map<string, CacheEntry>()
   readonly #failStreaks = new Map<string, number>()
   readonly #cooldownUntil = new Map<string, number>()
@@ -87,21 +75,12 @@ export class DohResolver {
     this.#cooldown = options.cooldown ?? DEFAULT_COOLDOWN
     this.#send = options.send
     this.#clock = options.clock ?? Date.now
-    this.#ranges = options.poisonRanges.flatMap((cidr) => {
-      const [base, prefixText] = cidr.split('/')
-      const prefix = prefixText === undefined ? 32 : Number(prefixText)
-      const baseInt = ipv4ToInt(base)
-      if (baseInt < 0 || !Number.isInteger(prefix) || prefix < 0 || prefix > 32) return []
-      const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0
-      return [{ base: (baseInt & mask) >>> 0, mask }]
-    })
+    this.#ranges = parseIpv4Ranges(options.poisonRanges)
   }
 
   /** Whether a reserved-range membership drops this v4 address; v6 passes untouched (H7 follow-up owns v6 probing). */
   #isPoisoned(address: string): boolean {
-    const value = ipv4ToInt(address)
-    if (value < 0) return false
-    return this.#ranges.some((range) => (value & range.mask) >>> 0 === range.base)
+    return isReservedIpv4(address, this.#ranges)
   }
 
   /**
