@@ -355,8 +355,8 @@ export interface DnsSettings {
   nodes?: DohNode[]
   /** Per-node DoH query budget in ms; defaults to 350 (distinct from the TCP precheck budget). */
   nodeTimeoutMs?: number
-  /** Egress reachability precheck (TCP-443 handshake only); defaults enabled with a 350ms parallel budget and 30s result cache. */
-  probe?: { enabled?: boolean; timeoutMs?: number; cacheTtlS?: number }
+  /** Egress reachability precheck; defaults enabled, 350ms budget, 30s cache, bare TCP method. */
+  probe?: { enabled?: boolean; timeoutMs?: number; cacheTtlS?: number; method?: 'tcp' | 'tls-hello' }
   /** Resolution cache; positive TTLs clamp to [posMinS, posMaxS], negative answers cache negS. */
   cache?: { posMinS?: number; posMaxS?: number; negS?: number }
   /** Reserved IPv4 ranges whose answers are dropped as poisoned (the side-router blackhole signature). */
@@ -582,6 +582,7 @@ function buildConfigSchema(markVolatile: boolean): z {
       enabled: z.boolean(),
       timeoutMs: z.number().step(1).min(50).max(5000),
       cacheTtlS: z.number().step(1).min(1).max(600),
+      method: z.union(['tcp', 'tls-hello']),
     }),
     cache: z.object({
       posMinS: z.number().step(1).min(1).max(3600),
@@ -711,8 +712,8 @@ export interface ResolvedDnsConfig {
   readonly nodeTimeoutMs: number
   /** Custom nodes, copied; empty unless `preset: 'custom'` supplies a validated list. */
   readonly nodes: readonly DohNode[]
-  /** Egress precheck; defaults `{ enabled: true, timeoutMs: 350, cacheTtlS: 30 }`. */
-  readonly probe: { readonly enabled: boolean; readonly timeoutMs: number; readonly cacheTtlS: number }
+  /** Egress precheck; defaults `{ enabled: true, timeoutMs: 350, cacheTtlS: 30, method: 'tcp' }`. */
+  readonly probe: { readonly enabled: boolean; readonly timeoutMs: number; readonly cacheTtlS: number; readonly method: 'tcp' | 'tls-hello' }
   /** Resolution cache; defaults `{ posMinS: 30, posMaxS: 300, negS: 10 }`. */
   readonly cache: { readonly posMinS: number; readonly posMaxS: number; readonly negS: number }
   /** Reserved ranges dropped as poisoned; defaults {@link DEFAULT_DNS_POISON_RANGES}. */
@@ -947,6 +948,7 @@ export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearch
         enabled: plain.dns?.probe?.enabled ?? true,
         timeoutMs: plain.dns?.probe?.timeoutMs ?? 350,
         cacheTtlS: plain.dns?.probe?.cacheTtlS ?? 30,
+        method: plain.dns?.probe?.method ?? 'tcp',
       },
       cache: {
         posMinS: plain.dns?.cache?.posMinS ?? 30,

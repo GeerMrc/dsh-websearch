@@ -324,7 +324,7 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
           // remainder, floored at 50ms so a slow DoH answer still gets a
           // meaningful handshake window.
           const probeBudget = Math.max(50, config.nodeTimeoutMs - (Date.now() - startedWallMs))
-          const probe = new EgressProbe({ port: 443, timeoutMs: Math.min(config.probe.timeoutMs, probeBudget), cacheTtlS: config.probe.cacheTtlS })
+          const probe = new EgressProbe({ port: 443, timeoutMs: Math.min(config.probe.timeoutMs, probeBudget), cacheTtlS: config.probe.cacheTtlS, method: config.probe.method, hostname })
           // Stage-5 S2: probe only globally-reachable addresses — a rebinding
           // answer must not turn this process into a private-range SYN probe.
           // Non-public addresses are never probed and always stay in the

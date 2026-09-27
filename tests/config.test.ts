@@ -355,7 +355,7 @@ describe('S35 T1: dns section defaults and passthrough (ADR-0022)', () => {
     expect(resolved.dns.preset).toBe('auto')
     expect(resolved.dns.nodeTimeoutMs).toBe(350)
     expect(resolved.dns.nodes).toEqual([])
-    expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 350, cacheTtlS: 30 })
+    expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 350, cacheTtlS: 30, method: 'tcp' })
     expect(resolved.dns.cache).toEqual({ posMinS: 30, posMaxS: 300, negS: 10 })
     expect(resolved.dns.poisonRanges).toEqual(['198.18.0.0/15', '192.0.2.0/24', '203.0.113.0/24', '0.0.0.0/8', '240.0.0.0/4'])
   })
@@ -369,7 +369,7 @@ describe('S35 T1: dns section defaults and passthrough (ADR-0022)', () => {
     expect(resolved.dns.nodes).toEqual([{ host: '223.5.5.5', sni: 'dns.alidns.com' }])
     expect(resolved.dns.nodes).not.toBe(nodes)
     // Partial sub-object: only the given field overrides, siblings default.
-    expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 500, cacheTtlS: 30 })
+    expect(resolved.dns.probe).toEqual({ enabled: true, timeoutMs: 500, cacheTtlS: 30, method: 'tcp' })
     expect(resolved.dns.cache).toEqual({ posMinS: 30, posMaxS: 300, negS: 10 })
     expect(resolved.dns.poisonRanges).toEqual(['10.0.0.0/8'])
   })

@@ -9,6 +9,7 @@
  * @module dsh-websearch/dns/probe
  */
 import { connect as netConnect } from 'node:net'
+import { connect as tlsConnectNode } from 'node:tls'
 
 /** Injectable handshake so unit tests never open sockets. */
 export type TcpConnect = (ip: string, port: number, timeoutMs: number) => Promise<boolean>
@@ -22,6 +23,12 @@ export interface EgressProbeOptions {
   readonly cacheTtlS: number
   readonly connect?: TcpConnect
   readonly clock?: () => number
+  /** S39 (plan 038 T3): 'tcp' (bare handshake, default) or 'tls-hello' (SNI-aware). */
+  readonly method?: 'tcp' | 'tls-hello'
+  /** The hostname for the TLS SNI — required for 'tls-hello'. */
+  readonly hostname?: string
+  /** Injectable tls-hello transport for unit tests. */
+  readonly tlsConnect?: (ip: string, port: number, timeoutMs: number, servername: string) => Promise<boolean>
 }
 
 /** One filter pass: what survived, what the probe dropped, and whether any live handshake ran. */
@@ -55,6 +62,33 @@ export async function tcpConnect(ip: string, port: number, timeoutMs: number): P
   })
 }
 
+/**
+ * S39 (plan 038 T3): the SNI-aware probe transport. Sends a TLS ClientHello
+ * with the hostname as servername so the (SNI, IP)-filtered egress path
+ * (side-router class) can match the tuple and the probe signal reflects
+ * the real fetch path. Destroys immediately after secureConnect.
+ */
+export function tlsHelloConnect(ip: string, port: number, timeoutMs: number, servername: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = tlsConnectNode({
+      host: ip,
+      port,
+      servername,
+      rejectUnauthorized: false,
+    })
+    let settled = false
+    const finish = (ok: boolean): void => {
+      if (settled) return
+      settled = true
+      socket.destroy()
+      resolve(ok)
+    }
+    socket.setTimeout(timeoutMs, () => finish(false))
+    socket.once('secureConnect', () => finish(true))
+    socket.once('error', () => finish(false))
+  })
+}
+
 /** The egress precheck; one instance owns the per-IP verdict cache. */
 export class EgressProbe {
   readonly #port: number
@@ -63,6 +97,9 @@ export class EgressProbe {
   readonly #connect: TcpConnect
   readonly #clock: () => number
   readonly #verdicts = new Map<string, { ok: boolean; expiresAt: number }>()
+  readonly #method: 'tcp' | 'tls-hello'
+  readonly #hostname: string | undefined
+  readonly #tlsConnect: (ip: string, port: number, timeoutMs: number, servername: string) => Promise<boolean>
 
   constructor(options: EgressProbeOptions) {
     this.#port = options.port
@@ -70,6 +107,9 @@ export class EgressProbe {
     this.#cacheTtlMs = options.cacheTtlS * 1000
     this.#connect = options.connect ?? tcpConnect
     this.#clock = options.clock ?? Date.now
+    this.#method = options.method ?? 'tcp'
+    this.#hostname = options.hostname
+    this.#tlsConnect = options.tlsConnect ?? tlsHelloConnect
   }
 
   /**
@@ -88,7 +128,9 @@ export class EgressProbe {
       const hit = this.#verdicts.get(address)
       if (hit !== undefined && hit.expiresAt > now) return { address, ok: hit.ok, fresh: false }
       live.push(address)
-      const ok = await this.#connect(address, this.#port, this.#timeoutMs)
+      const ok = this.#method === 'tls-hello' && this.#hostname !== undefined
+        ? await this.#tlsConnect(address, this.#port, this.#timeoutMs, this.#hostname)
+        : await this.#connect(address, this.#port, this.#timeoutMs)
       this.#verdicts.set(address, { ok, expiresAt: this.#clock() + this.#cacheTtlMs })
       return { address, ok, fresh: true }
     }))

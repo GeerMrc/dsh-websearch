@@ -16,7 +16,7 @@ function dnsConfig(overrides: Partial<ResolvedDnsConfig> = {}): ResolvedDnsConfi
     preset: 'custom',
     nodeTimeoutMs: 350,
     nodes: [{ host: '223.5.5.5', sni: 'dns.alidns.com', path: '/resolve', port: 443 }],
-    probe: { enabled: false, timeoutMs: 350, cacheTtlS: 30 },
+    probe: { enabled: false, timeoutMs: 350, cacheTtlS: 30, method: 'tcp' as const },
     cache: { posMinS: 30, posMaxS: 300, negS: 10 },
     poisonRanges: ['198.18.0.0/15'],
     ...overrides,

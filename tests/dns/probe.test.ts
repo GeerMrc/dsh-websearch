@@ -81,3 +81,41 @@ describe('S35 T4: EgressProbe — TCP-443 precheck (ADR-0022 D3)', () => {
     expect(calls).toHaveLength(0)
   })
 })
+
+describe('S39 T3: tls-hello probe method (plan 038 T3)', () => {
+  it('tlsHelloConnect is exported as a function', async () => {
+    const { tlsHelloConnect } = await import('../../src/dns/probe.ts')
+    expect(typeof tlsHelloConnect).toBe('function')
+  })
+
+  it('probe method config seat accepts tcp and tls-hello (schema gate)', async () => {
+    const { Config } = await import('../../src/config.ts')
+    // tcp is the default and accepted
+    expect(() => Config({ dns: { probe: { method: 'tcp' } } })).not.toThrow()
+    expect(() => Config({ dns: { probe: { method: 'tls-hello' } } })).not.toThrow()
+    expect(() => Config({ dns: { probe: { method: 'banana' } } } as never)).toThrow()
+  })
+
+  it('EgressProbe uses tls-hello when method is set', async () => {
+    const probes: Array<{ host: string; port: number; sni?: string }> = []
+    const tlsConnect = async (ip: string, port: number, _timeoutMs: number, sni?: string) => {
+      probes.push({ host: ip, port, sni })
+      return ip === '1.1.1.1'
+    }
+    const probe = new EgressProbe({ port: 443, timeoutMs: 350, cacheTtlS: 30, method: 'tls-hello', tlsConnect, hostname: 'api.tavily.com' })
+    const outcome = await probe.filterReachable(['1.1.1.1', '2.2.2.2'])
+    expect(outcome.kept).toEqual(['1.1.1.1'])
+    expect(probes.every(p => p.sni === 'api.tavily.com')).toBe(true)
+  })
+
+  it('EgressProbe defaults to tcp method (back-compat)', async () => {
+    const tcpProbes: string[] = []
+    const tcpConnect = async (ip: string) => { tcpProbes.push(ip); return true }
+    const tlsProbes: string[] = []
+    const tlsConnect = async (ip: string) => { tlsProbes.push(ip); return false }
+    const probe = new EgressProbe({ port: 443, timeoutMs: 350, cacheTtlS: 30, connect: tcpConnect, tlsConnect })
+    await probe.filterReachable(['1.1.1.1'])
+    expect(tcpProbes).toEqual(['1.1.1.1'])
+    expect(tlsProbes).toEqual([])
+  })
+})
