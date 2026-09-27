@@ -14,7 +14,7 @@
  * @module dsh-websearch/client/section
  */
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { Button, Switch, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import { ChevronDownIcon, QuestionIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
@@ -580,7 +580,7 @@ function DnsResilienceCard(props: {
   onRecheckDns: () => Promise<ActionResult>
   onRefreshDnsFace: () => Promise<void>
 }) {
-  const { t, snapshot, onSetDnsMode, onSetDnsScope, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
+  const { t, snapshot, onSetDnsMode, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
   const dns = snapshot.dns
   const [open, setOpen] = useState(false)
   const [nodesDraft, setNodesDraft] = useState<string | null>(null)
