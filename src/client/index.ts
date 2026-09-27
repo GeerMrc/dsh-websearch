@@ -23,6 +23,7 @@ import { mountKeyCountsRemote } from './key-counts-remote.ts'
 import type { KeyCountsNamespace } from './key-counts-remote.ts'
 import { mountDnsRemote } from './dns-remote.ts'
 import type { DnsNamespace } from './dns-remote.ts'
+import { registerDnsTraceFetcher } from './dns-trace-store.ts'
 import { en, NS, zh } from './locales.ts'
 import { bindWebSearchSettingsSection } from './section.tsx'
 import { WebFetchToolviewRow } from './fetch-row.tsx'
@@ -46,6 +47,15 @@ export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.c
 export function apply(ctx: Context): void {
   const t = ctx.locale.bind(NS)
   ctx.effect(() => ctx.locale.register(NS, { zh, en }))
+  // S35 T9: the toolview rows read the sanitized DNS ring through the shared
+  // store; this entry owns the Context, so it registers the pull (a host
+  // without the DNS service keeps the section on its empty-state copy).
+  registerDnsTraceFetcher(async () => {
+    const dns = await mountDnsRemote(ctx)
+    const trace = await dns.readDnsTrace()
+    if (!trace.ok) throw new Error('dshws dns remote unavailable')
+    return trace.value
+  })
   ctx.slots.inject('settings.section', () => {
     const controller = new WebSearchSettingsController(adaptRemote(ctx))
     void controller.init()

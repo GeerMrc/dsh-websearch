@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import { WebSearchToolviewRow } from '../../src/client/websearch-row.tsx'
+import { registerDnsTraceFetcher } from '../../src/client/dns-trace-store.ts'
 import { apply } from '../../src/client/index.ts'
 import { en } from '../../src/client/locales.ts'
 import type { DshWsLocaleKey } from '../../src/client/locales.ts'
@@ -213,5 +214,29 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
     const disposer = injectCallbacks.get('tool.call.toolview')?.[0]?.() as () => void
     disposer()
     expect(unregister).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('S35 T9: toolview DNS trace section (sanitized ring fold)', () => {
+  it('renders the empty state without a fetcher and the entries after a registered fetcher refresh', async () => {
+    const props = makeProps()
+    const { rerender } = render(<WebSearchToolviewRow {...props} />)
+    // The trace fold lives in the expanded body — open the row first.
+    fireEvent.click(screen.getByTestId('dshws-toolview-row'))
+    const details = screen.getByTestId('dshws-tool-dns-trace')
+    expect(details.textContent).toContain(en.dnsTraceEmpty)
+    // The entry registers the pull; opening the fold refreshes the ring.
+    registerDnsTraceFetcher(async () => [
+      { at: 1, kind: 'resolve' as const, host: 'api.tavily.com', via: '223.5.5.5', latencyMs: 93, kept: 2, dropped: 0 },
+      { at: 2, kind: 'fallback' as const, host: 'masked…example.com', code: 'DSHWS_DNS_FALLBACK_SYSTEM' },
+    ])
+    ;(details as HTMLDetailsElement).open = true
+    fireEvent(details, new Event('toggle'))
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('dshws-tool-dns-trace').textContent).toContain('api.tavily.com')
+      expect(screen.getByTestId('dshws-tool-dns-trace').textContent).toContain('93ms')
+      expect(screen.getByTestId('dshws-tool-dns-trace').textContent).toContain('DSHWS_DNS_FALLBACK_SYSTEM')
+    })
+    rerender(<WebSearchToolviewRow {...props} />)
   })
 })
