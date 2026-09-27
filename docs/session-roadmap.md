@@ -101,7 +101,7 @@
 
 | **34** | 上游问题经验沉淀文档批（用户指令 2026-09-26） | 正本 plan 034；known-upstream-issues 登记表+README/Release 联动 | R1-R6 见 plan 034 §三（阶段2 APPROVED/阶段4 PASS） | 0.5 天 | ✅ 2026-09-26（docs/sessions/2026-09-26-session-34.md） |
 
-| **35** | DNS 韧性层批 v0.2.0（用户主计划批准 2026-09-27 + 四裁定：版本 0.2.0/设置页底部独立块/区域预设池+自动探测/v1 含 Inspect trace；依据 doh-dns 技术报告实测证据链 + S14v/S14w fake-ip 佐证） | 正本 plan 035 + ADR-0022（proposed）+ 拦截 seam spike 实证（dns.lookup 晚期 patch 于 node 20.18.3/22.23.2 拦截 global fetch 正例 200；Socket.prototype.connect 注入实测不可达→否决）；T0-T12 十三任务链（T0=阶段 0 🟡×4 先债后新清偿；T11 npm 发版/T12 生产 3080 切换双高危门控） | R1-R8 见 plan 035 §验收条目 | 3-4 天 | ⏳ |
+| **35** | DNS 韧性层批 v0.2.0（用户主计划批准 2026-09-27 + 四裁定：版本 0.2.0/设置页底部独立块/区域预设池+自动探测/v1 含 Inspect trace；依据 doh-dns 技术报告实测证据链 + S14v/S14w fake-ip 佐证） | 正本 plan 035 + ADR-0022（proposed）+ 拦截 seam spike 实证（dns.lookup 晚期 patch 于 node 20.18.3/22.23.2 拦截 global fetch 正例 200；Socket.prototype.connect 注入实测不可达→否决）；T0-T12 十三任务链（T0=阶段 0 🟡×4 先债后新清偿；T11 npm 发版/T12 生产 3080 切换双高危门控） | R1-R8 见 plan 035 §验收条目 | 3-4 天 | ⏳（增补批 plan 036 并行推进：预热/负反馈/UI 对齐，2026-09-27 用户批准） |
 
 ## 上游验收（M6 上游验收通过）
 
