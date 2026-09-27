@@ -20,6 +20,7 @@
 import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { GlobeIcon } from './host-icons.tsx'
+import { DnsTraceSection } from './dns-trace-section.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
 
@@ -195,6 +196,7 @@ export function WebFetchToolviewRow(props: WebFetchToolviewProps): ReactElement 
             <a href={fetch.url} target="_blank" rel="noreferrer" style={linkStyle}>{fetch.url}</a>
             <div style={statusStyle}>{`HTTP ${fetch.statusCode}`}</div>
             {fetch.truncated && <div style={noteStyle}>{t('toolTruncated')}</div>}
+            <DnsTraceSection t={t} />
             <details>
               <summary>{t('toolRaw')}</summary>
               <pre data-testid="dshws-fetch-raw" style={preStyle}>{displayText}</pre>

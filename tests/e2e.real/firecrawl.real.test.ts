@@ -50,6 +50,16 @@ maybe('dshws-firecrawl real API', () => {
     expect(result.body.kind).toBe('text')
     if (result.body.kind === 'text') expect(result.body.content.length).toBeGreaterThan(0)
   }, 60_000)
+  it('error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)', async () => {
+    const provider = new FirecrawlProvider(resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY' },
+      async () => 'fc-invalid-alignment-check',
+    ))
+    const thrown = await provider.fetch({ url: 'https://example.com' }).then(() => null, (error: unknown) => error as { code?: string, message?: string })
+    expect(thrown?.message).toContain('401')
+    expect(thrown?.message).toContain('Unauthorized: Invalid token')
+  }, 30_000)
+
 })
 
 describe('dshws-firecrawl real-API default anchors', () => {

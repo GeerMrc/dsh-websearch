@@ -1,0 +1,43 @@
+# rc.5 现场实测日志（阶段 4/5 发现#1 清偿：紧凑行活体证据）
+
+> 2026-09-27 13:01-13:09，rc.5 全新进程，用户指示后实测（非清空日志——13:01 重启自然轮转）。
+> 13:09:04 起 connect-flap 紧凑行**首次在生产形态日志中出现**：
+
+```
+[dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0004
+[dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0003
+  → 13:09:04.764 fresh resolve（作废反馈触发）
+  → 13:09:07.682 served-by: dshws-tavily           ← 3.3s 恢复
+[dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → degrade(retry-cap) #0003
+  → 13:09:15.274 exa fresh resolve
+  → 13:09:19.786 served-by: dshws-exa               ← 4.9s 降级接住
+```
+
+验证点：①紧凑行样式（成员+成因码+runKey）✓ ②并发可归属（#0004/#0003 两 run 交错各行其键）✓ ③retry→3.3s 恢复 ✓ ④retry-cap→4.9s 降级接住 ✓ ⑤30s MEMBER_TIMEOUT = 0 ✓
+
+---
+
+2026-09-27T13:01:41.983Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T13:01:47.343Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=140 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:01:47.696Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=177 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:01:48.049Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=95 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:01:48.389Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=183
+2026-09-27T13:01:48.488Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=59
+2026-09-27T13:02:47.706Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T13:02:48.059Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=213 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:02:51.429Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T13:08:53.920Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-27T13:08:53.920Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-27T13:08:53.920Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-27T13:08:54.276Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=222 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:08:56.947Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T13:09:04.408Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0004
+2026-09-27T13:09:04.409Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-27T13:09:04.414Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0003
+2026-09-27T13:09:04.415Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T13:09:04.764Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=186 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:09:07.682Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T13:09:14.916Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → degrade(retry-cap) #0003
+2026-09-27T13:09:14.918Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T13:09:15.274Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=273 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T13:09:19.786Z [dshws-chain] served-by: dshws-exa

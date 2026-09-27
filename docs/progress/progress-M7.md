@@ -629,4 +629,18 @@ P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（�
 
 ## S34 批次台账（2026-09-26，上游问题经验沉淀文档批）
 
-任务链 P0（两阶段审核）→T1 登记表→T2 README 联动→T3 Release 块→T4 修正→T5 六件套 全 ✅。产物：docs/known-upstream-issues.md（三问题登记+销项规则）、README zh/en、v0.1.3 notes 块。债务：🟢 沿 S33（README 串随 0.1.4；Release/fork 远端活体目验待窗口）。锚点：check:i18n EXIT=0；diff 仅 docs/+README；远程 body grep=1。
+任务链 P0（两阶段审核）→T1 登记表→T2 README 联动→T3 Release 块→T4 修正→T5 六件套 全 ✅。产物：docs/known-upstream-issues.md（三问题登记+销项规则）、README zh/en、v0.1.3 notes 块。债务（S35 T0 三载体口径统一）：🟢 沿 S33——README 前置串+占位链接+tail 清理（**归属随 v0.2.0**，S35 T0 勘正原「随 0.1.4」）+ npm 包内 README 漂移（随发版消除）；**Release/fork 远端活体目验已销项**（S35 阶段 0 亲验：远端 master=5d34b2f 逐位一致、fork 分支 head=ebd42731c9 一致——正本 audit-logs/2026-09-27-s35-stage0-audit-of-s34.md §维度1d）。锚点：check:i18n EXIT=0；diff 仅 docs/+README；远程 body grep=1。
+
+## S35 批次台账（2026-09-27/28，DNS 韧性层批 v0.2.0——M7 二次收官棒）
+
+任务链 plan 035 T0-T10 + 增补 plan 036（预热/负反馈/UI 对齐）+ plan 037（连接级快降级）+ plan 038（connect-flap 日志降噪 + tls-hello 探测）+ 用户驱动 UI 微批 039-044（含 30bfc59 诚实回滚）+ T11 逐工具实测腿 全 ✅。收官前二轮：阶段 4 PASS（**全套件 592/592、tsc 0、lint 0e、i18n 195**，audit-logs/2026-09-28-s35-stage4-full-verification.md）+ 阶段 5 COMPLETE（S-1/F-1/F-2 当批清偿，audit-logs/2026-09-28-s35-stage5-crossvalidation.md）。
+
+关键交付：进程级 DoH 拦截层（canary 自动检测/预热/负反馈作废/tls-hello SNI 预检/compact flap 日志 runKey 归属）、设置页 DNS 韧性卡（039-044 六轮用户目验迭代）、逐工具实测矩阵 8/8（audit-logs/2026-09-28-s36-t8-rc15-evidence/）、错误保真双修复（dd5a9df anysearch fetch 面 + f8e0a3f 嵌套 detail.error 形态——上游对齐 checklist 立册 docs/upstream-alignment-checklist.md + dont-do 三条新沉淀）、双名打包脚本化（scripts/pack.mjs，rc.15 实证）。
+
+债务变动：🟡 清零（S34 四债 T0 清偿）；🟢 新增——DNS chip init 拉取非轮询（plan 035 表 one-home）、onSetDnsScope controller 面清瘦余项、request_id 进 HTTP 错误消息（8 面统一增强）、README 前置串+占位链接（**随 S36 T11 v0.2.0 定版清偿**）。
+
+已验锚点（S35 新增）：
+- 阶段4 门墙：vitest 592|17skip-real(609 计入 real 门槛) EXIT=0 / tsc EXIT=0 / oxlint 0e / i18n 195 键 parity（node22 绝对路径；v20 下 jsdom ERR_REQUIRE_ESM 假失败——dont-do 入册）。
+- 错误信封实测矩阵：anysearch 422 detail / tavily 嵌套 detail.error 401 / exa error 401 / firecrawl error 401（curl 直证 + 单测回归锁 + real 层 skip-gated 用例）。
+- rc.15 实装证据：3423 链路行 422 detail 逐字（rc15-smokes.log:9）+ tavily/exa served-by（:29/:38）。
+- 用户窗口级联：02:19 anysearch 瞬断→retry→tavily 瞬断→firecrawl 兜底 served（runKey #0007/#0008 可归属）。

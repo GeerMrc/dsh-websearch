@@ -21,6 +21,8 @@ import { WebSearchSettingsController } from './controller.ts'
 import type { WebSearchSettingsPorts } from './controller.ts'
 import { mountKeyCountsRemote } from './key-counts-remote.ts'
 import type { KeyCountsNamespace } from './key-counts-remote.ts'
+import type { DnsNamespace } from './dns-remote.ts'
+import { registerDnsTraceFetcher } from './dns-trace-store.ts'
 import { en, NS, zh } from './locales.ts'
 import { bindWebSearchSettingsSection } from './section.tsx'
 import { WebFetchToolviewRow } from './fetch-row.tsx'
@@ -44,6 +46,15 @@ export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.c
 export function apply(ctx: Context): void {
   const t = ctx.locale.bind(NS)
   ctx.effect(() => ctx.locale.register(NS, { zh, en }))
+  // S35 T9: the toolview rows read the sanitized DNS ring through the shared
+  // store; this entry owns the Context, so it registers the pull (a host
+  // without the DNS service keeps the section on its empty-state copy).
+  registerDnsTraceFetcher(async () => {
+    const dns = await mountKeyCountsRemote(ctx)
+    const trace = await dns.readDnsTrace()
+    if (!trace.ok) throw new Error('dshws dns remote unavailable')
+    return trace.value
+  })
   ctx.slots.inject('settings.section', () => {
     const controller = new WebSearchSettingsController(adaptRemote(ctx))
     void controller.init()
@@ -85,6 +96,11 @@ function adaptRemote(ctx: Context): WebSearchSettingsPorts {
   let keyCounts: Promise<KeyCountsNamespace> | undefined
   const keyCountsRemote = (): Promise<KeyCountsNamespace> =>
     (keyCounts ??= mountKeyCountsRemote(ctx))
+  // S35: same lazy-mount pattern for the DNS face (old hosts degrade to the
+  // config-only block — status stays undefined, no error surfaces).
+  // S36: the DNS methods ride the SAME single namespace mount as the key
+  // counts (one contribution, one install). See key-counts-remote.ts.
+  const dnsRemote = (): Promise<DnsNamespace> => keyCountsRemote() as unknown as Promise<DnsNamespace>
   return {
     describeSettings: () => remote.settings.describe(),
     updateSettings: (ns, patch, expectedRevision) =>
@@ -105,6 +121,30 @@ function adaptRemote(ctx: Context): WebSearchSettingsPorts {
     unsetCredential: (ref) => remote.credentials.unset(ref),
     onReferenceUpdated: (handler) =>
       remote.$on('credentials/reference-updated', (ref: unknown) => handler(String(ref))),
+    dns: {
+      describeDnsStatus: async () => {
+        try {
+          return await (await dnsRemote()).describeDnsStatus()
+        } catch (err) {
+          console.error('[dshws-dns] describeDnsStatus failed:', err)
+          return { ok: false, error: new Error('dshws dns remote unavailable') }
+        }
+      },
+      readDnsTrace: async () => {
+        try {
+          return await (await dnsRemote()).readDnsTrace()
+        } catch {
+          return { ok: false, error: new Error('dshws dns remote unavailable') }
+        }
+      },
+      requestDnsRecheck: async () => {
+        try {
+          return await (await dnsRemote()).requestDnsRecheck()
+        } catch {
+          return { ok: false, error: new Error('dshws dns remote unavailable') }
+        }
+      },
+    },
   }
 }
 

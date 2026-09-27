@@ -19,6 +19,7 @@
 import type { CredentialInfo } from '@deepseek-ai/dsh-credentials'
 import type { SettingsDescribeValue, SettingsNamespaceView } from '@deepseek-ai/dsh-settings/types'
 import { NS } from './locales.ts'
+import type { DnsStatusView, DnsTraceEntryView } from './dns-remote.ts'
 
 /** Structural subset of the host `RemoteResult` the controller branches on. */
 type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: unknown }
@@ -41,6 +42,12 @@ export interface WebSearchSettingsPorts {
   setCredential(ref: string, value: string): Promise<RemoteResult<void>>
   unsetCredential(ref: string): Promise<RemoteResult<void>>
   onReferenceUpdated(handler: (ref: string) => void): () => void
+  /** S35 DNS face — optional: an old host (or missing service) leaves the block in the config-only view. */
+  readonly dns?: {
+    describeDnsStatus(): Promise<RemoteResult<DnsStatusView>>
+    readDnsTrace(): Promise<RemoteResult<DnsTraceEntryView[]>>
+    requestDnsRecheck(): Promise<RemoteResult<DnsStatusView>>
+  }
 }
 
 /** Bundled member display metadata; ids, default refs, and the documented
@@ -127,6 +134,8 @@ interface MemberSectionValue {
 interface SectionValue {
   /** Universal web_fetch takeover toggle (S15a). */
   fetchTakeover?: boolean
+  /** S35 DNS resilience settings (ADR-0022); every field optional, resolved defaults mirror the node half. */
+  dns?: DnsSectionValue
   /** Unified search region, ISO 3166-1 alpha-2 (S17 P1, ADR-0015). */
   searchCountry?: string
   /** Unified search language, ISO 639-1 (S17 P1, ADR-0015). */
@@ -149,6 +158,27 @@ interface SectionValue {
   firecrawl?: MemberSectionValue
   deepseek?: MemberSectionValue
   anysearch?: MemberSectionValue
+}
+
+/** S35 DNS section value (ADR-0022); client mirrors of the node half's resolved defaults. */
+interface DnsSectionValue {
+  mode?: 'auto' | 'on' | 'off'
+  scope?: 'members' | 'all'
+  preset?: 'auto' | 'cn' | 'global' | 'custom'
+  probe?: { method?: 'tcp' | 'tls-hello'; enabled?: boolean; timeoutMs?: number; cacheTtlS?: number }
+  nodes?: { host: string; sni: string; path?: string; port?: number }[]
+}
+
+/** The DNS block's render-ready state: config slice plus the live remote face (status/trace stay undefined on old hosts). */
+export interface DnsSnapshot {
+  readonly mode: 'auto' | 'on' | 'off'
+  readonly scope: 'members' | 'all'
+  readonly preset: 'auto' | 'cn' | 'global' | 'custom'
+  readonly probeMethod: 'tcp' | 'tls-hello'
+  /** Custom nodes serialized one-per-line `host,sni,path,port` (the textarea form). */
+  readonly nodesText: string
+  readonly status: DnsStatusView | undefined
+  readonly trace: readonly DnsTraceEntryView[]
 }
 
 /** One provider card's render-ready state. */
@@ -229,6 +259,8 @@ export interface SectionSnapshot {
   readonly searchIncludeDomains: string | undefined
   /** Unified exclude-domain blocklist; `undefined` = not sent (S20 P1, ADR-0018). */
   readonly searchExcludeDomains: string | undefined
+  /** S35 DNS resilience slice (ADR-0022). */
+  readonly dns: DnsSnapshot
   readonly revision: number | undefined
   readonly writable: boolean
 }
@@ -246,7 +278,7 @@ const EMPTY_COUNTS: ReadonlyMap<string, number> = new Map()
  * event) funnels here so the snapshot is always derived, never patched in
  * place.
  */
-function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, CredentialInfo>, counts: ReadonlyMap<string, number>, writable: boolean, revision: number | undefined): SectionSnapshot {
+function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, CredentialInfo>, counts: ReadonlyMap<string, number>, writable: boolean, revision: number | undefined, dnsStatus: DnsStatusView | undefined, dnsTrace: readonly DnsTraceEntryView[]): SectionSnapshot {
   const members = MEMBERS.map((member) => {
     const section = value[member.key]
     const refName = section?.apiKeyEnv ?? member.defaultRef
@@ -330,6 +362,19 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     searchLanguage: value.searchLanguage,
     searchIncludeDomains: value.searchIncludeDomains,
     searchExcludeDomains: value.searchExcludeDomains,
+    // S35 DNS slice (ADR-0022): resolved defaults mirror the node half's
+    // resolveConfig; custom nodes serialize to the textarea form.
+    dns: {
+      mode: value.dns?.mode ?? 'auto',
+      scope: value.dns?.scope ?? 'members',
+      preset: value.dns?.preset ?? 'auto',
+      probeMethod: value.dns?.probe?.method ?? 'tcp',
+      nodesText: (value.dns?.nodes ?? [])
+        .map((node) => [node.host, node.sni, node.path ?? '', node.port ?? ''].join(','))
+        .join('\n'),
+      status: dnsStatus,
+      trace: dnsTrace,
+    },
     revision,
     writable,
   }
@@ -342,9 +387,11 @@ export class WebSearchSettingsController {
   #value: SectionValue = EMPTY_SECTION
   #facts: ReadonlyMap<string, CredentialInfo> = EMPTY_FACTS
   #counts: ReadonlyMap<string, number> = EMPTY_COUNTS
+  #dnsStatus: DnsStatusView | undefined = undefined
+  #dnsTrace: readonly DnsTraceEntryView[] = []
   #writable = false
   #revision: number | undefined = undefined
-  #snapshot: SectionSnapshot = deriveSnapshot(EMPTY_SECTION, EMPTY_FACTS, EMPTY_COUNTS, false, undefined)
+  #snapshot: SectionSnapshot = deriveSnapshot(EMPTY_SECTION, EMPTY_FACTS, EMPTY_COUNTS, false, undefined, undefined, [])
   #unsubscribe?: () => void
 
   constructor(ports: WebSearchSettingsPorts) {
@@ -358,7 +405,7 @@ export class WebSearchSettingsController {
       void this.refreshCounts()
     })
     await this.#refreshSection()
-    await Promise.all([this.#refreshCredentials(), this.refreshCounts()])
+    await Promise.all([this.#refreshCredentials(), this.refreshCounts(), this.refreshDnsFace()])
   }
 
   /**
@@ -616,12 +663,103 @@ export class WebSearchSettingsController {
     const described = await this.#ports.describeKeyCounts(refs)
     if (described.ok) {
       this.#counts = new Map(Object.entries(described.value))
-      this.#recompute()
     }
+    this.#recompute()
+  }
+
+  /**
+   * S35: refresh the DNS remote face (status + trace ring). Old hosts without
+   * the service leave both undefined — the block renders the config-only
+   * view. Fires on init, after every dns settings write, and from the
+   * re-check button.
+   */
+  async refreshDnsFace(): Promise<void> {
+    const dns = this.#ports.dns
+    if (dns === undefined) return
+    const [status, trace] = await Promise.all([dns.describeDnsStatus(), dns.readDnsTrace()])
+    this.#dnsStatus = status.ok ? status.value : undefined
+    this.#dnsTrace = trace.ok ? trace.value : []
+    this.#recompute()
+  }
+
+  /** S35: force a fresh canary pass (the re-check button) and refresh the face. */
+  async recheckDns(): Promise<ActionResult> {
+    const dns = this.#ports.dns
+    if (dns === undefined) return { ok: false }
+    const result = await dns.requestDnsRecheck()
+    if (!result.ok) return { ok: false }
+    await this.refreshDnsFace()
+    return { ok: true }
+  }
+
+  /** S35: set the DNS mode (auto/on/off); hot — off uninstalls the patch immediately. */
+  async setDnsMode(mode: 'auto' | 'on' | 'off'): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { dns: { mode } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    await this.refreshDnsFace()
+    return { ok: true }
+  }
+
+  /** S35: set the hostname scope (members/all); hot on the next resolution. */
+  async setDnsScope(scope: 'members' | 'all'): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { dns: { scope } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /** S39 (plan 038 T3): set the egress probe method; hot on the next resolution. */
+  async setDnsProbeMethod(method: 'tcp' | 'tls-hello'): Promise<ActionResult> {
+    const result = await this.#ports.updateSettings(NS, { dns: { probe: { method } } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /** S35: set the DoH node preset; custom requires a non-empty validated node list. */
+  async setDnsPreset(preset: 'auto' | 'cn' | 'global' | 'custom'): Promise<ActionResult> {
+    if (preset === 'custom' && this.#parseDnsNodes(this.#snapshot.dns.nodesText) === undefined) {
+      // No valid node list yet — reject rather than persist a brick.
+      return { ok: false }
+    }
+    const result = await this.#ports.updateSettings(NS, { dns: { preset } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /**
+   * S35: save the custom node list (textarea form, one `host,sni,path,port`
+   * per line). Every line needs a non-blank host and sni — the same rule the
+   * node half's validate hook enforces before persist.
+   */
+  async setDnsNodesText(text: string): Promise<ActionResult> {
+    const nodes = this.#parseDnsNodes(text)
+    if (nodes === undefined) return { ok: false }
+    const result = await this.#ports.updateSettings(NS, { dns: { nodes } }, this.#revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
+  }
+
+  /** Parse the textarea form; undefined when any line fails the host+sni rule. */
+  #parseDnsNodes(text: string): { host: string; sni: string; path?: string; port?: number }[] | undefined {
+    const nodes: { host: string; sni: string; path?: string; port?: number }[] = []
+    for (const rawLine of text.split('\n')) {
+      const line = rawLine.trim()
+      if (line.length === 0) continue
+      const [host, sni, path, portText] = line.split(',').map((field) => field.trim())
+      if (host === undefined || host.length === 0 || sni === undefined || sni.length === 0) return undefined
+      const port = portText !== undefined && portText.length > 0 ? Number(portText) : undefined
+      if (port !== undefined && (!Number.isInteger(port) || port < 1 || port > 65535)) return undefined
+      nodes.push({ host, sni, ...(path !== undefined && path.length > 0 ? { path } : {}), ...(port !== undefined ? { port } : {}) })
+    }
+    return nodes
   }
 
   #recompute(): void {
-    this.#snapshot = deriveSnapshot(this.#value, this.#facts, this.#counts, this.#writable, this.#revision)
+    this.#snapshot = deriveSnapshot(this.#value, this.#facts, this.#counts, this.#writable, this.#revision, this.#dnsStatus, this.#dnsTrace)
     for (const listener of this.#listeners) listener()
   }
 }

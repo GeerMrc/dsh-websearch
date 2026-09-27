@@ -80,3 +80,45 @@
 - **错误**：T2 兼容矩阵将 typert strict codec `schema`→`create` 更名定为「纯编译级破坏，运行时零感知」（沿用上游注释的字段意图推断）。实况：0.1.5/0.1.6 client 的 `parseInput` 在**每次调用时**执行 `codec.schema.parse(value)`——`create` 单字段在旧宿主= `undefined.parse` 崩溃，key-count 徽标静默消失（无报错、无日志）。3434 015rc3 演练首轮抓获。
 - **正确**：凡跨代兼容断言，逐一列出各消费代的**运行时校验/读取代码路径**（旧 client parseInput、旧 loader requireStrictCodec、新 loader create 工厂）再下分类结论；跨代协议字段用「双字段并存」（各代只读己方、两侧均无逐键排斥）保单一构建。最终裁决只能来自 3434 实例演练，不来自源码注释推断。
 - **来源**：S32 T6 演练抓获 + 44488b7 修复（tests/key-counts.test.ts 跨代 shape 测试红→绿）；upgrade.md 三线矩阵与 ADR-0021「同族适配模式库」。
+
+
+## 交接证据链（Session 35 阶段 4/5 入册；两现后系统性确认）
+
+### ❌ 不要向审核方交接「枚举式」commit 清单——交接链一律以 git log 全量为准
+
+- **错误**:：给阶段 0/2/4/5 审核 Agent 的输入里手工枚举 commit hash 清单时省略 docs-only 提交（S34 收官链省略 1fb2a3b；S35 执行链声称 13 个、实际 15 个——漏 4edc5b1/6c2e360 两个治理产物提交）。内容均计划内且 session 记录有载，但审核方复核 `git log` 后须自行发现差异，消耗审核预算并留下「枚举不可信」的复发记录（两棒连现）。
+- **正确**：交接只给**范围锚点**（起点 hash + HEAD）+ 一句「自行 `git log <start>..HEAD` 复核全量」；确需点名个别提交时以 git log 输出为准现场生成，不凭记忆誊写。
+- **来源**：S34 阶段 0 🟢② + S35 阶段 4 问题 1（docs/sessions/audit-logs/2026-09-27-s35-stage4-review.md §0/§5-1）；两现跨棒，入册防第三现。
+
+
+## 客户端 Remote 挂载（Session 35 plan 036 入册；阶段 4/5 抓获）
+
+### ❌ 不要对同一命名空间发起第二个懒 `$mount`——追加大面必须并入既有贡献单次安装
+
+- **错误**：为 `dshws-websearch` 命名空间的 DNS 三方法单独写 `mountDnsRemote`（第二个懒 `$mount`），与 keyCounts 的懒挂载并发：后挂载者永不落定（无报错无超时的静默悬挂），refreshDnsFace 整体沉默，UI 状态面永陈旧。
+- **正确**：向既有命名空间追加方法时，把新描述符**并入既有贡献**（`keyCountsContribution.descriptors` 数组拼接），保持全插件对该命名空间**恰好一次 `$mount`**（mountContribution 本义即按命名空间分组一次安装）；两消费点共用合并后的挂载面。
+- **来源**：S35 plan036 T4 复测实锤（rc.2 状态面全静默 → API 直探 ok:true 定位挂载层 → 单贡献合并修复后 rc.3 卡点亮）；阶段 4/5 F8 建议。
+
+## 同族请求面的对称性（Session 35 T11 入册；实测抓获）
+
+### ❌ 不要让任一请求面的错误处理偏离同族模式——新面必须镜像既有面的全部分支
+
+- **错误**：anysearch 的 extract 面（web_fetch 成员面）在 `!response.ok` 时只抛裸 `Anysearch API error (HTTP ${status})`，而同文件 search 面与其余 4 个 provider 的全部 8 个请求面都已带 `unfoldHttpErrorDetail` 响应体展开——上游 422 携带的可行动信息「Unable to extract content from the URL.」被丢弃，用户与开发者只见裸状态码，根因排查被迫绕道上游直查（T11-B 整条根因链的诱因）。
+- **正确**：为任一 provider 新增请求面（search/fetch/scrape）时，错误路径必须逐分支镜像同族面（响应体 best-effort 解析、detail 拼接、abort-mid-body 归位为 aborted、httpStatus 挂载）；评审/验收清单含「8 面错误路径对称性审计」一项。real 层 e2e 只有 happy-path 锚不住这类缺陷——错误路径断言必须落在单测（mock 信封）+ 对齐 checklist 的错误列。
+- **来源**：S35 T11-A 逐工具实测抓获（dd5a9df 修复，红→绿 20/20；audit-logs/2026-09-28-s36-t8-rc15-evidence/ 含修复前后对照日志行）。
+
+## 运行时环境启动（Session 35 T11-D 入册；node20 家族第二现）
+
+### ❌ 不要在 agent/自动化 shell 里裸用 PATH 解析的 node 启动 DSH 实例——必须 nvm 绝对路径
+
+- **错误**：重启 3423 实例时直接 `node --import tsx/esm apps/cli/src/bin.ts web …`，agent 沙箱 shell 的 PATH 将 `node` 解析到 v20.18.3（低于 engines `^22.19 || >=24`）：进程**静默秒退、退出码 0、零输出**——无任何报错，极易误诊为沙箱拦截/key 文件权限/配置损坏（本次曾疑 key 权限，实测权限未动）。家族先例：S33 lefthook 在 node20 下崩溃（CHANGELOG 2026-09-26）。
+- **正确**：一切实例启停/构建/打包命令显式用 nvm 绝对路径（`/Users/aibot/.nvm/versions/node/v22.23.2/bin/node`；含 `PATH=` 前缀方式给 pnpm script 传导）；遇「秒退+零输出」先 `node -v` 核版本，再做沙箱最小监听复现，最后才查配置层。
+- **来源**：S35 T11-D 事故复盘（session-35 记录 T11-D 节：排除法全程留痕）。
+
+## 上游适配验证纪律（Session 35 T11 入册；用户裁定升级为常备门槛）
+
+### ❌ 不要只测 happy-path 就宣布上游适配完成——每次插件功能/适配变更必须逐成员×逐面×双路（happy+error）对齐确认
+
+- **错误**：real 层 e2e（tests/e2e.real/*）只锚 happy-path（live query 200），anysearch fetch 面 422 信封裸抛这类错误路径缺陷全链路逃逸（单测曾有 mock 429 用例但未覆盖 extract 面 422 形态；real 层零错误路径）——直到用户逐工具人工实测才暴露。插件每次随上游/DSH 版本做适配时，若沿用同口径，同类「适配不兼容/功能不完整」缺陷将持续漏到用户侧（用户明令禁止）。
+- **正确**：每次插件功能扩展、上游 API 适配、DSH 版本跟进，必须按 `docs/upstream-alignment-checklist.md` 对齐矩阵逐成员×逐面确认：端点、方法、请求形状、鉴权头、期望响应、**错误路径（确定性触发：invalid-key 401 / 不存在资源 4xx）断言错误消息携带上游 detail**；矩阵留痕入当期 session 记录，缺一格即不得宣布该面适配完成。
+- **来源**：S35 T11 全程（用户两次裁定：「与上游确认再定方案」「未来每次都逐工具对齐确认」）；dd5a9df 缺陷逃逸链与 T4 回归锁定（e2e.real 错误路径用例）。

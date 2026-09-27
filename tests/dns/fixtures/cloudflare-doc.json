@@ -1,0 +1,13 @@
+{
+  "Status": 0,
+  "TC": false,
+  "RD": true,
+  "RA": true,
+  "AD": false,
+  "CD": false,
+  "Question": { "name": "api.exa.ai.", "type": 1 },
+  "Answer": [
+    { "name": "api.exa.ai.", "TTL": 300, "type": 1, "data": "104.18.31.237" },
+    { "name": "api.exa.ai.", "TTL": 300, "type": 1, "data": "172.66.43.165" }
+  ]
+}

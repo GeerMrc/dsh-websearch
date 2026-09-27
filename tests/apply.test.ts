@@ -472,3 +472,14 @@ describe('apply settings wiring (热改链序/超时/启停，S05a)', () => {
     expect(chain.available()).toBe(true)
   })
 })
+
+describe('S36 T1 (F2 清偿): warmup gate integration lock (plan 036)', () => {
+  it('inside a vitest worker the boot warmup never arms — resolveWarmupDelayMs reads the live env as undefined delay', async () => {
+    const { resolveWarmupDelayMs } = await import('../src/dns/intercept.ts')
+    // The live-process lock: this test RUNS under vitest, so the real env must gate off.
+    expect(process.env.VITEST).toBeDefined()
+    expect(resolveWarmupDelayMs(process.env as unknown as Record<string, string | undefined>)).toBeUndefined()
+    // The production branch stays provable by injection.
+    expect(resolveWarmupDelayMs({})).toBe(2500)
+  })
+})

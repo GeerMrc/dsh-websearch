@@ -49,6 +49,15 @@ export interface ChainOptions<P> {
   readonly perMemberTimeoutMs: number
   /** Observability sink; omit for a silent chain (tests assert through results). */
   readonly log?: ChainLogger
+  /**
+   * S36 (plan 036) negative feedback: called when a member draw fails at the
+   * CONNECTION level (cause-chain error code in the connect set) or on the
+   * member timeout — the DNS layer invalidates the host's resolver cache so
+   * the next attempt re-resolves fresh CDN rotation. HTTP-status errors never
+   * fire it (no key can change those verdicts, and the address is not the
+   * suspect).
+   */
+  readonly onMemberConnectFailure?: (memberId: string) => void
 }
 
 /** Hot-read state gates a chain member is consulted through at resolve time. */
@@ -149,6 +158,9 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
    */
   static readonly MEMBER_DRAWS = 3
 
+  /** Connect-level attempts per member (plan 037): initial + one fresh-resolution retry. */
+  static readonly CONNECT_ATTEMPT_CAP = 2
+
   /** Draws for members with a multi-key pool; single-key members get 1. */
   #drawsFor(member: ChainMember<P>): number {
     return member.multiKeyPool === true ? ChainCore.MEMBER_DRAWS : 1
@@ -161,6 +173,7 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
     invoke: (provider: P, request: Req, signal: AbortSignal | undefined) => Promise<Res>,
   ): Promise<Res> {
     const failures: ChainMemberFailure[] = []
+    const runKey = nextRunKey()
     for (const id of this.#options.order) {
       const member = this.#options.members.resolve(id)
       if (!this.#isUsable(member)) continue
@@ -213,6 +226,8 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // propagate it instead of degrading to further members.
           if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
           const isTimeout = error === MEMBER_TIMED_OUT
+          const connectLevel = !isTimeout && isConnectLevelFailure(error)
+          if (isTimeout || connectLevel) this.#options.onMemberConnectFailure?.(id)
           const status = !isTimeout && error instanceof DshwsError ? error.httpStatus : undefined
           const requestLevelStatus = status !== undefined && REQUEST_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
           const credentialLevelStatus = status !== undefined && CREDENTIAL_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
@@ -228,13 +243,31 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // and a 401/403 is itself evidence that a DIFFERENT key may serve —
           // the first search after boot must heal, not degrade blind (S14y).
           const redrawCap = credentialLevelStatus !== undefined ? ChainCore.MEMBER_DRAWS : draws
-          const degrading = isTimeout || requestLevelStatus !== undefined || draw >= redrawCap
-          const drawNote = degrading
-            ? `; degrading to next member${requestLevelStatus !== undefined ? ` (request-level HTTP ${requestLevelStatus})` : ''}`
-            : `; redrawing key (${draw + 1}/${redrawCap})${credentialLevelStatus !== undefined ? ` (credential-level HTTP ${credentialLevelStatus}: another key may be valid)` : ''}`
-          this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
+          // Plan 037: a connect-level failure is an address/path problem, not a
+          // key problem — redrawing keys burns the member budget on ~10s
+          // connect timeouts without changing the network path (3423 log:
+          // 3 draws × ~10s = the 30s MEMBER_TIMEOUT). One retry (on the
+          // invalidation-refreshed resolution) is allowed; the second
+          // connect-level failure degrades immediately.
+          const connectDegrade = connectLevel && draw >= ChainCore.CONNECT_ATTEMPT_CAP
+          const degrading = isTimeout || requestLevelStatus !== undefined || connectDegrade || draw >= redrawCap
+          // Plan 038: connect-level lines ride the compact connect-flap form
+          // (member + cause-code + #runKey) — expected-and-self-healing noise
+          // stays distinguishable per concurrent run; every real failure keeps
+          // the verbose member-failed form. Mixed request-level+connect runs
+          // the verbose form (request-level is the true-failure semantics).
+          if (connectLevel && requestLevelStatus === undefined) {
+            const flapArrow = !degrading ? 'retry(fresh-resolve)' : connectDegrade ? 'degrade(retry-cap)' : 'degrade(no-pool)'
+            this.#options.log?.(`[dshws-chain] connect-flap ${id} ${connectCauseCode(error)} → ${flapArrow} #${runKey}`)
+          } else {
+            const drawNote = degrading
+              ? `; degrading to next member${requestLevelStatus !== undefined ? ` (request-level HTTP ${requestLevelStatus})` : ''}`
+              : `; redrawing key (${draw + 1}/${redrawCap})${credentialLevelStatus !== undefined ? ` (credential-level HTTP ${credentialLevelStatus}: another key may be valid)` : ''}`
+            this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
+          }
           if (isTimeout) break // the shared budget is spent → degrade to the next member
           if (requestLevelStatus !== undefined) break // no key can change this verdict → degrade
+          if (connectDegrade) break // address-level retry cap spent → degrade, keys cannot help
           if (draw >= redrawCap) break // draw budget spent (gate draws, or the credential cap) → degrade
           continue // redraw another key within the same member, on the remaining budget
         }
@@ -246,6 +279,44 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
     if (failures.length === 0) throw noMemberConfigured(this.#options.order)
     throw createChainExhaustedError(failures)
   }
+}
+
+/** Connection-level cause codes (plan 036): an address/path problem a fresh resolution might fix. */
+const CONNECT_LEVEL_CODES: ReadonlySet<string> = new Set([
+  'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE', 'EAI_AGAIN',
+])
+
+/** Extract the first connect-level cause code for compact connect-flap log lines. */
+function connectCauseCode(error: unknown): string {
+  let current: unknown = error
+  let hops = 0
+  while (typeof current === 'object' && current !== null && hops < 8) {
+    const code = (current as { code?: unknown }).code
+    if (typeof code === 'string' && (CONNECT_LEVEL_CODES.has(code) || code.startsWith('UND_ERR_'))) return code
+    current = (current as { cause?: unknown }).cause
+    hops += 1
+  }
+  return 'CONNECT'
+}
+
+/** Per-run 4-hex key so concurrent chain runs' connect-flap lines stay attributable (plan 038). */
+let runKeyCounter = 0
+function nextRunKey(): string {
+  runKeyCounter = (runKeyCounter + 1) >>> 0
+  return runKeyCounter.toString(16).padStart(4, '0').slice(-4)
+}
+
+/** Whether any error in the cause chain carries a connect-level code (UND_ERR_* undici codes included). */
+function isConnectLevelFailure(error: unknown): boolean {
+  let current: unknown = error
+  let hops = 0
+  while (typeof current === 'object' && current !== null && hops < 8) {
+    const code = (current as { code?: unknown }).code
+    if (typeof code === 'string' && (CONNECT_LEVEL_CODES.has(code) || code.startsWith('UND_ERR_'))) return true
+    current = (current as { cause?: unknown }).cause
+    hops += 1
+  }
+  return false
 }
 
 /** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */

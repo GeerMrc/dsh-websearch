@@ -1,0 +1,115 @@
+2026-09-27T07:01:30.098Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T07:01:35.461Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=141 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:01:35.815Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=207 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:01:36.169Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=166 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:01:36.521Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=267 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:01:36.599Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=58
+2026-09-27T07:06:24.964Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-27T07:06:24.964Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-27T07:06:24.964Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-27T07:06:24.964Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-27T07:06:24.967Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-27T07:06:25.345Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=327 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:06:26.902Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T07:06:35.440Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:06:35.440Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-27T07:06:35.445Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:06:35.447Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T07:06:35.449Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:06:35.450Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-27T07:06:35.452Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:06:35.452Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-27T07:06:35.793Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=269 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:06:45.948Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:06:45.949Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-27T07:06:45.955Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:06:45.956Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-27T07:06:45.960Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:06:45.961Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-27T07:06:45.962Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:06:45.963Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T07:06:46.304Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=207 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:06:54.968Z [dshws-chain] member dshws-anysearch failed (DSHWS_MEMBER_TIMEOUT: no result within the member budget of 30000ms); degrading to next member
+2026-09-27T07:06:54.969Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T07:06:55.324Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=175 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:06:56.296Z [dshws-chain] member dshws-exa failed (Exa search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:06:56.297Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-27T07:06:56.300Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:06:56.300Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-27T07:06:56.301Z [dshws-chain] member dshws-tavily failed (Tavily search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:06:56.301Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-27T07:06:56.651Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=187 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:07:01.433Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T07:07:03.754Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T07:07:05.455Z [dshws-chain] member dshws-tavily failed (DSHWS_MEMBER_TIMEOUT: no result within the member budget of 30000ms); degrading to next member
+2026-09-27T07:07:05.457Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T07:07:05.810Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=275 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:07:06.465Z [dshws-chain] member dshws-firecrawl failed (Firecrawl search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:07:11.449Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-27T07:07:11.449Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-27T07:07:11.449Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-27T07:07:11.449Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-27T07:07:11.802Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=221 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:07:21.463Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:07:21.464Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-27T07:07:21.466Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:07:21.466Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-27T07:07:21.467Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:07:21.467Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-27T07:07:21.469Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:07:21.469Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-27T07:07:21.816Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=200 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:07:31.965Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:07:31.966Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-27T07:07:31.971Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:07:31.972Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-27T07:07:31.974Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:07:31.974Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-27T07:07:32.319Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=176 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:07:34.320Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T07:07:34.962Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T07:07:37.725Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T07:07:41.449Z [dshws-chain] member dshws-anysearch failed (DSHWS_MEMBER_TIMEOUT: no result within the member budget of 30000ms); degrading to next member
+2026-09-27T07:07:41.451Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-27T07:07:41.807Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=163 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:07:45.661Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T07:07:57.125Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-27T07:07:57.126Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-27T07:07:57.477Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=212 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:08:07.608Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:08:07.609Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-27T07:08:07.612Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (2/3)
+2026-09-27T07:08:07.612Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-27T07:08:07.962Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=215 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:08:18.114Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:08:18.114Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-27T07:08:18.117Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); redrawing key (3/3)
+2026-09-27T07:08:18.117Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-27T07:08:18.466Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=186 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:08:26.466Z [dshws-chain] member dshws-anysearch failed (Anysearch search request failed: TypeError: fetch failed); degrading to next member
+2026-09-27T07:08:26.468Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-27T07:08:26.820Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=247 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:08:27.126Z [dshws-chain] member dshws-anysearch failed (DSHWS_MEMBER_TIMEOUT: no result within the member budget of 30000ms); degrading to next member
+2026-09-27T07:08:27.127Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T07:08:27.376Z [dshws-dns] resolve host=api.tavily.com via=cache kept=3 latencyMs=0
+2026-09-27T07:08:29.146Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T07:08:29.906Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T07:24:30.445Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T07:25:39.465Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T07:25:44.826Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=182 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:25:45.121Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=94 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:25:45.471Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=158 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:25:45.807Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=180
+2026-09-27T07:25:45.902Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=75
+2026-09-27T07:31:58.094Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T07:32:03.455Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=195 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:32:03.808Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=175 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:32:04.161Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=220 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:32:04.515Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=234 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:32:04.628Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=92
+2026-09-27T07:38:38.267Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.211 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T07:38:43.629Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=139 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:38:43.983Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=198 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:38:44.336Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=138 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:38:44.689Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 probeDrop=1 latencyMs=273 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T07:38:44.800Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=76

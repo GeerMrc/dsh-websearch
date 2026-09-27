@@ -1,9 +1,9 @@
 # dsh-websearch
 
 > **Language authority**: This file mirrors `README.md` (Chinese), which is the factual source of truth; when the two disagree, the Chinese file wins.
-> Version line: from **v0.1.0** (ADR-0020). Internal dev numbers 0.2.0–0.9.0 are archived history — see CHANGELOG.
+> Version line: from v0.1.0 (ADR-0020); **v0.2.0 = the DNS resilience layer** (ADR-0022 — a major architecture subsystem, the 0.2.x bump per ADR-0020). Internal dev numbers 0.2.0–0.9.0 are archived history — see CHANGELOG.
 
-`dsh-websearch` is an out-of-tree unified web-search management plugin for [deepseek-harness](https://github.com/) (`dsh`): zero host modification. It consolidates multiple search providers into one standard plugin with a user-configurable priority chain, full high-availability degradation, a multi-API-key pool, unified web_fetch takeover, and a settings-page GUI.
+`dsh-websearch` is an out-of-tree unified web-search management plugin for deepseek-harness (`dsh`): zero host modification. It consolidates multiple search providers into one standard plugin with a user-configurable priority chain, full high-availability degradation, a multi-API-key pool, unified web_fetch takeover, and a settings-page GUI.
 
 **Member admission bar** (ADR-0017): high availability + a free tier + multi-API-key support + upstream-aligned feature implementation.
 
@@ -21,7 +21,7 @@
 > 1. `dsh` **0.1.6-alpha.2**: every tool call crashes with `TOOL_RUNTIME_SCHEDULER.prepare` — avoid that version (use 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+).
 > 2. `dsh` **0.1.7-alpha.2/rc.1 (half-fixed in rc.2)**: with tsx source launches the host logs `Plugin metadata … TypeError: Cannot assign to read only property 'stack'` at startup — npm-installed / built-output users are unaffected; source-launch users can use the [fork fix branch](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2).
 
-Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2`, S32 full span — each rehearsed pre-release pinned explicitly), node >= 22.19.
+Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2` (S32/S33 full span — each rehearsed pre-release pinned explicitly, semver satisfies verified)), node >= 22.19.
 
 ```sh
 # 1. Pack (repo root)
@@ -66,6 +66,8 @@ Installing takes over web_search / web_fetch (bundle-pinned install order, last 
 
 **Upgrade**: full rehearsal manual at [docs/upgrade.md](docs/upgrade.md) (pack → swap → dump diff → GUI smoke → search → degradation). Same-version swaps are skipped — bump the version first for preview installs.
 
+**CI / release** (from v0.2.0): pushes/PRs to master run the full gate (typecheck/lint/test/i18n/build on a node 22/24 matrix); pushing a `v*` tag releases automatically — dual-name tarballs attach to the GitHub Release and the scoped package publishes to npmjs.org (the tag push is the release confirmation point).
+
 **Notes**:
 - Key values never reach the client; the settings badge shows integer counts only (refs whitelisted to the five members, blocking cross-credential probing).
 - After a host upgrade swaps the serving worktree, run `pnpm install && pnpm run build` in that worktree first so the profile links (symlink healing) resolve complete `lib/` outputs.
@@ -99,6 +101,7 @@ After install, Web UI "Settings → Web Search":
 - **Search chain / Web Fetch chain**: two independently orderable chains (ADR-0019), effective on the next search.
 - **Advanced fold**: fallback selector, timeout budget, DeepSeek maxUses, unified language/region (ADR-0015).
 - **Provenance badge** (ADR-0010): session tool rows show `[served-by: <member-id>]`.
+- **DNS resilience card** (v0.2.0, ADR-0022): member-card-style header with an on/off Switch; mode (auto/on/off), DoH preset (auto/CN/global/custom nodes), probe method (TCP/TLS), live detection status with evidence, and the Inspect resolution trace — see the section below.
 
 ## Chain semantics (ADR-0002 / ADR-0014)
 
@@ -115,6 +118,17 @@ After install, Web UI "Settings → Web Search":
 - **Takeover ON** (`fetchTakeover: true`, default): web_fetch is served by the internal fetch chain — Firecrawl → Tavily → AnySearch in order (Exa never joins). Cloud-side extraction bypasses local proxy/SSRF restrictions.
 - **Takeover OFF**: the gate falls back to a built-in http fetch (official-behavior-equivalent stand-in; the pinned patch means the official provider instance is never selected).
 - The two-state toggle is hot in GUI and settings (next agent / next call).
+
+## DNS resilience layer (v0.2.0, ADR-0022)
+
+Process-level resolution high availability under side-router/controlled networks (applies to all upstream requests of this plugin; other processes untouched):
+
+- **Automatic detection** (default `mode: auto`): a startup canary cross-checks member domains and enables DoH on poisoning evidence (e.g. 198.18.0.0/15 fake-ips); clean networks see zero behavior change (zero hits uninstall the patch).
+- **DoH encrypted resolution**: bypasses transparent port-53 interception; regional preset pools (AliDNS/DNSPod for CN, Cloudflare/Google/Quad9 globally) with bootstrap auto-selection (RTT ranked).
+- **Egress probing** (`dns.probe.method`): TCP-443 or TLS-Hello (SNI-carrying; default tcp) probes IP reachability, filtering CDN-rotation-stale unreachable IPs — the empirically effective measure on (SNI, IP) tuple-filtered networks.
+- **Multi-level degradation**: DoH total failure falls back to system resolution exactly once; connect-level failures retry once after a fresh resolve, then degrade to the next member (no key-budget burn).
+- **Privacy red lines**: hostnames in logs/traces are sanitized (non-member hosts hashed + last two labels); an active proxy environment suspends the layer (system path).
+- Chain-log `[dshws-dns]` / `[dshws-chain] connect-flap` lines carry a 4-hex run key for concurrent-run attribution.
 
 ## Configuration reference (`dsh-websearch` section of cordis.yml)
 

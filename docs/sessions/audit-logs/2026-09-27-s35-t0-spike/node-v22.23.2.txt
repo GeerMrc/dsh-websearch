@@ -1,0 +1,8 @@
+[env] node v22.23.2 | loopback server 127.0.0.1:59472
+  [q1] late dns.lookup patch HIT: doh-spike-artificial.test
+[q1] control fetch err: ENOTFOUND | lateDnsPatchHits=1 (promises patch applied but unused by fetch)
+  [q1] late dns.lookup patch HIT: doh-spike-artificial.test
+[q2] injected fetch err: ENOTFOUND injectedHits=0
+[q3] prototype restored: true
+  [q1] late dns.lookup patch HIT: doh-spike-artificial.test
+[q3] after-restore fetch err: ENOTFOUND (expected ENOTFOUND again)

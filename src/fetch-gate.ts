@@ -42,19 +42,21 @@ const BINARY_CONTENT_TYPE = /^(application\/octet-stream|image\/|audio\/|video\/
  *
  * @throws WebError with a stable code for each rejection class.
  */
-async function delegateFetch(request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
+/** Default SSRF-guard resolution: the untouched system resolver — `dns.promises.lookup` is never patched (ADR-0022 D1), so this stays the system truth when no dns layer is armed. */
+async function systemResolve(hostname: string): Promise<readonly string[]> {
+  const resolved = await lookup(hostname, { all: true })
+  return resolved.map((entry) => entry.address)
+}
+
+async function delegateFetch(resolution: (hostname: string) => Promise<readonly string[]>, request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
   const url = new URL(request.url)
   // SSRF guard (review Y-2): the OFF state must not become a private-network
-  // probe the official provider would have refused.
+  // probe the official provider would have refused. Resolution routes through
+  // the dns layer's guard seam (ADR-0022 D8) — DoH truth when armed for the
+  // host, the system resolver otherwise (identical pre-S35 behavior).
   const hostname = url.hostname.replace(/^\[|\]$/g, '')
   const literal = isIP(hostname)
-  let addresses: readonly string[]
-  if (literal) {
-    addresses = [hostname]
-  } else {
-    const resolved = await lookup(hostname, { all: true })
-    addresses = resolved.map((entry) => entry.address)
-  }
+  const addresses: readonly string[] = literal ? [hostname] : await resolution(hostname)
   for (const address of addresses) {
     if (!isPublicAddress(address)) {
       throw new WebError(`URL hostname resolves to a non-public address (${address})`, 'WEB_FETCH_BLOCKED')
@@ -82,8 +84,12 @@ async function delegateFetch(request: WebFetchRequest, signal?: AbortSignal): Pr
   }
 }
 
-/** Whether an address is globally reachable unicast (the official SSRF bar). */
-function isPublicAddress(address: string): boolean {
+/**
+ * Whether an address is globally reachable unicast (the official SSRF bar).
+ * Exported since S35 stage 5: the dns egress precheck reuses the same bar to
+ * avoid SYN-probing private ranges a rebinding answer might carry.
+ */
+export function isPublicAddress(address: string): boolean {
   const kind = isIP(address)
   if (kind === 6) {
     // Reject well-known non-public v6 ranges: loopback, link-local, unique-local.
@@ -117,6 +123,8 @@ export class FetchGateProvider implements WebFetchProvider {
     private readonly isTakeoverActive: () => boolean,
     /** Lazy chain resolution (S21): the chain is built after this gate registers; the thunk decouples construction order. */
     private readonly chainFetch: (request: WebFetchRequest, signal?: AbortSignal) => Promise<WebFetchResult>,
+    /** Hostname resolution for the OFF-path SSRF guard (ADR-0022 D8): the dns layer's `resolveForGuard` when armed for the host, the system resolver by default. */
+    private readonly resolveHostname: (hostname: string) => Promise<readonly string[]> = systemResolve,
   ) {}
 
   /** Always true: the pin guarantees selection, so availability is ours to own (review M2). */
@@ -128,6 +136,6 @@ export class FetchGateProvider implements WebFetchProvider {
     if (this.isTakeoverActive()) {
       return await this.chainFetch(request, signal)
     }
-    return await delegateFetch(request, signal)
+    return await delegateFetch(this.resolveHostname, request, signal)
   }
 }

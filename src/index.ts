@@ -36,19 +36,33 @@ import { DshWsKeyCountsRemote } from './key-counts.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
 import { AnysearchSearchProvider, resolveAnysearchMemberOptions } from './providers/anysearch.ts'
+import { ANYSEARCH_DEFAULT_BASE_URL } from './providers/anysearch.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
+import { DEEPSEEK_DEFAULT_BASE_URL } from './providers/deepseek.ts'
 import { DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER } from './config.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
+import { EXA_DEFAULT_BASE_URL } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
+import { FIRECRAWL_DEFAULT_BASE_URL } from './providers/firecrawl.ts'
 import { TavilySearchProvider, resolveTavilyMemberOptions } from './providers/tavily.ts'
+import { TAVILY_DEFAULT_BASE_URL } from './providers/tavily.ts'
 import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
+import { installDnsLayer, resolveWarmupDelayMs } from './dns/intercept.ts'
+import { DnsObservability, sanitizeHostFactory } from './dns/observability.ts'
+import { DshWsDnsRemote } from './dns/remote.ts'
 
 export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
 export type {
   AnysearchSettings,
   DeepSeekSettings,
+  DnsMode,
+  DnsPreset,
+  DnsScope,
+  DnsSettings,
+  DohNode,
   ExaSettings,
   FirecrawlSettings,
+  ResolvedDnsConfig,
   ResolvedWebSearchConfig,
   TavilySettings,
   UnifiedSearchFanout,
@@ -156,19 +170,28 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
-  // S21 (ADR-0019): the gate is a runtime ROUTER — the chain instance lands
-  // here through a lazy thunk so registration order stays put (the chain is
-  // constructed after the pools/members below). ON delegates to the chain,
-  // OFF falls through to the gate's built-in http fetch (official-behavior
-  // equivalent stand-in — the pinned patch means the official provider
-  // instance is never selected). The S15c restrict/prompt-shadow listener is
-  // RETIRED: web_fetch stays visible and is served by the chain when ON.
-  let fetchChainInstance: WebFetchProvider | undefined
-  ctx.web.registerFetchProvider(new FetchGateProvider(
-    fetchTakeoverActive,
-    (request, signal) => (fetchChainInstance ?? throwMissingChain()).fetch(request, signal),
-  ))
 
+  // S35 (ADR-0022): the DNS resilience layer — process-level dns.lookup
+  // interception with live-read config (mode/scope/preset), lazy canary
+  // detection (auto arms only on reserved-range evidence), and proxy-env
+  // suspension. The effect teardown restores the module export (settings
+  // off-switch, HMR single-layer guarantee).
+  const dnsScopeHosts = (): readonly string[] => {
+    const current = live.current()
+    const hosts = new Set<string>()
+    for (const base of [
+      current.tavily.baseURL ?? TAVILY_DEFAULT_BASE_URL,
+      current.exa.baseURL ?? EXA_DEFAULT_BASE_URL,
+      current.firecrawl.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
+      current.anysearch.baseURL ?? ANYSEARCH_DEFAULT_BASE_URL,
+      current.deepseek.baseURL ?? DEEPSEEK_DEFAULT_BASE_URL,
+    ]) {
+      // An unparseable baseURL fails loud in the owning provider's
+      // availability check; the scope set just skips it.
+      if (URL.canParse(base)) hosts.add(new URL(base).hostname.toLowerCase())
+    }
+    return [...hosts]
+  }
   // S15b (user ruling): gate-only takeover — no preset copies, no default
   // switching. The settings inject exists solely for the ONE-TIME migration:
   // an S15a install may hold authored preset copies and a switched default;
@@ -190,6 +213,69 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
     ctx.logger.info(message)
     fileLog(message)
   }
+
+  /** S36 (plan 036): one member id -> its live resolved base-URL host (for cache invalidation feedback). */
+  const dnsHostOfMember = (memberId: string): string | undefined => {
+    const key = memberId.replace('dshws-', '')
+    const current = live.current()
+    const section = (current as unknown as Record<string, { baseURL?: string } | undefined>)[key]
+    const fallback = {
+      tavily: TAVILY_DEFAULT_BASE_URL,
+      exa: EXA_DEFAULT_BASE_URL,
+      firecrawl: FIRECRAWL_DEFAULT_BASE_URL,
+      anysearch: ANYSEARCH_DEFAULT_BASE_URL,
+      deepseek: DEEPSEEK_DEFAULT_BASE_URL,
+    }[key]
+    const base = section?.baseURL ?? fallback
+    if (base === undefined) return undefined
+    return URL.canParse(base) ? new URL(base).hostname.toLowerCase() : undefined
+  }
+
+  // The DNS observability sink (S35 T7): sanitized hosts before any surface,
+  // [dshws-dns] log lines with the latency figure, and the 50-entry ring the
+  // remote trace face reads. Sensitivity is live: only scope 'all' exposes
+  // non-member hostnames, and those never cross in plaintext (ADR-0022 D9).
+  const dnsSanitize = sanitizeHostFactory((host) => live.current().dns.scope === 'all' && !dnsScopeHosts().includes(host))
+  const dnsObservability = new DnsObservability({ log })
+  const dnsLayer = installDnsLayer({
+    config: () => live.current().dns,
+    scopeHosts: dnsScopeHosts,
+    onEvent: (event) => dnsObservability.record(event, dnsSanitize),
+    // S36 (plan 036): eager boot warmup outside vitest — canary + pool build
+    // + scope-host prewarm, so the first user search hits a warm cache.
+    warmupDelayMs: resolveWarmupDelayMs(process.env),
+  })
+  ctx.effect(() => () => dnsLayer.dispose())
+
+  // DNS Remote (S35 T7): the settings block's status/re-check face and the
+  // Inspect trace source, joining the key-count namespace.
+  new DshWsDnsRemote(ctx, {
+    status: () => {
+      const state = dnsLayer.state()
+      return { armed: state.armed, decision: state.decision, proxyActive: state.proxyActive }
+    },
+    config: () => {
+      const dns = live.current().dns
+      return { mode: dns.mode, scope: dns.scope, preset: dns.preset }
+    },
+    trace: () => dnsObservability.trace(),
+    recheck: () => dnsLayer.recheck(),
+    sanitize: dnsSanitize,
+  })
+
+  // S21 (ADR-0019): the gate is a runtime ROUTER — the chain instance lands
+  // here through a lazy thunk so registration order stays put (the chain is
+  // constructed after the pools/members below). ON delegates to the chain,
+  // OFF falls through to the gate's built-in http fetch (official-behavior
+  // equivalent stand-in — the pinned patch means the official provider
+  // instance is never selected). The S15c restrict/prompt-shadow listener is
+  // RETIRED: web_fetch stays visible and is served by the chain when ON.
+  let fetchChainInstance: WebFetchProvider | undefined
+  ctx.web.registerFetchProvider(new FetchGateProvider(
+    fetchTakeoverActive,
+    (request, signal) => (fetchChainInstance ?? throwMissingChain()).fetch(request, signal),
+    dnsLayer.resolveForGuard,
+  ))
 
   // Build each member's key pool (ADR-0008): the primary ref plus any
   // configured extras. Entry-config names outside the credential grammar
@@ -289,8 +375,13 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   // Chain options are getter-backed on purpose: the chain shells keep the
   // options object by reference, so every run reads the live chain order and
   // timeout — a settings change reaches the next search without re-registering.
+  const onMemberConnectFailure = (memberId: string): void => {
+    const host = dnsHostOfMember(memberId)
+    if (host !== undefined) dnsLayer.invalidateHost(host)
+  }
   ctx.web.registerSearchProvider(new ChainSearchProvider({
     members: searchMembers.toResolver(),
+    onMemberConnectFailure,
     get order() {
       const current = live.current()
       const chain = [...current.searchChain]
@@ -381,6 +472,7 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   }
   const fetchChain = new ChainFetchProvider({
     members: fetchMembers.toResolver(),
+    onMemberConnectFailure,
     get order() {
       return [...live.current().fetchChain]
     },

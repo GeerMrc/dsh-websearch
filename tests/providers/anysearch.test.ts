@@ -168,6 +168,15 @@ describe('dshws-anysearch wire behavior (mock HTTP)', () => {
     expect(thrown!.message).toContain('429')
   })
 
+  it('unfolds a JSON error body into the search-face HTTP error message (regression lock)', async () => {
+    const provider = makeProvider()
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ message: 'rate limit exceeded for this key' }, 429)))
+    const thrown = await provider.search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown!.message).toContain('429')
+    expect(thrown!.message).toContain('rate limit exceeded for this key')
+  })
+
   it('maps a network refusal to the request-failure code', async () => {
     const provider = makeProvider()
     vi.stubGlobal('fetch', vi.fn(async () => {
@@ -248,6 +257,17 @@ describe('S21 T3: AnySearch extract face (web_fetch member, probe-backed contrac
     const caught = await makeProvider().fetch({ url: 'https://b.test' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.httpError })
     expect((caught as Error).message).toContain('Unable to extract')
+  })
+
+  it('HTTP 422 with an extract_failed envelope rides the upstream message, not the bare status', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      code: -1, message: 'Unable to extract content from the URL.', error_code: 'extract_failed',
+      request_id: 'req-422',
+    }, 422)))
+    const thrown = await makeProvider().fetch({ url: 'https://b.test' }).then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown!.message).toContain('422')
+    expect(thrown!.message).toContain('Unable to extract content from the URL.')
   })
 
   it('missing data.content on code 0 is a bad response (fail-loud)', async () => {

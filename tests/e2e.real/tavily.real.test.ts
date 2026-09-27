@@ -48,6 +48,16 @@ maybe('dshws-tavily real API', () => {
     expect(result.body.kind).toBe('text')
     if (result.body.kind === 'text') expect(result.body.content).toContain('Example Domain')
   }, 30_000)
+  it('error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)', async () => {
+    const provider = new TavilySearchProvider(resolveTavilyMemberOptions(
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY' },
+      async () => 'tvly-invalid-alignment-check',
+    ))
+    const thrown = await provider.search({ query: 'alignment check' }).then(() => null, (error: unknown) => error as { code?: string, message?: string })
+    expect(thrown?.message).toContain('401')
+    expect(thrown?.message).toContain('Unauthorized: missing or invalid API key.')
+  }, 30_000)
+
 })
 
 describe('dshws-tavily real-API default anchors', () => {

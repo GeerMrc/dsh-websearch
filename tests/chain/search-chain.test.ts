@@ -766,3 +766,213 @@ describe('member budget & exhaustion aggregation (S14u)', () => {
     expect(result.content?.startsWith('[served-by: dshws-backup]')).toBe(true)
   })
 })
+
+describe('S36 T2: connect-failure invalidation callback (plan 036)', () => {
+  const CONNECT_CODES = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_SOCKET'] as const
+
+  function connectErr(code: string, label = 'Tavily'): DshwsError {
+    const root = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('connect fail'), { code }) })
+    return new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', `${label} search request failed: ${String(root)}`, { cause: root })
+  }
+
+  function chainWith(invokeImpl: () => Promise<WebSearchResult>, onFail?: (id: string) => void) {
+    const failing: WebSearchProvider = { id: 'dshws-tavily', available: () => true, search: invokeImpl }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa answer') }
+    const core = new ChainSearchProvider({
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      members: resolver({ 'dshws-tavily': { provider: failing }, 'dshws-exa': { provider: fallback } }),
+      onMemberConnectFailure: onFail,
+    })
+    return core
+  }
+
+  it.for(CONNECT_CODES)('reports the member on a connect-level cause code (%s)', async (code) => {
+    const reported: string[] = []
+    const core = chainWith(async () => { throw connectErr(code) }, (id) => { reported.push(id) })
+    await core.search({ query: 'q' })
+    expect(reported).toEqual(['dshws-tavily'])
+  })
+
+  it('does NOT report an HTTP-status member error (request-level 404 degrades without invalidation)', async () => {
+    const reported: string[] = []
+    const httpErr = new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily search failed: HTTP 404', { httpStatus: 404 })
+    const core = chainWith(async () => { throw httpErr }, (id) => { reported.push(id) })
+    await core.search({ query: 'q' })
+    expect(reported).toEqual([])
+  })
+
+  it('does NOT report a bare credential-resolution failure sharing the requestFailed code (no connect cause)', async () => {
+    const reported: string[] = []
+    const bare = new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', 'Tavily search failed: key missing', undefined)
+    const core = chainWith(async () => { throw bare }, (id) => { reported.push(id) })
+    await core.search({ query: 'q' })
+    expect(reported).toEqual([])
+  })
+
+  it('member timeout counts as an invalidation trigger (explicit decision, plan 036)', async () => {
+    vi.useFakeTimers()
+    try {
+      const reported: string[] = []
+      const core = chainWith(() => new Promise<WebSearchResult>(() => {}), (id) => { reported.push(id) })
+      const pending = core.search({ query: 'q' })
+      await vi.advanceTimersByTimeAsync(5100)
+      await pending
+      expect(reported).toEqual(['dshws-tavily'])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
+describe('S37 (037): connect-level failures do not burn the key-draw budget (fast-degrade)', () => {
+  function connectErr(): DshwsError {
+    const root = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('connect fail'), { code: 'ECONNREFUSED' }) })
+    return new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', `Tavily search request failed: ${String(root)}`, { cause: root })
+  }
+
+  function chainWithAttempts(script: Array<() => Promise<WebSearchResult> | never>, reported?: string[]) {
+    let attempt = 0
+    const failing: WebSearchProvider = {
+      id: 'dshws-tavily',
+      available: () => true,
+      search: () => {
+        const step = script[Math.min(attempt, script.length - 1)]
+        attempt += 1
+        return step()
+      },
+    }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa answer') }
+    const core = new ChainSearchProvider({
+      // multiKeyPool: the 3-draw baseline this spec's budget semantics ride on.
+      members: resolver({ 'dshws-tavily': { provider: failing, multiKeyPool: true }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      onMemberConnectFailure: reported ? (id) => { reported.push(`${id}#${attempt}`) } : undefined,
+    })
+    return { core, attempts: () => attempt }
+  }
+
+  it('connect failure -> ONE retry on fresh resolution -> still failing degrades after exactly 2 attempts (not 3)', async () => {
+    const { core, attempts } = chainWithAttempts([() => { throw connectErr() }, () => { throw connectErr() }, () => { throw connectErr() }])
+    const result = await core.search({ query: 'q' })
+    expect(result.content).toContain('exa answer')
+    expect(attempts()).toBe(2)
+  })
+
+  it('connect failure -> the invalidation-refreshed retry recovers -> served by the same member in 2 attempts', async () => {
+    const { core, attempts } = chainWithAttempts([() => { throw connectErr() }, async () => fakeResult('recovered')])
+    const result = await core.search({ query: 'q' })
+    expect(result.content).toContain('[served-by: dshws-tavily]')
+    expect(result.content).toContain('recovered')
+    expect(attempts()).toBe(2)
+  })
+
+  it('non-connect failures keep the full 3-draw budget (semantics unchanged)', async () => {
+    let attempt = 0
+    const generic: WebSearchProvider = {
+      id: 'dshws-tavily',
+      available: () => true,
+      search: () => { attempt += 1; throw new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', 'boom', undefined) },
+    }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa answer') }
+    const core = new ChainSearchProvider({
+      members: resolver({ 'dshws-tavily': { provider: generic, multiKeyPool: true }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+    })
+    const result = await core.search({ query: 'q' })
+    expect(result.content).toContain('exa answer')
+    expect(attempt).toBe(3)
+  })
+})
+
+describe('S38 T2: connect-flap compact lines with run-key and cause-code (plan 038)', () => {
+  const CONNECT_CODES_F = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET'] as const
+
+  function flapErr(code: string): DshwsError {
+    const root = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('connect fail'), { code }) })
+    return new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', `Tavily search request failed: ${String(root)}`, { cause: root })
+  }
+
+  function flapChain(script: Array<() => Promise<WebSearchResult>>, logs: string[]) {
+    let attempt = 0
+    const failing: WebSearchProvider = {
+      id: 'dshws-tavily',
+      available: () => true,
+      search: () => { attempt += 1; return script[Math.min(attempt - 1, script.length - 1)]() },
+    }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa') }
+    return new ChainSearchProvider({
+      members: resolver({ 'dshws-tavily': { provider: failing, multiKeyPool: true }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      log: (line) => { logs.push(line) },
+    })
+  }
+
+  it.for(CONNECT_CODES_F)('retry line: compact connect-flap form with member, cause-code, and #runKey (%s)', async (code) => {
+    const logs: string[] = []
+    const core = flapChain([() => { throw flapErr(code) }, async () => fakeResult('recovered')], logs)
+    await core.search({ query: 'q' })
+    const flapLines = logs.filter(l => l.includes('connect-flap'))
+    expect(flapLines.length).toBeGreaterThanOrEqual(1)
+    const retry = flapLines.find(l => l.includes('retry(fresh-resolve)'))
+    expect(retry).toBeDefined()
+    expect(retry).toMatch(/\[dshws-chain\] connect-flap dshws-tavily [A-Z_]+ → retry\(fresh-resolve\) #[0-9a-f]{4}/)
+    // The old verbose form is gone for connect-level lines.
+    expect(logs.some(l => l.includes('retrying on fresh resolution'))).toBe(false)
+  })
+
+  it('degrade line: compact connect-flap degrade(retry-cap) with #runKey', async () => {
+    const logs: string[] = []
+    const core = flapChain([() => { throw flapErr('ECONNREFUSED') }, () => { throw flapErr('ECONNRESET') }], logs)
+    await core.search({ query: 'q' })
+    const degrade = logs.find(l => l.includes('degrade(retry-cap)'))
+    expect(degrade).toBeDefined()
+    expect(degrade).toMatch(/connect-flap dshws-tavily [A-Z_]+ → degrade\(retry-cap\) #[0-9a-f]{4}/)
+    expect(logs.some(l => l.includes('connect-level retry cap'))).toBe(false)
+  })
+
+  it('two concurrent runs produce distinguishable #runKeys (attribution)', async () => {
+    const logs: string[] = []
+    let attempt = 0
+    const failing: WebSearchProvider = {
+      id: 'dshws-tavily',
+      available: () => true,
+      // Always refuse: each concurrent run flaps retry-then-degrade on its
+      // own runKey; the fallback member serves both.
+      search: () => { attempt += 1; return Promise.reject(flapErr('ECONNREFUSED')) },
+    }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa') }
+    const core = new ChainSearchProvider({
+      members: resolver({ 'dshws-tavily': { provider: failing, multiKeyPool: true }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      log: (line) => { logs.push(line) },
+    })
+    await Promise.all([core.search({ query: 'a' }), core.search({ query: 'b' })])
+    const flapLines = logs.filter(l => l.includes('connect-flap'))
+    // Exactly two runs' keys across exactly four flap lines (2 per run) —
+    // per-line re-keying or cross-run bleed both break this.
+    expect(flapLines.length).toBe(4)
+    const keys = [...new Set(flapLines.map(l => (l.match(/#([0-9a-f]{4})/) ?? [])[1]).filter(Boolean))]
+    expect(keys.length).toBe(2)
+  })
+
+  it('real errors keep the verbose form (HTTP 404 unchanged)', async () => {
+    const logs: string[] = []
+    const httpErr = new DshwsError('DSHWS_TAVILY_HTTP_ERROR', 'Tavily failed: HTTP 404', { httpStatus: 404 })
+    const failing: WebSearchProvider = { id: 'dshws-tavily', available: () => true, search: async () => { throw httpErr } }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa') }
+    const core = new ChainSearchProvider({
+      members: resolver({ 'dshws-tavily': { provider: failing }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      log: (line) => { logs.push(line) },
+    })
+    await core.search({ query: 'q' })
+    expect(logs.some(l => l.includes('request-level HTTP 404'))).toBe(true)
+    expect(logs.some(l => l.includes('connect-flap'))).toBe(false)
+  })
+})

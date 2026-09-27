@@ -1,0 +1,39 @@
+# CI gate (S36 T9): the local close-out wall, replicated on GitHub.
+# Node matrix matches engines (^22.19 || >=24); pnpm comes from the
+# packageManager field; pnpm-workspace.yaml ships the release-age gate
+# config so CI installs behave exactly like local ones.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck (both faces)
+        run: |
+          pnpm run typecheck
+          pnpm run typecheck:client
+      - name: Lint
+        run: pnpm run lint
+      - name: Unit tests (e2e.real self-skips without keys)
+        run: pnpm test
+      - name: i18n parity
+        run: pnpm run check:i18n
+      - name: Build
+        run: pnpm run build

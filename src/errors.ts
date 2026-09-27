@@ -125,3 +125,26 @@ export function createChainExhaustedError(failures: readonly ChainMemberFailure[
     last?.error !== undefined ? { cause: last.error } : undefined,
   )
 }
+
+/**
+ * DNS resilience diagnostic codes (S35, ADR-0022 D11). Diagnostic-level only:
+ * they ride log lines, the trace ring, and the remote status face — they never
+ * join the chain failure path (a resolution failure keeps the member-failure
+ * → chain-degradation semantics of ADR-0002).
+ */
+export const DNS_ERROR_CODES = {
+  /** The lazy canary found reserved-range evidence and armed the DoH layer. */
+  autoEnabled: 'DSHWS_DNS_AUTO_ENABLED',
+  /** The canary proved a clean network; the patch uninstalled (zero-patch). */
+  autoSkipped: 'DSHWS_DNS_AUTO_SKIPPED',
+  /** Some or all canary samples failed system resolution; recorded as diagnostics (enables only when ALL samples failed). */
+  detectInconclusive: 'DSHWS_DNS_DETECT_INCONCLUSIVE',
+  /** Every DoH node failed for a resolution; the degradation chain begins. */
+  dohUnreachable: 'DSHWS_DNS_DOH_UNREACHABLE',
+  /** The precheck dropped every candidate; the original list was kept (宁多勿无). */
+  probeAllFailed: 'DSHWS_DNS_PROBE_ALL_FAILED',
+  /** A proxy environment suspended the layer for this host. */
+  suspendedProxy: 'DSHWS_DNS_SUSPENDED_PROXY',
+  /** The resolution fell back to the original system lookup (never-worse). */
+  fallbackSystem: 'DSHWS_DNS_FALLBACK_SYSTEM',
+} as const

@@ -123,3 +123,23 @@ npm 系安装器默认的 semver 规则**不认「跨版本号的预发布版**�
 - 新问题入表四要素：**现象（日志原文）/ 影响版本（实测矩阵）/ 根因 / 规避或修复与自查命令**——缺一不登。
 - 销项（标记已修复）必须附上游版本号 + 我们的复测记录指针，不以发布说明为准。
 - 相关正本：[upgrade.md](upgrade.md)（升级演练矩阵）、[S32](notes/2026-09-23-s32-upstream-diff-matrix.md)/[S33](notes/2026-09-26-s33-rc-matrix.md) 兼容矩阵 Note、[发布页](https://github.com/GeerMrc/dsh-websearch/releases)（各版本 tarball 与验证记录）。
+
+---
+
+## 问题 ④（易踩坑，非 bug）Node 大版本升级后 DNS 韧性层拦截可能失效——undici 代际行为漂移（S35 T6 登记）
+
+### 现象
+
+插件启用后本应被 DoH 接管的域名解析重新走系统 DNS（chain-log `[dshws-dns]` 行消失、Inspect 解析 trace 无记录），无任何报错。
+
+### 影响版本（实测矩阵）
+
+v20.18.3 / v22.23.2 双版本实测：undici（global fetch）按调用时属性访问 `dns.lookup`（`{hints:1024, all:true}` 形态），晚期 patch 有效（S35 T0 spike，`docs/sessions/audit-logs/2026-09-27-s35-t0-spike/`）。其余版本未测。
+
+### 根因
+
+Node 内置 undici 属代际漂移面：其 hostname 解析入口（自行调用 `dns.lookup` vs 经 net.js 模块级捕获回退）随版本变动；若未来代际改为加载期捕获引用，`dns.lookup` 晚期 patch 将不再触达 fetch。
+
+### 怎么办 / 自查
+
+升级 node 大版本后跑一次拦截回归：`pnpm exec vitest run tests/dns/intercept.test.ts`（含「patched module answer drives a real global fetch」端到端锁，红即失效）；失效则按 ADR-0022 备选否决记录改走 undici Agent 方案并修订 ADR。

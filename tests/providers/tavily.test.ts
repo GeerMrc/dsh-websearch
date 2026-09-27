@@ -324,6 +324,20 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     expect((caught as Error).message).toContain('invalid api key')
   })
 
+  it('unfolds the live nested detail.error form (401 shape verified 2026-09-28) on the search face', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: { error: 'Unauthorized: missing or invalid API key.' } }, 401)))
+    const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 401 })
+    expect((caught as Error).message).toContain('Unauthorized: missing or invalid API key.')
+  })
+
+  it('unfolds the live nested detail.error form on the extract face too', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: { error: 'Unauthorized: missing or invalid API key.' } }, 401)))
+    const caught = await new TavilySearchProvider(options).fetch({ url: 'https://a.test' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 401 })
+    expect((caught as Error).message).toContain('Unauthorized: missing or invalid API key.')
+  })
+
   it('maps a network failure to DSHWS_TAVILY_REQUEST_FAILED', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => {
       throw new TypeError('network down')

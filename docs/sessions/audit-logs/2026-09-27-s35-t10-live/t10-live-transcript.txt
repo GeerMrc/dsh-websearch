@@ -1,0 +1,20 @@
+[t10] first lookup (pre-decision, system path): [{"address":"198.18.0.211","family":4}]
+[t10] canary decision: {"action":"enable","verdict":"poisoned","hits":[{"host":"api.tavily.com","addresses":["198.18.0.211"]},{"host":"api.exa.ai","addresses":["198.18.1.131"]},{"host":"api.firecrawl.dev","addresses":["198.18.0.30"]},{"host":"api.anysearch.com","addresses":["198.18.0.26"]}],"failures":[]}
+[t10] armed: true
+[t10] R3 api.tavily.com: 10/10 TCP-443 reachable through the layer
+[t10] R3 api.exa.ai: 10/10 TCP-443 reachable through the layer
+[t10] R3 api.firecrawl.dev: 10/10 TCP-443 reachable through the layer
+[t10] R3 api.anysearch.com: 10/10 TCP-443 reachable through the layer
+[t10] resolveForGuard(api.tavily.com): ["98.87.123.185","184.194.134.183","54.243.194.162"]
+[t10] R4 chaos (dead DoH plane) answer for api.exa.ai: [{"address":"198.18.1.131","family":4}]
+[t10] R4 fallback events: []
+[t10] R4 proxy-suspended lookup still answers (system path): [{"address":"198.18.0.211","family":4}]
+[t10] DONE
+[t10-chaos] armed: true
+[t10-chaos] dead-plane lookup answer (system fallback, never-worse): [{"address":"198.18.1.131","family":4}]
+[t10-chaos] fallback events: [{"kind":"fallback","host":"api.exa.ai","reason":"doh-dead"},{"kind":"fallback","host":"api.exa.ai","reason":"doh-dead"}]
+[t10-chaos] DONE
+[t10-latency] cold-lookup samples (ms): [493,417,413,412,410] max: 493
+[t10-latency] DONE max<=350: false
+[t10-latency] cold-lookup samples (ms): [353,353,351,352,351] max: 353
+[t10-latency] DONE max<=350: false

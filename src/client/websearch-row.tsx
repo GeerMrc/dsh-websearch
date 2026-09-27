@@ -32,6 +32,7 @@ import type { ReactElement } from 'react'
 import { GlobeIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { MEMBERS } from './controller.ts'
+import { DnsTraceSection } from './dns-trace-section.tsx'
 
 /** Host running-call face (no `kind` member; ui-conversation records.ts:264-273). */
 interface RunningCallFace {
@@ -258,6 +259,7 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
               </ul>
             </div>
             {web.truncated && <div style={noteStyle}>{t('toolTruncated')}</div>}
+            <DnsTraceSection t={t} />
             <details>
               <summary>{t('toolRaw')}</summary>
               <pre style={preStyle}>{argsRaw}</pre>
