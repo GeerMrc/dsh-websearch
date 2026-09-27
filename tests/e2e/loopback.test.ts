@@ -110,10 +110,17 @@ describe('loopback e2e — full assembly through the chain (plan 008)', () => {
       expect(result.sources).toEqual([{ url: 'https://exa.test/a', title: 'Exa page', snippet: 'exa snippet a' }])
       // Attribution: exa yields no content, so the served-by line stands alone.
       expect(result.content).toBe('[served-by: dshws-exa]')
-      // Observable failure face: the degrade line names the member and its reason.
-      const degrade = handle.logLines.find((line) => line.includes('dshws-tavily failed'))
-      expect(degrade).toBeDefined()
-      expect(degrade!).toMatch(/^.*member dshws-tavily failed \(Tavily search request failed:/)
+      // Observable failure face (plan 038): a connection-refused degrade rides
+      // the compact connect-flap form; the verbose member-failed form stays
+      // for HTTP/timeout/chain-exhausted classes.
+      const flaps = handle.logLines.filter((line) => line.includes('connect-flap dshws-tavily'))
+      // Retry-then-cap sequence on one runKey: the compact form tells the
+      // whole refusal story in two short lines.
+      expect(flaps.length).toBeGreaterThanOrEqual(1)
+      // Single-key member (no pool): the first refusal degrades at once —
+      // the compact form shows degrade(retry-cap); pooled members show the
+      // retry line first. Either way the form is compact + attributable.
+      expect(flaps.some(l => /→ (retry\(fresh-resolve\)|degrade\(retry-cap\)) #[0-9a-f]{4}/.test(l))).toBe(true)
       expect(handle.logLines).toContain('[dshws-chain] served-by: dshws-exa')
       // The dead member never reached the stub; the winner did, exactly once.
       expect(server.arrivals).toEqual(['POST /exa/search'])

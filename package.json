@@ -1,6 +1,6 @@
 {
   "name": "@maricgeer/dsh-websearch",
-  "version": "0.2.0-rc.4",
+  "version": "0.2.0-rc.5",
   "description": "Unified multi-provider WebSearch management plugin for the DeepSeek Harness (dsh) — priority chains with full HA degradation for search and fetch, plus a settings-page GUI",
   "license": "MIT",
   "type": "module",
