@@ -629,4 +629,4 @@ P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（�
 
 ## S34 批次台账（2026-09-26，上游问题经验沉淀文档批）
 
-任务链 P0（两阶段审核）→T1 登记表→T2 README 联动→T3 Release 块→T4 修正→T5 六件套 全 ✅。产物：docs/known-upstream-issues.md（三问题登记+销项规则）、README zh/en、v0.1.3 notes 块。债务：🟢 沿 S33（README 串随 0.1.4；Release/fork 远端活体目验待窗口）。锚点：check:i18n EXIT=0；diff 仅 docs/+README；远程 body grep=1。
+任务链 P0（两阶段审核）→T1 登记表→T2 README 联动→T3 Release 块→T4 修正→T5 六件套 全 ✅。产物：docs/known-upstream-issues.md（三问题登记+销项规则）、README zh/en、v0.1.3 notes 块。债务（S35 T0 三载体口径统一）：🟢 沿 S33——README 前置串+占位链接+tail 清理（**归属随 v0.2.0**，S35 T0 勘正原「随 0.1.4」）+ npm 包内 README 漂移（随发版消除）；**Release/fork 远端活体目验已销项**（S35 阶段 0 亲验：远端 master=5d34b2f 逐位一致、fork 分支 head=ebd42731c9 一致——正本 audit-logs/2026-09-27-s35-stage0-audit-of-s34.md §维度1d）。锚点：check:i18n EXIT=0；diff 仅 docs/+README；远程 body grep=1。

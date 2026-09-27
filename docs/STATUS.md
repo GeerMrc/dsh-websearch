@@ -26,7 +26,7 @@
 | M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
 | M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | ✅ 2026-09-13（e2e 腿 S08 + 文档腿 S26〔Tier B〕；真实搜索实证 S27 生产重建回填——2026-09-23 S32 T1 补账勘正） |
 | M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳（准备棒 = S16，2026-09-04 重排编号） |
-| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012）+ 装即接管（ADR-0013） | ✅ 2026-09-06（S09-S14 + S14a 插行全收官；证据 = 徽标浏览器亲见 + 宿主零 diff + 装卸三态 dump + 各自 stage45 PASS/COMPLETE） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012）+ 装即接管（ADR-0013）+ DNS 韧性层（S35，ADR-0022） | 🚧 2026-09-27 复开（S35 进行中）；S09-S14 + S14a 插行已于 2026-09-06 全收官（证据 = 徽标浏览器亲见 + 宿主零 diff + 装卸三态 dump + 各自 stage45 PASS/COMPLETE） |
 
 ## Session 台账（一行一棒）
 
@@ -95,7 +95,7 @@
 | 32 | 2026-09-23 | 上游全跨度升级适配批（0.1.5-rc.3/0.1.6-alpha.2/0.1.7-alpha.2 + 生产死 tgz 修复——用户三裁定） | ✅ | docs/sessions/2026-09-23-session-32.md；v0.1.2 定版（门墙 480\|13(493) 全绿，阶段 4 复跑一致）；ADR-0021 双径 + Note s32 矩阵 + 演练证据库；生产 3080=v0.1.2@016a1；阶段 4 PASS / 阶段 5 COMPLETE-WITH-NOTES 八必修全落 | 🟡×4 全清偿；🟢+3（exclude 清理/volatile path 测试/复合证据注记）；B 线工具腿 BLOCKED-by-upstream 留档 |
 | 32a | 2026-09-23 | 会话后增补批（用户即时指令）：README 上游缺陷注记 e43fb22 / npm 发布+改名 @maricgeer 57b7f97 / 生产切树 016a1→017a2 2b2f1c0 | ✅ | CHANGELOG 三条目 + audit-log prod-switch-017a2 + Release v0.1.2 双 tarball；npm@0.1.2 拉装冒烟过（当时网络尚通）；治理欠账由 S33 T1 本批补齐 | 网络债：github/npmjs 09-26 起不可达（环境，见 S33 T0） |
 | 33 | 2026-09-26 | 随上游 0.1.7-rc.1/rc.2 迭代适配批（多版本全跨度 + fork 修复审计 + 发布与生产切换呈批——用户四裁定） | ✅ | docs/sessions/2026-09-26-session-33.md；v0.1.3 定版（零源码适配；门墙 480\|13(493)）；npm@0.1.3 已发布（GitHub 腿网络受阻续试）；fork 修复收编 fix/readonly-stack-rc2（回归 235/235）；三线演练全 PASS；生产切换已执行（用户批准；备份先行 237M；正本 audit-log prod-switch-rc2） | 🟡×4 全清；🟢+3（README 前置串/tail 清理/GitHub 腿收尾确认——第三项已随 c8057be 闭合） |
-| 34 | 2026-09-26 | 上游问题经验沉淀文档批（用户指令：README/Tag/文档沉淀 fork 修复经验供小白复用+推送远端） | ✅ | docs/sessions/2026-09-26-session-34.md；docs/known-upstream-issues.md（三问题登记表）+README zh/en 联动+Release v0.1.3 notes 块；阶段2 APPROVED/阶段4 PASS | 🟢 沿 S33（README 串随 0.1.4；Release/fork 远端活体目验——**已由 S35 阶段 0 亲验销项**） |
+| 34 | 2026-09-26 | 上游问题经验沉淀文档批（用户指令：README/Tag/文档沉淀 fork 修复经验供小白复用+推送远端） | ✅ | docs/sessions/2026-09-26-session-34.md；docs/known-upstream-issues.md（三问题登记表）+README zh/en 联动+Release v0.1.3 notes 块；阶段2 APPROVED/阶段4 PASS | 🟢 沿 S33（README 前置串+占位链接+tail 清理——**归属随 v0.2.0**〔S35 T0 勘正，原「随 0.1.4」〕；npm 包内 README 漂移随发版消除；Release/fork 远端活体目验——已由 S35 阶段 0 亲验销项） |
 | 35 | 2026-09-27 | DNS 韧性层批 v0.2.0（进程级 DoH 解析+出口预检+区域预设池+Inspect trace；用户主计划批准+四裁定） | 🚧 | docs/sessions/2026-09-27-session-35.md；阶段 0 独立审核 PASS（audit-log 2026-09-27-s35-stage0-audit-of-s34.md）+ 拦截 seam spike 实证（audit-logs/2026-09-27-s35-t0-spike/：dns.lookup patch 双 node 版 fetch 正例 200）+ plan 035 + ADR-0022（proposed） | 🟡+4（S34 收官卫生债，S35 T0 先债后新清偿）；🟢-1（Release/fork 活体目验销项）；🟢 归属改乘 1（README 前置串+占位链接→v0.2.0 T11） |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
