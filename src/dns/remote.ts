@@ -58,7 +58,7 @@ export interface DnsStatusSnapshot {
 export class DshWsDnsRemote extends TypertRemoteService {
   readonly ports: DnsRemotePorts
 
-  /** @param ctx - owning Cordiс Context (the plugin's fiber owns disposal). */
+  /** @param ctx - owning Cordis Context (the plugin's fiber owns disposal). */
   constructor(ctx: Context, ports: DnsRemotePorts) {
     super(ctx, 'dshwsDns', { namespace: DNS_REMOTE_NAMESPACE })
     this.ports = ports
