@@ -81,6 +81,17 @@
 - **seam 形状**：`WebSearchProvider`/`WebFetchProvider` 三方法 + 注册 API 未变（typecheck 即证）。
 - **溯源替身卡片**（ADR-0010 维护点）：宿主 toolview 结构变化时同步替身卡片渲染。
 
+## 6. 发布链失败恢复（tag v* 自动发布的中断续作）
+
+自动链：`push tag v*` → CI `Release`（build → pack 双名 → gh release create 附双 tarball → npm publish scoped 到 registry.npmjs.org）。中断点与续作：
+
+| 中断态 | 现象 | 续作 |
+|---|---|---|
+| build/pack 失败 | run 红在发布前 | 修复后**重推同 tag**（删本地 tag 重打或 `git tag -f`+push -f）；零半发布态 |
+| `gh release create` 失败（网络/瞬时） | Release 页无条目 | 重跑该 run（Actions 页 Re-run）——release 未创建则幂等重试成立 |
+| Release 已建但 npm publish 失败 | Release 页有 v0.2.0 条目、`npm view` 无该版 | 二选一：**a)** Re-run 整 job 前先 `gh release delete v0.2.0 --yes`（release create 非幂等，会死于 "already exists"）；**b)** 手工补发：`npm publish dist-artifacts/maricgeer-dsh-websearch-<ver>.tgz --registry https://registry.npmjs.org --access public`（**必须显式 --registry**——本机默认 registry 为 npmmirror，裸 `npm publish` 会误发镜像） |
+| npm publish 成功但需重发（内容修复） | 同版本 npm 拒绝（防覆写保护） | bump 版本（0.2.1）+ 重打 tag 走全链；**禁止 force 覆写已发布版** |
+
 ## 5. 回退
 
 - 插件回退 = remove 新包 + add 旧 tarball（配置 settings 节向后兼容：未知新字段被 schema 透传，无报错）。
