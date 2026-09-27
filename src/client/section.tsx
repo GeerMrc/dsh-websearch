@@ -570,6 +570,9 @@ const dnsSelectStyle = {
   color: 'inherit',
   font: 'inherit',
   fontSize: 12,
+  minWidth: 160,
+  maxWidth: '60%',
+  flexShrink: 0,
 } as const
 
 /**
@@ -713,6 +716,7 @@ function DnsResilienceCard(props: {
               <option value="global">{t('dnsPresetGlobal')}</option>
               <option value="custom">{t('dnsPresetCustom')}</option>
             </select>
+          </div>
           <div style={paramRowStyle}>
             <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsProbeMethodLabel')}
               <Tooltip label={t('dnsProbeMethodHint')} side="bottom" delayMs={400} maxWidth={320}>
@@ -726,9 +730,14 @@ function DnsResilienceCard(props: {
               <option value="tls-hello">{t('dnsProbeMethodTlsHello')}</option>
             </select>
           </div>
-          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={fieldLabelStyle}>{t('dnsNodesLabel')}</label>
+            <label style={fieldLabelStyle}>{t('dnsNodesLabel')}
+              <Tooltip label={t('dnsNodesHint')} side="bottom" delayMs={400} maxWidth={320}>
+                <button type="button" aria-label={t('dnsNodesLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
+                  <QuestionIcon />
+                </button>
+              </Tooltip>
+            </label>
             <textarea
               data-testid="dshws-dns-nodes"
               data-dshws-focusable=""
