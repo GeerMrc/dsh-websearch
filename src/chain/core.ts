@@ -258,7 +258,6 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
   }
 }
 
-/** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
 /** Connection-level cause codes (plan 036): an address/path problem a fresh resolution might fix. */
 const CONNECT_LEVEL_CODES: ReadonlySet<string> = new Set([
   'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE', 'EAI_AGAIN',
@@ -277,6 +276,7 @@ function isConnectLevelFailure(error: unknown): boolean {
   return false
 }
 
+/** Internal sentinel: the member's `perMemberTimeoutMs` budget expired before a result. */
 const MEMBER_TIMED_OUT: unique symbol = Symbol('dshws.member-timed-out')
 
 /**

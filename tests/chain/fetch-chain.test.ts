@@ -145,3 +145,25 @@ describe('fetch chain (dshws-chain-fetch 同构)', () => {
     expect(logs.some((line) => line.includes('served-by') && line.includes('dshws-lone'))).toBe(true)
   })
 })
+
+describe('S36 T2 (F3 清偿): the FETCH chain carries the connect-failure invalidation callback too (plan 036)', () => {
+  it('a connect-level member failure on the fetch chain reports the member id', async () => {
+    const reported: string[] = []
+    const root = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('connect fail'), { code: 'ECONNREFUSED' }) })
+    const failing: WebFetchProvider = {
+      id: 'dshws-first',
+      available: () => true,
+      fetch: async () => { throw root },
+    }
+    const fallback: WebFetchProvider = { id: 'dshws-second', available: () => true, fetch: async () => fakeFetchResult('ok') }
+    const chain = new ChainFetchProvider({
+      members: resolver({ 'dshws-first': { provider: failing }, 'dshws-second': { provider: fallback } }),
+      order: ['dshws-first', 'dshws-second'],
+      perMemberTimeoutMs: 1000,
+      onMemberConnectFailure: (id) => { reported.push(id) },
+    })
+    const result = await chain.fetch({ url: 'https://example.test/a' })
+    expect(result.body.content).toContain('ok')
+    expect(reported).toEqual(['dshws-first'])
+  })
+})

@@ -89,3 +89,12 @@
 - **错误**:：给阶段 0/2/4/5 审核 Agent 的输入里手工枚举 commit hash 清单时省略 docs-only 提交（S34 收官链省略 1fb2a3b；S35 执行链声称 13 个、实际 15 个——漏 4edc5b1/6c2e360 两个治理产物提交）。内容均计划内且 session 记录有载，但审核方复核 `git log` 后须自行发现差异，消耗审核预算并留下「枚举不可信」的复发记录（两棒连现）。
 - **正确**：交接只给**范围锚点**（起点 hash + HEAD）+ 一句「自行 `git log <start>..HEAD` 复核全量」；确需点名个别提交时以 git log 输出为准现场生成，不凭记忆誊写。
 - **来源**：S34 阶段 0 🟢② + S35 阶段 4 问题 1（docs/sessions/audit-logs/2026-09-27-s35-stage4-review.md §0/§5-1）；两现跨棒，入册防第三现。
+
+
+## 客户端 Remote 挂载（Session 35 plan 036 入册；阶段 4/5 抓获）
+
+### ❌ 不要对同一命名空间发起第二个懒 `$mount`——追加大面必须并入既有贡献单次安装
+
+- **错误**：为 `dshws-websearch` 命名空间的 DNS 三方法单独写 `mountDnsRemote`（第二个懒 `$mount`），与 keyCounts 的懒挂载并发：后挂载者永不落定（无报错无超时的静默悬挂），refreshDnsFace 整体沉默，UI 状态面永陈旧。
+- **正确**：向既有命名空间追加方法时，把新描述符**并入既有贡献**（`keyCountsContribution.descriptors` 数组拼接），保持全插件对该命名空间**恰好一次 `$mount`**（mountContribution 本义即按命名空间分组一次安装）；两消费点共用合并后的挂载面。
+- **来源**：S35 plan036 T4 复测实锤（rc.2 状态面全静默 → API 直探 ok:true 定位挂载层 → 单贡献合并修复后 rc.3 卡点亮）；阶段 4/5 F8 建议。

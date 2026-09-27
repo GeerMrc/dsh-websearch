@@ -341,7 +341,10 @@ export function installDnsLayer(deps: DnsLayerDeps): DnsLayer {
           } finally {
             dohInFlight += 1
           }
-          kept = candidates.filter((entry) => probeOutcome!.kept.includes(entry.address))
+          // All-non-public candidate sets skip the probe entirely (kept stays
+          // the full list — stage-5-of-036 F6: the former unconditional
+          // filter here crashed on the null verdict and silently degraded to
+          // the system path, breaking the never-worse promise).
         }
         deps.onEvent?.({
           kind: 'resolve',

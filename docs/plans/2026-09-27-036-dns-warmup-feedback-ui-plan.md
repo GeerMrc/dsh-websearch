@@ -43,7 +43,7 @@ v0.2.0 定版前消除首查竞速失败、缓解出口漂移重试、DNS 设置
 - cordis 无 'ready' 生命周期事件（已核 vendored Events 接口）→ apply 后 2.5s 延迟定时器；dispose 清理保 HMR。
 - 测试密闭性门槛 `process.env.VITEST`（仓库新引入模式，ADR 勘注显式声明：预热是网络副作用，单测密闭红线优先；证红断言锁死）。
 - 负反馈=缓存作废而非 IP 黑名单：undici 不暴露实际选中连接 IP；作废→重新 DoH 拿新轮转集合为零埋点等效缓解；IP 级 60s 黑名单（undici 连接器埋点）与 TLS-Hello 预检列后续 ADR。
-- 预解析外呼量：启动一次性 ≤8 包（4 域 DoH + 预检 TCP），零风控信号。
+- 预解析外呼量（阶段 5 实测勘正 F5）：一次性约 25-30 包 = 5 域×(A+AAAA) 10 DoH + 预检 TCP ~9 + canary 5 系统解析 + bootstrap 池探测——仍零风控信号量级。
 
 ## 债务归属映射
 
@@ -52,3 +52,7 @@ v0.2.0 定版前消除首查竞速失败、缓解出口漂移重试、DNS 设置
 | IP 级失败黑名单（undici 连接器埋点） | 🟢 | 后续 ADR（负反馈闭环完整版） | 技术报告 H4 + 本批轻量版 |
 | TLS-Hello 带SNI 预检（SNI 过滤网络恢复预检信号） | 🟢 | 后续 ADR | 实测 probeDrop=3 盲区发现 |
 | DNS 状态面 live 轮询（现为展开即刷新） | 🟢 | 按需 | T3 以展开刷新缓解 |
+| 预热窗口受 posMinS/posMaxS TTL 限制：首查晚于 300s 窗口仍冷解析（rc2 实测形态）；TTL 感知续暖待评估 | 🟢 | 后续版本 | 阶段 5 F9 |
+| 客户端 DNS 描述符手工镜像无形状测试（keyCounts 有跨代+artifact 双锁；本次双挂载缺陷恰出在手工镜像区） | 🟢 | 随下一 client 批 | 阶段 5 F10 |
+| abort 与 MEMBER_TIMED_OUT 同刻竞速仍作废缓存（明示接受的代价：90-350ms 重解析） | 🟢 | 备忘 | 阶段 5 F11 |
+| 【已修复登记】阶段 4/5 附条件项清偿：F6 预检全非公网候选崩溃（null verdict 无条件 filter → TypeError → 系统回退破坏不劣化承诺）已修；F1/F2/F3 测试债三件已补（invalidate 三键/负缓存保留 + vitest 门槛集成锁 + fetch 链回调断言）；F4 session 行/F5 包量勘正/F7 注释错位/F8 dont-do 均落 | ✅ | 收官批 | 本批提交 + audit-logs/2026-09-27-s36-stage45-review.md |

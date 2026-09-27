@@ -170,3 +170,35 @@ describe('S35 T3: DohResolver — family handling (ADR-0022 D2)', () => {
     expect(calls).toHaveLength(2)
   })
 })
+
+describe('S36 T2 (F1 清偿): invalidate — three-key positive-only invalidation (plan 036)', () => {
+  it('drops every family key: a warm three-family cache re-queries DoH after invalidate, case-insensitive', async () => {
+    const dual = { Status: 0, Answer: [{ name: 'x.', TTL: 60, type: 1, data: '1.2.3.4' }, { name: 'x.', TTL: 60, type: 28, data: '::42' }] }
+    const { send, calls } = scriptedSend({ '223.5.5.5': [dual, dual, dual, dual, dual] })
+    const resolver = new DohResolver({ ...DEFAULTS, send })
+    await resolver.resolve('Multi.CASE.example', 4)
+    await resolver.resolve('Multi.CASE.example', 6)
+    // family-0 queries A then AAAA: two sends, one cached composite key.
+    await resolver.resolve('Multi.CASE.example', 0)
+    expect(calls).toHaveLength(4)
+    resolver.invalidate('multi.case.EXAMPLE')
+    const v4 = await resolver.resolve('multi.case.example', 4)
+    const v6 = await resolver.resolve('multi.case.example', 6)
+    const both = await resolver.resolve('multi.case.example', 0)
+    expect(v4?.addresses[0]?.address).toBe('1.2.3.4')
+    expect(v6?.addresses[0]?.address).toBe('::42')
+    expect(both?.addresses).toHaveLength(2)
+    expect(calls).toHaveLength(8)
+  })
+
+  it('keeps negative entries: a cached NXDOMAIN survives invalidate (10s respect)', async () => {
+    const { send, calls } = scriptedSend({ '223.5.5.5': [{ Status: 3 }, { Status: 3 }] })
+    const resolver = new DohResolver({ ...DEFAULTS, send })
+    await resolver.resolve('gone.example', 4)
+    resolver.invalidate('gone.example')
+    const stillNeg = await resolver.resolve('gone.example', 4)
+    expect(stillNeg?.negative).toBe(true)
+    expect(stillNeg?.via).toBe('cache')
+    expect(calls).toHaveLength(1)
+  })
+})
