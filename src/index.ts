@@ -36,19 +36,31 @@ import { DshWsKeyCountsRemote } from './key-counts.ts'
 import { KeyPool } from './keys.ts'
 import { MEMBER_ERROR_CODES } from './errors.ts'
 import { AnysearchSearchProvider, resolveAnysearchMemberOptions } from './providers/anysearch.ts'
+import { ANYSEARCH_DEFAULT_BASE_URL } from './providers/anysearch.ts'
 import { DeepSeekSearchProvider, resolveDeepSeekMemberOptions } from './providers/deepseek.ts'
+import { DEEPSEEK_DEFAULT_BASE_URL } from './providers/deepseek.ts'
 import { DEEPSEEK_FALLBACK_MEMBER_ID, ORDERABLE_SEARCH_MEMBER_ORDER } from './config.ts'
 import { ExaSearchProvider, resolveExaMemberOptions } from './providers/exa.ts'
+import { EXA_DEFAULT_BASE_URL } from './providers/exa.ts'
 import { FirecrawlProvider, resolveFirecrawlMemberOptions } from './providers/firecrawl.ts'
+import { FIRECRAWL_DEFAULT_BASE_URL } from './providers/firecrawl.ts'
 import { TavilySearchProvider, resolveTavilyMemberOptions } from './providers/tavily.ts'
+import { TAVILY_DEFAULT_BASE_URL } from './providers/tavily.ts'
 import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
+import { installDnsLayer } from './dns/intercept.ts'
 
 export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
 export type {
   AnysearchSettings,
   DeepSeekSettings,
+  DnsMode,
+  DnsPreset,
+  DnsScope,
+  DnsSettings,
+  DohNode,
   ExaSettings,
   FirecrawlSettings,
+  ResolvedDnsConfig,
   ResolvedWebSearchConfig,
   TavilySettings,
   UnifiedSearchFanout,
@@ -156,6 +168,34 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   const credentials = ctx.credentials
   const fileLog = createChainFileLog(config.chainLogFile !== false)
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
+
+  // S35 (ADR-0022): the DNS resilience layer — process-level dns.lookup
+  // interception with live-read config (mode/scope/preset), lazy canary
+  // detection (auto arms only on reserved-range evidence), and proxy-env
+  // suspension. The effect teardown restores the module export (settings
+  // off-switch, HMR single-layer guarantee).
+  const dnsScopeHosts = (): readonly string[] => {
+    const current = live.current()
+    const hosts = new Set<string>()
+    for (const base of [
+      current.tavily.baseURL ?? TAVILY_DEFAULT_BASE_URL,
+      current.exa.baseURL ?? EXA_DEFAULT_BASE_URL,
+      current.firecrawl.baseURL ?? FIRECRAWL_DEFAULT_BASE_URL,
+      current.anysearch.baseURL ?? ANYSEARCH_DEFAULT_BASE_URL,
+      current.deepseek.baseURL ?? DEEPSEEK_DEFAULT_BASE_URL,
+    ]) {
+      // An unparseable baseURL fails loud in the owning provider's
+      // availability check; the scope set just skips it.
+      if (URL.canParse(base)) hosts.add(new URL(base).hostname.toLowerCase())
+    }
+    return [...hosts]
+  }
+  const dnsLayer = installDnsLayer({
+    config: () => live.current().dns,
+    scopeHosts: dnsScopeHosts,
+  })
+  ctx.effect(() => () => dnsLayer.dispose())
+
   // S21 (ADR-0019): the gate is a runtime ROUTER — the chain instance lands
   // here through a lazy thunk so registration order stays put (the chain is
   // constructed after the pools/members below). ON delegates to the chain,
@@ -167,6 +207,7 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   ctx.web.registerFetchProvider(new FetchGateProvider(
     fetchTakeoverActive,
     (request, signal) => (fetchChainInstance ?? throwMissingChain()).fetch(request, signal),
+    dnsLayer.resolveForGuard,
   ))
 
   // S15b (user ruling): gate-only takeover — no preset copies, no default

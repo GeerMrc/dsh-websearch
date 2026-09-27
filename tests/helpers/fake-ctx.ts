@@ -33,6 +33,8 @@ export interface FakeCtx {
     update: (ns: string, patch: Record<string, unknown>) => Promise<void>
   } }) => void) => void
   on: (event: string, handler: (ref: CredentialRef) => void) => () => void
+  /** Minimal `effect` (S35): records the teardown callbacks; `disposeAll` runs them in reverse order. */
+  effect: (setup: () => () => void) => void
   /** Minimal `reflect.provide` so a cordis Service (the key-count Remote) constructs. */
   reflect: { provide: (name: string, instance: object, check?: (ctx: unknown) => boolean) => void }
 }
@@ -52,6 +54,8 @@ export interface FakeCtxHandle {
   emitUpdated(ref: string): void
   /** Simulate a committed settings section: the service re-reads the source, then notifies. */
   commitSettings(section: unknown): void
+  /** Run the recorded effect teardowns in reverse order (S35 dns-layer restore assertions). */
+  disposeAll(): void
 }
 
 export function fakeCtx(options?: { withSettings?: boolean; values?: Record<string, string> }): FakeCtxHandle {
@@ -63,8 +67,12 @@ export function fakeCtx(options?: { withSettings?: boolean; values?: Record<stri
   const logLines: string[] = []
   const values: Record<string, string> = options?.values ?? {}
   let settingsHooks: SettingsHooks | undefined
+  const teardowns: Array<() => void> = []
   const ctx: FakeCtx = {
     logger: { info: (message) => void logLines.push(message) },
+    effect: (setup) => {
+      teardowns.push(setup())
+    },
     web: {
       registerSearchProvider: (provider) => {
         search.push(provider.id)
@@ -116,7 +124,20 @@ export function fakeCtx(options?: { withSettings?: boolean; values?: Record<stri
     settingsHooks!.setSource(() => section)
     settingsHooks!.onChange()
   }
-  return { ctx, search, fetch, providers, configured, logLines, emitUpdated, commitSettings }
+  return {
+    ctx,
+    search,
+    fetch,
+    providers,
+    configured,
+    logLines,
+    emitUpdated,
+    commitSettings,
+    /** Run the recorded effect teardowns in reverse order (S35 dns-layer restore assertions). */
+    disposeAll: () => {
+      for (const teardown of teardowns.reverse()) teardown()
+    },
+  }
 }
 
 /** Let the entry's background credential-gate prime settle before availability assertions. */
