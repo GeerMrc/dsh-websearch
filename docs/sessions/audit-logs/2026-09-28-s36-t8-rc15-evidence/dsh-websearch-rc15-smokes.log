@@ -1,0 +1,38 @@
+2026-09-27T18:32:57.021Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T18:33:02.852Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=3 latencyMs=180
+2026-09-27T18:33:03.736Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=1 probeDrop=3 latencyMs=181
+2026-09-27T18:33:04.519Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=150
+2026-09-27T18:33:05.238Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=339
+2026-09-27T18:33:05.337Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=56
+2026-09-27T18:33:07.882Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-27T18:33:08.265Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-27T18:33:09.931Z [dshws-chain] member dshws-anysearch failed (Anysearch API error (HTTP 422): Unable to extract content from the URL.); degrading to next member (request-level HTTP 422)
+2026-09-27T18:33:09.932Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-27T18:33:10.586Z [dshws-dns] resolve host=api.firecrawl.dev via=cache kept=1 latencyMs=0
+2026-09-27T18:33:14.956Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:33:45.520Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-27T18:33:45.520Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-27T18:33:46.117Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=216
+2026-09-27T18:33:48.731Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T18:33:56.022Z [dshws-chain] connect-flap dshws-anysearch UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0003
+2026-09-27T18:33:56.023Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-27T18:33:56.596Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=198
+2026-09-27T18:33:58.508Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T18:34:45.852Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T18:34:51.743Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=3 latencyMs=130
+2026-09-27T18:34:52.480Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=205 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T18:34:53.154Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=85
+2026-09-27T18:34:53.668Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=138
+2026-09-27T18:34:53.768Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=54
+2026-09-27T18:34:57.983Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-27T18:34:58.639Z [dshws-dns] resolve host=api.tavily.com via=cache kept=3 latencyMs=0
+2026-09-27T18:35:01.235Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:35:38.196Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.131 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-27T18:35:44.021Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 latencyMs=141
+2026-09-27T18:35:44.646Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=122 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T18:35:45.357Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=136
+2026-09-27T18:35:45.940Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=197
+2026-09-27T18:35:46.046Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=62
+2026-09-27T18:36:05.778Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-27T18:36:06.280Z [dshws-dns] resolve host=api.exa.ai via=cache kept=2 probeDrop=2 latencyMs=0 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-27T18:36:08.003Z [dshws-chain] served-by: dshws-exa
