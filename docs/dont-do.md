@@ -98,3 +98,27 @@
 - **错误**：为 `dshws-websearch` 命名空间的 DNS 三方法单独写 `mountDnsRemote`（第二个懒 `$mount`），与 keyCounts 的懒挂载并发：后挂载者永不落定（无报错无超时的静默悬挂），refreshDnsFace 整体沉默，UI 状态面永陈旧。
 - **正确**：向既有命名空间追加方法时，把新描述符**并入既有贡献**（`keyCountsContribution.descriptors` 数组拼接），保持全插件对该命名空间**恰好一次 `$mount`**（mountContribution 本义即按命名空间分组一次安装）；两消费点共用合并后的挂载面。
 - **来源**：S35 plan036 T4 复测实锤（rc.2 状态面全静默 → API 直探 ok:true 定位挂载层 → 单贡献合并修复后 rc.3 卡点亮）；阶段 4/5 F8 建议。
+
+## 同族请求面的对称性（Session 35 T11 入册；实测抓获）
+
+### ❌ 不要让任一请求面的错误处理偏离同族模式——新面必须镜像既有面的全部分支
+
+- **错误**：anysearch 的 extract 面（web_fetch 成员面）在 `!response.ok` 时只抛裸 `Anysearch API error (HTTP ${status})`，而同文件 search 面与其余 4 个 provider 的全部 8 个请求面都已带 `unfoldHttpErrorDetail` 响应体展开——上游 422 携带的可行动信息「Unable to extract content from the URL.」被丢弃，用户与开发者只见裸状态码，根因排查被迫绕道上游直查（T11-B 整条根因链的诱因）。
+- **正确**：为任一 provider 新增请求面（search/fetch/scrape）时，错误路径必须逐分支镜像同族面（响应体 best-effort 解析、detail 拼接、abort-mid-body 归位为 aborted、httpStatus 挂载）；评审/验收清单含「8 面错误路径对称性审计」一项。real 层 e2e 只有 happy-path 锚不住这类缺陷——错误路径断言必须落在单测（mock 信封）+ 对齐 checklist 的错误列。
+- **来源**：S35 T11-A 逐工具实测抓获（dd5a9df 修复，红→绿 20/20；audit-logs/2026-09-28-s36-t8-rc15-evidence/ 含修复前后对照日志行）。
+
+## 运行时环境启动（Session 35 T11-D 入册；node20 家族第二现）
+
+### ❌ 不要在 agent/自动化 shell 里裸用 PATH 解析的 node 启动 DSH 实例——必须 nvm 绝对路径
+
+- **错误**：重启 3423 实例时直接 `node --import tsx/esm apps/cli/src/bin.ts web …`，agent 沙箱 shell 的 PATH 将 `node` 解析到 v20.18.3（低于 engines `^22.19 || >=24`）：进程**静默秒退、退出码 0、零输出**——无任何报错，极易误诊为沙箱拦截/key 文件权限/配置损坏（本次曾疑 key 权限，实测权限未动）。家族先例：S33 lefthook 在 node20 下崩溃（CHANGELOG 2026-09-26）。
+- **正确**：一切实例启停/构建/打包命令显式用 nvm 绝对路径（`/Users/aibot/.nvm/versions/node/v22.23.2/bin/node`；含 `PATH=` 前缀方式给 pnpm script 传导）；遇「秒退+零输出」先 `node -v` 核版本，再做沙箱最小监听复现，最后才查配置层。
+- **来源**：S35 T11-D 事故复盘（session-35 记录 T11-D 节：排除法全程留痕）。
+
+## 上游适配验证纪律（Session 35 T11 入册；用户裁定升级为常备门槛）
+
+### ❌ 不要只测 happy-path 就宣布上游适配完成——每次插件功能/适配变更必须逐成员×逐面×双路（happy+error）对齐确认
+
+- **错误**：real 层 e2e（tests/e2e.real/*）只锚 happy-path（live query 200），anysearch fetch 面 422 信封裸抛这类错误路径缺陷全链路逃逸（单测曾有 mock 429 用例但未覆盖 extract 面 422 形态；real 层零错误路径）——直到用户逐工具人工实测才暴露。插件每次随上游/DSH 版本做适配时，若沿用同口径，同类「适配不兼容/功能不完整」缺陷将持续漏到用户侧（用户明令禁止）。
+- **正确**：每次插件功能扩展、上游 API 适配、DSH 版本跟进，必须按 `docs/upstream-alignment-checklist.md` 对齐矩阵逐成员×逐面确认：端点、方法、请求形状、鉴权头、期望响应、**错误路径（确定性触发：invalid-key 401 / 不存在资源 4xx）断言错误消息携带上游 detail**；矩阵留痕入当期 session 记录，缺一格即不得宣布该面适配完成。
+- **来源**：S35 T11 全程（用户两次裁定：「与上游确认再定方案」「未来每次都逐工具对齐确认」）；dd5a9df 缺陷逃逸链与 T4 回归锁定（e2e.real 错误路径用例）。
