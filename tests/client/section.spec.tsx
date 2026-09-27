@@ -134,6 +134,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetDnsPreset: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetDnsNodes: vi.fn(async () => ({ ok: true }) as ActionResult),
     onRecheckDns: vi.fn(async () => ({ ok: true }) as ActionResult),
+    onRefreshDnsFace: vi.fn(async () => undefined),
     onSetFallbackMember: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetFetchTakeover: vi.fn(async () => ({ ok: true }) as ActionResult),
     onSetBaseURL: vi.fn(async () => ({ ok: true }) as ActionResult),
@@ -1274,5 +1275,31 @@ describe('KeyCountBadge (展开态 APIKEY 计数徽标)', () => {
     render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     expand('tavily')
     expect(screen.queryByTestId('dshws-keycount-tavily')).toBeNull()
+  })
+})
+
+describe('S36 T3: DNS resilience card — plugin-wide ⓘ+Tooltip alignment (plan 036)', () => {
+  it('no standalone hint paragraphs: description and all four hints ride ⓘ tooltips instead', () => {
+    render(<WebSearchSettingsSection t={t} {...makeProps()} />)
+    const card = screen.getByTestId('dshws-dns-card')
+    fireEvent.click(card.querySelector('button[aria-expanded]')!)
+    const cardText = card.textContent ?? ''
+    expect(cardText).not.toContain(en.dnsDescription)
+    expect(cardText).not.toContain(en.dnsModeHint)
+    expect(cardText).not.toContain(en.dnsScopeHint)
+    expect(cardText).not.toContain(en.dnsPresetHint)
+    expect(cardText).not.toContain(en.dnsNodesHint)
+    // The hint copy still exists — carried by ⓘ tooltip buttons.
+    const infoButtons = within(card).getAllByRole('button', { name: new RegExp(`${en.dnsModeLabel}|${en.dnsPresetLabel}|${en.dnsDescription.slice(0, 12)}`) })
+    expect(infoButtons.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('expanding the DNS card refreshes the DNS face (refreshCounts-on-expand precedent)', async () => {
+    const onRefresh = vi.fn()
+    const { rerender } = render(<WebSearchSettingsSection t={t} {...makeProps({ onRefreshDnsFace: onRefresh } as Partial<SectionProps>)} />)
+    expect(onRefresh).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByTestId('dshws-dns-card').querySelector('button[aria-expanded]')!)
+    await waitFor(() => { expect(onRefresh).toHaveBeenCalledTimes(1) })
+    rerender(<WebSearchSettingsSection t={t} {...makeProps({ onRefreshDnsFace: onRefresh } as Partial<SectionProps>)} />)
   })
 })
