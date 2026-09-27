@@ -824,3 +824,65 @@ describe('S36 T2: connect-failure invalidation callback (plan 036)', () => {
     }
   })
 })
+
+describe('S37 (037): connect-level failures do not burn the key-draw budget (fast-degrade)', () => {
+  function connectErr(): DshwsError {
+    const root = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('connect fail'), { code: 'ECONNREFUSED' }) })
+    return new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', `Tavily search request failed: ${String(root)}`, { cause: root })
+  }
+
+  function chainWithAttempts(script: Array<() => Promise<WebSearchResult> | never>, reported?: string[]) {
+    let attempt = 0
+    const failing: WebSearchProvider = {
+      id: 'dshws-tavily',
+      available: () => true,
+      search: () => {
+        const step = script[Math.min(attempt, script.length - 1)]
+        attempt += 1
+        return step()
+      },
+    }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa answer') }
+    const core = new ChainSearchProvider({
+      // multiKeyPool: the 3-draw baseline this spec's budget semantics ride on.
+      members: resolver({ 'dshws-tavily': { provider: failing, multiKeyPool: true }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+      onMemberConnectFailure: reported ? (id) => { reported.push(`${id}#${attempt}`) } : undefined,
+    })
+    return { core, attempts: () => attempt }
+  }
+
+  it('connect failure -> ONE retry on fresh resolution -> still failing degrades after exactly 2 attempts (not 3)', async () => {
+    const { core, attempts } = chainWithAttempts([() => { throw connectErr() }, () => { throw connectErr() }, () => { throw connectErr() }])
+    const result = await core.search({ query: 'q' })
+    expect(result.content).toContain('exa answer')
+    expect(attempts()).toBe(2)
+  })
+
+  it('connect failure -> the invalidation-refreshed retry recovers -> served by the same member in 2 attempts', async () => {
+    const { core, attempts } = chainWithAttempts([() => { throw connectErr() }, async () => fakeResult('recovered')])
+    const result = await core.search({ query: 'q' })
+    expect(result.content).toContain('[served-by: dshws-tavily]')
+    expect(result.content).toContain('recovered')
+    expect(attempts()).toBe(2)
+  })
+
+  it('non-connect failures keep the full 3-draw budget (semantics unchanged)', async () => {
+    let attempt = 0
+    const generic: WebSearchProvider = {
+      id: 'dshws-tavily',
+      available: () => true,
+      search: () => { attempt += 1; throw new DshwsError('DSHWS_TAVILY_REQUEST_FAILED', 'boom', undefined) },
+    }
+    const fallback: WebSearchProvider = { id: 'dshws-exa', available: () => true, search: async () => fakeResult('exa answer') }
+    const core = new ChainSearchProvider({
+      members: resolver({ 'dshws-tavily': { provider: generic, multiKeyPool: true }, 'dshws-exa': { provider: fallback } }),
+      order: ['dshws-tavily', 'dshws-exa'],
+      perMemberTimeoutMs: 5000,
+    })
+    const result = await core.search({ query: 'q' })
+    expect(result.content).toContain('exa answer')
+    expect(attempt).toBe(3)
+  })
+})

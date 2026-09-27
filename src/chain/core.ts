@@ -158,6 +158,9 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
    */
   static readonly MEMBER_DRAWS = 3
 
+  /** Connect-level attempts per member (plan 037): initial + one fresh-resolution retry. */
+  static readonly CONNECT_ATTEMPT_CAP = 2
+
   /** Draws for members with a multi-key pool; single-key members get 1. */
   #drawsFor(member: ChainMember<P>): number {
     return member.multiKeyPool === true ? ChainCore.MEMBER_DRAWS : 1
@@ -222,7 +225,8 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // propagate it instead of degrading to further members.
           if (signal?.aborted && error !== MEMBER_TIMED_OUT) throw error
           const isTimeout = error === MEMBER_TIMED_OUT
-          if (isTimeout || isConnectLevelFailure(error)) this.#options.onMemberConnectFailure?.(id)
+          const connectLevel = !isTimeout && isConnectLevelFailure(error)
+          if (isTimeout || connectLevel) this.#options.onMemberConnectFailure?.(id)
           const status = !isTimeout && error instanceof DshwsError ? error.httpStatus : undefined
           const requestLevelStatus = status !== undefined && REQUEST_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
           const credentialLevelStatus = status !== undefined && CREDENTIAL_LEVEL_HTTP_STATUSES.has(status) ? status : undefined
@@ -238,13 +242,21 @@ class ChainCore<P extends { readonly id: string; available(): boolean }, Req, Re
           // and a 401/403 is itself evidence that a DIFFERENT key may serve —
           // the first search after boot must heal, not degrade blind (S14y).
           const redrawCap = credentialLevelStatus !== undefined ? ChainCore.MEMBER_DRAWS : draws
-          const degrading = isTimeout || requestLevelStatus !== undefined || draw >= redrawCap
+          // Plan 037: a connect-level failure is an address/path problem, not a
+          // key problem — redrawing keys burns the member budget on ~10s
+          // connect timeouts without changing the network path (3423 log:
+          // 3 draws × ~10s = the 30s MEMBER_TIMEOUT). One retry (on the
+          // invalidation-refreshed resolution) is allowed; the second
+          // connect-level failure degrades immediately.
+          const connectDegrade = connectLevel && draw >= ChainCore.CONNECT_ATTEMPT_CAP
+          const degrading = isTimeout || requestLevelStatus !== undefined || connectDegrade || draw >= redrawCap
           const drawNote = degrading
-            ? `; degrading to next member${requestLevelStatus !== undefined ? ` (request-level HTTP ${requestLevelStatus})` : ''}`
-            : `; redrawing key (${draw + 1}/${redrawCap})${credentialLevelStatus !== undefined ? ` (credential-level HTTP ${credentialLevelStatus}: another key may be valid)` : ''}`
+            ? `; degrading to next member${requestLevelStatus !== undefined ? ` (request-level HTTP ${requestLevelStatus})` : ''}${connectDegrade ? ' (connect-level retry cap)' : ''}`
+            : `; retrying${connectLevel ? ' on fresh resolution (connect-level)' : ` key (${draw + 1}/${redrawCap})${credentialLevelStatus !== undefined ? ` (credential-level HTTP ${credentialLevelStatus}: another key may be valid)` : ''}`}`
           this.#options.log?.(`[dshws-chain] member ${id} failed (${reason})${drawNote}`)
           if (isTimeout) break // the shared budget is spent → degrade to the next member
           if (requestLevelStatus !== undefined) break // no key can change this verdict → degrade
+          if (connectDegrade) break // address-level retry cap spent → degrade, keys cannot help
           if (draw >= redrawCap) break // draw budget spent (gate draws, or the credential cap) → degrade
           continue // redraw another key within the same member, on the remaining budget
         }
