@@ -369,7 +369,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
           of repeated as a hint paragraph on every member card. */}
           {/* S14d (user ruling): the page ⓘ carries the description; the
           multi-key format moved into each card's input placeholder. */}
-          <Tooltip label={t('description')} side="bottom" delayMs={400} maxWidth={360}>
+          <Tooltip label={t('description')} side="bottom" align="end" delayMs={400} maxWidth={360}>
             <button type="button" aria-label={t('description')} style={infoButtonStyle}>
               <QuestionIcon />
             </button>
@@ -391,7 +391,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
             page's ⓘ icon size (14px box). */}
             <Tooltip
               label={snapshot.searchChainPinned ? `${t('chainPinned')}: ${t('chainOrderHint')}` : t('chainOrderHint')}
-              side="bottom"
+              side="bottom" align="end"
               delayMs={200}
               maxWidth={360}
             >
@@ -635,7 +635,7 @@ function DnsResilienceCard(props: {
         >
           <span role="img" aria-label={t(statusCopy)} title={t(statusCopy)} style={statusDotStyle(dns.status?.armed === true)} />
           <strong style={nameStyle}>{t('dnsTitle')}</strong>
-          <Tooltip label={t('dnsDescription')} side="bottom" delayMs={400} maxWidth={360}>
+          <Tooltip label={t('dnsDescription')} side="bottom" align="end" delayMs={400} maxWidth={360}>
             <button type="button" aria-label={t('dnsDescription')} data-testid="dshws-dns-info" style={{ ...infoButtonStyle, border: 'none', background: 'transparent' }}>
               <QuestionIcon />
             </button>
@@ -674,7 +674,7 @@ function DnsResilienceCard(props: {
           label + ⓘ tooltip left, control right; hints never occupy a line. */}
           <div style={paramRowStyle}>
             <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsModeLabel')}
-              <Tooltip label={t('dnsModeHint')} side="bottom" delayMs={400} maxWidth={320}>
+              <Tooltip label={t('dnsModeHint')} side="bottom" align="end" delayMs={400} maxWidth={320}>
                 <button type="button" aria-label={t('dnsModeLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
                   <QuestionIcon />
                 </button>
@@ -688,7 +688,7 @@ function DnsResilienceCard(props: {
           </div>
           <div style={paramRowStyle}>
             <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsProbeMethodLabel')}
-              <Tooltip label={t('dnsProbeMethodHint')} side="bottom" delayMs={400} maxWidth={320}>
+              <Tooltip label={t('dnsProbeMethodHint')} side="bottom" align="end" delayMs={400} maxWidth={320}>
                 <button type="button" aria-label={t('dnsProbeMethodLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
                   <QuestionIcon />
                 </button>
@@ -701,7 +701,7 @@ function DnsResilienceCard(props: {
           </div>
           <div style={paramRowStyle}>
             <label style={{ ...fieldLabelStyle, flex: 1 }}>{t('dnsPresetLabel')}
-              <Tooltip label={dns.preset === 'custom' ? t('dnsNodesHint') : t('dnsPresetHint')} side="bottom" delayMs={400} maxWidth={320}>
+              <Tooltip label={dns.preset === 'custom' ? t('dnsNodesHint') : t('dnsPresetHint')} side="bottom" align="end" delayMs={400} maxWidth={320}>
                 <button type="button" aria-label={t('dnsPresetLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
                   <QuestionIcon />
                 </button>
@@ -717,7 +717,7 @@ function DnsResilienceCard(props: {
           {dns.preset === 'custom' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={fieldLabelStyle}>{t('dnsNodesLabel')}
-                <Tooltip label={t('dnsNodesHint')} side="bottom" delayMs={400} maxWidth={320}>
+                <Tooltip label={t('dnsNodesHint')} side="bottom" align="end" delayMs={400} maxWidth={320}>
                   <button type="button" aria-label={t('dnsNodesLabel')} style={{ ...infoButtonStyle, padding: 0, border: 'none', background: 'transparent' }}>
                     <QuestionIcon />
                   </button>
@@ -810,7 +810,7 @@ function MaxUsesRow(props: {
     <div data-testid="dshws-max-uses" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
         {t('maxUsesLabel')}
-        <Tooltip label={hint} side="bottom" delayMs={400} maxWidth={320}>
+        <Tooltip label={hint} side="bottom" align="end" delayMs={400} maxWidth={320}>
           <button type="button" aria-label={hint} style={infoButtonStyle}>
             <QuestionIcon />
           </button>
@@ -951,7 +951,7 @@ function FallbackToolRow(props: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span role="img" aria-label={dotTitle} title={dotTitle} data-testid="dshws-fallback-dot" style={statusDotStyle(dotOn)} />
         <strong style={nameStyle}>{t('fallbackRowLabel')}</strong>
-        <Tooltip label={t('fallbackNote')} side="bottom" delayMs={400} maxWidth={360}>
+        <Tooltip label={t('fallbackNote')} side="bottom" align="end" delayMs={400} maxWidth={360}>
           <button type="button" aria-label={t('fallbackInfo')} style={infoButtonStyle}>
             <QuestionIcon />
           </button>
@@ -1013,7 +1013,7 @@ function FetchTakeoverRow(props: {
           style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0, border: 'none', background: 'transparent', color: 'inherit', font: 'inherit', textAlign: 'left', cursor: 'pointer', padding: 0 }}
         >
           <strong style={nameStyle}>{t('fetchTakeoverLabel')}</strong>
-          <Tooltip label={t('fetchTakeoverNoteS21')} side="bottom" delayMs={400} maxWidth={380}>
+          <Tooltip label={t('fetchTakeoverNoteS21')} side="bottom" align="end" delayMs={400} maxWidth={380}>
             <button type="button" aria-label={t('fetchTakeoverNoteS21')} style={infoButtonStyle}>
               <QuestionIcon />
             </button>
@@ -1068,7 +1068,7 @@ function FetchChainRows(props: {
     <div data-testid="dshws-fetch-chain" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-label-secondary)' }}>{t('fetchChainLabel')}</h4>
-        <Tooltip label={t('fetchChainHint')} side="bottom" delayMs={200} maxWidth={360}>
+        <Tooltip label={t('fetchChainHint')} side="bottom" align="end" delayMs={200} maxWidth={360}>
           <button
             type="button"
             aria-label={t('fetchChainHint')}
@@ -1226,7 +1226,7 @@ function MemberEndpointField(props: {
     <div style={fieldStyle}>
       <span style={fieldLabelStyle}>
         {t('endpointLabel')}
-        <Tooltip label={t('endpointNote')} side="bottom" delayMs={400} maxWidth={320}>
+        <Tooltip label={t('endpointNote')} side="bottom" align="end" delayMs={400} maxWidth={320}>
           <button type="button" aria-label={t('endpointNote')} style={infoButtonStyle}>
             <QuestionIcon />
           </button>
@@ -1367,7 +1367,7 @@ function MemberParamField(props: {
         <span style={{ ...fieldLabelStyle, flex: 1, minWidth: 0 }}>
           {t(control.labelKey)}
           {control.noteKey !== undefined ? (
-            <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
+            <Tooltip label={t(control.noteKey)} side="bottom" align="end" delayMs={400} maxWidth={320}>
               <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
                 <QuestionIcon />
               </button>
@@ -1405,7 +1405,7 @@ function MemberParamField(props: {
         <span style={{ ...fieldLabelStyle, flex: 1, minWidth: 0 }}>
           {t(control.labelKey)}
           {control.noteKey !== undefined ? (
-            <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
+            <Tooltip label={t(control.noteKey)} side="bottom" align="end" delayMs={400} maxWidth={320}>
               <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
                 <QuestionIcon />
               </button>
@@ -1445,7 +1445,7 @@ function MemberParamField(props: {
       <span style={{ ...fieldLabelStyle, flex: 1, minWidth: 0 }}>
         {t(control.labelKey)}
         {control.noteKey !== undefined ? (
-          <Tooltip label={t(control.noteKey)} side="bottom" delayMs={400} maxWidth={320}>
+          <Tooltip label={t(control.noteKey)} side="bottom" align="end" delayMs={400} maxWidth={320}>
             <button type="button" aria-label={ariaLabel} style={infoButtonStyle}>
               <QuestionIcon />
             </button>
@@ -1542,7 +1542,7 @@ function DomainField(props: {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
         {t(labelKey)}
-        <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={380}>
+        <Tooltip label={t(noteKey)} side="bottom" align="end" delayMs={400} maxWidth={380}>
           <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
             <QuestionIcon />
           </button>
@@ -1603,7 +1603,7 @@ function GeoField(props: {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
         {t(labelKey)}
-        <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={360}>
+        <Tooltip label={t(noteKey)} side="bottom" align="end" delayMs={400} maxWidth={360}>
           <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
             <QuestionIcon />
           </button>
@@ -1752,7 +1752,7 @@ function MemberCard(props: {
           LABEL — beside the field it explains, not after the input+chip row. */}
           <Tooltip
             label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
-            side="bottom"
+            side="bottom" align="end"
             delayMs={200}
             maxWidth={320}
           >
@@ -1788,7 +1788,7 @@ function MemberCard(props: {
           states the live semantics. Replaces the three-segment group. */}
           <Tooltip
             label={t('keySelectionHint').replace('{policy}', t(keySelectionLabelKey(member.keySelection)))}
-            side="bottom"
+            side="bottom" align="end"
             delayMs={300}
             maxWidth={320}
           >
