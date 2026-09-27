@@ -48,6 +48,8 @@ import { TavilySearchProvider, resolveTavilyMemberOptions } from './providers/ta
 import { TAVILY_DEFAULT_BASE_URL } from './providers/tavily.ts'
 import { LiveResolvedConfig, attachSettingsSection } from './settings.ts'
 import { installDnsLayer } from './dns/intercept.ts'
+import { DnsObservability, sanitizeHostFactory } from './dns/observability.ts'
+import { DshWsDnsRemote } from './dns/remote.ts'
 
 export { BUILT_IN_MEMBER_ORDER, DEFAULT_PER_MEMBER_TIMEOUT_MS } from './config.ts'
 export type {
@@ -190,26 +192,6 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
     }
     return [...hosts]
   }
-  const dnsLayer = installDnsLayer({
-    config: () => live.current().dns,
-    scopeHosts: dnsScopeHosts,
-  })
-  ctx.effect(() => () => dnsLayer.dispose())
-
-  // S21 (ADR-0019): the gate is a runtime ROUTER — the chain instance lands
-  // here through a lazy thunk so registration order stays put (the chain is
-  // constructed after the pools/members below). ON delegates to the chain,
-  // OFF falls through to the gate's built-in http fetch (official-behavior
-  // equivalent stand-in — the pinned patch means the official provider
-  // instance is never selected). The S15c restrict/prompt-shadow listener is
-  // RETIRED: web_fetch stays visible and is served by the chain when ON.
-  let fetchChainInstance: WebFetchProvider | undefined
-  ctx.web.registerFetchProvider(new FetchGateProvider(
-    fetchTakeoverActive,
-    (request, signal) => (fetchChainInstance ?? throwMissingChain()).fetch(request, signal),
-    dnsLayer.resolveForGuard,
-  ))
-
   // S15b (user ruling): gate-only takeover — no preset copies, no default
   // switching. The settings inject exists solely for the ONE-TIME migration:
   // an S15a install may hold authored preset copies and a switched default;
@@ -231,6 +213,49 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
     ctx.logger.info(message)
     fileLog(message)
   }
+
+  // The DNS observability sink (S35 T7): sanitized hosts before any surface,
+  // [dshws-dns] log lines with the latency figure, and the 50-entry ring the
+  // remote trace face reads. Sensitivity is live: only scope 'all' exposes
+  // non-member hostnames, and those never cross in plaintext (ADR-0022 D9).
+  const dnsSanitize = sanitizeHostFactory((host) => live.current().dns.scope === 'all' && !dnsScopeHosts().includes(host))
+  const dnsObservability = new DnsObservability({ log })
+  const dnsLayer = installDnsLayer({
+    config: () => live.current().dns,
+    scopeHosts: dnsScopeHosts,
+    onEvent: (event) => dnsObservability.record(event, dnsSanitize),
+  })
+  ctx.effect(() => () => dnsLayer.dispose())
+
+  // DNS Remote (S35 T7): the settings block's status/re-check face and the
+  // Inspect trace source, joining the key-count namespace.
+  new DshWsDnsRemote(ctx, {
+    status: () => {
+      const state = dnsLayer.state()
+      return { armed: state.armed, decision: state.decision, proxyActive: state.proxyActive }
+    },
+    config: () => {
+      const dns = live.current().dns
+      return { mode: dns.mode, scope: dns.scope, preset: dns.preset }
+    },
+    trace: () => dnsObservability.trace(),
+    recheck: () => dnsLayer.recheck(),
+    sanitize: dnsSanitize,
+  })
+
+  // S21 (ADR-0019): the gate is a runtime ROUTER — the chain instance lands
+  // here through a lazy thunk so registration order stays put (the chain is
+  // constructed after the pools/members below). ON delegates to the chain,
+  // OFF falls through to the gate's built-in http fetch (official-behavior
+  // equivalent stand-in — the pinned patch means the official provider
+  // instance is never selected). The S15c restrict/prompt-shadow listener is
+  // RETIRED: web_fetch stays visible and is served by the chain when ON.
+  let fetchChainInstance: WebFetchProvider | undefined
+  ctx.web.registerFetchProvider(new FetchGateProvider(
+    fetchTakeoverActive,
+    (request, signal) => (fetchChainInstance ?? throwMissingChain()).fetch(request, signal),
+    dnsLayer.resolveForGuard,
+  ))
 
   // Build each member's key pool (ADR-0008): the primary ref plus any
   // configured extras. Entry-config names outside the credential grammar
