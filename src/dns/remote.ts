@@ -67,7 +67,7 @@ export class DshWsDnsRemote extends TypertRemoteService {
 
   /** Compose the current status for the settings block. */
   async describeDnsStatus(): Promise<DnsStatusSnapshot> {
-    return this.#snapshot()
+    return snapshotOf(this.ports)
   }
 
   /** The sanitized trace ring, oldest first. */
@@ -78,19 +78,31 @@ export class DshWsDnsRemote extends TypertRemoteService {
   /** Force a fresh canary pass and answer the refreshed status. */
   async requestDnsRecheck(): Promise<DnsStatusSnapshot> {
     await this.ports.recheck()
-    return this.#snapshot()
+    return snapshotOf(this.ports)
   }
 
-  #snapshot(): DnsStatusSnapshot {
-    const state = this.ports.status()
-    const decision: DnsDecisionView | null = state.decision === null ? null : {
-      action: state.decision.action,
-      verdict: state.decision.verdict,
-      hits: state.decision.hits.map((hit) => ({ host: this.ports.sanitize(hit.host), addresses: hit.addresses })),
-      failures: state.decision.failures.map((failure) => ({ host: this.ports.sanitize(failure.host), reason: failure.reason })),
-    }
-    return { ...this.ports.config(), armed: state.armed, proxyActive: state.proxyActive, decision }
+}
+
+/**
+ * Compose the status snapshot. A module function, not a class member: the
+ * gateway invokes Remote methods with the context's traceable proxy as the
+ * receiver, and private-member access through that proxy throws (the
+ * key-counts Remote's documented rule — DshWsDnsRemote violated it and the
+ * stage-T4 retest caught both status methods failing with
+ * "Receiver must be an instance of class anonymous" while the public-only
+ * readDnsTrace worked).
+ * @param ports - the Remote's public ports.
+ * @returns the composed, sanitized status face.
+ */
+function snapshotOf(ports: DnsRemotePorts): DnsStatusSnapshot {
+  const state = ports.status()
+  const decision: DnsDecisionView | null = state.decision === null ? null : {
+    action: state.decision.action,
+    verdict: state.decision.verdict,
+    hits: state.decision.hits.map((hit) => ({ host: ports.sanitize(hit.host), addresses: hit.addresses })),
+    failures: state.decision.failures.map((failure) => ({ host: ports.sanitize(failure.host), reason: failure.reason })),
   }
+  return { ...ports.config(), armed: state.armed, proxyActive: state.proxyActive, decision }
 }
 
 /** Constructor-phase initializers captured by the runtime `Remote` marking below (rolldown keeps stage-3 decorators out). */

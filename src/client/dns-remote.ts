@@ -9,8 +9,6 @@
  *
  * @module dsh-websearch/client/dns-remote
  */
-import type { Context } from '@deepseek-ai/cordis'
-import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { RemoteResult, TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import { z } from 'zod'
 
@@ -121,11 +119,9 @@ export const dnsContribution: TypertRemoteContribution = {
 }
 
 /**
- * Mount the DNS namespace face in the caller's fiber.
- * @param ctx - client Context carrying the `remote` service.
- * @returns the namespace face (`remote.dshws-websearch` DNS methods).
+ * The DNS descriptors ride the SAME single mount as the key-count face
+ * (key-counts-remote mounts the combined contribution): a second lazy $mount
+ * of the already-mounted dshws-websearch namespace hung forever in the 3423
+ * retest. mountContribution is designed for one grouped install, and the
+ * plugin now performs exactly one.
  */
-export async function mountDnsRemote(ctx: Context): Promise<DnsNamespace> {
-  await ctx.effect(() => ctx.remote.$mount(dnsContribution), 'dsh-websearch.dns')
-  return ctx.get('remote.dshws-websearch') as DnsNamespace
-}

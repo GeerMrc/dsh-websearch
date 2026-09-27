@@ -21,11 +21,16 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type { RemoteResult, TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import { z } from 'zod'
+import { dnsContribution } from './dns-remote.ts'
+import type { DnsNamespace } from './dns-remote.ts'
 
 /** The mounted namespace face the controller consumes. */
 export interface KeyCountsNamespace {
   describeKeyCounts(refs: string[]): Promise<RemoteResult<Record<string, number>>>
 }
+
+/** The combined mounted face: key counts + DNS methods, one namespace. */
+export type WebsearchRemoteFace = KeyCountsNamespace & DnsNamespace
 
 const refsSchema = z.array(z.string())
 const resultSchema = z.record(z.string(), z.number())
@@ -47,6 +52,8 @@ const resultCodec = { mode: 'strict' as const, typeSymbol: 'dsh-websearch#dshws-
 /** The client contribution (exported for cross-generation shape tests). */
 export const keyCountsContribution: TypertRemoteContribution = {
   package: 'dsh-websearch',
+  // S36: the DNS descriptors join this ONE contribution. A single grouped
+  // namespace install. See dns-remote.ts for the second-mount hang record.
   descriptors: [
     {
       id: 'dsh-websearch#dshws-websearch/describeKeyCounts',
@@ -61,6 +68,7 @@ export const keyCountsContribution: TypertRemoteContribution = {
       ],
       result: resultCodec,
     },
+    ...dnsContribution.descriptors,
   ],
 }
 
@@ -69,7 +77,7 @@ export const keyCountsContribution: TypertRemoteContribution = {
  * @param ctx - client Context carrying the `remote` service.
  * @returns the namespace face (`remote.dshws-websearch`).
  */
-export async function mountKeyCountsRemote(ctx: Context): Promise<KeyCountsNamespace> {
+export async function mountKeyCountsRemote(ctx: Context): Promise<WebsearchRemoteFace> {
   await ctx.effect(() => ctx.remote.$mount(keyCountsContribution), 'dsh-websearch.keyCounts')
-  return ctx.get('remote.dshws-websearch') as KeyCountsNamespace
+  return ctx.get('remote.dshws-websearch') as WebsearchRemoteFace
 }

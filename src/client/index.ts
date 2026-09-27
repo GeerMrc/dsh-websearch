@@ -21,7 +21,6 @@ import { WebSearchSettingsController } from './controller.ts'
 import type { WebSearchSettingsPorts } from './controller.ts'
 import { mountKeyCountsRemote } from './key-counts-remote.ts'
 import type { KeyCountsNamespace } from './key-counts-remote.ts'
-import { mountDnsRemote } from './dns-remote.ts'
 import type { DnsNamespace } from './dns-remote.ts'
 import { registerDnsTraceFetcher } from './dns-trace-store.ts'
 import { en, NS, zh } from './locales.ts'
@@ -51,7 +50,7 @@ export function apply(ctx: Context): void {
   // store; this entry owns the Context, so it registers the pull (a host
   // without the DNS service keeps the section on its empty-state copy).
   registerDnsTraceFetcher(async () => {
-    const dns = await mountDnsRemote(ctx)
+    const dns = await mountKeyCountsRemote(ctx)
     const trace = await dns.readDnsTrace()
     if (!trace.ok) throw new Error('dshws dns remote unavailable')
     return trace.value
@@ -99,9 +98,9 @@ function adaptRemote(ctx: Context): WebSearchSettingsPorts {
     (keyCounts ??= mountKeyCountsRemote(ctx))
   // S35: same lazy-mount pattern for the DNS face (old hosts degrade to the
   // config-only block — status stays undefined, no error surfaces).
-  let dnsFace: Promise<DnsNamespace> | undefined
-  const dnsRemote = (): Promise<DnsNamespace> =>
-    (dnsFace ??= mountDnsRemote(ctx))
+  // S36: the DNS methods ride the SAME single namespace mount as the key
+  // counts (one contribution, one install). See key-counts-remote.ts.
+  const dnsRemote = (): Promise<DnsNamespace> => keyCountsRemote() as unknown as Promise<DnsNamespace>
   return {
     describeSettings: () => remote.settings.describe(),
     updateSettings: (ns, patch, expectedRevision) =>
@@ -126,7 +125,8 @@ function adaptRemote(ctx: Context): WebSearchSettingsPorts {
       describeDnsStatus: async () => {
         try {
           return await (await dnsRemote()).describeDnsStatus()
-        } catch {
+        } catch (err) {
+          console.error('[dshws-dns] describeDnsStatus failed:', err)
           return { ok: false, error: new Error('dshws dns remote unavailable') }
         }
       },
