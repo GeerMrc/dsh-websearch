@@ -22,7 +22,7 @@ import type { ReactElement } from 'react'
 import { GlobeIcon } from './host-icons.tsx'
 import { DnsTraceSection } from './dns-trace-section.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
-import { MEMBERS } from './controller.ts'
+import { MEMBERS, memberLabelOf } from './controller.ts'
 
 /** Host running-call face (no `kind` member; ui-conversation records.ts:264-273). */
 interface RunningCallFace {
@@ -87,10 +87,6 @@ interface FetchCardFace {
 }
 
 /** Badge brand for a member id: the bundled label, else the raw id (ADR-0010 Decision 4). */
-function labelOf(memberId: string): string {
-  return MEMBERS.find((member) => member.memberId === memberId)?.label ?? memberId
-}
-
 /** The first text block's text, if the settled call carries one. */
 function firstText(content: readonly ContentTextFace[]): string | undefined {
   return content.find((piece) => piece.type === 'text' && typeof piece.text === 'string')?.text
@@ -166,7 +162,7 @@ export function WebFetchToolviewRow(props: WebFetchToolviewProps): ReactElement 
   const summary = urlFromArgs(argsRaw)
   // `null` merges the absent and the shape-mismatch cases: both render generic.
   const fetch = settled !== undefined && !settled.isError ? deriveFetchCard(settled) : null
-  const badge = fetch !== null && fetch.servedBy.length > 0 ? `· ${fetch.servedBy.map(labelOf).join(' + ')}` : undefined
+  const badge = fetch !== null && fetch.servedBy.length > 0 ? `· ${fetch.servedBy.map(memberLabelOf).join(' + ')}` : undefined
   const contentText = settled !== undefined
     ? settled.content.filter((piece) => typeof piece.text === 'string').map((piece) => piece.text).join('\n')
     : ''
@@ -185,7 +181,7 @@ export function WebFetchToolviewRow(props: WebFetchToolviewProps): ReactElement 
         <span style={titleStyle}>{t('fetchTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
         {badge !== undefined && fetch !== null && fetch.servedBy.length > 0 && (
-          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${fetch.servedBy.map(labelOf).join(' + ')}`}>
+          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${fetch.servedBy.map(memberLabelOf).join(' + ')}`}>
             {badge}
           </span>
         )}

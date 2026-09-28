@@ -31,7 +31,7 @@ import { useState } from 'react'
 import type { ReactElement } from 'react'
 import { GlobeIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
-import { MEMBERS } from './controller.ts'
+import { MEMBERS, memberLabelOf } from './controller.ts'
 import { DnsTraceSection } from './dns-trace-section.tsx'
 
 /** Host running-call face (no `kind` member; ui-conversation records.ts:264-273). */
@@ -133,10 +133,6 @@ function sourceLabel(url: string, title: string | undefined): string {
 }
 
 /** Badge brand for a member id: the bundled label, else the raw id (ADR-0010 Decision 4). */
-function labelOf(memberId: string): string {
-  return MEMBERS.find((member) => member.memberId === memberId)?.label ?? memberId
-}
-
 /** The first text block's text, if the settled call carries one. */
 function firstText(content: readonly ContentTextFace[]): string | undefined {
   return content.find((piece) => piece.type === 'text' && typeof piece.text === 'string')?.text
@@ -219,7 +215,7 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
   const summary = summarizeArgs(argsRaw)
   // `null` merges the absent and the shape-mismatch cases: both render generic.
   const web = settled !== undefined && !settled.isError ? deriveWebCard(settled) : null
-  const badge = web !== null && web.servedBy.length > 0 ? `· ${web.servedBy.map(labelOf).join(' + ')}` : undefined
+  const badge = web !== null && web.servedBy.length > 0 ? `· ${web.servedBy.map(memberLabelOf).join(' + ')}` : undefined
   const contentText = settled !== undefined
     ? settled.content.filter((piece) => typeof piece.text === 'string').map((piece) => piece.text).join('\n')
     : ''
@@ -237,7 +233,7 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
         <span style={titleStyle}>{t('toolTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
         {badge !== undefined && web !== null && web.servedBy.length > 0 && (
-          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${web.servedBy.map(labelOf).join(' + ')}`}>
+          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${web.servedBy.map(memberLabelOf).join(' + ')}`}>
             {badge}
           </span>
         )}

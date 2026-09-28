@@ -53,6 +53,11 @@ export interface WebSearchSettingsPorts {
 /** Bundled member display metadata; ids, default refs, and the documented
  * default endpoints mirror the node-half provider constants (the endpoint is
  * the GUI placeholder for the「接口地址」field, S14p). */
+/** Member display label by member id (the served-by badge face; three call sites shared one copy each before S37 T11). */
+export function memberLabelOf(memberId: string): string {
+  return MEMBERS.find((member) => member.memberId === memberId)?.label ?? memberId
+}
+
 export const MEMBERS = [
   { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY', defaultBaseURL: 'https://api.tavily.com' },
   { key: 'exa', label: 'Exa', memberId: 'dshws-exa', defaultRef: 'EXA_API_KEY', defaultBaseURL: 'https://api.exa.ai' },

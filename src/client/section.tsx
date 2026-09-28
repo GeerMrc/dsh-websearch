@@ -17,7 +17,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { Button, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
 import { ChevronDownIcon, QuestionIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
-import { MEMBERS } from './controller.ts'
+import { MEMBERS, memberLabelOf } from './controller.ts'
 import type { WebSearchSettingsController, ActionResult, MemberSnapshot, SectionSnapshot } from './controller.ts'
 import type { DshWsLocaleKey } from './locales.ts'
 
@@ -316,6 +316,21 @@ const KEY_SELECTIONS = [
 const keySelectionLabelKey = (selection: 'order' | 'round-robin' | 'random'): DshWsLocaleKey =>
   KEY_SELECTIONS.find((entry) => entry.value === selection)?.labelKey ?? 'keySelOrder'
 
+type Feedback = 'saved' | 'failed' | undefined
+
+/**
+ * Auto-dismiss action feedback after 1.5s — the cadence every field with a
+ * live-region note shares (S37 T11; was nine verbatim useEffect copies).
+ */
+function useAutoClearFeedback<T extends string>(): [T | undefined, (value: T | undefined) => void] {
+  const [feedback, setFeedback] = useState<T | undefined>(undefined)
+  useEffect(() => {
+    if (feedback === undefined) return
+    const timer = setTimeout(() => setFeedback(undefined), 1500)
+    return () => clearTimeout(timer)
+  }, [feedback])
+  return [feedback, setFeedback]
+}
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
   const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
@@ -423,7 +438,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 name — the row grid has one button column pair, a chip in its own
                 grid cell pushed the last button onto a second line (user report). */}
                 <span data-dshws-chain-label="" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                  {labelOf(id)}
+                  {memberLabelOf(id)}
                   {/* S14w: the chain order IS the primary/standby order — the
                   two ends carry explicit role chips (pure presentation). With a
                   designation (ADR-0014) the standby chip moves to the locked tail. */}
@@ -438,7 +453,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 <button
                   type="button"
                   data-dshws-focusable=""
-                  aria-label={`${labelOf(id)} ${t('moveUp')}`}
+                  aria-label={`${memberLabelOf(id)} ${t('moveUp')}`}
                   disabled={index === 0}
                   onClick={() => void move(id, -1)}
                   style={moveButtonStyle}
@@ -448,7 +463,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 <button
                   type="button"
                   data-dshws-focusable=""
-                  aria-label={`${labelOf(id)} ${t('moveDown')}`}
+                  aria-label={`${memberLabelOf(id)} ${t('moveDown')}`}
                   disabled={index === orderableSearch.length - 1 && !showLockedTail}
                   onClick={() => void move(id, 1)}
                   style={moveButtonStyle}
@@ -465,7 +480,7 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
                 style={chainRowStyle}
               >
                 <span style={chainIndexStyle}>{orderableSearch.length + 1}</span>
-                <span data-dshws-chain-label="">{labelOf(designatedId)}</span>
+                <span data-dshws-chain-label="">{memberLabelOf(designatedId)}</span>
                 <span data-testid="dshws-chain-role-standby" style={roleChipStyle}>{t('chainRoleStandby')}</span>
                 <span style={hintStyle}>{t('chainLockedNote')}</span>
                 <span style={{ flex: 1 }} />
@@ -581,12 +596,7 @@ function DnsResilienceCard(props: {
   const [open, setOpen] = useState(false)
   const [nodesDraft, setNodesDraft] = useState<string | null>(null)
   const [rechecking, setRechecking] = useState(false)
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const nodesValue = nodesDraft ?? dns.nodesText
   const decisionCopy: DshWsLocaleKey = dns.status?.decision === undefined || dns.status.decision === null
     ? 'dnsDecisionNone'
@@ -775,16 +785,9 @@ function MaxUsesRow(props: {
   // value); a lifted null maps onto the same '' steady state.
   const draft = liftedDraft ?? ''
   const setDraft = (next: string): void => { setLiftedDraft(next === '' && lifted !== undefined ? null : next) }
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const current = value ?? 10
   const parsed = draft.trim() === '' ? current : Number.parseInt(draft, 10)
-  // S14i: the saved note auto-clears (1.5s) so the row never looks stuck;
-  // with the controller re-describe fix the value itself updates live too.
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
   const save = async (): Promise<void> => {
     const result = await onSet(parsed as number)
     setFeedback(result.ok ? 'saved' : 'failed')
@@ -927,12 +930,7 @@ function FallbackToolRow(props: {
   // A stored DeepSeek designation with two-plus ready tools is not offered:
   // the intent degrades to auto — display auto and explain below.
   const effective = fallbackSelection === 'dshws-deepseek' && !offerDeepseek ? 'auto' : fallbackSelection
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const note =
     fallbackSelection === 'dshws-deepseek' && !offerDeepseek ? t('fallbackDeepseekStoppedNote')
     : fallbackSelection === 'dshws-deepseek' && !deepseekKeyed ? t('fallbackDeepseekKeylessNote')
@@ -964,7 +962,7 @@ function FallbackToolRow(props: {
           style={{ ...selectStyle, minWidth: 0 }}
         >
           <option value="auto" title={t('fallbackAutoOption')}>{t('fallbackAutoShort')}</option>
-          {toolOptions.map((id) => <option key={id} value={id}>{labelOf(id)}</option>)}
+          {toolOptions.map((id) => <option key={id} value={id}>{memberLabelOf(id)}</option>)}
           {offerDeepseek ? <option value="dshws-deepseek" title={t('fallbackDeepseekOption')}>{t('fallbackDeepseekShort')}</option> : null}
         </select>
       </div>
@@ -989,13 +987,8 @@ function FetchTakeoverRow(props: {
   chain: React.ReactNode
 }) {
   const { t, active, onSet, chain } = props
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const [open, setOpen] = useState(false)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
   return (
     <div data-testid="dshws-fetch-takeover" data-dshws-card="" data-open={open} style={{ ...cardStyle, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1082,11 +1075,11 @@ function FetchChainRows(props: {
             <span style={chainIndexStyle}>{index + 1}</span>
             {/* S22a T1: same label-cell chip placement as the search chain. */}
             <span data-dshws-chain-label="" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-              {labelOf(id)}
+              {memberLabelOf(id)}
               {index === 0 ? <span data-testid="dshws-fetch-role-primary" style={roleChipStyle}>{t('chainRolePrimary')}</span> : null}
             </span>
-            <button type="button" data-dshws-focusable="" aria-label={`${labelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
-            <button type="button" data-dshws-focusable="" aria-label={`${labelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
+            <button type="button" data-dshws-focusable="" aria-label={`${memberLabelOf(id)} ${t('moveUp')}`} disabled={index === 0} onClick={() => void move(id, -1)} style={moveButtonStyle}>↑</button>
+            <button type="button" data-dshws-focusable="" aria-label={`${memberLabelOf(id)} ${t('moveDown')}`} disabled={index === visible.length - 1} onClick={() => void move(id, 1)} style={moveButtonStyle}>↓</button>
           </li>
         ))}
       </ol>
@@ -1211,12 +1204,7 @@ function MemberEndpointField(props: {
 }) {
   const { member, t, onSet, lifted } = props
   const [draft, setDraft] = useLiftedDraft(lifted)
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const value = draft ?? member.baseURL ?? ''
   return (
     <div style={fieldStyle}>
@@ -1344,12 +1332,7 @@ function MemberParamField(props: {
 }) {
   const { member, control, t, onSet, lifted } = props
   const [draft, setDraft] = useLiftedDraft(lifted)
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const stored = member[control.option]
   const ariaLabel = `${member.label} ${t(control.labelKey)}`
   const testid = `dshws-param-${member.key}-${control.option}`
@@ -1520,23 +1503,26 @@ function SearchDomainFields(props: {
   )
 }
 
-function DomainField(props: {
+/**
+ * One staged text field (S37 T11): label + ⓘ note + input + Save + live-region
+ * feedback, with the draft lifted on request — the shape DomainField and
+ * GeoField previously duplicated at ~95% identity.
+ */
+function StagedTextField(props: {
   t: (key: DshWsLocaleKey) => string
-  kind: 'include' | 'exclude'
+  testid: string
+  labelKey: DshWsLocaleKey
+  noteKey: DshWsLocaleKey
+  placeholder: string
+  width: number
+  centered?: boolean
   value: string | undefined
-  onSet: (kind: 'include' | 'exclude', domains: string) => Promise<ActionResult>
+  onSet: (value: string) => Promise<ActionResult>
   lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, kind, value, onSet, lifted } = props
+  const { t, testid, labelKey, noteKey, placeholder, width, centered, value, onSet, lifted } = props
   const [draft, setDraft] = useLiftedDraft(lifted)
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
-  const labelKey = kind === 'include' ? 'searchIncludeDomainsLabel' : 'searchExcludeDomainsLabel'
-  const noteKey = kind === 'include' ? 'searchIncludeDomainsNote' : 'searchExcludeDomainsNote'
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const current = value ?? ''
   const shown = draft ?? current
   return (
@@ -1552,73 +1538,12 @@ function DomainField(props: {
       <span style={{ flex: 1 }} />
       <input
         aria-label={t(labelKey)}
-        data-testid={`dshws-search-domains-${kind}`}
-        data-dshws-input=""
-        placeholder="example.com,foo.org"
-        value={shown}
-        onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
-        style={{ width: 200, height: 28, padding: '0 8px', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
-      />
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={draft === null || draft === current}
-        aria-label={`${t(labelKey)} ${t('save')}`}
-        onClick={() => {
-          void onSet(kind, draft ?? '').then((result) => {
-            setFeedback(result.ok ? 'saved' : 'failed')
-            if (result.ok) setDraft(null)
-          })
-        }}
-      >
-        {t('save')}
-      </Button>
-      {feedback !== undefined ? (
-        <span role="status" data-testid={`dshws-search-domains-${kind}-feedback`} style={{ fontSize: 12, color: feedbackColor(feedback === 'saved' ? 'saved' : 'failed') }}>{t(feedback)}</span>
-      ) : null}
-    </div>
-  )
-}
-
-function GeoField(props: {
-  t: (key: DshWsLocaleKey) => string
-  testid: string
-  labelKey: DshWsLocaleKey
-  noteKey: DshWsLocaleKey
-  placeholder: string
-  value: string | undefined
-  onSet: (value: string) => Promise<ActionResult>
-  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
-}) {
-  const { t, testid, labelKey, noteKey, placeholder, value, onSet, lifted } = props
-  const [draft, setDraft] = useLiftedDraft(lifted)
-  const [feedback, setFeedback] = useState<'saved' | 'failed' | undefined>(undefined)
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
-  const current = value ?? ''
-  const shown = draft ?? current
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
-        {t(labelKey)}
-        <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={360}>
-          <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
-            <QuestionIcon />
-          </button>
-        </Tooltip>
-      </span>
-      <span style={{ flex: 1 }} />
-      <input
-        aria-label={t(labelKey)}
         data-testid={testid}
         data-dshws-input=""
         placeholder={placeholder}
         value={shown}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
-        style={{ width: 88, height: 28, padding: '0 8px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
+        style={{ width, height: 28, padding: '0 8px', ...(centered === true ? { textAlign: 'center' as const } : {}), borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
       />
       <Button
         variant="outline"
@@ -1641,6 +1566,56 @@ function GeoField(props: {
   )
 }
 
+function DomainField(props: {
+  t: (key: DshWsLocaleKey) => string
+  kind: 'include' | 'exclude'
+  value: string | undefined
+  onSet: (kind: 'include' | 'exclude', value: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
+}) {
+  const { t, kind, value, onSet, lifted } = props
+  return (
+    <StagedTextField
+      t={t}
+      testid={`dshws-search-domains-${kind}`}
+      labelKey={kind === 'include' ? 'searchIncludeDomainsLabel' : 'searchExcludeDomainsLabel'}
+      noteKey={kind === 'include' ? 'searchIncludeDomainsNote' : 'searchExcludeDomainsNote'}
+      placeholder="example.com,foo.org"
+      width={200}
+      value={value}
+      onSet={(text) => onSet(kind, text)}
+      lifted={lifted}
+    />
+  )
+}
+
+function GeoField(props: {
+  t: (key: DshWsLocaleKey) => string
+  testid: string
+  labelKey: DshWsLocaleKey
+  noteKey: DshWsLocaleKey
+  placeholder: string
+  value: string | undefined
+  onSet: (value: string) => Promise<ActionResult>
+  lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
+}) {
+  const { t, testid, labelKey, noteKey, placeholder, value, onSet, lifted } = props
+  return (
+    <StagedTextField
+      t={t}
+      testid={testid}
+      labelKey={labelKey}
+      noteKey={noteKey}
+      placeholder={placeholder}
+      width={88}
+      centered
+      value={value}
+      onSet={onSet}
+      lifted={lifted}
+    />
+  )
+}
+
 function MemberCard(props: {
   member: MemberSnapshot
   t: (key: DshWsLocaleKey) => string
@@ -1656,15 +1631,8 @@ function MemberCard(props: {
   const [draft, setDraft] = useState('')
   // S14d: masked •••• when configured and not editing; focus opens a fresh entry.
   const [editing, setEditing] = useState(false)
-  const [feedback, setFeedback] = useState<Extract<DshWsLocaleKey, 'saved' | 'cleared' | 'failed'> | undefined>(undefined)
+  const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'cleared' | 'failed'>()
   // S14o: the saved/cleared note auto-clears (1.5s) like the maxUses and
-  // endpoint rows — a sticky 已清除/已保存 that only a page reload dismisses
-  // reads as a stuck state (user report).
-  useEffect(() => {
-    if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
-    return () => clearTimeout(timer)
-  }, [feedback])
   const save = async (): Promise<void> => {
     const result = await onSaveKey(member.key, draft)
     if (result.ok) {
