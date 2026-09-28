@@ -105,7 +105,7 @@ export async function readMemberEnvelope<T>(response: Response, deps: {
  * drift-guarded by tests/user-agent.test.ts against package.json's version —
  * a version bump that forgets this constant fails the guard loudly.
  */
-export const USER_AGENT = 'dsh-websearch/0.3.0'
+export const USER_AGENT = 'dsh-websearch/0.2.0'
 
 /**
  * First non-empty detail string among the wire error shapes seen across

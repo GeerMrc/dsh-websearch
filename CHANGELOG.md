@@ -1,4 +1,4 @@
-## 2026-09-28 — v0.3.0（上游对齐二轮 + 代码质量批 + 流程立宪）
+## 2026-09-28 — v0.2.0 发布（单一版本：DNS 韧性层 + 上游对齐二轮 + 质量批 + 流程立宪；用户终审裁定撤销 v0.3.0 双版本方案）
 
 **修复（确定性 400 破坏项，四路独立审计抓获）**
 - **Tavily** `include_domains_mode` 枚举勘正：上游现行仅认 `restrict|prefer`，插件曾发 `filter|boost`（配置即 400）。**迁移**：存量 filter/boost 值由 resolve 层自动归一化（filter→restrict、boost→prefer），无需手工迁移；GUI 选择器同步换新值。
@@ -22,9 +22,9 @@
 
 ---
 
-## 2026-09-28 — v0.2.0（DNS 韧性层定版）
+## 2026-09-28 — v0.2.0 组成之一：DNS 韧性层（ADR-0022）
 
-**本条为版本面向条目；功能全录见上方 S35 批（2026-09-28）与 S35 执行批（2026-09-27 起）。**
+**本节与上方 v0.2.0 发布节共同构成单一 v0.2.0 版本面向记录（用户裁定：仅此一版、仅此一 tag）。**
 
 - **v0.2.0** = 进程级 DNS 韧性层（ADR-0022 accepted）：DoH 加密解析 + 投毒自动检测 + tls-hello SNI 出口预检 + 连接级快降级 + 设置页 DNS 韧性卡与 Inspect trace。ADR-0020 版本线：v0.1.0 起，v0.2.x = 特大架构子系统。
 - **分发**：npm `@maricgeer/dsh-websearch@0.2.0`（裸名 `dsh-websearch` 因 npm 反抢注政策不可注册——tarball 附 GitHub Release 供 profile 安装）；双名打包脚本化 `node scripts/pack.mjs`。
