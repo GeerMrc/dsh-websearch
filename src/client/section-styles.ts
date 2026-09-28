@@ -156,6 +156,9 @@ export const statusDotStyle = (configured: boolean) =>
   }) as const
 
 
+/** Auto-dismiss cadence for action feedback (ms). */
+const AUTO_CLEAR_FEEDBACK_MS = 1500
+
 /**
  * Auto-dismiss action feedback after 1.5s — the cadence every field with a
  * live-region note shares (S37 T11; was nine verbatim useEffect copies).
@@ -164,7 +167,7 @@ export function useAutoClearFeedback<T extends string>(): [T | undefined, (value
   const [feedback, setFeedback] = useState<T | undefined>(undefined)
   useEffect(() => {
     if (feedback === undefined) return
-    const timer = setTimeout(() => setFeedback(undefined), 1500)
+    const timer = setTimeout(() => setFeedback(undefined), AUTO_CLEAR_FEEDBACK_MS)
     return () => clearTimeout(timer)
   }, [feedback])
   return [feedback, setFeedback]

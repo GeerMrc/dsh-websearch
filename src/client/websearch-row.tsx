@@ -33,32 +33,10 @@ import { GlobeIcon } from './host-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { memberLabelOf } from './controller.ts'
 import { DnsTraceSection } from './dns-trace-section.tsx'
-
-/** Host running-call face (no `kind` member; ui-conversation records.ts:264-273). */
-interface RunningCallFace {
-  readonly callId: string
-  readonly name: string
-  readonly argsRaw: string
-}
-
-/** Host content-block face: only the text variant carries displayable text. */
-interface ContentTextFace {
-  readonly type: string
-  readonly text?: string | undefined
-}
-
-/** Host settled-result face (`kind: 'tool-result'`; ui-conversation records.ts:155-173). */
-interface ToolResultFace {
-  readonly kind: 'tool-result'
-  readonly call: { readonly name: string; readonly argsRaw: string } | null
-  readonly content: readonly ContentTextFace[]
-  readonly isError: boolean
-  readonly error?: { readonly name: string; readonly code?: string | undefined } | undefined
-  readonly meta?: unknown
-}
-
-/** The slot's frozen running-or-settled node, mirrored locally (D4 fallback). */
-type ToolCallBlockFace = RunningCallFace | ToolResultFace
+import {
+  badgeStyle, bodyStyle, errorStyle, noteStyle, preStyle, rowStyle, shellStyle, summaryStyle, titleStyle,
+  type ContentTextFace, type ToolCallBlockFace, type ToolResultFace,
+} from './toolview-common.ts'
 
 /** Self-drawn mirror of the host toolview owner currency (ui-tool contract/slots.ts:31-46). */
 export interface WebSearchToolviewOwnerFace {
@@ -177,33 +155,12 @@ function deriveWebCard(block: ToolResultFace): WebCardFace | null {
   return { answer: displayAnswer, sources: cleaned, truncated, servedBy }
 }
 
-const shellStyle = { display: 'flex', flexDirection: 'column' } as const
-const rowStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-  background: 'none',
-  border: 'none',
-  padding: '4px 0',
-  color: 'inherit',
-  font: 'inherit',
-  cursor: 'pointer',
-  textAlign: 'left',
-  minWidth: 0,
-} as const
-const titleStyle = { fontSize: 13, fontWeight: 500, flexShrink: 0 } as const
-const summaryStyle = { fontSize: 12, opacity: 0.7, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } as const
-const badgeStyle = { fontSize: 11, flexShrink: 0, border: '1px solid var(--dsw-alias-border-l2)', borderRadius: 999, padding: '0 6px', lineHeight: '18px' } as const
-const bodyStyle = { display: 'flex', flexDirection: 'column', gap: 8, padding: '4px 0 8px 22px', fontSize: 13 } as const
 const answerStyle = { margin: 0, whiteSpace: 'pre-wrap' } as const
 const sourcesTitleStyle = { fontSize: 12, opacity: 0.7, marginBottom: 4 } as const
 const listStyle = { margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 } as const
 const sourceStyle = { display: 'flex', flexDirection: 'column', gap: 2 } as const
 const urlStyle = { fontSize: 11, opacity: 0.6 } as const
 const snippetStyle = { fontSize: 12, opacity: 0.8 } as const
-const noteStyle = { fontSize: 12, opacity: 0.7 } as const
-const errorStyle = { color: 'var(--dsw-alias-state-error-primary)', fontSize: 12 } as const
-const preStyle = { margin: 0, fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: 0.8 } as const
 
 /** The self-drawn web_search tool row served by the `tool.call.toolview` takeover. */
 export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElement {
