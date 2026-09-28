@@ -58,6 +58,13 @@ export function memberBadResponse(codes: MemberErrorFamily, label: string, error
 }
 
 /**
+ * Attribution header sent on every provider request. Pinned here once and
+ * drift-guarded by tests/user-agent.test.ts against package.json's version —
+ * a version bump that forgets this constant fails the guard loudly.
+ */
+export const USER_AGENT = 'dsh-websearch/0.2.0'
+
+/**
  * First non-empty detail string among the wire error shapes seen across
  * providers: `error` (string or `{ message }` or `{ error }`), `detail`
  * (same three forms, or the FastAPI validation array whose first entry

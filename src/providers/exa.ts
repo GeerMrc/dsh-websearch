@@ -32,6 +32,8 @@ import {
   resolveMemberApiKey,
   throwIfMemberAborted,
   unfoldHttpErrorDetail,
+  USER_AGENT,
+
 } from './shared.ts'
 import { DshwsError } from '../errors.ts'
 
@@ -54,9 +56,6 @@ export const EXA_TEXT_FALLBACK_MAX_CHARACTERS = 1000
 export type ExaSearchType = 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
 
 const codes = MEMBER_ERROR_CODES.exa
-
-/** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
 
 /**
  * Normalize a stored publication-date floor to the ISO date-time form the API

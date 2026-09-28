@@ -36,6 +36,8 @@ import {
   resolveMemberApiKey,
   throwIfMemberAborted,
   unfoldHttpErrorDetail,
+  USER_AGENT,
+
 } from './shared.ts'
 
 /** Search-face timeout cap: the chain budget is 30s per member, so the server stops at 20s (S20 P2). */
@@ -48,9 +50,6 @@ export const FIRECRAWL_MEMBER_ID = 'dshws-firecrawl'
 export const FIRECRAWL_DEFAULT_BASE_URL = 'https://api.firecrawl.dev'
 
 const codes = MEMBER_ERROR_CODES.firecrawl
-
-/** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
 
 /** Wire type of one Firecrawl `data.web[]` search entry (optional fields read tolerantly). */
 export interface FirecrawlWebResult {
