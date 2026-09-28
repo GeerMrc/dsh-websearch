@@ -60,21 +60,35 @@ export function memberBadResponse(codes: MemberErrorFamily, label: string, error
 /**
  * First non-empty detail string among the wire error shapes seen across
  * providers: `error` (string or `{ message }` or `{ error }`), `detail`
- * (same three forms), then top-level `message`. The nested `{ error }` form
- * is the live Tavily 401 body (`{"detail":{"error":"Unauthorized: …"}}`,
- * verified 2026-09-28) — a `{ message }`-only pick silently degrades that
- * response to a bare status. Non-JSON bodies never reach this (the caller's
+ * (same three forms, or the FastAPI validation array whose first entry
+ * renders as `msg @loc.loc`), then top-level `message`. The nested
+ * `{ error }` form is the live Tavily 401 body and the array form is the
+ * live Tavily 422 body (both verified 2026-09-28) — narrower picks
+ * silently degrade those responses to a bare status. A top-level `code`
+ * (Firecrawl 408/500: `TIMEOUT`/`UNKNOWN_ERROR`) appends as `[code]` when
+ * present. Non-JSON bodies never reach this (the caller's
  * `response.json()` throws first).
  */
 export function unfoldHttpErrorDetail(parsed: {
   readonly error?: string | { readonly message?: string, readonly error?: string } | null
-  readonly detail?: string | { readonly message?: string, readonly error?: string }
+  readonly detail?: string | { readonly message?: string, readonly error?: string } | { readonly msg?: string, readonly loc?: readonly string[] }[]
   readonly message?: string
+  readonly code?: string
 }): string | undefined {
   const pick = (value: string | { readonly message?: string, readonly error?: string } | undefined | null): string | undefined =>
     typeof value === 'string' ? value : value?.message ?? (typeof value?.error === 'string' ? value.error : undefined)
-  return [pick(parsed.error), pick(parsed.detail), parsed.message]
+  const pickArray = (entries: readonly { readonly msg?: string, readonly loc?: readonly string[] }[]): string | undefined => {
+    const first = entries.find(entry => entry.msg !== undefined && entry.msg.length > 0)
+    if (first === undefined) return undefined
+    return first.loc !== undefined && first.loc.length > 0 ? `${first.msg} @${first.loc.join('.')}` : first.msg
+  }
+  const detail = Array.isArray(parsed.detail)
+    ? pickArray(parsed.detail)
+    : pick(parsed.detail)
+  const base = [pick(parsed.error), detail, parsed.message]
     .find((candidate) => candidate !== undefined && candidate.length > 0)
+  if (base === undefined) return parsed.code
+  return parsed.code !== undefined && parsed.code.length > 0 ? `${base} [${parsed.code}]` : base
 }
 
 /** True for a request limit that can be sent to the provider (a positive whole number). */

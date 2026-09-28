@@ -324,6 +324,16 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     expect((caught as Error).message).toContain('invalid api key')
   })
 
+  it('unfolds the FastAPI array detail form (422 validation shape, upstream-documented)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: [
+      { type: 'string_too_long', loc: ['body', 'query'], msg: 'String should have at most 400 characters' },
+    ] }, 422)))
+    const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 422 })
+    expect((caught as Error).message).toContain('String should have at most 400 characters')
+    expect((caught as Error).message).toContain('body.query')
+  })
+
   it('unfolds the live nested detail.error form (401 shape verified 2026-09-28) on the search face', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: { error: 'Unauthorized: missing or invalid API key.' } }, 401)))
     const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)

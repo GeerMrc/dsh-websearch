@@ -275,6 +275,14 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     expect((caught as Error).message).toContain('429')
   })
 
+  it('unfolds the error code dimension alongside the message (408 TIMEOUT shape, upstream-documented)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ success: false, code: 'TIMEOUT', error: 'Request timed out' }, 408)))
+    const caught = await searchProvider().search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError })
+    expect((caught as Error).message).toContain('Request timed out')
+    expect((caught as Error).message).toContain('TIMEOUT')
+  })
+
   it('unfolds a JSON error body into the HTTP error message when present', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ error: 'payment required to access this resource' }, 402)))
     const caught = await searchProvider().search({ query: 'q' }).then(() => null, (error: unknown) => error)
