@@ -1353,8 +1353,11 @@ function MemberParamField(props: {
   const stored = member[control.option]
   const ariaLabel = `${member.label} ${t(control.labelKey)}`
   const testid = `dshws-param-${member.key}-${control.option}`
-  const commit = (value: string | number | boolean): Promise<void> =>
-    onSet(member.key, control.option, value).then((result) => setFeedback(result.ok ? 'saved' : 'failed'))
+  const commit = (value: string | number | boolean): Promise<ActionResult> =>
+    onSet(member.key, control.option, value).then((result) => {
+      setFeedback(result.ok ? 'saved' : 'failed')
+      return result
+    })
 
   if (control.kind === 'select') {
     const value = typeof stored === 'string' && stored !== '' ? stored : (control.fallback ?? '')
@@ -1467,7 +1470,9 @@ function MemberParamField(props: {
           disabled={!valid || draft === null || draft === current}
           aria-label={`${ariaLabel} ${t('save')}`}
           onClick={() => {
-            void commit(control.kind === 'number' ? Number(value) : value).then(() => setDraft(null))
+            void commit(control.kind === 'number' ? Number(value) : value).then((result) => {
+              if (result.ok) setDraft(null)
+            })
           }}
         >
           {t('save')}

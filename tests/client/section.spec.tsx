@@ -977,6 +977,19 @@ describe('S17 P1 member parameter controls', () => {
   })
 
 
+  it('S37 T9: a failed member-param save keeps the staged draft (endpoint-field parity)', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: false }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('firecrawl')
+    const tbs = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbs, { target: { value: 'sbd:1,qdr:m' } })
+    // The staged field's Save sits in the same control row as its input.
+    const rowSave = tbs.parentElement!.querySelector('button')!
+    fireEvent.click(rowSave)
+    await waitFor(() => expect(screen.getByTestId('dshws-param-firecrawl-tbs-feedback').textContent).toBe(en.failed))
+    expect(tbs.value).toBe('sbd:1,qdr:m')
+  })
+
   it('S22 T3: firecrawl tbs becomes a staged combo text field and safe toggles immediately', async () => {
     const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
