@@ -116,7 +116,7 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     expect(body.category).toBe('news')
 
     const companyGuard = resolveExaMemberOptions(
-      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'company', startPublishedDate: '2026-01-01'  } satisfies ExaMemberConfig,
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'company', startPublishedDate: '2026-01-01', endPublishedDate: '2026-06-30'  } satisfies ExaMemberConfig,
       async () => 'k',
       { excludeDomains: ['spam.test'] },
     )
@@ -125,10 +125,11 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     expect(body.category).toBe('company')
     expect(body).not.toHaveProperty('startPublishedDate')
     expect(body).not.toHaveProperty('excludeDomains')
+    expect(body).not.toHaveProperty('endPublishedDate')
 
     // The guard is category-scoped: without company/people both ride along.
     const normal = resolveExaMemberOptions(
-      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'news', startPublishedDate: '2026-01-01'  } satisfies ExaMemberConfig,
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'news', startPublishedDate: '2026-01-01', endPublishedDate: '2026-06-30'  } satisfies ExaMemberConfig,
       async () => 'k',
       { excludeDomains: ['spam.test'] },
     )

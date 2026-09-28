@@ -204,15 +204,13 @@ export class ExaSearchProvider implements WebSearchProvider {
     const numResults = request.maxResults ?? this.options.numResults
     let response: Response
     // Guards evaluated inside this single body construction: the
-    // company/people categories officially reject the date floor and the
-    // exclude-domain list (400), so those parameters are suppressed only
-    // when one of those categories is set.
-    const dateFloor = this.options.category === 'company' || this.options.category === 'people'
-      ? undefined
-      : this.options.startPublishedDate
-    const excludeDomains = this.options.category === 'company' || this.options.category === 'people'
-      ? undefined
-      : this.options.excludeDomains
+    // company/people categories officially reject both published-date
+    // bounds and the exclude-domain list (400), so those parameters are
+    // suppressed only when one of those categories is set.
+    const specialCategory = this.options.category === 'company' || this.options.category === 'people'
+    const dateFloor = specialCategory ? undefined : this.options.startPublishedDate
+    const dateCeiling = specialCategory ? undefined : this.options.endPublishedDate
+    const excludeDomains = specialCategory ? undefined : this.options.excludeDomains
     try {
       response = await fetch(`${this.options.baseURL}/search`, {
         method: 'POST',
@@ -247,7 +245,7 @@ export class ExaSearchProvider implements WebSearchProvider {
           ...numResults !== undefined ? { numResults } : {},
           ...this.options.category !== undefined ? { category: this.options.category } : {},
           ...dateFloor !== undefined ? { startPublishedDate: dateFloor } : {},
-          ...this.options.endPublishedDate !== undefined ? { endPublishedDate: this.options.endPublishedDate } : {},
+          ...dateCeiling !== undefined ? { endPublishedDate: dateCeiling } : {},
           ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
           ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
           ...excludeDomains !== undefined ? { excludeDomains: [...excludeDomains] } : {},
