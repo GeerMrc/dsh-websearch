@@ -218,7 +218,7 @@ export interface FirecrawlSettings {
    * Result category (S20 P2, official enum; `''` = clear): `developer`/`research` target docs and
    * papers for coding-agent queries. Hot.
    */
-  categories?: 'developer' | 'research' | 'pdf' | ''
+  categories?: 'developer' | 'research' | 'pdf' | 'alexandria' | ''
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -544,7 +544,7 @@ function buildConfigSchema(markVolatile: boolean): z {
     safe: z.boolean(),
     location: z.string(),
     sources: z.union(['', 'news', 'web+news']),
-    categories: z.union(['', 'developer', 'research', 'pdf']),
+    categories: z.union(['', 'developer', 'research', 'pdf', 'alexandria']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   })),
   exa: vol(z.object({
@@ -663,7 +663,7 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
   /** Result sources; `''` normalizes away at resolve (S20 P2). */
   sources?: 'news' | 'web+news' | ''
   /** Result category; `''` normalizes away at resolve (S20 P2). */
-  categories?: 'developer' | 'research' | 'pdf' | ''
+  categories?: 'developer' | 'research' | 'pdf' | 'alexandria' | ''
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }

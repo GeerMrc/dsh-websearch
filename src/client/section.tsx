@@ -1316,7 +1316,7 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
     { kind: 'select', option: 'sources', labelKey: 'sourcesLabel', options: [
       { value: '', labelKey: 'optDefault' }, { value: 'news', labelKey: 'srcNews' }, { value: 'web+news', labelKey: 'srcWebNews' }] },
     { kind: 'select', option: 'categories', labelKey: 'categoryLabel', options: [
-      { value: '', labelKey: 'optDefault' }, { value: 'developer', labelKey: 'fcCatDeveloper' }, { value: 'research', labelKey: 'fcCatResearch' }, { value: 'pdf', labelKey: 'fcCatPdf' }] },
+      { value: '', labelKey: 'optDefault' }, { value: 'developer', labelKey: 'fcCatDeveloper' }, { value: 'research', labelKey: 'fcCatResearch' }, { value: 'pdf', labelKey: 'fcCatPdf' }, { value: 'alexandria', labelKey: 'fcCatAlexandria' }] },
   ],
 }
 

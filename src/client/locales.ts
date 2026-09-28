@@ -142,6 +142,7 @@ export type DshWsLocaleKey =
   | 'fcCatDeveloper'
   | 'fcCatResearch'
   | 'fcCatPdf'
+  | 'fcCatAlexandria'
   | 'chunksPerSourceLabel'
   | 'chunksOne'
   | 'chunksTwo'
@@ -347,6 +348,7 @@ export const en: Record<DshWsLocaleKey, string> = {
   fcCatDeveloper: 'Developer',
   fcCatResearch: 'Research',
   fcCatPdf: 'PDF',
+  fcCatAlexandria: 'Alexandria',
   chunksPerSourceLabel: 'Chunks per source',
   chunksOne: '1 (compact)',
   chunksTwo: '2',
@@ -547,6 +549,7 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fcCatDeveloper: '开发者',
   fcCatResearch: '研究',
   fcCatPdf: 'PDF',
+  fcCatAlexandria: 'Alexandria（research 迁移后）',
   chunksPerSourceLabel: '每源内容块数',
   chunksOne: '1（紧凑）',
   chunksTwo: '2',

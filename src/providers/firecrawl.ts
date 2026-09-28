@@ -114,7 +114,8 @@ export interface FirecrawlMemberOptions {
   /** Result sources; absent = not sent (web-only API default) (S20 P2). */
   readonly sources?: 'news' | 'web+news'
   /** Result category; absent = not sent (S20 P2). */
-  readonly categories?: 'developer' | 'research' | 'pdf'
+  /** `research` migrates to `alexandria` on 2026-11-16 (upstream announcement). */
+  readonly categories?: 'developer' | 'research' | 'pdf' | 'alexandria'
 }
 
 /**
@@ -294,7 +295,7 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         headers: this.#headers(apiKey),
         body: JSON.stringify({
           url: request.url,
-          formats: ['markdown'],
+          formats: [{ type: 'markdown' }],
           // The upstream default is 60s, but the tool-level budget is 30s —
           // without an explicit cap the client aborts while the server keeps
           // burning credits (S16 P0-2).

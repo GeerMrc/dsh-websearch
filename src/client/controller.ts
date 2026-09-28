@@ -114,7 +114,7 @@ interface MemberSectionValue {
   /** Firecrawl S20 P2: result sources news/web+news. */
   sources?: 'news' | 'web+news'
   /** Firecrawl S20 P2: result category. */
-  categories?: 'developer' | 'research' | 'pdf'
+  categories?: 'developer' | 'research' | 'pdf' | 'alexandria'
   /** Tavily S22 P3: publication-date window bounds (`YYYY-MM-DD`). */
   startDate?: string
   endDate?: string
