@@ -129,8 +129,8 @@ export type DshWsLocaleKey =
   | 'searchExcludeDomainsNote'
   | 'domainsLabel'
   | 'domainsNote'
-  | 'modeFilter'
-  | 'modeBoost'
+  | 'modeRestrict'
+  | 'modePrefer'
   | 'catCompany'
   | 'catPublication'
   | 'catNews'
@@ -334,8 +334,8 @@ export const en: Record<DshWsLocaleKey, string> = {
   searchExcludeDomainsNote: 'Comma-separated blocklist applied to Tavily/Exa/Firecrawl. Mutually exclusive with the include list — setting one clears the other.',
   domainsLabel: 'Domains',
   domainsNote: 'Two mutually exclusive lists: include = allowlist only, exclude = blocklist only. Setting one clears the other.',
-  modeFilter: 'Filter',
-  modeBoost: 'Boost (weight)',
+  modeRestrict: 'Restrict',
+  modePrefer: 'Prefer (weight)',
   catCompany: 'Company',
   catPublication: 'Publication',
   catNews: 'News',
@@ -534,8 +534,8 @@ export const zh: Record<DshWsLocaleKey, string> = {
   searchExcludeDomainsNote: '逗号分隔黑名单，作用于 Tavily/Exa/Firecrawl。与仅含列表互斥——设置其一自动清除另一。',
   domainsLabel: '域名过滤',
   domainsNote: '两个互斥列表：仅含 = 白名单，排除 = 黑名单。设置其一自动清除另一。',
-  modeFilter: '过滤',
-  modeBoost: '加权',
+  modeRestrict: '严格限定',
+  modePrefer: '优先加权',
   catCompany: '公司',
   catPublication: '出版物',
   catNews: '新闻',

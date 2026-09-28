@@ -106,7 +106,7 @@ interface MemberSectionValue {
   /** Tavily S20 P2: hard language filter (needs the unified language set). */
   filterByLanguage?: boolean
   /** Tavily S20 P2: include-list semantics filter/boost. */
-  includeDomainsMode?: 'filter' | 'boost'
+  includeDomainsMode?: 'restrict' | 'prefer'
   /** Exa S20 P2: vertical category. */
   category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people'
   /** Exa S20 P2: content cache freshness hours. */

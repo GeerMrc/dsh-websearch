@@ -1287,7 +1287,7 @@ const MEMBER_PARAM_CONTROLS: Readonly<Partial<Record<string, readonly MemberPara
     { kind: 'select', option: 'includeAnswer', labelKey: 'tavilyAnswerLabel', fallback: 'basic', options: [
       { value: 'basic', labelKey: 'answerBasic' }, { value: 'advanced', labelKey: 'answerAdvanced' }] },
     { kind: 'select', option: 'includeDomainsMode', labelKey: 'domainsLabel', options: [
-      { value: '', labelKey: 'optDefault' }, { value: 'filter', labelKey: 'modeFilter' }, { value: 'boost', labelKey: 'modeBoost' }] },
+      { value: '', labelKey: 'optDefault' }, { value: 'restrict', labelKey: 'modeRestrict' }, { value: 'prefer', labelKey: 'modePrefer' }] },
     { kind: 'select', option: 'chunksPerSource', labelKey: 'chunksPerSourceLabel', options: [
       { value: '', labelKey: 'optDefault' }, { value: '1', labelKey: 'chunksOne' }, { value: '2', labelKey: 'chunksTwo' }, { value: '3', labelKey: 'chunksThree' }] },
     { kind: 'toggle', option: 'filterByLanguage', labelKey: 'filterByLanguageLabel', noteKey: 'filterByLanguageNote' },

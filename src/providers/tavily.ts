@@ -104,7 +104,7 @@ export interface TavilyMemberOptions {
   /** Hard language filter; only sent when `language` is set (S20 P2, official 400 constraint). */
   readonly filterByLanguage?: boolean
   /** Include-list semantics; only sent with a non-empty include list (S20 P2). */
-  readonly includeDomainsMode?: 'filter' | 'boost'
+  readonly includeDomainsMode?: 'restrict' | 'prefer'
   /** Publication-date window lower bound (`YYYY-MM-DD`); absent = not sent (S22 P3). */
   readonly startDate?: string
   /** Publication-date window upper bound; absent = not sent (S22 P3). */

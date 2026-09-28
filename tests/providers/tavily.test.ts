@@ -232,18 +232,18 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
     vi.stubGlobal('fetch', fetchMock)
     const withBoth = resolveTavilyMemberOptions(
-      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'boost'  } satisfies TavilyMemberConfig,
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'prefer'  } satisfies TavilyMemberConfig,
       async () => 'k',
       { language: 'zh', includeDomains: ['example.com'] },
     )
     await new TavilySearchProvider(withBoth).search({ query: 'q' })
     let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
     expect(body.filter_by_language).toBe(true)
-    expect(body.include_domains_mode).toBe('boost')
+    expect(body.include_domains_mode).toBe('prefer')
 
     // Guards: no unified language → filter_by_language suppressed; no include list → mode suppressed.
     const noLanguage = resolveTavilyMemberOptions(
-      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'boost'  } satisfies TavilyMemberConfig,
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'prefer'  } satisfies TavilyMemberConfig,
       async () => 'k',
     )
     await new TavilySearchProvider(noLanguage).search({ query: 'q' })
