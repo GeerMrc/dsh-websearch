@@ -644,3 +644,12 @@ P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（�
 - 错误信封实测矩阵：anysearch 422 detail / tavily 嵌套 detail.error 401 / exa error 401 / firecrawl error 401（curl 直证 + 单测回归锁 + real 层 skip-gated 用例）。
 - rc.15 实装证据：3423 链路行 422 detail 逐字（rc15-smokes.log:9）+ tavily/exa served-by（:29/:38）。
 - 用户窗口级联：02:19 anysearch 瞬断→retry→tavily 瞬断→firecrawl 兜底 served（runKey #0007/#0008 可归属）。
+
+
+## S37 批次台账（2026-09-28，上游对齐二轮 + 质量批 + 立宪）
+
+任务链 plan 045 rev2：T0 前置清偿 → PA 对齐修复 T1-T8（逐项红→绿）→ PB 质量批 T9-T14（601 锁行为保持）→ PC 立宪+收官 T15-T17 全 ✅。阶段4 PASS（🔴-1 发现批清偿）/阶段5 执行面 COMPLETE（R6 诚实裁定）。
+
+锚点：门墙 601/601·双面 tsc 0·0w0e·i18n 179 键（audit-logs/2026-09-28-s37-stage45-review.md）；peer 域 satisfies 实测完整（六包 28 版，T0 正本）；对齐矩阵信封表含数组 detail/code/request_id 三新形态 + alexandria 带日期行。
+
+债务变动：🟢 新增——alexandria 到期（2026-11-16）/request_id 余面/429 头/toolview-common；🟢 清偿——request_id anysearch 两路（收窄）、17 死键、lint 遗留。R6 裁定：净减实测 -187（核心）/ -93（PB src），≥250 未达如实复盘。
