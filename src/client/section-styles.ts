@@ -155,7 +155,6 @@ export const statusDotStyle = (configured: boolean) =>
       : 'var(--dsw-alias-state-warn-label)',
   }) as const
 
-type Feedback = 'saved' | 'failed' | undefined
 
 /**
  * Auto-dismiss action feedback after 1.5s — the cadence every field with a

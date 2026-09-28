@@ -63,7 +63,6 @@ const keySelButtonStyle = (pressed: boolean, configured: boolean) =>
 // The Input primitive's own wrapper carries the full field visual (32px, r8,
 // bg-layer-1, border) — only the width needs asserting here.
 /** Chain rows render the brand label; ids stay the test/action payload (D3). */
-const labelOf = (id: string): string => MEMBERS.find((member) => member.memberId === id)?.label ?? id
 
 /** The three pool policies and their label keys, in control order (S13 D2). */
 const KEY_SELECTIONS = [

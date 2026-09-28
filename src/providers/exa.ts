@@ -24,19 +24,14 @@ import type { UnifiedSearchFanout } from '../config.ts'
 import { MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
   isPositiveInteger,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
   USER_AGENT,
   readMemberEnvelope,
 
 } from './shared.ts'
-import { DshwsError } from '../errors.ts'
 
 /** Stable id this member registers under (chain + direct pin, `dshws-` prefixed). */
 export const EXA_MEMBER_ID = 'dshws-exa'

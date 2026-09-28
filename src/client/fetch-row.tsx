@@ -22,7 +22,7 @@ import type { ReactElement } from 'react'
 import { GlobeIcon } from './host-icons.tsx'
 import { DnsTraceSection } from './dns-trace-section.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
-import { MEMBERS, memberLabelOf } from './controller.ts'
+import { memberLabelOf } from './controller.ts'
 
 /** Host running-call face (no `kind` member; ui-conversation records.ts:264-273). */
 interface RunningCallFace {

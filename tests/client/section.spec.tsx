@@ -336,7 +336,7 @@ describe('WebSearchSettingsSection', () => {
 
   it('the order note lives behind the ⓘ icon badge, not dead prose (S14e D4 用户裁定; S23 D15 glyph unified)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const chains = container.querySelector('[data-testid="dshws-chains"]')!
+    const _chains = container.querySelector('[data-testid="dshws-chains"]')!
     // No dead prose lines: neither the old default-order hint nor the tail note.
     // The badge exists (S23 D15: the host ⓘ glyph, no text); focusing it opens the full order note.
     const badge = screen.getByTestId('dshws-chain-order-info')

@@ -22,14 +22,10 @@ import type { DeepSeekMemberConfig } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
   isPositiveInteger,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
   USER_AGENT,
   readMemberEnvelope,
 

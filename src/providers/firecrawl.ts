@@ -29,13 +29,9 @@ import type {
   WebSearchSource,
 } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
   USER_AGENT,
   readMemberEnvelope,
 
