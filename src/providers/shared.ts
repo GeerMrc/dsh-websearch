@@ -78,6 +78,15 @@ export async function readMemberEnvelope<T>(response: Response, deps: {
   if (!response.ok) {
     const status = response.status
     let message = `${label} API error (HTTP ${status})`
+    // A 429 carries pool-switch diagnostics in headers (anysearch documents
+    // Retry-After/X-RateLimit-*; S37 TB): surface them in the message so key
+    // rotation decisions and user reports see the upstream's own cadence.
+    if (status === 429) {
+      const retryAfter = response.headers.get('retry-after')
+      if (retryAfter !== null) message += ` (retry-after: ${retryAfter}s)`
+      const remaining = response.headers.get('x-ratelimit-remaining')
+      if (remaining !== null) message += ` (remaining: ${remaining})`
+    }
     let parsed: unknown
     try {
       parsed = await response.json()

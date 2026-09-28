@@ -324,6 +324,18 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     expect((caught as Error).message).toContain('invalid api key')
   })
 
+  it('S37-TB: a 429 rides the Retry-After header as pool-switch diagnostics', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ detail: 'rate limit exceeded' }), {
+      status: 429,
+      headers: { 'content-type': 'application/json', 'retry-after': '7', 'x-ratelimit-remaining': '0' },
+    })))
+    const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 429 })
+    expect((caught as Error).message).toContain('rate limit exceeded')
+    expect((caught as Error).message).toContain('retry-after: 7s')
+    expect((caught as Error).message).toContain('remaining: 0')
+  })
+
   it('unfolds the FastAPI array detail form (422 validation shape, upstream-documented)', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: [
       { type: 'string_too_long', loc: ['body', 'query'], msg: 'String should have at most 400 characters' },
