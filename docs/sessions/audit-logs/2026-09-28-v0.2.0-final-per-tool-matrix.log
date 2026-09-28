@@ -1,0 +1,103 @@
+2026-09-28T06:37:47.493Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.214 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-28T06:37:53.445Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=145 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:37:54.132Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=182 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:37:55.120Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=178 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:37:55.771Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=262
+2026-09-28T06:37:55.906Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=88
+2026-09-28T06:38:50.632Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-28T06:38:50.632Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-28T06:38:50.632Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-28T06:38:51.572Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=163 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:38:52.958Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T06:38:53.392Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T06:39:01.109Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → degrade(no-pool) #0001
+2026-09-28T06:39:02.679Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-28T06:39:02.679Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-28T06:39:03.693Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=163 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:39:13.164Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0005
+2026-09-28T06:39:13.166Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-28T06:39:13.172Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0004
+2026-09-28T06:39:13.172Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-28T06:39:13.884Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=212 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:39:20.927Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T06:39:23.674Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → degrade(retry-cap) #0005
+2026-09-28T06:39:25.928Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-28T06:39:25.929Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-28T06:39:26.641Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=1 probeDrop=2 latencyMs=160
+2026-09-28T06:39:36.402Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0007
+2026-09-28T06:39:36.403Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-28T06:39:36.406Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0006
+2026-09-28T06:39:36.406Z [dsh-websearch] key draw dshws-tavily …dduj
+2026-09-28T06:39:37.447Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 probeDrop=3 latencyMs=168 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T06:39:46.906Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → degrade(retry-cap) #0007
+2026-09-28T06:39:46.907Z [dshws-chain] connect-flap dshws-tavily UND_ERR_CONNECT_TIMEOUT → degrade(retry-cap) #0006
+2026-09-28T07:04:12.946Z [dsh-websearch] key draw dshws-tavily …NfsI
+2026-09-28T07:04:12.947Z [dsh-websearch] key draw dshws-tavily …ybFh
+2026-09-28T07:04:12.947Z [dsh-websearch] key draw dshws-tavily …VV3c
+2026-09-28T07:04:13.881Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=1 probeDrop=2 latencyMs=198
+2026-09-28T07:04:15.147Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T07:04:16.476Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T07:04:17.111Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T07:06:23.573Z [dsh-websearch] key draw dshws-tavily …svMS
+2026-09-28T07:06:24.527Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=2 probeDrop=1 latencyMs=204
+2026-09-28T07:06:29.522Z [dshws-chain] served-by: dshws-tavily
+2026-09-28T07:07:39.457Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.214 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-28T07:07:45.269Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 latencyMs=142
+2026-09-28T07:07:46.171Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=204 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T07:07:46.853Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=127
+2026-09-28T07:07:47.472Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=243
+2026-09-28T07:07:47.610Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=93
+2026-09-28T07:14:22.708Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-28T07:14:22.709Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-28T07:14:23.349Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=266
+2026-09-28T07:14:24.830Z [dshws-chain] served-by: dshws-anysearch
+2026-09-28T07:14:32.885Z [dshws-chain] connect-flap dshws-anysearch UND_ERR_CONNECT_TIMEOUT → degrade(no-pool) #0002
+2026-09-28T07:14:33.945Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-28T07:14:34.526Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=206
+2026-09-28T07:14:36.424Z [dshws-chain] served-by: dshws-anysearch
+2026-09-28T07:14:40.485Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-28T07:14:40.485Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-28T07:14:40.486Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-28T07:14:40.864Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-28T07:14:40.918Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-28T07:14:43.858Z [dshws-chain] served-by: dshws-anysearch
+2026-09-28T07:14:46.699Z [dshws-chain] served-by: dshws-anysearch
+2026-09-28T07:14:50.965Z [dshws-chain] connect-flap dshws-anysearch UND_ERR_CONNECT_TIMEOUT → retry(fresh-resolve) #0005
+2026-09-28T07:14:50.966Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-28T07:14:51.622Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=285
+2026-09-28T07:14:53.459Z [dshws-chain] served-by: dshws-anysearch
+2026-09-28T07:15:14.278Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-28T07:15:14.644Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-28T07:15:17.583Z [dshws-chain] served-by: dshws-anysearch
+2026-09-28T07:16:19.454Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.214 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-28T07:16:25.232Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=2 probeDrop=1 latencyMs=186
+2026-09-28T07:16:25.916Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=1 probeDrop=3 latencyMs=180
+2026-09-28T07:16:26.710Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=179
+2026-09-28T07:16:27.318Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=223
+2026-09-28T07:16:27.418Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=57
+2026-09-28T07:17:10.073Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-28T07:17:10.073Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-28T07:17:10.073Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-28T07:17:10.708Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=1 probeDrop=3 latencyMs=131
+2026-09-28T07:17:13.973Z [dshws-chain] served-by: dshws-exa
+2026-09-28T07:17:20.560Z [dshws-chain] connect-flap dshws-exa UND_ERR_CONNECT_TIMEOUT → degrade(no-pool) #0003
+2026-09-28T07:17:21.647Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-28T07:17:21.647Z [dsh-websearch] key draw dshws-exa …352e
+2026-09-28T07:17:22.506Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=4 probeDrop=4 latencyMs=158 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T07:17:25.053Z [dshws-chain] served-by: dshws-exa
+2026-09-28T07:17:32.136Z [dshws-chain] connect-flap dshws-exa UND_ERR_CONNECT_TIMEOUT → degrade(no-pool) #0005
+2026-09-28T07:18:24.419Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.212 api.exa.ai→198.18.1.214 api.firecrawl.dev→198.18.0.30 api.anysearch.com→198.18.0.26 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-28T07:18:30.283Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=1 probeDrop=2 latencyMs=122
+2026-09-28T07:18:30.846Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=63 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-28T07:18:31.479Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=65
+2026-09-28T07:18:32.121Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=268
+2026-09-28T07:18:32.267Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=99
+2026-09-28T07:20:52.913Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-28T07:20:52.914Z [dsh-websearch] key draw dshws-firecrawl …b9c1
+2026-09-28T07:20:52.914Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-28T07:20:53.497Z [dshws-dns] resolve host=api.firecrawl.dev via=cache kept=1 latencyMs=0
+2026-09-28T07:20:57.754Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-28T07:21:03.381Z [dshws-chain] connect-flap dshws-firecrawl UND_ERR_CONNECT_TIMEOUT → degrade(no-pool) #0003
+2026-09-28T07:21:55.812Z [dsh-websearch] key draw dshws-firecrawl …b9c1
+2026-09-28T07:21:56.634Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=239
+2026-09-28T07:22:03.084Z [dshws-chain] served-by: dshws-firecrawl
