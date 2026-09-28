@@ -58,7 +58,7 @@ describe('WebFetchToolviewRow (S28 takeover)', () => {
     render(<WebFetchToolviewRow {...makeProps()} />)
     expect(screen.getByRole('button', { name: /Web fetch/ })).toBeTruthy()
     expect(screen.getByText('https://example.com/page')).toBeTruthy()
-    const badge = screen.getByTestId('dshws-served-by')
+    const badge = screen.getByTestId('dshws-fetch-served-by')
     expect(badge.textContent).toBe('· Tavily')
     expect(screen.getByLabelText('Served by Tavily')).toBe(badge)
   })
@@ -82,7 +82,7 @@ describe('WebFetchToolviewRow (S28 takeover)', () => {
       content: [{ type: 'text', text: 'Fetched https://example.com/page (HTTP 200)\n\n\\[served-by: dshws-anysearch\\]\nBody.' }],
     })
     render(<WebFetchToolviewRow {...props} />)
-    expect(screen.getByTestId('dshws-served-by').textContent).toBe('· AnySearch')
+    expect(screen.getByTestId('dshws-fetch-served-by').textContent).toBe('· AnySearch')
   })
 
   it('renders no badge for a gate-OFF direct fetch without the signature (无签名)', () => {
@@ -92,7 +92,7 @@ describe('WebFetchToolviewRow (S28 takeover)', () => {
       content: [{ type: 'text', text: 'Fetched https://example.com/page (HTTP 200)\n\nPlain fetched body.' }],
     })
     render(<WebFetchToolviewRow {...props} />)
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-fetch-served-by')).toBeNull()
   })
 
   it('falls back to the generic tool card when the meta shape mismatches (形状不符回退)', () => {
@@ -104,7 +104,7 @@ describe('WebFetchToolviewRow (S28 takeover)', () => {
     render(<WebFetchToolviewRow {...props} />)
     fireEvent.click(screen.getByRole('button', { name: /Web fetch/ }))
     expect(screen.getByTestId('dshws-fetch-toolview-generic').textContent).toContain('Raw fallback content.')
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-fetch-served-by')).toBeNull()
   })
 
   it('surfaces the failure note on an error result (error 态)', () => {
@@ -117,7 +117,7 @@ describe('WebFetchToolviewRow (S28 takeover)', () => {
     render(<WebFetchToolviewRow {...props} />)
     fireEvent.click(screen.getByRole('button', { name: /Web fetch/ }))
     expect(screen.getByRole('status').textContent).toContain(en.toolError)
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-fetch-served-by')).toBeNull()
   })
 
   it('registers the web_fetch toolview takeover at priority -1 (shadow 契约载荷)', () => {

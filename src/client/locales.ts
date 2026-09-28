@@ -122,7 +122,6 @@ export type DshWsLocaleKey =
   | 'searchExcludeDomainsLabel'
   | 'searchExcludeDomainsNote'
   | 'domainsLabel'
-  | 'domainsNote'
   | 'modeRestrict'
   | 'modePrefer'
   | 'catCompany'
@@ -159,7 +158,6 @@ export type DshWsLocaleKey =
   | 'dnsDescription'
   | 'dnsModeLabel'
   | 'fallbackAutoShort'
-  | 'depthAdvancedShort'
   | 'fallbackDeepseekShort'
   | 'dnsModeAutoShort'
   | 'dnsModeOnShort'
@@ -313,7 +311,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   searchExcludeDomainsLabel: 'Exclude domains',
   searchExcludeDomainsNote: 'Comma-separated blocklist applied to Tavily/Exa/Firecrawl. Mutually exclusive with the include list — setting one clears the other.',
   domainsLabel: 'Domains',
-  domainsNote: 'Two mutually exclusive lists: include = allowlist only, exclude = blocklist only. Setting one clears the other.',
   modeRestrict: 'Restrict',
   modePrefer: 'Prefer (weight)',
   catCompany: 'Company',
@@ -350,7 +347,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsDescription: 'Encrypted DoH resolution plus egress precheck for the members above — bypasses resolver blackholes and CDN-rotation timeouts on restricted networks. Auto mode enables itself only on reserved-range evidence; a clean network keeps the system resolver untouched (zero overhead).',
   dnsModeLabel: 'Mode',
   fallbackAutoShort: 'Auto',
-  depthAdvancedShort: 'Adv',
   fallbackDeepseekShort: 'Paid',
   dnsModeAutoShort: 'Auto',
   dnsModeOnShort: 'On',
@@ -499,7 +495,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   searchExcludeDomainsLabel: '排除域名',
   searchExcludeDomainsNote: '逗号分隔黑名单，作用于 Tavily/Exa/Firecrawl。与仅含列表互斥——设置其一自动清除另一。',
   domainsLabel: '域名过滤',
-  domainsNote: '两个互斥列表：仅含 = 白名单，排除 = 黑名单。设置其一自动清除另一。',
   modeRestrict: '严格限定',
   modePrefer: '优先加权',
   catCompany: '公司',
@@ -536,7 +531,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsDescription: '为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。',
   dnsModeLabel: '模式',
   fallbackAutoShort: '自动',
-  depthAdvancedShort: '增强',
   fallbackDeepseekShort: '付费',
   dnsModeAutoShort: '自动',
   dnsModeOnShort: '开启',

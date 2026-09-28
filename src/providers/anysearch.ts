@@ -165,9 +165,9 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
   }
 
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
-    throwIfMemberAborted(codes, 'Anysearch', signal)
+    throwIfMemberAborted(codes, 'AnySearch', signal)
     const apiKey = await this.#apiKey(signal)
-    throwIfMemberAborted(codes, 'Anysearch', signal)
+    throwIfMemberAborted(codes, 'AnySearch', signal)
     // Caller-bound request sizing is clamped into the official 1-20 range here
     // rather than bounced as an upstream 400 invalid_request (same ruling as
     // the tavily face's header note, S37 T6).

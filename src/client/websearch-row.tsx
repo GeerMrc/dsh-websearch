@@ -233,7 +233,7 @@ export function WebSearchToolviewRow(props: WebSearchToolviewProps): ReactElemen
         <span style={titleStyle}>{t('toolTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
         {badge !== undefined && web !== null && web.servedBy.length > 0 && (
-          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${web.servedBy.map(memberLabelOf).join(' + ')}`}>
+          <span data-testid="dshws-search-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${web.servedBy.map(memberLabelOf).join(' + ')}`}>
             {badge}
           </span>
         )}

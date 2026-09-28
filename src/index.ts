@@ -29,7 +29,9 @@ import { createChainFileLog } from './chain-log.ts'
 import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
 import type { MemberGates } from './chain/core.ts'
-import { Config, materializeConfig, resolveConfig } from './config.ts'
+import { Config, materializeConfig, resolveConfig ,
+  MEMBER_ID_TO_KEY,
+} from './config.ts'
 import type { ConfigRuntime, UnifiedSearchFanout } from './config.ts'
 import { CredentialGate } from './credentials.ts'
 import { DshWsKeyCountsRemote } from './key-counts.ts'
@@ -216,7 +218,7 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
 
   /** S36 (plan 036): one member id -> its live resolved base-URL host (for cache invalidation feedback). */
   const dnsHostOfMember = (memberId: string): string | undefined => {
-    const key = memberId.replace('dshws-', '')
+    const key = MEMBER_ID_TO_KEY[memberId]
     const current = live.current()
     const section = (current as unknown as Record<string, { baseURL?: string } | undefined>)[key]
     const fallback = {
@@ -367,7 +369,7 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   const readyToolMemberCount = (): number => {
     const current = live.current()
     return ORDERABLE_SEARCH_MEMBER_ORDER.filter((id) => {
-      const key = id.replace('dshws-', '') as MemberKey
+      const key = MEMBER_ID_TO_KEY[id] as MemberKey
       return current[key].enabled && pools[key].ready()
     }).length
   }
@@ -467,7 +469,7 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   // chain instance feeds the gate's lazy thunk registered above.
   const fetchMembers = new MemberRegistry<WebFetchProvider>()
   for (const member of [firecrawl, tavily, anysearch] as const) {
-    const key = member.id.replace('dshws-', '') as MemberKey
+    const key = MEMBER_ID_TO_KEY[member.id] as MemberKey
     fetchMembers.register(member, gates(key, pools[key]))
   }
   const fetchChain = new ChainFetchProvider({

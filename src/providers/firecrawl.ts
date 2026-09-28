@@ -296,7 +296,7 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
           // The upstream default is 60s, but the tool-level budget is 30s —
           // without an explicit cap the client aborts while the server keeps
           // burning credits (S16 P0-2).
-          timeout: 20_000,
+          timeout: FIRECRAWL_SEARCH_TIMEOUT_MS,
         }),
         ...(signal !== undefined ? { signal } : {}),
       })

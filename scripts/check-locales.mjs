@@ -73,7 +73,7 @@ if (problems.length) {
 // sources is dead weight accumulating silently (15 such keys survived to
 // this day). Warning, not failure: dynamic t(variable) faces would need a
 // dedicated registry; treat hits here as a cleanup prompt.
-const clientSources = ['src/client/section.tsx', 'src/client/websearch-row.tsx', 'src/client/fetch-row.tsx', 'src/client/dns-trace-section.tsx']
+const clientSources = ['src/client/section.tsx', 'src/client/websearch-row.tsx', 'src/client/fetch-row.tsx', 'src/client/dns-trace-section.tsx', 'src/client/member-card.tsx', 'src/client/dns-card.tsx', 'src/client/chain-cards.tsx']
 const corpus = clientSources.map((file) => readFileSync(file, 'utf8')).join('\n')
 const unused = [...union].filter((key) => !corpus.includes(`'${key}'`) && !corpus.includes(`"${key}"`))
 if (unused.length) {

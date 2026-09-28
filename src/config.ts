@@ -864,6 +864,15 @@ function normalizeIncludeDomainsMode(value: 'filter' | 'boost' | 'restrict' | 'p
   return value === 'filter' ? 'restrict' : value === 'boost' ? 'prefer' : value
 }
 
+/** Member wire id (`dshws-tavily`) to member key (`tavily`) — replaces string surgery at the seam (S37 T14). */
+export const MEMBER_ID_TO_KEY: Readonly<Record<string, string>> = {
+  'dshws-tavily': 'tavily',
+  'dshws-exa': 'exa',
+  'dshws-firecrawl': 'firecrawl',
+  'dshws-anysearch': 'anysearch',
+  'dshws-deepseek': 'deepseek',
+}
+
 export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearchConfig {
   const plain = materializeConfig(config)
   validateUnifiedDomainRule(plain)

@@ -181,7 +181,7 @@ export function WebFetchToolviewRow(props: WebFetchToolviewProps): ReactElement 
         <span style={titleStyle}>{t('fetchTitle')}</span>
         <span style={summaryStyle}>{summary}</span>
         {badge !== undefined && fetch !== null && fetch.servedBy.length > 0 && (
-          <span data-testid="dshws-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${fetch.servedBy.map(memberLabelOf).join(' + ')}`}>
+          <span data-testid="dshws-fetch-served-by" style={badgeStyle} aria-label={`${t('servedBy')} ${fetch.servedBy.map(memberLabelOf).join(' + ')}`}>
             {badge}
           </span>
         )}
