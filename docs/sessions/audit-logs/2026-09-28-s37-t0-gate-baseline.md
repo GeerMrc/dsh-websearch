@@ -16,3 +16,11 @@
 ## 基线记录
 - **N = 593**（35 文件；e2e.real 17 skip-gated 不计入）
 - 与 S36 收官口径（593/593 双面 0）一致——树自 be288ff 后仅加 plan 045 文档提交，数字应零漂移，实测吻合 ✓
+
+
+## T0③ DSH 上游 peer 域扫描结论（2026-09-28 13:1x CST，npm registry 可达窗）
+
+- 六包（agent/web/settings/tools/credentials/system-prompt）各 **28 版**全列表；semver 7.8.4 `satisfies` 实测（/tmp 安装副本，非目测——dont-do semver 条目合规）
+- 未覆盖 19 版/包 = 全部低于域下界的历史线（0.0.1-rc.x/0.1.0-rc.x/0.1.1-rc.x/0.1.2-alpha.x/0.1.3-alpha.2/0.1.5-alpha.x）——**有意排除的历史版本**
+- 域顶之上零新版本（无 0.1.7-rc.3+/0.1.8/0.2.0-alpha）：**peer 域 `>=0.1.5-rc.1 <0.1.8 || … || 0.1.7-rc.2` 当前即完整，无需扩钉**
+- 复核方式：npm view versions --json × 6 → satisfies 全量过滤

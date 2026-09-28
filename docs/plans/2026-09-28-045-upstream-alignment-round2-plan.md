@@ -1,4 +1,4 @@
-# Plan 045 — 上游对齐二轮（v0.2.1）+ 代码质量批 + 对齐流程常备化（Session 37）
+# Plan 045 — 上游对齐二轮（v0.3.0）+ 代码质量批 + 对齐流程常备化（Session 37）
 
 > 2.5 终审：ZCode 计划批准流通过（2026-09-28）；阶段 2 独立审核于批准后、执行前补跑（S36 同类张力为前车之鉴，本棒清偿该流程债）。
 
@@ -37,18 +37,17 @@
 | # | 任务 | 来源 |
 |---|---|---|
 | T9 | MemberParamField 保存失败保留草稿（红绿，对齐三先例） | 质量🔴-1 |
-| — | **N4a 归属**：重复 testid 去重落 T14 首项——`dshws-served-by` 按面前缀化（websearch-row.tsx:240→`dshws-search-served-by`；fetch-row.tsx:188→`dshws-fetch-served-by`）+两 spec 锚同步 | 质量🔴-4 |
 | T10 | providers 去重 ~190 行：`parseMemberResponse`/`memberHttpPost` 提升 shared.ts（#parse 模板）；#apiKey 收敛 | 质量🟡 |
 | T11 | client 去重 ~200 行：`useAutoClearFeedback`（9 处）；GeoField/DomainField 合并；toolview-common；labelOf 归一 | 质量🟡 |
 | T12 | 死代码清理（setDnsScope、DnsSnapshot.scope、15 死键+2 反向断言、7 孤儿 JSDoc、矛盾注释、URL 表去重）+ check-locales 使用量告警 | 质量🟡 |
-| T13 | section.tsx 拆 5 文件（纯移动，spec 零改动；放最后） | 质量🟢-1 |
-| T14 | 杂项：testid 前缀、魔法数收口、Anysearch 大小写、`replace('dshws-','')`→MEMBER 映射 | 质量🟢 |
+| T13 | section.tsx 拆 5 文件（纯移动，spec 零改动；放最后；**开工前独立 Agent 确认机械变更豁免分类**——AGENTS 质量红线） | 质量🟢-1 |
+| T14 | 杂项（**首项 N4a**：`dshws-served-by` 按面前缀化——websearch-row.tsx:240→`dshws-search-served-by`、fetch-row.tsx:188→`dshws-fetch-served-by`+两 spec 锚同步）、魔法数收口、Anysearch 大小写、`replace('dshws-','')`→MEMBER 映射 | 质量🟢+🔴-4 |
 
 ### 阶段 PC — 流程常备化 + 收官
 | # | 任务 | 验收 |
 |---|---|---|
 | T15 | AGENTS.md 增「上游适配强制流程」节（checklist 为门/DSH peer 扫描步骤/UA 版本钉规则/矩阵全绿才可 tag）+ checklist 增 DSH 上游维度 | 双落 |
-| T16 | S37 阶段4（独立全量唯一责任点；**PA/PB 分正本**降爆炸半径）/阶段5（三正交+用户路径冒烟）；T13 拆分前**独立 Agent 确认机械变更豁免分类**（AGENTS 质量红线） | 正本落盘 |
+| T16 | S37 阶段4（独立全量唯一责任点；**PA/PB 分正本**降爆炸半径）/阶段5（三正交+用户路径冒烟） | 正本落盘 |
 | T17 | 原子收官：**v0.3.0** bump + CHANGELOG（含 Tavily 枚举迁移句；**不对称理由句**：T1 旧枚举值收口容忍〔存量配置不炸〕vs T6 新拒脏值〔includeSections 闭集本就无合法存量〕）+ 六件套 + 呈批（v0.2.0 未推则两版一并呈批） | 收官批 |
 
 ## 验收条目（R）
@@ -57,7 +56,7 @@
 - R2 Tavily 枚举四路全通（新值直发/旧值映射/非法 loud/矩阵回填）
 - R3 错误信封矩阵全绿（数组 detail/code/request_id 三补齐；real 层好窗断言）
 - R4 Exa 三禁用参数守卫完备
-- R5 USER_AGENT 版本派生+防漂测试在树
+- R5 USER_AGENT 单点常量+测试侧防漂断言在树（测试读 package.json 断言与常量相等；源不 import package.json）
 - R6 质量批净减 ≥250 行且用例零回归；section 拆分 spec 零改动通过
 - R7 死代码清单全清+check-locales 告警生效
 - R8 AGENTS.md 流程节+checklist DSH 维度在树（本计划执行即自证）
@@ -84,4 +83,4 @@ anysearch tag/params 垂直域（功能面）· 匿名档策略声明 · 429 头
 - T1 涉已存配置 → legacy 映射兜底 + CHANGELOG 迁移句，热生效不炸
 - PB 重构面大 → 逐任务全量跑+行为保持断言；T13 拆分放最后（测试已锁）
 - 好网络窗依赖（real 层）→ 窗口内跑/失败如实记/单测层持久保护
-- 版本呈批交织 → v0.2.0 未推，v0.2.1 完成后合并呈批（用户可分可合）
+- 版本呈批交织 → v0.2.0 未推，v0.3.0 完成后合并呈批（用户可分可合）
