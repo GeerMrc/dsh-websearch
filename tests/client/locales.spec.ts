@@ -62,7 +62,6 @@ describe('client locales', () => {
     expect(zh.chainNoUsableWarning).not.toContain('且 DeepSeek 兜底 key 未配置')
     expect(zh.fallbackNote).not.toContain('DuckDuckGo')
     expect(zh.fallbackNote).toContain('专职链尾兜底')
-    expect(zh.chainTailHint).not.toContain('DeepSeek 恒为链尾兜底')
     expect(en.chainOrderHint).not.toContain('free Fetch')
     expect(en.fallbackNote).not.toContain('DuckDuckGo')
   })

@@ -114,7 +114,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     searchLanguage: undefined,
     searchIncludeDomains: undefined,
     searchExcludeDomains: undefined,
-    dns: { mode: 'auto', scope: 'members', preset: 'auto', probeMethod: 'tcp', nodesText: '', status: undefined, trace: [] },
+    dns: { mode: 'auto', preset: 'auto', probeMethod: 'tcp', nodesText: '', status: undefined, trace: [] },
     revision: 0,
     writable: true,
   }
@@ -338,7 +338,6 @@ describe('WebSearchSettingsSection', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
     const chains = container.querySelector('[data-testid="dshws-chains"]')!
     // No dead prose lines: neither the old default-order hint nor the tail note.
-    expect(chains.textContent).not.toContain(en.chainTailHint)
     // The badge exists (S23 D15: the host ⓘ glyph, no text); focusing it opens the full order note.
     const badge = screen.getByTestId('dshws-chain-order-info')
     expect(badge.textContent).toBe('')
@@ -1299,7 +1298,6 @@ describe('S36 T3: DNS resilience card — plugin-wide ⓘ+Tooltip alignment (pla
     const cardText = card.textContent ?? ''
     expect(cardText).not.toContain(en.dnsDescription)
     expect(cardText).not.toContain(en.dnsModeHint)
-    expect(cardText).not.toContain(en.dnsScopeHint)
     expect(cardText).not.toContain(en.dnsPresetHint)
     expect(cardText).not.toContain(en.dnsNodesHint)
     // The hint copy still exists — carried by ⓘ tooltip buttons.

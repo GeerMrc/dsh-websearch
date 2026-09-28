@@ -38,7 +38,6 @@ export type DshWsLocaleKey =
   | 'keySelRoundRobin'
   | 'keySelRandom'
   | 'keySelectionHint'
-  | 'sharedWithModels'
   | 'toolTitle'
   | 'fetchTitle'
   | 'servedBy'
@@ -54,7 +53,6 @@ export type DshWsLocaleKey =
   | 'endpointNote'
   | 'maxUsesLabel'
   | 'maxUsesHint'
-  | 'chainTailHint'
   | 'configure'
   | 'fallbackAutoOption'
   | 'fallbackDeepseekOption'
@@ -75,7 +73,6 @@ export type DshWsLocaleKey =
   | 'searchLanguageNote'
   | 'optDefault'
   | 'optOff'
-  | 'recencyHour'
   | 'recencyDay'
   | 'recencyWeek'
   | 'recencyMonth'
@@ -117,9 +114,6 @@ export type DshWsLocaleKey =
   | 'fcTbsNote'
   | 'fcSafeLabel'
   | 'fcSafeNote'
-  | 'ctxLow'
-  | 'ctxMedium'
-  | 'ctxHigh'
   | 'fcTbsLabel'
   | 'fcLocationLabel'
   | 'fcLocationNote'
@@ -166,10 +160,6 @@ export type DshWsLocaleKey =
   | 'dnsModeLabel'
   | 'fallbackAutoShort'
   | 'depthAdvancedShort'
-  | 'answerAdvancedShort'
-  | 'modeBoostShort'
-  | 'catPersonalShort'
-  | 'srcWebNewsShort'
   | 'fallbackDeepseekShort'
   | 'dnsModeAutoShort'
   | 'dnsModeOnShort'
@@ -177,10 +167,6 @@ export type DshWsLocaleKey =
   | 'dnsModeOn'
   | 'dnsModeOff'
   | 'dnsModeHint'
-  | 'dnsScopeLabel'
-  | 'dnsScopeMembers'
-  | 'dnsScopeAll'
-  | 'dnsScopeHint'
   | 'dnsPresetLabel'
   | 'dnsPresetAutoShort'
   | 'dnsPresetCnShort'
@@ -196,7 +182,6 @@ export type DshWsLocaleKey =
   | 'dnsProbeMethodTcp'
   | 'dnsProbeMethodTlsHello'
   | 'dnsProbeMethodHint'
-  | 'dnsStatusLabel'
   | 'dnsStatusArmed'
   | 'dnsStatusIdle'
   | 'dnsStatusSuspended'
@@ -244,7 +229,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   keySelRoundRobin: 'Round-robin',
   keySelRandom: 'Random',
   keySelectionHint: 'Keys default to "{policy}" selection; on failure the tool retries across its own keys first — up to 3 attempts including the first — before degrading to the next tool.',
-  sharedWithModels: 'Shared with Models',
   toolTitle: 'Web search',
   fetchTitle: 'Web fetch',
   servedBy: 'Served by',
@@ -261,7 +245,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   chainNoUsableWarning: 'No usable search tool and no working fallback — the next web_search will fail. Enable or configure a tool member, or select the DeepSeek paid fallback (needs the Models-page key, offered with fewer than two ready tools).',
   maxUsesLabel: 'Max searches per request',
   maxUsesHint: 'One request may search at most {N} times before it must answer.',
-  chainTailHint: 'The designated fallback tool is pinned at the chain tail and not orderable; Auto = the last tool in the order.',
   configure: 'Configure',
   fallbackAutoOption: 'Auto (chain-order last)',
   fallbackDeepseekOption: 'DeepSeek paid',
@@ -281,7 +264,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   searchLanguageNote: 'One ISO language code (e.g. zh) for the members with a search-level language parameter — Tavily, and AnySearch (mapped to BCP-47, e.g. zh -> zh-CN). Applies to the next search; leave empty to send none.',
   optDefault: 'Default',
   optOff: 'No limit',
-  recencyHour: 'Past hour',
   recencyDay: 'Past day',
   recencyWeek: 'Past week',
   recencyMonth: 'Past month',
@@ -323,9 +305,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   fcTbsNote: 'Time filter, comma-combinable: qdr:h/d/w/m/y presets, sbd:1 (date sort), cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY (custom range). Invalid expressions are rejected on save.',
   fcSafeLabel: 'SafeSearch',
   fcSafeNote: 'Filter explicit content from web source results; off = not sent (no filtering).',
-  ctxLow: 'Low',
-  ctxMedium: 'Medium',
-  ctxHigh: 'High',
   fcTbsLabel: 'Time filter',
   fcLocationLabel: 'Location',
   fcLocationNote: 'Free-text place (e.g. Beijing,China) for city-level geo-targeting; pairs best with a region code above.',
@@ -372,10 +351,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsModeLabel: 'Mode',
   fallbackAutoShort: 'Auto',
   depthAdvancedShort: 'Adv',
-  answerAdvancedShort: 'Adv',
-  modeBoostShort: 'Boost',
-  catPersonalShort: 'Personal',
-  srcWebNewsShort: 'Dual',
   fallbackDeepseekShort: 'Paid',
   dnsModeAutoShort: 'Auto',
   dnsModeOnShort: 'On',
@@ -383,10 +358,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsModeOn: 'Always on',
   dnsModeOff: 'Off',
   dnsModeHint: 'Auto checks the member hostnames once per process on first use; a reserved-range answer (e.g. 198.18.x.x) arms the layer, a clean answer uninstalls it entirely.',
-  dnsScopeLabel: 'Scope',
-  dnsScopeMembers: 'Members only',
-  dnsScopeAll: 'All hostnames',
-  dnsScopeHint: 'Members-only limits the process-wide interception to the configured member endpoints; all hostnames also covers web_fetch targets under takeover-off.',
   dnsPresetLabel: 'DoH nodes',
   dnsPresetAutoShort: 'Auto',
   dnsPresetCnShort: 'China',
@@ -402,7 +373,6 @@ export const en: Record<DshWsLocaleKey, string> = {
   dnsProbeMethodTcp: 'TCP (bare)',
   dnsProbeMethodTlsHello: 'TLS-Hello (SNI-aware)',
   dnsProbeMethodHint: 'TLS-Hello sends a real TLS ClientHello with the hostname, so (SNI,IP)-filtered networks (side-router class) produce an accurate reachability signal. TCP is lighter but blind on such networks.',
-  dnsStatusLabel: 'Status',
   dnsStatusArmed: 'DoH active',
   dnsStatusIdle: 'System resolver',
   dnsStatusSuspended: 'Suspended (proxy detected)',
@@ -445,7 +415,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   keySelRoundRobin: '轮询',
   keySelRandom: '随机',
   keySelectionHint: 'key 默认按「{policy}」选取；请求失败优先在本工具的多把 key 间重试——至多 3 次尝试（含首次），仍失败才降级下一个工具。',
-  sharedWithModels: '共用模型 Key',
   toolTitle: '网页搜索',
   fetchTitle: '网页获取',
   servedBy: '服务成员',
@@ -469,7 +438,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fallbackDesignationLostNote: '指定的兜底工具未就绪（缺 key 或已停用）；期间由链序末位工具承担兜底。',
   chainLockedNote: '锁定兜底',
   fetchTakeoverLabel: '接管 web_fetch（插件链）',
-  chainTailHint: '被指定的兜底工具固定链尾、不可排序；自动 = 链序末位即兜底。',
   configure: '配置',
   keyPlaceholder: '{ref}，可填多把：APIKEY1,APIKEY2,…（最多 10 把）',
   chainOrderHint: '链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Firecrawl → AnySearch。',
@@ -482,7 +450,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   searchLanguageNote: '一个 ISO 语言码（如 zh），作用于有搜索级语言参数的工具——Tavily，以及 AnySearch（映射为 BCP-47，如 zh → zh-CN）。下一次搜索生效；留空不发送。',
   optDefault: '默认',
   optOff: '不限',
-  recencyHour: '1 小时内',
   recencyDay: '24 小时内',
   recencyWeek: '1 周内',
   recencyMonth: '1 个月内',
@@ -524,9 +491,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   fcTbsNote: '时间过滤，可逗号组合：qdr:h/d/w/m/y 预设、sbd:1（按日期排序）、cdr:1,cd_min:MM/DD/YYYY,cd_max:MM/DD/YYYY（自定义区间）。非法表达式保存时会被拒绝。',
   fcSafeLabel: '安全搜索',
   fcSafeNote: '过滤 web 来源结果中的显式内容；关闭 = 不发送该参数（不过滤）。',
-  ctxLow: '低',
-  ctxMedium: '中',
-  ctxHigh: '高',
   fcTbsLabel: '时效过滤',
   fcLocationLabel: '位置',
   fcLocationNote: '自由文本地点（如 Beijing,China），城市级地理定向；与上方区域码搭配效果最好。',
@@ -573,10 +537,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsModeLabel: '模式',
   fallbackAutoShort: '自动',
   depthAdvancedShort: '增强',
-  answerAdvancedShort: '高级',
-  modeBoostShort: '加权',
-  catPersonalShort: '个人',
-  srcWebNewsShort: '双源',
   fallbackDeepseekShort: '付费',
   dnsModeAutoShort: '自动',
   dnsModeOnShort: '开启',
@@ -584,10 +544,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsModeOn: '始终开启',
   dnsModeOff: '关闭',
   dnsModeHint: '自动模式在首次使用时对成员域名做一次进程级检测：应答命中保留段（如 198.18.x.x）即启用；干净应答则完全不安装拦截层。',
-  dnsScopeLabel: '生效范围',
-  dnsScopeMembers: '仅成员',
-  dnsScopeAll: '全部域名',
-  dnsScopeHint: '「仅成员」把进程级拦截限制在已配置的成员端点；「全部域名」还覆盖接管关闭时的 web_fetch 目标。',
   dnsPresetLabel: 'DoH 节点',
   dnsPresetAutoShort: '自动',
   dnsPresetCnShort: '国内',
@@ -603,7 +559,6 @@ export const zh: Record<DshWsLocaleKey, string> = {
   dnsProbeMethodTcp: 'TCP（裸探测）',
   dnsProbeMethodTlsHello: 'TLS-Hello（带SNI）',
   dnsProbeMethodHint: 'TLS-Hello 发送带域名的真实 TLS ClientHello，(SNI,IP) 过滤网络（旁路由类）下可产生准确的可达性信号；TCP 更轻量但在此类网络上全盲。',
-  dnsStatusLabel: '状态',
   dnsStatusArmed: 'DoH 生效中',
   dnsStatusIdle: '系统解析',
   dnsStatusSuspended: '已暂停（检测到代理）',

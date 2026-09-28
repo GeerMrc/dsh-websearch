@@ -68,4 +68,15 @@ if (zhExtra.length) problems.push(`zh extra: ${zhExtra.join(', ')}`)
 if (problems.length) {
   fail(`parity broken\n  ${problems.join('\n  ')}`)
 }
+
+// S37 T12: usage guard — a union key with no t('<key>') call in the client
+// sources is dead weight accumulating silently (15 such keys survived to
+// this day). Warning, not failure: dynamic t(variable) faces would need a
+// dedicated registry; treat hits here as a cleanup prompt.
+const clientSources = ['src/client/section.tsx', 'src/client/websearch-row.tsx', 'src/client/fetch-row.tsx', 'src/client/dns-trace-section.tsx']
+const corpus = clientSources.map((file) => readFileSync(file, 'utf8')).join('\n')
+const unused = [...union].filter((key) => !corpus.includes(`'${key}'`) && !corpus.includes(`"${key}"`))
+if (unused.length) {
+  console.warn(`check-locales: warning — ${unused.length} union key(s) unused in client sources (cleanup prompt): ${unused.join(', ')}`)
+}
 console.log(`check-locales: ok — ${union.size} keys, union/en/zh parity holds`)

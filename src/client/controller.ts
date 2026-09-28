@@ -177,7 +177,6 @@ interface DnsSectionValue {
 /** The DNS block's render-ready state: config slice plus the live remote face (status/trace stay undefined on old hosts). */
 export interface DnsSnapshot {
   readonly mode: 'auto' | 'on' | 'off'
-  readonly scope: 'members' | 'all'
   readonly preset: 'auto' | 'cn' | 'global' | 'custom'
   readonly probeMethod: 'tcp' | 'tls-hello'
   /** Custom nodes serialized one-per-line `host,sni,path,port` (the textarea form). */
@@ -371,7 +370,6 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     // resolveConfig; custom nodes serialize to the textarea form.
     dns: {
       mode: value.dns?.mode ?? 'auto',
-      scope: value.dns?.scope ?? 'members',
       preset: value.dns?.preset ?? 'auto',
       probeMethod: value.dns?.probe?.method ?? 'tcp',
       nodesText: (value.dns?.nodes ?? [])
@@ -707,12 +705,6 @@ export class WebSearchSettingsController {
   }
 
   /** S35: set the hostname scope (members/all); hot on the next resolution. */
-  async setDnsScope(scope: 'members' | 'all'): Promise<ActionResult> {
-    const result = await this.#ports.updateSettings(NS, { dns: { scope } }, this.#revision)
-    if (!result.ok) return { ok: false }
-    await this.#refreshSection()
-    return { ok: true }
-  }
 
   /** S39 (plan 038 T3): set the egress probe method; hot on the next resolution. */
   async setDnsProbeMethod(method: 'tcp' | 'tls-hello'): Promise<ActionResult> {
