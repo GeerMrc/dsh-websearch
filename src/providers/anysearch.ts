@@ -163,7 +163,12 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
     throwIfMemberAborted(codes, 'Anysearch', signal)
     const apiKey = await this.#apiKey(signal)
     throwIfMemberAborted(codes, 'Anysearch', signal)
-    const maxResults = request.maxResults
+    // Caller-bound request sizing is clamped into the official 1-20 range here
+    // rather than bounced as an upstream 400 invalid_request (same ruling as
+    // the tavily face's header note, S37 T6).
+    const maxResults = request.maxResults === undefined
+      ? undefined
+      : Math.min(20, Math.max(1, Math.round(request.maxResults)))
     let response: Response
     try {
       response = await fetch(`${this.options.baseURL}/v1/search`, {

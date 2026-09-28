@@ -174,6 +174,11 @@ describe('resolveConfig', () => {
       expect(() => Config({ exa: { maxAgeHours: -2 } })).toThrow()
     })
 
+    it('S37 T6: includeSections/excludeSections accept only the official 7-value closed set', () => {
+      expect(() => validateExaSectionFilterRule({ exa: { includeSections: 'header,body', maxAgeHours: 0  } })).not.toThrow()
+      expect(() => validateExaSectionFilterRule({ exa: { excludeSections: 'banana', maxAgeHours: 0  } })).toThrow(/header\|navigation\|banner\|sidebar\|body\|footer\|metadata/)
+    })
+
     it('S37 T1: includeDomainsMode upstream enum — restrict/prefer pass through, legacy filter/boost normalize, garbage still throws', () => {
       expect(resolveConfig({ tavily: { includeDomainsMode: 'restrict' } }).tavily.includeDomainsMode).toBe('restrict')
       expect(resolveConfig({ tavily: { includeDomainsMode: 'prefer' } }).tavily.includeDomainsMode).toBe('prefer')

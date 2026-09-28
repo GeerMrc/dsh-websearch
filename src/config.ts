@@ -808,6 +808,8 @@ export function validateFirecrawlTbsRule(value: Pick<Config, 'firecrawl'>): void
   }
 }
 
+const EXA_SECTION_VALUES = new Set(['header', 'navigation', 'banner', 'sidebar', 'body', 'footer', 'metadata'])
+
 export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
   const exa = value.exa
   if (exa === undefined) return
@@ -815,6 +817,13 @@ export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
   const freshness = exa.maxAgeHours
   if (sectionsConfigured && (freshness === undefined || freshness > 0)) {
     throw new Error('exa.includeSections/excludeSections require exa.maxAgeHours = 0 (fresh crawl) or -1 (never recrawl) — official constraint')
+  }
+  for (const [field, text] of [['exa.includeSections', exa.includeSections], ['exa.excludeSections', exa.excludeSections]] as const) {
+    if (text === undefined) continue
+    const invalid = text.split(',').map(part => part.trim()).filter(part => part.length > 0 && !EXA_SECTION_VALUES.has(part))
+    if (invalid.length > 0) {
+      throw new Error(`${field} accepts only the official closed set header|navigation|banner|sidebar|body|footer|metadata — got: ${invalid.join(', ')}`)
+    }
   }
 }
 

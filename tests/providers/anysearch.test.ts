@@ -272,6 +272,17 @@ describe('S21 T3: AnySearch extract face (web_fetch member, probe-backed contrac
     expect(thrown!.message).toContain('extract_failed')
   })
 
+  it('S37 T6: max_results is clamped into the official 1-20 range on the search face', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ code: 0, data: { results: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await makeProvider().search({ query: 'q', maxResults: 50 })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.max_results).toBe(20)
+    await makeProvider().search({ query: 'q', maxResults: 0 })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.max_results).toBe(1)
+  })
+
   it('S37 T4: the search face HTTP-error path also carries request_id and error_code (path symmetry)', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
       code: 1002, message: 'invalid request', error_code: 'invalid_request', request_id: 'req-4xx',
