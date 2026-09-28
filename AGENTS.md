@@ -18,6 +18,16 @@ DSH 外挂式统一 WebSearch 管理插件（独立项目，零内核侵入）�
 - 错误用领域错误类型 + 稳定 string code（前缀 `DSHWS_`）；空 `catch` 必须注释说明吞掉什么、为何别处不可达。
 - client 半区一切用户可见文案 locale-owned：双语 typed dictionaries（en 为源、zh 全键 parity），禁硬编码文案。
 
+## 上游适配强制流程（S37 立宪；对齐检查清单为门）
+
+**每次**插件功能扩展、搜索工具上游适配、或随 DSH 上游版本更新的适配工作，必须走完整对齐流程，缺格不得宣布该面适配完成、不得 tag 发版：
+
+1. **双路对齐矩阵**：按 [docs/upstream-alignment-checklist.md](docs/upstream-alignment-checklist.md) 逐成员×逐面核对——端点/方法/请求形状/鉴权头/期望响应/**错误路径**（确定性触发，断言错误消息携带上游 detail）。信封形态以官方文档直证或线上 curl 实测为准回填矩阵，**不以 mock 想象为准**（Tavily 嵌套 detail.error 教训：mock 形态与线上不符即逃逸）。
+2. **DSH 上游扫描**（随宿主版本适配时）：`npm view @deepseek-ai/<pkg> versions` 全列表（不信 latest dist-tag）+ semver `satisfies` 实测判 peer 域扩钉——禁目测（dont-do semver 条目）。
+3. **UA 版本钉**：发版 bump 时同步 `src/providers/shared.ts` 的 `USER_AGENT`（tests/user-agent.test.ts 防漂测试会拦）。
+4. **实测确认**：单测红→绿锁错误路径 + e2e.real 好网络窗实跑（环境窗失败如实记录工件）+ 发版前 3423 用户路径冒烟。
+5. **发版门**：对齐矩阵全绿才可打 `v*` tag（tag 推送=发布确认点，CI 自动接管）。
+
 ## seam 依赖纪律（上游可持续契约）
 
 - 只依赖公开面：`@deepseek-ai/dsh-web` 的 provider 接口与 `ctx.web` 注册 API（type-only import）、credentials / settings 服务注入、client 公共 API（slots / locale / remote）。禁 import 上游内部模块、禁依赖上游私有注册表。

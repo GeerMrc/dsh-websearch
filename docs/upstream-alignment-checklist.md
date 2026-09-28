@@ -38,6 +38,14 @@
 3. **成功路径**：响应信封形状、映射函数消费字段、边界（空 results、截断标记）。
 4. **错误路径**：确定性触发（invalid-key 401 / 不存在资源 4xx），断言**抛出的错误消息携带上游响应体 detail**（unfoldHttpErrorDetail 家族模式，8 面同构）。
 
+## 三之前、DSH 上游维度（随宿主版本适配时必做）
+
+| 检查 | 方式 | 采信 |
+|---|---|---|
+| 六包全版本清单 | `npm view @deepseek-ai/<pkg> versions`（agent/web/settings/tools/credentials/system-prompt） | 输出留痕 |
+| peer 域覆盖 | 本仓 semver `satisfies` 全量过滤（禁目测） | 未覆盖新版本→扩钉独立呈批 |
+| 宿主行为面 | 3434 演练位实测（dump 钉扎/徽标/插件装卸三态） | S32 三线矩阵 |
+
 ## 三、执行方式
 
 - **单测层（必做，每次变更）**：`tests/providers/<member>.test.ts` 的 `!response.ok` 用例断言 detail 拼接（mock 信封）。
