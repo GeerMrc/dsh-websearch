@@ -268,6 +268,20 @@ describe('S21 T3: AnySearch extract face (web_fetch member, probe-backed contrac
     expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
     expect(thrown!.message).toContain('422')
     expect(thrown!.message).toContain('Unable to extract content from the URL.')
+    expect(thrown!.message).toContain('req-422')
+    expect(thrown!.message).toContain('extract_failed')
+  })
+
+  it('S37 T4: the search face HTTP-error path also carries request_id and error_code (path symmetry)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      code: 1002, message: 'invalid request', error_code: 'invalid_request', request_id: 'req-4xx',
+    }, 400)))
+    const thrown = await makeProvider().search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown!.message).toContain('400')
+    expect(thrown!.message).toContain('invalid request')
+    expect(thrown!.message).toContain('req-4xx')
+    expect(thrown!.message).toContain('invalid_request')
   })
 
   it('missing data.content on code 0 is a bad response (fail-loud)', async () => {
