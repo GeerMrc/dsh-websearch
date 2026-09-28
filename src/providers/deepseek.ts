@@ -31,6 +31,7 @@ import {
   throwIfMemberAborted,
   unfoldHttpErrorDetail,
   USER_AGENT,
+  readMemberEnvelope,
 
 } from './shared.ts'
 
@@ -238,30 +239,8 @@ export class DeepSeekSearchProvider implements WebSearchProvider {
       throw memberFetchFailure(codes, 'DeepSeek', error, signal)
     }
 
-    if (!response.ok) {
-      const status = response.status
-      let message = `DeepSeek API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'DeepSeek', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-
-    try {
-      const payload = await response.json() as DeepSeekAnthropicResponse
-      return mapDeepSeekResponse(payload)
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'DeepSeek', signal, error)
-      if (error instanceof DshwsError) throw error
-      throw memberBadResponse(codes, 'DeepSeek', error)
-    }
+    const payload = await readMemberEnvelope<DeepSeekAnthropicResponse>(response, { codes, label: 'DeepSeek', signal })
+    return mapDeepSeekResponse(payload)
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */

@@ -33,6 +33,7 @@ import {
   throwIfMemberAborted,
   unfoldHttpErrorDetail,
   USER_AGENT,
+  readMemberEnvelope,
 
 } from './shared.ts'
 import { DshwsError } from '../errors.ts'
@@ -255,29 +256,8 @@ export class ExaSearchProvider implements WebSearchProvider {
       throw memberFetchFailure(codes, 'Exa', error, signal)
     }
 
-    if (!response.ok) {
-      const status = response.status
-      let message = `Exa API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Exa', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-
-    try {
-      const payload = await response.json() as ExaSearchResponse
-      return mapExaResponse(payload)
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Exa', signal, error)
-      throw memberBadResponse(codes, 'Exa', error)
-    }
+    const payload = await readMemberEnvelope<ExaSearchResponse>(response, { codes, label: 'Exa', signal })
+    return mapExaResponse(payload)
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */

@@ -58,6 +58,49 @@ export function memberBadResponse(codes: MemberErrorFamily, label: string, error
 }
 
 /**
+ * Read a member response body once, mapping both failure legs to the member
+ * error family: a non-2xx status throws the HTTP error with the unfolded
+ * upstream detail (plus the optional `decorate` diagnostics suffix), a 2xx
+ * body parses as `T`, and an unparseable 2xx body is the bad-response error.
+ * An abort firing mid-body always surfaces as the member's aborted error.
+ * @param response - the settled fetch Response.
+ * @param deps - error family + label; `decorate` appends extra diagnostics
+ *   (anysearch rides error_code/request_id here, S37 T4).
+ * @returns the parsed 2xx envelope.
+ */
+export async function readMemberEnvelope<T>(response: Response, deps: {
+  codes: MemberErrorFamily
+  label: string
+  signal?: AbortSignal
+  decorate?: (parsed: unknown) => string
+}): Promise<T> {
+  const { codes, label, signal, decorate } = deps
+  if (!response.ok) {
+    const status = response.status
+    let message = `${label} API error (HTTP ${status})`
+    let parsed: unknown
+    try {
+      parsed = await response.json()
+      const detail = unfoldHttpErrorDetail(parsed as Parameters<typeof unfoldHttpErrorDetail>[0])
+      if (detail !== undefined && detail.length > 0) message += `: ${detail}`
+      if (decorate !== undefined) message += decorate(parsed)
+    } catch (error: unknown) {
+      // An abort firing mid-body must surface as aborted, not be swallowed
+      // into a generic HTTP-error message; otherwise the status is already
+      // in `message` and a non-JSON error body only ever cost the richer text.
+      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
+    }
+    throw new DshwsError(codes.httpError, message, { httpStatus: status })
+  }
+  try {
+    return await response.json() as T
+  } catch (error: unknown) {
+    if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
+    throw memberBadResponse(codes, label, error)
+  }
+}
+
+/**
  * Attribution header sent on every provider request. Pinned here once and
  * drift-guarded by tests/user-agent.test.ts against package.json's version —
  * a version bump that forgets this constant fails the guard loudly.

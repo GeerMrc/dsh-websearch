@@ -35,6 +35,7 @@ import {
   throwIfMemberAborted,
   unfoldHttpErrorDetail,
   USER_AGENT,
+  readMemberEnvelope,
 
 } from './shared.ts'
 
@@ -271,29 +272,8 @@ export class TavilySearchProvider implements WebSearchProvider, WebFetchProvider
       throw memberFetchFailure(codes, 'Tavily', error, signal)
     }
 
-    if (!response.ok) {
-      const status = response.status
-      let message = `Tavily API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-
-    try {
-      const payload = await response.json() as TavilySearchResponse
-      return mapTavilyResponse(payload)
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      throw memberBadResponse(codes, 'Tavily', error)
-    }
+    const payload = await readMemberEnvelope<TavilySearchResponse>(response, { codes, label: 'Tavily', signal })
+    return mapTavilyResponse(payload)
   }
 
   /**
@@ -322,26 +302,10 @@ export class TavilySearchProvider implements WebSearchProvider, WebFetchProvider
     } catch (error: unknown) {
       throw memberFetchFailure(codes, 'Tavily', error, signal)
     }
-    if (!response.ok) {
-      const status = response.status
-      let message = `Tavily API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-    try {
-      const payload = await response.json() as TavilyExtractResponse
-      return mapTavilyExtractResponse(request.url, payload)
-    } catch (error: unknown) {
-      if (error instanceof DshwsError) throw error
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      throw memberBadResponse(codes, 'Tavily', error)
-    }
+    // The mapper throws DshwsError itself for failed_results entries; the
+    // envelope reader covers the transport legs.
+    const payload = await readMemberEnvelope<TavilyExtractResponse>(response, { codes, label: 'Tavily', signal })
+    return mapTavilyExtractResponse(request.url, payload)
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */

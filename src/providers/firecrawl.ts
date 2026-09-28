@@ -37,6 +37,7 @@ import {
   throwIfMemberAborted,
   unfoldHttpErrorDetail,
   USER_AGENT,
+  readMemberEnvelope,
 
 } from './shared.ts'
 
@@ -335,26 +336,6 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
    * body unfold), abort mid-body → aborted, bad JSON → bad response.
    */
   async #parse(response: Response, signal: AbortSignal | undefined, label: string): Promise<unknown> {
-    if (!response.ok) {
-      const status = response.status
-      let message = `Firecrawl API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-    try {
-      return await response.json()
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
-      throw memberBadResponse(codes, label, error)
-    }
+    return readMemberEnvelope(response, { codes, label, signal })
   }
 }
