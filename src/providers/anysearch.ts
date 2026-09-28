@@ -191,8 +191,10 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
     if (!response.ok) {
       const status = response.status
       let message = `Anysearch API error (HTTP ${status})`
+      let errorEnvelope: { readonly request_id?: string, readonly error_code?: string } | undefined
       try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
+        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0] & { readonly request_id?: string, readonly error_code?: string }
+        errorEnvelope = parsed
         const detail = unfoldHttpErrorDetail(parsed)
         if (detail !== undefined && detail.length > 0) message += `: ${detail}`
       } catch (error: unknown) {
@@ -200,7 +202,12 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
         // into a generic HTTP-error message.
         if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Anysearch', signal, error)
       }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
+      // Both HTTP-error faces carry the envelope diagnostics the upstream
+      // documents for every error response (request_id and the machine
+      // error_code) — symmetric with the HTTP-200 code!==0 path.
+      const requestId = errorEnvelope?.request_id !== undefined ? ` (request_id: ${errorEnvelope.request_id})` : ''
+      const errorCode = errorEnvelope?.error_code !== undefined ? ` [${errorEnvelope.error_code}]` : ''
+      throw new DshwsError(codes.httpError, `${message}${errorCode}${requestId}`, { httpStatus: status })
     }
 
     let envelope: AnysearchEnvelope
@@ -252,8 +259,10 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
     if (!response.ok) {
       const status = response.status
       let message = `Anysearch API error (HTTP ${status})`
+      let errorEnvelope: { readonly request_id?: string, readonly error_code?: string } | undefined
       try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
+        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0] & { readonly request_id?: string, readonly error_code?: string }
+        errorEnvelope = parsed
         const detail = unfoldHttpErrorDetail(parsed)
         if (detail !== undefined && detail.length > 0) message += `: ${detail}`
       } catch (error: unknown) {
@@ -261,7 +270,12 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
         // into a generic HTTP-error message.
         if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'AnySearch', signal, error)
       }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
+      // Both HTTP-error faces carry the envelope diagnostics the upstream
+      // documents for every error response (request_id and the machine
+      // error_code) — symmetric with the HTTP-200 code!==0 path.
+      const requestId = errorEnvelope?.request_id !== undefined ? ` (request_id: ${errorEnvelope.request_id})` : ''
+      const errorCode = errorEnvelope?.error_code !== undefined ? ` [${errorEnvelope.error_code}]` : ''
+      throw new DshwsError(codes.httpError, `${message}${errorCode}${requestId}`, { httpStatus: status })
     }
     let envelope: AnysearchEnvelope
     try {
