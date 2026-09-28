@@ -1,3 +1,27 @@
+## 2026-09-28 — v0.3.0（上游对齐二轮 + 代码质量批 + 流程立宪）
+
+**修复（确定性 400 破坏项，四路独立审计抓获）**
+- **Tavily** `include_domains_mode` 枚举勘正：上游现行仅认 `restrict|prefer`，插件曾发 `filter|boost`（配置即 400）。**迁移**：存量 filter/boost 值由 resolve 层自动归一化（filter→restrict、boost→prefer），无需手工迁移；GUI 选择器同步换新值。
+- **Exa** `category=company|people` 与 `endPublishedDate` 组合必 400——守卫补齐官方三禁用参数全覆盖。
+- 错误信封三补齐（f8e0a3f 家族第三轮）：Tavily 422 FastAPI **数组** detail（`msg @loc` 渲染）；Firecrawl 408/500 `code` 维度（`[TIMEOUT]`）；AnySearch HTTP 错误路径补 `request_id`/`error_code`（两路径对称）。
+- **不对称理由**：Tavily 旧枚举值收口容忍（存量配置不炸）vs Exa includeSections 新增闭集拒值（7 值枚举本就无合法存量脏值）。
+- MemberParamField 保存失败不再丢草稿（对齐其他字段先例）。
+
+**增强**
+- Firecrawl `alexandria` 枚举（官方 `research` **2026-11-16 迁移**，债务表带日期行）；scrape `formats` 改官方对象形 `[{type:'markdown'}]`。
+- AnySearch `max_results` 钳制 1-20（不再以 400 面目弹回）；Exa includeSections/excludeSections 7 值闭集 loud 校验。
+- `USER_AGENT` 单点常量 + 防漂测试（版本 bump 忘更即红）。
+
+**质量批（行为保持，601/601 全程锁定）**
+- providers 响应管线统一 `readMemberEnvelope`（8 个读取点收敛，净 -99）；client 去重 `useAutoClearFeedback`×10/StagedTextField 合并/`memberLabelOf` 单源（-35）；死代码清理（setDnsScope 面、17 个 locale 死键、孤儿 JSDoc）；section.tsx 拆分 1824→507+4 文件（纯移动，spec 零改动）；lint 复零 + check-locales 使用量守卫。
+- **实测净减（numstat 口径）**：去重核心 -187 行；PB 全批 src 净 -93（T13 拆分的 +107 模块开销部分抵消）。plan 估算 ≥250 未达——估算偏差复盘入 session-37 记录（WBS 按重复块行数估，未计类型/导入/模块头开销）。
+
+**流程立宪（本轮工作重心）**
+- **AGENTS.md 增「上游适配强制流程」节**：逐成员×逐面双路对齐矩阵为门、DSH peer 扫描协议（全版本列表+semver satisfies 实测）、UA 版本钉、矩阵全绿才可 tag——此后每次功能/适配/发版自动受约束。
+- checklist 增 DSH 上游维度节 + 带日期债务行（alexandria 2026-11-16）。
+
+---
+
 ## 2026-09-28 — v0.2.0（DNS 韧性层定版）
 
 **本条为版本面向条目；功能全录见上方 S35 批（2026-09-28）与 S35 执行批（2026-09-27 起）。**
