@@ -110,10 +110,10 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 38 ✅（2026-09-30 收官——DSH 0.2.0-rc 适配：peer 扩钉 + 3434 演练 + 3423 切守卫树七腿矩阵 7/7 + e2e.real 4/4 + 阶段4/5 过）。**推送批已执行**（2026-09-30 02:0x-02:2x CST，用户放行 + VPS SOCKS 隧道）：master `6b5330d` + tag `v0.2.0` + fork `fix/readonly-stack-020rc2` 全落远端；CI/Release 双 run success；GitHub Release v0.2.0 双 tarball + npm `@maricgeer/dsh-websearch@0.2.0` 发布（两起 CI 缺陷当批修复：pack.mjs mkdir、npm publish `./` 前缀）。**余候令**：①npm registry 传播后拉装核验 ②3080 生产切换（用户指令原文）③scratch 清场
+- **当前 session**: Session 38 ✅ 全闭环（适配→实测→发布→生产切换→清场）。**生产 3080 = 017rc2 宿主 + 插件 v0.2.0**（2026-09-30 02:26-02:36 切换，§2.1 验收全过含错误路径活体；pid 76655；备份点 3080-pre-020plugin-* + 分钟级回滚位）。发布面：master `92a15d7` + tag v0.2.0 + GitHub Release 双 tarball + npm 0.2.0 latest（拉装核验过）。清场完成（scratch 实例/home/残留全清；017rc2 生产树 + 020rc2 worktree 保留）。
 > （S33/S34 收官态历史注记：v0.1.3 定版〔peer 域九版本全覆盖〕+ npm latest + **生产 3080=0.1.7-rc.2+fork（017rc2 树）+插件 v0.1.3**（备份先行 237M，回滚位 017a2 一级）；S34 文档批 known-upstream-issues 三问题登记+README/Release 联动，Release/fork 远端活体已由 S35 阶段 0 亲验〔远端 master=5d34b2f、fork head=ebd42731c9〕——详见台账 33/34 行）
 - **所处里程碑**: M7 功能扩展 ✅ 2026-09-28（S35 二次收官）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16；S36/S38 属发版收口非 M6 验收棒）
 - **上一棒**: Session 37（docs/sessions/2026-09-28-session-37.md；再上 S36 2026-09-28-session-36.md）
-- **下一棒**: 3080 生产切换（候令）→ 清场（3423/3434 + /tmp/dshws-s38、/tmp/dshws-s35）；后续候选——上游 0.2.0 稳定线跟进、anysearch tag/params 垂直域、429 头池切换
+- **下一棒候选**: 0.2.0 稳定线宿主升级演练（020rc2 worktree 为基线）、anysearch tag/params 垂直域、429 头池切换、alexandria 2026-11-16 日历行
 - **活跃债务**: **清零**（S38 零新增；唯一日历行 alexandria 2026-11-16 不变）
-- **更新时间**: 2026-09-30（S38 推送批执行完毕——3080 切换候令）
+- **更新时间**: 2026-09-30（S38 全闭环——生产在役 v0.2.0）
