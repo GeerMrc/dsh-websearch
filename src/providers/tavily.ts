@@ -26,14 +26,13 @@ import type { UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebFetchProvider, WebFetchRequest, WebFetchResult, WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
   isPositiveInteger,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
+  USER_AGENT,
+  readMemberEnvelope,
+
 } from './shared.ts'
 
 /** Stable id this member registers under (chain + direct pin, `dshws-` prefixed). */
@@ -43,9 +42,6 @@ export const TAVILY_MEMBER_ID = 'dshws-tavily'
 export const TAVILY_DEFAULT_BASE_URL = 'https://api.tavily.com'
 
 const codes = MEMBER_ERROR_CODES.tavily
-
-/** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
 
 /** Wire type of one Tavily `results[]` entry (optional fields read tolerantly). */
 export interface TavilyResultItem {
@@ -104,7 +100,7 @@ export interface TavilyMemberOptions {
   /** Hard language filter; only sent when `language` is set (S20 P2, official 400 constraint). */
   readonly filterByLanguage?: boolean
   /** Include-list semantics; only sent with a non-empty include list (S20 P2). */
-  readonly includeDomainsMode?: 'filter' | 'boost'
+  readonly includeDomainsMode?: 'restrict' | 'prefer'
   /** Publication-date window lower bound (`YYYY-MM-DD`); absent = not sent (S22 P3). */
   readonly startDate?: string
   /** Publication-date window upper bound; absent = not sent (S22 P3). */
@@ -272,29 +268,8 @@ export class TavilySearchProvider implements WebSearchProvider, WebFetchProvider
       throw memberFetchFailure(codes, 'Tavily', error, signal)
     }
 
-    if (!response.ok) {
-      const status = response.status
-      let message = `Tavily API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-
-    try {
-      const payload = await response.json() as TavilySearchResponse
-      return mapTavilyResponse(payload)
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      throw memberBadResponse(codes, 'Tavily', error)
-    }
+    const payload = await readMemberEnvelope<TavilySearchResponse>(response, { codes, label: 'Tavily', signal })
+    return mapTavilyResponse(payload)
   }
 
   /**
@@ -323,26 +298,10 @@ export class TavilySearchProvider implements WebSearchProvider, WebFetchProvider
     } catch (error: unknown) {
       throw memberFetchFailure(codes, 'Tavily', error, signal)
     }
-    if (!response.ok) {
-      const status = response.status
-      let message = `Tavily API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-    try {
-      const payload = await response.json() as TavilyExtractResponse
-      return mapTavilyExtractResponse(request.url, payload)
-    } catch (error: unknown) {
-      if (error instanceof DshwsError) throw error
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Tavily', signal, error)
-      throw memberBadResponse(codes, 'Tavily', error)
-    }
+    // The mapper throws DshwsError itself for failed_results entries; the
+    // envelope reader covers the transport legs.
+    const payload = await readMemberEnvelope<TavilyExtractResponse>(response, { codes, label: 'Tavily', signal })
+    return mapTavilyExtractResponse(request.url, payload)
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */

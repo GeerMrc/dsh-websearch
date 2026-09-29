@@ -116,7 +116,7 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     expect(body.category).toBe('news')
 
     const companyGuard = resolveExaMemberOptions(
-      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'company', startPublishedDate: '2026-01-01'  } satisfies ExaMemberConfig,
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'company', startPublishedDate: '2026-01-01', endPublishedDate: '2026-06-30'  } satisfies ExaMemberConfig,
       async () => 'k',
       { excludeDomains: ['spam.test'] },
     )
@@ -125,10 +125,11 @@ describe('dshws-exa S17 P1 parameter wire', () => {
     expect(body.category).toBe('company')
     expect(body).not.toHaveProperty('startPublishedDate')
     expect(body).not.toHaveProperty('excludeDomains')
+    expect(body).not.toHaveProperty('endPublishedDate')
 
     // The guard is category-scoped: without company/people both ride along.
     const normal = resolveExaMemberOptions(
-      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'news', startPublishedDate: '2026-01-01'  } satisfies ExaMemberConfig,
+      { enabled: true, apiKeyEnv: 'EXA_API_KEY', category: 'news', startPublishedDate: '2026-01-01', endPublishedDate: '2026-06-30'  } satisfies ExaMemberConfig,
       async () => 'k',
       { excludeDomains: ['spam.test'] },
     )
@@ -257,7 +258,7 @@ describe('dshws-exa request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer exa-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.1.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
     expect(JSON.parse(init.body as string)).toEqual({
       query: 'hello',
       type: 'auto',

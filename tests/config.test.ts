@@ -174,11 +174,24 @@ describe('resolveConfig', () => {
       expect(() => Config({ exa: { maxAgeHours: -2 } })).toThrow()
     })
 
+    it('S37 T6: includeSections/excludeSections accept only the official 7-value closed set', () => {
+      expect(() => validateExaSectionFilterRule({ exa: { includeSections: 'header,body', maxAgeHours: 0  } })).not.toThrow()
+      expect(() => validateExaSectionFilterRule({ exa: { excludeSections: 'banana', maxAgeHours: 0  } })).toThrow(/header\|navigation\|banner\|sidebar\|body\|footer\|metadata/)
+    })
+
+    it('S37 T1: includeDomainsMode upstream enum — restrict/prefer pass through, legacy filter/boost normalize, garbage still throws', () => {
+      expect(resolveConfig({ tavily: { includeDomainsMode: 'restrict' } }).tavily.includeDomainsMode).toBe('restrict')
+      expect(resolveConfig({ tavily: { includeDomainsMode: 'prefer' } }).tavily.includeDomainsMode).toBe('prefer')
+      expect(resolveConfig({ tavily: { includeDomainsMode: 'filter' } }).tavily.includeDomainsMode).toBe('restrict')
+      expect(resolveConfig({ tavily: { includeDomainsMode: 'boost' } }).tavily.includeDomainsMode).toBe('prefer')
+      expect(() => Config({ tavily: { includeDomainsMode: 'banana' as never } })).toThrow()
+    })
+
     it('S20 T2: tavily member params — chunksPerSource bounds, filterByLanguage bool, includeDomainsMode enum', () => {
-      const resolved = resolveConfig({ tavily: { chunksPerSource: 1, filterByLanguage: true, includeDomainsMode: 'boost' } })
+      const resolved = resolveConfig({ tavily: { chunksPerSource: 1, filterByLanguage: true, includeDomainsMode: 'prefer' } })
       expect(resolved.tavily.chunksPerSource).toBe(1)
       expect(resolved.tavily.filterByLanguage).toBe(true)
-      expect(resolved.tavily.includeDomainsMode).toBe('boost')
+      expect(resolved.tavily.includeDomainsMode).toBe('prefer')
       expect(resolveConfig({}).tavily.chunksPerSource).toBeUndefined()
       expect(() => Config({ tavily: { chunksPerSource: 4 as never } })).toThrow()
       expect(() => Config({ tavily: { chunksPerSource: 0 } })).toThrow()

@@ -1,6 +1,38 @@
-## 2026-09-28 — v0.2.0（DNS 韧性层定版）
+## 2026-09-30 — v0.2.0 发布前增补：DSH 0.2.0-rc 宿主适配（S38，v0.2.0 重定标基线）
 
-**本条为版本面向条目；功能全录见上方 S35 批（2026-09-28）与 S35 执行批（2026-09-27 起）。**
+- **peer 域扩钉**：六个 DSH 宿主包 peer 追加 `0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0`——0.2.0-rc 宿主安装期与运行时兼容门双放行（semver satisfies 双语义矩阵含负控实测）；`dsh-typert-protocol` 留钉 0.1.7-rc.2（wire 层零源码变更）。
+- **零源码适配**：插件 src 零改动；全套件 607|17(624) + typecheck/lint/i18n 全绿。
+- **实测验证**：3434 演练（守卫移植树 + 安装期 gate + 设置页/搜索/降级）+ 3423 切守卫树七腿逐工具异题矩阵 7/7（29 served-by 零失败）+ e2e.real 错误路径 4/4。
+- **上游登记**：readonly-stack CJS 站点在 0.2.0-rc 线仍未修（fork 守卫树 `fix/readonly-stack-020rc2` 移植在役）；AnySearch extract 业务错误承载漂移（HTTP 200+code:-1 → HTTP 422，同 body 字段）已被错误信封路径吸收（详见 known-upstream-issues ① 与 upstream-alignment-checklist 注记行）。
+- 本增补并入单一 v0.2.0 发布（tag 于本增补后重打）。
+
+## 2026-09-28 — v0.2.0 发布（单一版本：DNS 韧性层 + 上游对齐二轮 + 质量批 + 流程立宪；用户终审裁定撤销 v0.3.0 双版本方案）
+
+**修复（确定性 400 破坏项，四路独立审计抓获）**
+- **Tavily** `include_domains_mode` 枚举勘正：上游现行仅认 `restrict|prefer`，插件曾发 `filter|boost`（配置即 400）。**迁移**：存量 filter/boost 值由 resolve 层自动归一化（filter→restrict、boost→prefer），无需手工迁移；GUI 选择器同步换新值。
+- **Exa** `category=company|people` 与 `endPublishedDate` 组合必 400——守卫补齐官方三禁用参数全覆盖。
+- 错误信封三补齐（f8e0a3f 家族第三轮）：Tavily 422 FastAPI **数组** detail（`msg @loc` 渲染）；Firecrawl 408/500 `code` 维度（`[TIMEOUT]`）；AnySearch HTTP 错误路径补 `request_id`/`error_code`（两路径对称）。
+- **不对称理由**：Tavily 旧枚举值收口容忍（存量配置不炸）vs Exa includeSections 新增闭集拒值（7 值枚举本就无合法存量脏值）。
+- MemberParamField 保存失败不再丢草稿（对齐其他字段先例）。
+
+**增强**
+- Firecrawl `alexandria` 枚举（官方 `research` **2026-11-16 迁移**，债务表带日期行）；scrape `formats` 改官方对象形 `[{type:'markdown'}]`。
+- AnySearch `max_results` 钳制 1-20（不再以 400 面目弹回）；Exa includeSections/excludeSections 7 值闭集 loud 校验。
+- `USER_AGENT` 单点常量 + 防漂测试（版本 bump 忘更即红）。
+
+**质量批（行为保持，601/601 全程锁定）**
+- providers 响应管线统一 `readMemberEnvelope`（8 个读取点收敛，净 -99）；client 去重 `useAutoClearFeedback`×10/StagedTextField 合并/`memberLabelOf` 单源（-35）；死代码清理（setDnsScope 面、17 个 locale 死键、孤儿 JSDoc）；section.tsx 拆分 1824→507+4 文件（纯移动，spec 零改动）；lint 复零 + check-locales 使用量守卫。
+- **实测净减（numstat 口径）**：去重核心 -187 行；PB 全批 src 净 -93（T13 拆分的 +107 模块开销部分抵消）。plan 估算 ≥250 未达——估算偏差复盘入 session-37 记录（WBS 按重复块行数估，未计类型/导入/模块头开销）。
+
+**流程立宪（本轮工作重心）**
+- **AGENTS.md 增「上游适配强制流程」节**：逐成员×逐面双路对齐矩阵为门、DSH peer 扫描协议（全版本列表+semver satisfies 实测）、UA 版本钉、矩阵全绿才可 tag——此后每次功能/适配/发版自动受约束。
+- checklist 增 DSH 上游维度节 + 带日期债务行（alexandria 2026-11-16）。
+
+---
+
+## 2026-09-28 — v0.2.0 组成之一：DNS 韧性层（ADR-0022）
+
+**本节与上方 v0.2.0 发布节共同构成单一 v0.2.0 版本面向记录（用户裁定：仅此一版、仅此一 tag）。**
 
 - **v0.2.0** = 进程级 DNS 韧性层（ADR-0022 accepted）：DoH 加密解析 + 投毒自动检测 + tls-hello SNI 出口预检 + 连接级快降级 + 设置页 DNS 韧性卡与 Inspect trace。ADR-0020 版本线：v0.1.0 起，v0.2.x = 特大架构子系统。
 - **分发**：npm `@maricgeer/dsh-websearch@0.2.0`（裸名 `dsh-websearch` 因 npm 反抢注政策不可注册——tarball 附 GitHub Release 供 profile 安装）；双名打包脚本化 `node scripts/pack.mjs`。

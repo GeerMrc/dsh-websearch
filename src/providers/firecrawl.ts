@@ -29,13 +29,12 @@ import type {
   WebSearchSource,
 } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
+  USER_AGENT,
+  readMemberEnvelope,
+
 } from './shared.ts'
 
 /** Search-face timeout cap: the chain budget is 30s per member, so the server stops at 20s (S20 P2). */
@@ -48,9 +47,6 @@ export const FIRECRAWL_MEMBER_ID = 'dshws-firecrawl'
 export const FIRECRAWL_DEFAULT_BASE_URL = 'https://api.firecrawl.dev'
 
 const codes = MEMBER_ERROR_CODES.firecrawl
-
-/** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
 
 /** Wire type of one Firecrawl `data.web[]` search entry (optional fields read tolerantly). */
 export interface FirecrawlWebResult {
@@ -115,7 +111,8 @@ export interface FirecrawlMemberOptions {
   /** Result sources; absent = not sent (web-only API default) (S20 P2). */
   readonly sources?: 'news' | 'web+news'
   /** Result category; absent = not sent (S20 P2). */
-  readonly categories?: 'developer' | 'research' | 'pdf'
+  /** `research` migrates to `alexandria` on 2026-11-16 (upstream announcement). */
+  readonly categories?: 'developer' | 'research' | 'pdf' | 'alexandria'
 }
 
 /**
@@ -295,11 +292,11 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
         headers: this.#headers(apiKey),
         body: JSON.stringify({
           url: request.url,
-          formats: ['markdown'],
+          formats: [{ type: 'markdown' }],
           // The upstream default is 60s, but the tool-level budget is 30s —
           // without an explicit cap the client aborts while the server keeps
           // burning credits (S16 P0-2).
-          timeout: 20_000,
+          timeout: FIRECRAWL_SEARCH_TIMEOUT_MS,
         }),
         ...(signal !== undefined ? { signal } : {}),
       })
@@ -335,26 +332,6 @@ export class FirecrawlProvider implements WebSearchProvider, WebFetchProvider {
    * body unfold), abort mid-body → aborted, bad JSON → bad response.
    */
   async #parse(response: Response, signal: AbortSignal | undefined, label: string): Promise<unknown> {
-    if (!response.ok) {
-      const status = response.status
-      let message = `Firecrawl API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-    try {
-      return await response.json()
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
-      throw memberBadResponse(codes, label, error)
-    }
+    return readMemberEnvelope(response, { codes, label, signal })
   }
 }

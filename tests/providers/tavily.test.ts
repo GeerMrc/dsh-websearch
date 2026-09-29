@@ -77,7 +77,7 @@ describe('dshws-tavily request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer tvly-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.1.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5, include_answer: 'basic' })
   })
 
@@ -232,18 +232,18 @@ describe('dshws-tavily S17 P1 parameter wire', () => {
     const fetchMock = vi.fn(async () => jsonResponse({ results: [] }))
     vi.stubGlobal('fetch', fetchMock)
     const withBoth = resolveTavilyMemberOptions(
-      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'boost'  } satisfies TavilyMemberConfig,
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'prefer'  } satisfies TavilyMemberConfig,
       async () => 'k',
       { language: 'zh', includeDomains: ['example.com'] },
     )
     await new TavilySearchProvider(withBoth).search({ query: 'q' })
     let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
     expect(body.filter_by_language).toBe(true)
-    expect(body.include_domains_mode).toBe('boost')
+    expect(body.include_domains_mode).toBe('prefer')
 
     // Guards: no unified language → filter_by_language suppressed; no include list → mode suppressed.
     const noLanguage = resolveTavilyMemberOptions(
-      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'boost'  } satisfies TavilyMemberConfig,
+      { enabled: true, apiKeyEnv: 'TAVILY_API_KEY', filterByLanguage: true, includeDomainsMode: 'prefer'  } satisfies TavilyMemberConfig,
       async () => 'k',
     )
     await new TavilySearchProvider(noLanguage).search({ query: 'q' })
@@ -322,6 +322,28 @@ describe('dshws-tavily failure modes (mock HTTP)', () => {
     const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 401 })
     expect((caught as Error).message).toContain('invalid api key')
+  })
+
+  it('S37-TB: a 429 rides the Retry-After header as pool-switch diagnostics', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ detail: 'rate limit exceeded' }), {
+      status: 429,
+      headers: { 'content-type': 'application/json', 'retry-after': '7', 'x-ratelimit-remaining': '0' },
+    })))
+    const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 429 })
+    expect((caught as Error).message).toContain('rate limit exceeded')
+    expect((caught as Error).message).toContain('retry-after: 7s')
+    expect((caught as Error).message).toContain('remaining: 0')
+  })
+
+  it('unfolds the FastAPI array detail form (422 validation shape, upstream-documented)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ detail: [
+      { type: 'string_too_long', loc: ['body', 'query'], msg: 'String should have at most 400 characters' },
+    ] }, 422)))
+    const caught = await new TavilySearchProvider(options).search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError, httpStatus: 422 })
+    expect((caught as Error).message).toContain('String should have at most 400 characters')
+    expect((caught as Error).message).toContain('body.query')
   })
 
   it('unfolds the live nested detail.error form (401 shape verified 2026-09-28) on the search face', async () => {

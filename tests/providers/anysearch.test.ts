@@ -122,7 +122,7 @@ describe('dshws-anysearch wire behavior (mock HTTP)', () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('https://anysearch.example/v1/search')
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer anysearch-fake-key')
-    expect(new Headers(init.headers).get('user-agent')).toBe('dsh-websearch/0.1.0')
+    expect(new Headers(init.headers).get('user-agent')).toBe('dsh-websearch/0.2.0')
     expect(JSON.parse(String(init.body))).toEqual({ query: 'hello', zone: 'cn' })
 
     const unzoned = makeProvider()
@@ -268,6 +268,31 @@ describe('S21 T3: AnySearch extract face (web_fetch member, probe-backed contrac
     expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
     expect(thrown!.message).toContain('422')
     expect(thrown!.message).toContain('Unable to extract content from the URL.')
+    expect(thrown!.message).toContain('req-422')
+    expect(thrown!.message).toContain('extract_failed')
+  })
+
+  it('S37 T6: max_results is clamped into the official 1-20 range on the search face', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ code: 0, data: { results: [] } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await makeProvider().search({ query: 'q', maxResults: 50 })
+    let body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.max_results).toBe(20)
+    await makeProvider().search({ query: 'q', maxResults: 0 })
+    body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(body.max_results).toBe(1)
+  })
+
+  it('S37 T4: the search face HTTP-error path also carries request_id and error_code (path symmetry)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({
+      code: 1002, message: 'invalid request', error_code: 'invalid_request', request_id: 'req-4xx',
+    }, 400)))
+    const thrown = await makeProvider().search({ query: 'q' }).then(() => null, (error: unknown) => error as Error)
+    expect((thrown as unknown as { code: string }).code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
+    expect(thrown!.message).toContain('400')
+    expect(thrown!.message).toContain('invalid request')
+    expect(thrown!.message).toContain('req-4xx')
+    expect(thrown!.message).toContain('invalid_request')
   })
 
   it('missing data.content on code 0 is a bad response (fail-loud)', async () => {

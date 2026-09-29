@@ -1,0 +1,19 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ↓ tests/e2e.real/chain.real.test.ts (2 tests | 2 skipped)
+ ↓ tests/e2e.real/deepseek.real.test.ts (2 tests | 2 skipped)
+ ✓ tests/e2e.real/exa.real.test.ts (4 tests | 3 skipped) 2577ms
+     ✓ error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)  2576ms
+ ✓ tests/e2e.real/tavily.real.test.ts (5 tests | 4 skipped) 3245ms
+     ✓ error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)  3244ms
+ ✓ tests/e2e.real/firecrawl.real.test.ts (5 tests | 4 skipped) 3436ms
+     ✓ error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)  3435ms
+ ✓ tests/e2e.real/anysearch.real.test.ts (4 tests | 3 skipped) 4140ms
+     ✓ error path: a non-existent article rides the upstream 422 detail in the error message (alignment checklist live anchor)  4139ms
+
+ Test Files  4 passed | 2 skipped (6)
+      Tests  4 passed | 18 skipped (22)
+   Start at  02:01:39
+   Duration  4.31s (transform 303ms, setup 81ms, import 301ms, tests 13.40s, environment 0ms)
+

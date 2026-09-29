@@ -1,0 +1,16 @@
+host        npm-plain  gate(includePrerelease)
+0.2.0-rc.2  true       true
+0.2.0-rc.1  true       true
+0.1.7-rc.2  true       true
+0.2.0       true       true
+0.1.8       false      false
+0.3.0       false      false
+0.3.0-rc.1  false      true
+0.2.1-rc.0  false      true
+
+# 注记（S38 T1）
+- 正例：0.2.0-rc.2/rc.1、0.1.7-rc.2（现行宿主）、0.2.0（未来稳定）双语义全 true
+- 负控：0.1.8（从未演练的稳定线）与 0.3.0（下一大线）双语义 false——如期拒绝
+- gate 越权放行（0.3.0-rc.1/0.2.1-rc.0 仅 gate true、npm false）：includePrerelease 固有属性，现行域对 0.1.8-rc 同样越权——已知非新增；npm 安装器侧仍拒
+- 祖先证据：dsh-v0.2.0-rc.1 是 dsh-v0.2.0-rc.2 的祖先（隔 187 commits，git merge-base --is-ancestor 亲证）——rc.1 未单独演练仍可钉（沿 S33 先例）
+- semver 7.8.4 实测（/tmp 副本）；六包 peer 串同改（package.json 6 处）

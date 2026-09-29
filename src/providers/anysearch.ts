@@ -19,13 +19,12 @@ import type { AnysearchMemberConfig, UnifiedSearchFanout } from '../config.ts'
 import { DshwsError, MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebFetchProvider, WebFetchRequest, WebFetchResult, WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
+  USER_AGENT,
+  readMemberEnvelope,
+
 } from './shared.ts'
 
 /** Stable id this member registers under (chain + direct pin, `dshws-` prefixed). */
@@ -35,9 +34,6 @@ export const ANYSEARCH_MEMBER_ID = 'dshws-anysearch'
 export const ANYSEARCH_DEFAULT_BASE_URL = 'https://api.anysearch.com'
 
 const codes = MEMBER_ERROR_CODES.anysearch
-
-/** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
 
 /** Wire type of one Anysearch `data.results[]` entry (optional fields read tolerantly). */
 export interface AnysearchResultItem {
@@ -150,6 +146,14 @@ export function mapAnysearchExtractData(requestUrl: string, data: { url?: string
 }
 
 /** The Anysearch-backed chain member on both capability faces (search + extract, S21). */
+/** S37 T4: append the envelope diagnostics the upstream documents on every error. */
+function anysearchErrorDiagnostics(parsed: unknown): string {
+  const envelope = parsed as { readonly request_id?: string, readonly error_code?: string }
+  const requestId = envelope?.request_id !== undefined ? ` (request_id: ${envelope.request_id})` : ''
+  const errorCode = envelope?.error_code !== undefined ? ` [${envelope.error_code}]` : ''
+  return `${errorCode}${requestId}`
+}
+
 export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvider {
   readonly id = ANYSEARCH_MEMBER_ID
 
@@ -161,10 +165,15 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
   }
 
   async search(request: WebSearchRequest, signal?: AbortSignal): Promise<WebSearchResult> {
-    throwIfMemberAborted(codes, 'Anysearch', signal)
+    throwIfMemberAborted(codes, 'AnySearch', signal)
     const apiKey = await this.#apiKey(signal)
-    throwIfMemberAborted(codes, 'Anysearch', signal)
-    const maxResults = request.maxResults
+    throwIfMemberAborted(codes, 'AnySearch', signal)
+    // Caller-bound request sizing is clamped into the official 1-20 range here
+    // rather than bounced as an upstream 400 invalid_request (same ruling as
+    // the tavily face's header note, S37 T6).
+    const maxResults = request.maxResults === undefined
+      ? undefined
+      : Math.min(20, Math.max(1, Math.round(request.maxResults)))
     let response: Response
     try {
       response = await fetch(`${this.options.baseURL}/v1/search`, {
@@ -188,28 +197,7 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
       throw memberFetchFailure(codes, 'Anysearch', error, signal)
     }
 
-    if (!response.ok) {
-      const status = response.status
-      let message = `Anysearch API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Anysearch', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-
-    let envelope: AnysearchEnvelope
-    try {
-      envelope = await response.json() as AnysearchEnvelope
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Anysearch', signal, error)
-      throw memberBadResponse(codes, 'Anysearch', error)
-    }
+    const envelope = await readMemberEnvelope<AnysearchEnvelope>(response, { codes, label: 'AnySearch', signal, decorate: anysearchErrorDiagnostics })
     // Business error over HTTP 200: the envelope's code and request id are
     // the diagnostics anysearch documents (ADR-0009).
     if (envelope.code !== 0) {
@@ -249,27 +237,7 @@ export class AnysearchSearchProvider implements WebSearchProvider, WebFetchProvi
     } catch (error: unknown) {
       throw memberFetchFailure(codes, 'AnySearch', error, signal)
     }
-    if (!response.ok) {
-      const status = response.status
-      let message = `Anysearch API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'AnySearch', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-    let envelope: AnysearchEnvelope
-    try {
-      envelope = await response.json() as AnysearchEnvelope
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'AnySearch', signal, error)
-      throw memberBadResponse(codes, 'AnySearch', error)
-    }
+    const envelope = await readMemberEnvelope<AnysearchEnvelope>(response, { codes, label: 'AnySearch', signal, decorate: anysearchErrorDiagnostics })
     if (envelope.code !== 0) {
       const requestId = envelope.request_id !== undefined ? ` (request_id: ${envelope.request_id})` : ''
       throw new DshwsError(

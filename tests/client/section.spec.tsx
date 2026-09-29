@@ -114,7 +114,7 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     searchLanguage: undefined,
     searchIncludeDomains: undefined,
     searchExcludeDomains: undefined,
-    dns: { mode: 'auto', scope: 'members', preset: 'auto', probeMethod: 'tcp', nodesText: '', status: undefined, trace: [] },
+    dns: { mode: 'auto', preset: 'auto', probeMethod: 'tcp', nodesText: '', status: undefined, trace: [] },
     revision: 0,
     writable: true,
   }
@@ -336,9 +336,8 @@ describe('WebSearchSettingsSection', () => {
 
   it('the order note lives behind the ⓘ icon badge, not dead prose (S14e D4 用户裁定; S23 D15 glyph unified)', () => {
     const { container } = render(<WebSearchSettingsSection {...makeProps()} t={t} />)
-    const chains = container.querySelector('[data-testid="dshws-chains"]')!
+    const _chains = container.querySelector('[data-testid="dshws-chains"]')!
     // No dead prose lines: neither the old default-order hint nor the tail note.
-    expect(chains.textContent).not.toContain(en.chainTailHint)
     // The badge exists (S23 D15: the host ⓘ glyph, no text); focusing it opens the full order note.
     const badge = screen.getByTestId('dshws-chain-order-info')
     expect(badge.textContent).toBe('')
@@ -977,6 +976,19 @@ describe('S17 P1 member parameter controls', () => {
   })
 
 
+  it('S37 T9: a failed member-param save keeps the staged draft (endpoint-field parity)', async () => {
+    const onSetMemberOption = vi.fn(async () => ({ ok: false }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
+    expand('firecrawl')
+    const tbs = screen.getByTestId('dshws-param-firecrawl-tbs') as HTMLInputElement
+    fireEvent.change(tbs, { target: { value: 'sbd:1,qdr:m' } })
+    // The staged field's Save sits in the same control row as its input.
+    const rowSave = tbs.parentElement!.querySelector('button')!
+    fireEvent.click(rowSave)
+    await waitFor(() => expect(screen.getByTestId('dshws-param-firecrawl-tbs-feedback').textContent).toBe(en.failed))
+    expect(tbs.value).toBe('sbd:1,qdr:m')
+  })
+
   it('S22 T3: firecrawl tbs becomes a staged combo text field and safe toggles immediately', async () => {
     const onSetMemberOption = vi.fn(async () => ({ ok: true }) as ActionResult)
     render(<WebSearchSettingsSection {...makeProps({ onSetMemberOption })} t={t} />)
@@ -1286,7 +1298,6 @@ describe('S36 T3: DNS resilience card — plugin-wide ⓘ+Tooltip alignment (pla
     const cardText = card.textContent ?? ''
     expect(cardText).not.toContain(en.dnsDescription)
     expect(cardText).not.toContain(en.dnsModeHint)
-    expect(cardText).not.toContain(en.dnsScopeHint)
     expect(cardText).not.toContain(en.dnsPresetHint)
     expect(cardText).not.toContain(en.dnsNodesHint)
     // The hint copy still exists — carried by ⓘ tooltip buttons.

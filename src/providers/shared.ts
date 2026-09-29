@@ -58,23 +58,96 @@ export function memberBadResponse(codes: MemberErrorFamily, label: string, error
 }
 
 /**
+ * Read a member response body once, mapping both failure legs to the member
+ * error family: a non-2xx status throws the HTTP error with the unfolded
+ * upstream detail (plus the optional `decorate` diagnostics suffix), a 2xx
+ * body parses as `T`, and an unparseable 2xx body is the bad-response error.
+ * An abort firing mid-body always surfaces as the member's aborted error.
+ * @param response - the settled fetch Response.
+ * @param deps - error family + label; `decorate` appends extra diagnostics
+ *   (anysearch rides error_code/request_id here, S37 T4).
+ * @returns the parsed 2xx envelope.
+ */
+export async function readMemberEnvelope<T>(response: Response, deps: {
+  codes: MemberErrorFamily
+  label: string
+  signal?: AbortSignal
+  decorate?: (parsed: unknown) => string
+}): Promise<T> {
+  const { codes, label, signal, decorate } = deps
+  if (!response.ok) {
+    const status = response.status
+    let message = `${label} API error (HTTP ${status})`
+    // A 429 carries pool-switch diagnostics in headers (anysearch documents
+    // Retry-After/X-RateLimit-*; S37 TB): surface them in the message so key
+    // rotation decisions and user reports see the upstream's own cadence.
+    if (status === 429) {
+      const retryAfter = response.headers.get('retry-after')
+      if (retryAfter !== null) message += ` (retry-after: ${retryAfter}s)`
+      const remaining = response.headers.get('x-ratelimit-remaining')
+      if (remaining !== null) message += ` (remaining: ${remaining})`
+    }
+    let parsed: unknown
+    try {
+      parsed = await response.json()
+      const detail = unfoldHttpErrorDetail(parsed as Parameters<typeof unfoldHttpErrorDetail>[0])
+      if (detail !== undefined && detail.length > 0) message += `: ${detail}`
+      if (decorate !== undefined) message += decorate(parsed)
+    } catch (error: unknown) {
+      // An abort firing mid-body must surface as aborted, not be swallowed
+      // into a generic HTTP-error message; otherwise the status is already
+      // in `message` and a non-JSON error body only ever cost the richer text.
+      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
+    }
+    throw new DshwsError(codes.httpError, message, { httpStatus: status })
+  }
+  try {
+    return await response.json() as T
+  } catch (error: unknown) {
+    if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, label, signal, error)
+    throw memberBadResponse(codes, label, error)
+  }
+}
+
+/**
+ * Attribution header sent on every provider request. Pinned here once and
+ * drift-guarded by tests/user-agent.test.ts against package.json's version —
+ * a version bump that forgets this constant fails the guard loudly.
+ */
+export const USER_AGENT = 'dsh-websearch/0.2.0'
+
+/**
  * First non-empty detail string among the wire error shapes seen across
  * providers: `error` (string or `{ message }` or `{ error }`), `detail`
- * (same three forms), then top-level `message`. The nested `{ error }` form
- * is the live Tavily 401 body (`{"detail":{"error":"Unauthorized: …"}}`,
- * verified 2026-09-28) — a `{ message }`-only pick silently degrades that
- * response to a bare status. Non-JSON bodies never reach this (the caller's
+ * (same three forms, or the FastAPI validation array whose first entry
+ * renders as `msg @loc.loc`), then top-level `message`. The nested
+ * `{ error }` form is the live Tavily 401 body and the array form is the
+ * live Tavily 422 body (both verified 2026-09-28) — narrower picks
+ * silently degrade those responses to a bare status. A top-level `code`
+ * (Firecrawl 408/500: `TIMEOUT`/`UNKNOWN_ERROR`) appends as `[code]` when
+ * present. Non-JSON bodies never reach this (the caller's
  * `response.json()` throws first).
  */
 export function unfoldHttpErrorDetail(parsed: {
   readonly error?: string | { readonly message?: string, readonly error?: string } | null
-  readonly detail?: string | { readonly message?: string, readonly error?: string }
+  readonly detail?: string | { readonly message?: string, readonly error?: string } | { readonly msg?: string, readonly loc?: readonly string[] }[]
   readonly message?: string
+  readonly code?: string
 }): string | undefined {
   const pick = (value: string | { readonly message?: string, readonly error?: string } | undefined | null): string | undefined =>
     typeof value === 'string' ? value : value?.message ?? (typeof value?.error === 'string' ? value.error : undefined)
-  return [pick(parsed.error), pick(parsed.detail), parsed.message]
+  const pickArray = (entries: readonly { readonly msg?: string, readonly loc?: readonly string[] }[]): string | undefined => {
+    const first = entries.find(entry => entry.msg !== undefined && entry.msg.length > 0)
+    if (first === undefined) return undefined
+    return first.loc !== undefined && first.loc.length > 0 ? `${first.msg} @${first.loc.join('.')}` : first.msg
+  }
+  const detail = Array.isArray(parsed.detail)
+    ? pickArray(parsed.detail)
+    : pick(parsed.detail)
+  const base = [pick(parsed.error), detail, parsed.message]
     .find((candidate) => candidate !== undefined && candidate.length > 0)
+  if (base === undefined) return parsed.code
+  return parsed.code !== undefined && parsed.code.length > 0 ? `${base} [${parsed.code}]` : base
 }
 
 /** True for a request limit that can be sent to the provider (a positive whole number). */

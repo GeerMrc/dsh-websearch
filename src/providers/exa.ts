@@ -24,16 +24,14 @@ import type { UnifiedSearchFanout } from '../config.ts'
 import { MEMBER_ERROR_CODES } from '../errors.ts'
 import type { WebSearchProvider, WebSearchRequest, WebSearchResult, WebSearchSource } from '@deepseek-ai/dsh-web'
 import {
-  isAbortError,
   isPositiveInteger,
-  memberAborted,
-  memberBadResponse,
   memberFetchFailure,
   resolveMemberApiKey,
   throwIfMemberAborted,
-  unfoldHttpErrorDetail,
+  USER_AGENT,
+  readMemberEnvelope,
+
 } from './shared.ts'
-import { DshwsError } from '../errors.ts'
 
 /** Stable id this member registers under (chain + direct pin, `dshws-` prefixed). */
 export const EXA_MEMBER_ID = 'dshws-exa'
@@ -54,9 +52,6 @@ export const EXA_TEXT_FALLBACK_MAX_CHARACTERS = 1000
 export type ExaSearchType = 'instant' | 'fast' | 'auto' | 'deep-lite' | 'deep' | 'deep-reasoning'
 
 const codes = MEMBER_ERROR_CODES.exa
-
-/** Attribution header sent on every request; bump with the package version. */
-const USER_AGENT = 'dsh-websearch/0.1.0'
 
 /**
  * Normalize a stored publication-date floor to the ISO date-time form the API
@@ -204,15 +199,13 @@ export class ExaSearchProvider implements WebSearchProvider {
     const numResults = request.maxResults ?? this.options.numResults
     let response: Response
     // Guards evaluated inside this single body construction: the
-    // company/people categories officially reject the date floor and the
-    // exclude-domain list (400), so those parameters are suppressed only
-    // when one of those categories is set.
-    const dateFloor = this.options.category === 'company' || this.options.category === 'people'
-      ? undefined
-      : this.options.startPublishedDate
-    const excludeDomains = this.options.category === 'company' || this.options.category === 'people'
-      ? undefined
-      : this.options.excludeDomains
+    // company/people categories officially reject both published-date
+    // bounds and the exclude-domain list (400), so those parameters are
+    // suppressed only when one of those categories is set.
+    const specialCategory = this.options.category === 'company' || this.options.category === 'people'
+    const dateFloor = specialCategory ? undefined : this.options.startPublishedDate
+    const dateCeiling = specialCategory ? undefined : this.options.endPublishedDate
+    const excludeDomains = specialCategory ? undefined : this.options.excludeDomains
     try {
       response = await fetch(`${this.options.baseURL}/search`, {
         method: 'POST',
@@ -247,7 +240,7 @@ export class ExaSearchProvider implements WebSearchProvider {
           ...numResults !== undefined ? { numResults } : {},
           ...this.options.category !== undefined ? { category: this.options.category } : {},
           ...dateFloor !== undefined ? { startPublishedDate: dateFloor } : {},
-          ...this.options.endPublishedDate !== undefined ? { endPublishedDate: this.options.endPublishedDate } : {},
+          ...dateCeiling !== undefined ? { endPublishedDate: dateCeiling } : {},
           ...this.options.userLocation !== undefined ? { userLocation: this.options.userLocation } : {},
           ...this.options.includeDomains !== undefined ? { includeDomains: [...this.options.includeDomains] } : {},
           ...excludeDomains !== undefined ? { excludeDomains: [...excludeDomains] } : {},
@@ -258,29 +251,8 @@ export class ExaSearchProvider implements WebSearchProvider {
       throw memberFetchFailure(codes, 'Exa', error, signal)
     }
 
-    if (!response.ok) {
-      const status = response.status
-      let message = `Exa API error (HTTP ${status})`
-      try {
-        const parsed = await response.json() as Parameters<typeof unfoldHttpErrorDetail>[0]
-        const detail = unfoldHttpErrorDetail(parsed)
-        if (detail !== undefined && detail.length > 0) message += `: ${detail}`
-      } catch (error: unknown) {
-        // An abort firing mid-body must surface as aborted, not be swallowed
-        // into a generic HTTP-error message; otherwise the status is already
-        // in `message` and a non-JSON error body only ever cost the richer text.
-        if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Exa', signal, error)
-      }
-      throw new DshwsError(codes.httpError, message, { httpStatus: status })
-    }
-
-    try {
-      const payload = await response.json() as ExaSearchResponse
-      return mapExaResponse(payload)
-    } catch (error: unknown) {
-      if (signal?.aborted === true || isAbortError(error)) throw memberAborted(codes, 'Exa', signal, error)
-      throw memberBadResponse(codes, 'Exa', error)
-    }
+    const payload = await readMemberEnvelope<ExaSearchResponse>(response, { codes, label: 'Exa', signal })
+    return mapExaResponse(payload)
   }
 
   /** Resolve one operation's key without retaining it; a missing key is a loud member error. */

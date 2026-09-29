@@ -21,7 +21,7 @@
 > 1. `dsh` **0.1.6-alpha.2**: every tool call crashes with `TOOL_RUNTIME_SCHEDULER.prepare` — avoid that version (use 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+).
 > 2. `dsh` **0.1.7-alpha.2/rc.1 (half-fixed in rc.2)**: with tsx source launches the host logs `Plugin metadata … TypeError: Cannot assign to read only property 'stack'` at startup — npm-installed / built-output users are unaffected; source-launch users can use the [fork fix branch](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2).
 
-Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2` (S32/S33 full span — each rehearsed pre-release pinned explicitly, semver satisfies verified)), node >= 22.19.
+Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0` (S32/S33/S38 full span — each rehearsed pre-release pinned explicitly, semver satisfies verified; the 0.1.8 stable line stays excluded)), node >= 22.19.
 
 ```sh
 # 1. Pack (repo root)
@@ -43,7 +43,7 @@ dsh --profile web --dump-config
 
 ## Install, upgrade, and notes
 
-**Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6 and 0.1.7 pre-release lines, and future 0.1.6/0.1.7 stables, capped below 0.1.8):
+**Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6/0.1.7 pre-release and stable lines, the 0.2.0-rc line, and 0.2.x stables; 0.1.8 and 0.3.x excluded):
 
 Option 1 (npm registry, recommended):
 

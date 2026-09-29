@@ -53,6 +53,11 @@ export interface WebSearchSettingsPorts {
 /** Bundled member display metadata; ids, default refs, and the documented
  * default endpoints mirror the node-half provider constants (the endpoint is
  * the GUI placeholder for the「接口地址」field, S14p). */
+/** Member display label by member id (the served-by badge face; three call sites shared one copy each before S37 T11). */
+export function memberLabelOf(memberId: string): string {
+  return MEMBERS.find((member) => member.memberId === memberId)?.label ?? memberId
+}
+
 export const MEMBERS = [
   { key: 'tavily', label: 'Tavily', memberId: 'dshws-tavily', defaultRef: 'TAVILY_API_KEY', defaultBaseURL: 'https://api.tavily.com' },
   { key: 'exa', label: 'Exa', memberId: 'dshws-exa', defaultRef: 'EXA_API_KEY', defaultBaseURL: 'https://api.exa.ai' },
@@ -106,7 +111,7 @@ interface MemberSectionValue {
   /** Tavily S20 P2: hard language filter (needs the unified language set). */
   filterByLanguage?: boolean
   /** Tavily S20 P2: include-list semantics filter/boost. */
-  includeDomainsMode?: 'filter' | 'boost'
+  includeDomainsMode?: 'restrict' | 'prefer'
   /** Exa S20 P2: vertical category. */
   category?: 'company' | 'publication' | 'news' | 'personal site' | 'financial report' | 'people'
   /** Exa S20 P2: content cache freshness hours. */
@@ -114,7 +119,7 @@ interface MemberSectionValue {
   /** Firecrawl S20 P2: result sources news/web+news. */
   sources?: 'news' | 'web+news'
   /** Firecrawl S20 P2: result category. */
-  categories?: 'developer' | 'research' | 'pdf'
+  categories?: 'developer' | 'research' | 'pdf' | 'alexandria'
   /** Tavily S22 P3: publication-date window bounds (`YYYY-MM-DD`). */
   startDate?: string
   endDate?: string
@@ -172,7 +177,6 @@ interface DnsSectionValue {
 /** The DNS block's render-ready state: config slice plus the live remote face (status/trace stay undefined on old hosts). */
 export interface DnsSnapshot {
   readonly mode: 'auto' | 'on' | 'off'
-  readonly scope: 'members' | 'all'
   readonly preset: 'auto' | 'cn' | 'global' | 'custom'
   readonly probeMethod: 'tcp' | 'tls-hello'
   /** Custom nodes serialized one-per-line `host,sni,path,port` (the textarea form). */
@@ -366,7 +370,6 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     // resolveConfig; custom nodes serialize to the textarea form.
     dns: {
       mode: value.dns?.mode ?? 'auto',
-      scope: value.dns?.scope ?? 'members',
       preset: value.dns?.preset ?? 'auto',
       probeMethod: value.dns?.probe?.method ?? 'tcp',
       nodesText: (value.dns?.nodes ?? [])
@@ -702,12 +705,6 @@ export class WebSearchSettingsController {
   }
 
   /** S35: set the hostname scope (members/all); hot on the next resolution. */
-  async setDnsScope(scope: 'members' | 'all'): Promise<ActionResult> {
-    const result = await this.#ports.updateSettings(NS, { dns: { scope } }, this.#revision)
-    if (!result.ok) return { ok: false }
-    await this.#refreshSection()
-    return { ok: true }
-  }
 
   /** S39 (plan 038 T3): set the egress probe method; hot on the next resolution. */
   async setDnsProbeMethod(method: 'tcp' | 'tls-hello'): Promise<ActionResult> {

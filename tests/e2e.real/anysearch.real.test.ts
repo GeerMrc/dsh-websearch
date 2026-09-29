@@ -50,6 +50,8 @@ maybe('dshws-anysearch real API', () => {
     expect(thrown?.code).toBe('DSHWS_ANYSEARCH_HTTP_ERROR')
     expect(thrown?.message).toContain('422')
     expect(thrown?.message).toContain('Unable to extract content from the URL.')
+    expect(thrown?.message).toContain('[extract_failed]')
+    expect(thrown?.message).toContain('(request_id: ')
   }, 40_000)
 })
 

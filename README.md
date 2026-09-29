@@ -1,7 +1,7 @@
 # dsh-websearch
 
 > **语言权威声明**：本文件为中文事实正本；`README.en.md` 为英文镜像，两文件不一致时以本文件为准。
-> 版本线：v0.1.0 起（ADR-0020）；**v0.2.0 = DNS 韧性层**（ADR-0022，特大架构子系统依 ADR-0020 升 0.2.x）。内部开发编号 0.2.0–0.9.0 归历史档，见 CHANGELOG。
+> 版本线：v0.1.0 起（ADR-0020）；**v0.2.0 = DNS 韧性层 + 上游对齐二轮收口**（ADR-0022；含四工具上游对齐修复与质量批——单一版本发布）。内部开发编号 0.2.0–0.9.0 归历史档，见 CHANGELOG。
 
 `dsh-websearch` 是 deepseek-harness（`dsh`）的**外挂式统一网页搜索管理插件**：零内核侵入，把多家搜索供应商收编进一个标准插件，提供用户可配置的优先级链、完整高可用降级、多 API key 池、统一 web_fetch 接管，以及 Web 设置页管理 GUI。
 
@@ -21,7 +21,7 @@
 > 1. `dsh` **0.1.6-alpha.2**：任意工具调用崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`——避开该版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+）。
 > 2. `dsh` **0.1.7-alpha.2/rc.1（rc.2 半修）**：tsx 源码启动下宿主启动期报 `Plugin metadata … TypeError: Cannot assign to read only property 'stack'`——npm 安装/构建产物用户不受影响；源码启动用户可用 [fork 修复分支](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2)。
 
-前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2`（S32/S33 全跨度——显式钉已演练预发布版，semver satisfies 实测在案））、node ≥ 22.19。
+前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0`（S32/S33/S38 全跨度——显式钉已演练预发布版，semver satisfies 实测在案；0.1.8 稳定线未演练仍排除））、node ≥ 22.19。
 
 ```sh
 # 1. 打包（仓库根）

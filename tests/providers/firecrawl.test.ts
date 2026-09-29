@@ -142,6 +142,15 @@ describe('dshws-firecrawl S17 P1 parameter wire', () => {
     await new FirecrawlProvider(configured).search({ query: 'q' })
     const body = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
     expect(body.categories).toEqual([{ type: 'research' }])
+
+    // S37 T7: alexandria is the announced successor (research migrates 2026-11-16).
+    const alexandria = resolveFirecrawlMemberOptions(
+      { enabled: true, apiKeyEnv: 'FIRECRAWL_API_KEY', categories: 'alexandria'  } as never,
+      async () => 'k',
+    )
+    await new FirecrawlProvider(alexandria).search({ query: 'q' })
+    const alexandriaBody = JSON.parse((fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit])[1].body as string)
+    expect(alexandriaBody.categories).toEqual([{ type: 'alexandria' }])
     // The upstream default is 60s vs the chain's 30s per-member budget — the
     // explicit cap keeps the server from burning credits past our abort.
     expect(body.timeout).toBe(20_000)
@@ -231,7 +240,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.1.0')
+    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5, timeout: 20_000 })
   })
 
@@ -273,6 +282,14 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const caught = await searchProvider().search({ query: 'q' }).then(() => null, (error: unknown) => error)
     expect(caught).toMatchObject({ code: codes.httpError })
     expect((caught as Error).message).toContain('429')
+  })
+
+  it('unfolds the error code dimension alongside the message (408 TIMEOUT shape, upstream-documented)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ success: false, code: 'TIMEOUT', error: 'Request timed out' }, 408)))
+    const caught = await searchProvider().search({ query: 'q' }).then(() => null, (error: unknown) => error)
+    expect(caught).toMatchObject({ code: codes.httpError })
+    expect((caught as Error).message).toContain('Request timed out')
+    expect((caught as Error).message).toContain('TIMEOUT')
   })
 
   it('unfolds a JSON error body into the HTTP error message when present', async () => {
@@ -349,7 +366,7 @@ describe('dshws-firecrawl fetch face (mock HTTP)', () => {
     expect(init).toMatchObject({ method: 'POST', redirect: 'error' })
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
-    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://a.test', formats: ['markdown'], timeout: 20_000 })
+    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://a.test', formats: [{ type: 'markdown' }], timeout: 20_000 })
     expect(result).toEqual({
       url: 'https://a.test/final',
       statusCode: 200,

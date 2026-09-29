@@ -61,7 +61,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
     render(<WebSearchToolviewRow {...makeProps()} />)
     expect(screen.getByRole('button', { name: /Web search/ })).toBeTruthy()
     expect(screen.getByText('alpha query, beta query')).toBeTruthy()
-    const badge = screen.getByTestId('dshws-served-by')
+    const badge = screen.getByTestId('dshws-search-served-by')
     expect(badge.textContent).toBe('· Tavily')
     expect(screen.getByLabelText(`Served by Tavily`)).toBe(badge)
   })
@@ -99,7 +99,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
       content: [{ type: 'text', text: answer }],
     })
     render(<WebSearchToolviewRow {...props} />)
-    expect(screen.getByTestId('dshws-served-by').textContent).toBe('· Tavily')
+    expect(screen.getByTestId('dshws-search-served-by').textContent).toBe('· Tavily')
     fireEvent.click(screen.getByRole('button', { name: /Web search/ }))
     expect(screen.getByTestId('dshws-toolview-answer').textContent).toContain('The answer text.')
     expect(screen.getByTestId('dshws-toolview-answer').textContent).not.toContain('served-by')
@@ -113,7 +113,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
       content: [{ type: 'text', text: answer }],
     })
     render(<WebSearchToolviewRow {...props} />)
-    expect(screen.getByTestId('dshws-served-by').textContent).toBe('· Tavily + AnySearch')
+    expect(screen.getByTestId('dshws-search-served-by').textContent).toBe('· Tavily + AnySearch')
   })
 
   it('renders the raw member id when the served-by id is unknown (未知 id 原样)', () => {
@@ -123,7 +123,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
       content: [{ type: 'text', text: '[served-by: member-x]\nAnswer.' }],
     })
     render(<WebSearchToolviewRow {...props} />)
-    expect(screen.getByTestId('dshws-served-by').textContent).toBe('· member-x')
+    expect(screen.getByTestId('dshws-search-served-by').textContent).toBe('· member-x')
   })
 
   it('renders no badge for a result without the signature line (直连/外来)', () => {
@@ -133,7 +133,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
       content: [{ type: 'text', text: 'Plain answer text.' }],
     })
     render(<WebSearchToolviewRow {...props} />)
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-search-served-by')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /Web search/ }))
     expect(screen.getByText('Example A')).toBeTruthy()
   })
@@ -148,7 +148,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
     expect(screen.getByRole('button', { name: /Web search/ })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: /Web search/ }))
     expect(screen.getByTestId('dshws-toolview-generic').textContent).toContain('Raw fallback content.')
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-search-served-by')).toBeNull()
     expect(screen.queryByText('Example A')).toBeNull()
   })
 
@@ -157,7 +157,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
     render(<WebSearchToolviewRow {...props} />)
     expect(screen.getByRole('button', { name: /Web search/ })).toBeTruthy()
     expect(screen.getByText('live query')).toBeTruthy()
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-search-served-by')).toBeNull()
   })
 
   it('surfaces the failure note on an error result (error 态)', () => {
@@ -171,7 +171,7 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
     fireEvent.click(screen.getByRole('button', { name: /Web search/ }))
     expect(screen.getByRole('status').textContent).toContain(en.toolError)
     expect(screen.getByTestId('dshws-toolview-generic').textContent).toContain('DSHWS_CHAIN_EXHAUSTED')
-    expect(screen.queryByTestId('dshws-served-by')).toBeNull()
+    expect(screen.queryByTestId('dshws-search-served-by')).toBeNull()
   })
 
   it('registers the web_search toolview takeover at priority -1 (shadow 契约载荷)', () => {

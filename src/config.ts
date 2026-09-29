@@ -160,10 +160,13 @@ export interface TavilySettings {
    */
   filterByLanguage?: boolean
   /**
-   * Include-list semantics (S20 P2): `filter` (default) or `boost` (weight, still searches the whole
-   * web). Only sent when the unified include-domain list is non-empty. Hot.
+   * Include-list semantics (S20 P2; S37 T1 upstream enum migration): the wire accepts only
+   * `restrict` (strict filter) or `prefer` (unstrict ranking weight). The legacy values
+   * `filter`/`boost` are still accepted by the input schema and normalized in resolve —
+   * stored settings from older versions keep loading without a migration step. Only sent
+   * when the unified include-domain list is non-empty. Hot.
    */
-  includeDomainsMode?: 'filter' | 'boost'
+  includeDomainsMode?: 'filter' | 'boost' | 'restrict' | 'prefer'
   /**
    * Publication-date window lower bound, `YYYY-MM-DD` (S22 P3; orthogonal to `timeRange`'s relative
    * windows). `''` clears. Hot.
@@ -215,7 +218,7 @@ export interface FirecrawlSettings {
    * Result category (S20 P2, official enum; `''` = clear): `developer`/`research` target docs and
    * papers for coding-agent queries. Hot.
    */
-  categories?: 'developer' | 'research' | 'pdf' | ''
+  categories?: 'developer' | 'research' | 'pdf' | 'alexandria' | ''
   /** Pool selection policy; defaults to `round-robin` (ADR-0011). Hot: settings changes apply to the next search. */
   keySelection?: KeySelection
 }
@@ -527,7 +530,7 @@ function buildConfigSchema(markVolatile: boolean): z {
     includeAnswer: z.union(['basic', 'advanced']),
     chunksPerSource: z.number().step(1).min(1).max(3),
     filterByLanguage: z.boolean(),
-    includeDomainsMode: z.union(['filter', 'boost']),
+    includeDomainsMode: z.union(['filter', 'boost', 'restrict', 'prefer']),
     startDate: z.string(),
     endDate: z.string(),
     exactMatch: z.boolean(),
@@ -541,7 +544,7 @@ function buildConfigSchema(markVolatile: boolean): z {
     safe: z.boolean(),
     location: z.string(),
     sources: z.union(['', 'news', 'web+news']),
-    categories: z.union(['', 'developer', 'research', 'pdf']),
+    categories: z.union(['', 'developer', 'research', 'pdf', 'alexandria']),
     keySelection: z.union(['order', 'round-robin', 'random']),
   })),
   exa: vol(z.object({
@@ -637,7 +640,7 @@ export interface TavilyMemberConfig extends Required<Pick<TavilySettings, 'enabl
   /** Hard language filter; absent = not sent (S20 P2). */
   filterByLanguage?: boolean
   /** Include-list semantics; absent = not sent (S20 P2). */
-  includeDomainsMode?: 'filter' | 'boost'
+  includeDomainsMode?: 'restrict' | 'prefer'
   /** Publication-date window lower bound (`YYYY-MM-DD`); absent = not sent (S22 P3). */
   startDate?: string
   /** Publication-date window upper bound; absent = not sent (S22 P3). */
@@ -660,7 +663,7 @@ export interface FirecrawlMemberConfig extends Required<Pick<FirecrawlSettings, 
   /** Result sources; `''` normalizes away at resolve (S20 P2). */
   sources?: 'news' | 'web+news' | ''
   /** Result category; `''` normalizes away at resolve (S20 P2). */
-  categories?: 'developer' | 'research' | 'pdf' | ''
+  categories?: 'developer' | 'research' | 'pdf' | 'alexandria' | ''
   /** Pool selection policy; resolveConfig defaults to 'round-robin' (ADR-0011). */
   keySelection?: KeySelection
 }
@@ -805,6 +808,8 @@ export function validateFirecrawlTbsRule(value: Pick<Config, 'firecrawl'>): void
   }
 }
 
+const EXA_SECTION_VALUES = new Set(['header', 'navigation', 'banner', 'sidebar', 'body', 'footer', 'metadata'])
+
 export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
   const exa = value.exa
   if (exa === undefined) return
@@ -812,6 +817,13 @@ export function validateExaSectionFilterRule(value: Pick<Config, 'exa'>): void {
   const freshness = exa.maxAgeHours
   if (sectionsConfigured && (freshness === undefined || freshness > 0)) {
     throw new Error('exa.includeSections/excludeSections require exa.maxAgeHours = 0 (fresh crawl) or -1 (never recrawl) — official constraint')
+  }
+  for (const [field, text] of [['exa.includeSections', exa.includeSections], ['exa.excludeSections', exa.excludeSections]] as const) {
+    if (text === undefined) continue
+    const invalid = text.split(',').map(part => part.trim()).filter(part => part.length > 0 && !EXA_SECTION_VALUES.has(part))
+    if (invalid.length > 0) {
+      throw new Error(`${field} accepts only the official closed set header|navigation|banner|sidebar|body|footer|metadata — got: ${invalid.join(', ')}`)
+    }
   }
 }
 
@@ -842,6 +854,25 @@ export function validateDnsPresetRule(value: Pick<Config, 'dns'>): void {
  * normalized through {@link materializeConfig} first, so plain configs and
  * 0.1.7+ handle-wrapped runtime configs resolve identically (ADR-0021).
  */
+/**
+ * Normalize the Tavily include-domains mode to the upstream enum (S37 T1): the wire only
+ * accepts `restrict`/`prefer`; the legacy `filter`/`boost` values map 1:1 onto them so
+ * stored settings from older plugin versions keep resolving without a migration.
+ */
+function normalizeIncludeDomainsMode(value: 'filter' | 'boost' | 'restrict' | 'prefer' | undefined): 'restrict' | 'prefer' | undefined {
+  if (value === undefined) return undefined
+  return value === 'filter' ? 'restrict' : value === 'boost' ? 'prefer' : value
+}
+
+/** Member wire id (`dshws-tavily`) to member key (`tavily`) — replaces string surgery at the seam (S37 T14). */
+export const MEMBER_ID_TO_KEY: Readonly<Record<string, string>> = {
+  'dshws-tavily': 'tavily',
+  'dshws-exa': 'exa',
+  'dshws-firecrawl': 'firecrawl',
+  'dshws-anysearch': 'anysearch',
+  'dshws-deepseek': 'deepseek',
+}
+
 export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearchConfig {
   const plain = materializeConfig(config)
   validateUnifiedDomainRule(plain)
@@ -899,7 +930,7 @@ export function resolveConfig(config: Config | ConfigRuntime): ResolvedWebSearch
       startDate: plain.tavily?.startDate?.trim().length ? plain.tavily.startDate.trim() : undefined,
       endDate: plain.tavily?.endDate?.trim().length ? plain.tavily.endDate.trim() : undefined,
       exactMatch: plain.tavily?.exactMatch,
-      includeDomainsMode: plain.tavily?.includeDomainsMode,
+      includeDomainsMode: normalizeIncludeDomainsMode(plain.tavily?.includeDomainsMode),
     },
     firecrawl: {
       enabled: plain.firecrawl?.enabled ?? true,
