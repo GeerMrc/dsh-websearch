@@ -1,0 +1,251 @@
+# S39 生产宿主升级演练+切换证据（3425 演练场 + 3080 终验，2026-09-30 02:4x CST）
+
+== 3425 演练场 chain log（boot 18:42:4x 起，功能腿全录）==
+2026-09-29T18:42:44.765Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.91 api.exa.ai→198.18.0.92 api.firecrawl.dev→198.18.0.93 api.anysearch.com→198.18.0.94 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-29T18:44:24.652Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T18:44:26.524Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T18:45:17.718Z [dshws-chain] member dshws-anysearch failed (AnySearch API error (HTTP 422): Unable to extract content from the URL. [extract_failed] (request_id: cc277358-4747-46f3-b329-b1f72087407b)); degrading to next member (request-level HTTP 422)
+2026-09-29T18:45:23.944Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-29T18:45:30.109Z [dshws-chain] member dshws-anysearch failed (AnySearch API error (HTTP 422): Unable to extract content from the URL. [extract_failed] (request_id: 551b1b78-1373-4eda-88a1-d5f75d3c6efe)); degrading to next member (request-level HTTP 422)
+2026-09-29T18:45:34.799Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-29T18:45:44.593Z [dshws-chain] member dshws-anysearch failed (AnySearch API error (HTTP 422): Unable to extract content from the URL. [extract_failed] (request_id: b5c8344c-09b8-496b-823d-5e0fdb6bcc93)); degrading to next member (request-level HTTP 422)
+2026-09-29T18:45:59.477Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-29T18:46:08.456Z [dshws-chain] served-by: dshws-anysearch
+
+== 3080 终验（切换后搜索腿）==
+2026-09-27T18:47:51.425Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.433Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.435Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.436Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.436Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.437Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.438Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.438Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.439Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.439Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.439Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.440Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.440Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.449Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.458Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.460Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.462Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.464Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.465Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.491Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.491Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.616Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.618Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.619Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.621Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.623Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:51.624Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:47:51.625Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.627Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:51.629Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:47:51.630Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.631Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.633Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:51.635Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.636Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.637Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:51.638Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.638Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:51.639Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.639Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.642Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.643Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:51.644Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:51.645Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.646Z [dsh-websearch] key draw dshws-firecrawl …fk1
+2026-09-27T18:47:51.646Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:47:51.647Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.648Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.649Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.650Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.650Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.650Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.650Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.650Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.650Z [dshws-chain] served-by: dshws-deepseek
+2026-09-27T18:47:51.650Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.651Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.651Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:51.651Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.651Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.652Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:51.653Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.654Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.656Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.656Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.657Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.658Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.658Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.659Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.660Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:51.660Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.661Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.661Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.661Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:51.662Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.662Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:51.662Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.662Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:51.663Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.663Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:51.663Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.664Z [dsh-websearch] key draw dshws-anysearch …-key
+2026-09-27T18:47:51.665Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T18:47:51.665Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.667Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.667Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.668Z [dsh-websearch] key draw dshws-anysearch …-key
+2026-09-27T18:47:51.668Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T18:47:51.669Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:51.670Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.670Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.703Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.703Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.703Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.703Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.704Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.704Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.704Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.704Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.704Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.705Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.705Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.705Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:51.705Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.705Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.706Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:51.706Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:51.706Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.706Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.706Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.707Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.707Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.737Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:51.737Z [dshws-chain] served-by: dshws-deepseek
+2026-09-27T18:47:51.737Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:51.798Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.461Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.464Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.472Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.474Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.474Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.475Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.476Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.476Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.476Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.477Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.477Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.477Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.478Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.480Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.489Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.491Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.493Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.494Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.495Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.531Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.531Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.646Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.648Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.649Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.652Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.655Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:56.657Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:47:56.658Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.661Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:56.663Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:47:56.664Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.666Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.668Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:56.670Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.671Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.671Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:56.672Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.673Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:56.673Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.674Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.675Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.675Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:56.677Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:56.678Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.679Z [dsh-websearch] key draw dshws-firecrawl …fk1
+2026-09-27T18:47:56.679Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-27T18:47:56.680Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.681Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.682Z [dshws-chain] served-by: dshws-deepseek
+2026-09-27T18:47:56.683Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.684Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:56.685Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.687Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.688Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.688Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.688Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.689Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.689Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.689Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.690Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.690Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.690Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.690Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.690Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.690Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.690Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:56.690Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.691Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.691Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.692Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:56.692Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.693Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.693Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.693Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:56.694Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.694Z [dsh-websearch] key draw dshws-tavily …k1
+2026-09-27T18:47:56.694Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.694Z [dsh-websearch] key draw dshws-tavily …k2
+2026-09-27T18:47:56.695Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.695Z [dsh-websearch] key draw dshws-tavily …k3
+2026-09-27T18:47:56.695Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.696Z [dsh-websearch] key draw dshws-anysearch …-key
+2026-09-27T18:47:56.698Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T18:47:56.699Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.700Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.701Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.702Z [dsh-websearch] key draw dshws-anysearch …-key
+2026-09-27T18:47:56.702Z [dshws-chain] served-by: dshws-anysearch
+2026-09-27T18:47:56.703Z [dsh-websearch] key draw dshws-firecrawl …-key
+2026-09-27T18:47:56.704Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.705Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.743Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.743Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.743Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.744Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.744Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.744Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.744Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.744Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.745Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.745Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.745Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.745Z [dshws-chain] served-by: dshws-tavily
+2026-09-27T18:47:56.746Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.746Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.746Z [dsh-websearch] key draw dshws-exa …-key
+2026-09-27T18:47:56.746Z [dshws-chain] served-by: dshws-exa
+2026-09-27T18:47:56.746Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.746Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.747Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.747Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.747Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.779Z [dsh-websearch] key draw dshws-deepseek …-key
+2026-09-27T18:47:56.779Z [dshws-chain] served-by: dshws-deepseek
+2026-09-27T18:47:56.779Z [dsh-websearch] key draw dshws-tavily …-key
+2026-09-27T18:47:56.840Z [dshws-chain] served-by: dshws-tavily
+2026-09-29T18:47:40.847Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-29T18:47:40.848Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-29T18:47:43.715Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T18:47:51.446Z [dshws-chain] served-by: dshws-anysearch
