@@ -21,7 +21,7 @@
 
 | 成员 | 触发 | 状态 | 信封形态 |
 |---|---|---|---|
-| anysearch | 不存在词条 fetch | 422 | `{code:-1, message:"Unable to extract content from the URL.", error_code:"extract_failed"}`（top-level message） |
+| anysearch | 不存在词条 fetch | 422 | `{code:-1, message:"Unable to extract content from the URL.", error_code:"extract_failed"}`（top-level message）。**承载漂移注记（S38 2026-09-30 复核）**：S21 探针期（2026-09-10）该业务错误在 HTTP 200 + `code:-1` 上承载，现漂移为 HTTP 422 + 同 body 字段（裸 curl 直证：可抽取页 200/不可抽取页 422 同请求形态）；已被 readMemberEnvelope 错误路径完整吸收，无需动作 |
 | tavily | invalid key | 401 | `{"detail":{"error":"Unauthorized: missing or invalid API key."}}`（**嵌套 detail.error**——曾逃逸 pick()，f8e0a3f 修复） |
 | exa | invalid key | 401 | `{"error":"Invalid API key. …","tag":"INVALID_API_KEY"}`（top-level error） |
 | firecrawl | invalid key | 401 | `{"success":false,"error":"Unauthorized: Invalid token"}`（top-level error） |

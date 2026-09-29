@@ -1,3 +1,11 @@
+## 2026-09-30 — v0.2.0 发布前增补：DSH 0.2.0-rc 宿主适配（S38，v0.2.0 重定标基线）
+
+- **peer 域扩钉**：六个 DSH 宿主包 peer 追加 `0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0`——0.2.0-rc 宿主安装期与运行时兼容门双放行（semver satisfies 双语义矩阵含负控实测）；`dsh-typert-protocol` 留钉 0.1.7-rc.2（wire 层零源码变更）。
+- **零源码适配**：插件 src 零改动；全套件 607|17(624) + typecheck/lint/i18n 全绿。
+- **实测验证**：3434 演练（守卫移植树 + 安装期 gate + 设置页/搜索/降级）+ 3423 切守卫树七腿逐工具异题矩阵 7/7（29 served-by 零失败）+ e2e.real 错误路径 4/4。
+- **上游登记**：readonly-stack CJS 站点在 0.2.0-rc 线仍未修（fork 守卫树 `fix/readonly-stack-020rc2` 移植在役）；AnySearch extract 业务错误承载漂移（HTTP 200+code:-1 → HTTP 422，同 body 字段）已被错误信封路径吸收（详见 known-upstream-issues ① 与 upstream-alignment-checklist 注记行）。
+- 本增补并入单一 v0.2.0 发布（tag 于本增补后重打）。
+
 ## 2026-09-28 — v0.2.0 发布（单一版本：DNS 韧性层 + 上游对齐二轮 + 质量批 + 流程立宪；用户终审裁定撤销 v0.3.0 双版本方案）
 
 **修复（确定性 400 破坏项，四路独立审计抓获）**

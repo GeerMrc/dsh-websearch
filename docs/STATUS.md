@@ -99,6 +99,7 @@
 | 35 | 2026-09-27 | DNS 韧性层批 v0.2.0（进程级 DoH 解析+出口预检+区域预设池+Inspect trace；用户主计划批准+四裁定） | ✅ | docs/sessions/2026-09-27-session-35.md（含 plans 039-044 补登记 + T11-A/B/C/D 测试腿全录）；plan 035 R1-R8（R6 截图腿 zh/dark 亲验、en/light 随 S36 补；R8 治理收官本动作）+ plans 036/037/038 ✅ + 增补链 039-044（含 30bfc59 诚实回滚）；阶段4/5 二轮 **PASS/COMPLETE**（audit-logs 2026-09-28-s35-stage4-full-verification.md + …-stage5-crossvalidation.md；S-1/F-1/F-2 当批清偿）；逐工具实测 8/8 + 用户窗口级联降级实录；dd5a9df+f8e0a3f 双错误保真修复；rc.15 双名脚本化（scripts/pack.mjs）；全套件 593/593（阶段4 时点 592，S-1 用例后 593——收官批勘正） | 🟡 清零（S34 四债 T0 清偿）；🟢 新增：DNS chip 轮询/onSetDnsScope 清瘦余项/request_id 增强（正本 plan 035 债务表）；v0.2.0 定版/发版/生产切换随 S36（高危门控不变） |
 | 36 | 2026-09-28 | S35 收官 + CI 就绪与 v0.2.0 归档准备（用户三线指令：经验沉淀/GitHub+npm CI/清场定版；推送与发布逐项确认门控） | ✅ | docs/sessions/2026-09-28-session-36.md；阶段 0 独立审核 S35 现状 **PASS 有条件→三红全清**（audit-logs 2026-09-28-s36-stage0-audit-of-s35.md；T8 提前清 R-1/R-2、T1 清 R-3）；用户决策三裁定（gh secret set 注入/tag v* 全自动/仅 master+tag 推送）；阶段4 PASS（🔴 client 面 typecheck 阻塞当批清偿→双面 0）+ 阶段5 COMPLETE；v0.2.0 定版 + master 合并全绿 593/593 + 3423 清场运行 0.2.0 + CI/secret/失败恢复 runbook 就绪 | 🟢 新增：pack.mjs name 键加固/real-tier 网络窗调度（未完成节有归属指针） |
 | 37 | 2026-09-28 | 上游对齐二轮 + 代码质量批 + 流程立宪（四路独立审计驱动；plan 045 rev2）〔**版本终审裁定 2026-09-28：S37 成果并入单一 v0.2.0 发布，v0.3.0 撤销**〕 | ✅ | docs/sessions/2026-09-28-session-37.md；audit-logs s37-t0-gate-baseline + s37-stage45-review；2 个确定性 400 修复（Tavily 枚举/Exa 守卫）+ 信封三补齐 + 质量批（去重核心 -187，R6 诚实裁定）+ **AGENTS.md 上游适配强制流程立宪**；v0.3.0 定版全绿 601/601 | 🟢 alexandria 到期（2026-11-16）等见 plan 045 债务节；**候令：人工实测确认 → 单一 v0.2.0 发布序列** |
+| 38 | 2026-09-30 | DSH 0.2.0-rc 适配批·v0.2.0 重定标准备（用户指令 2026-09-29：上游更新先适配、流程化实测后重打 v0.2.0；plan 046 rev1） | ✅ | docs/sessions/2026-09-30-session-38.md；audit-logs s38-stage0-audit-of-s37 + t0-terminal-gate + t1-satisfies-matrix + t3-drill×2 + t4-7leg-matrix + t4b-e2e-real；peer 六包扩钉（0.2.0-rc.1/rc.2/>=0.2.0 <0.3.0，双语义矩阵含负控）；3434 演练 + 3423 切守卫树七腿异题矩阵 **7/7**（29 served-by 零失败）+ e2e.real 错误路径 **4/4**；阶段4 全绿 607\|17(624) + tsc/lint/i18n 0 错；阶段5 三正交 COMPLETE；422 深度二次排查（用户质询）=非未对齐 bug·四方证据+裸 curl 复现+换 key 无关+瞬时窗口自愈，新发现 AnySearch 422 承载漂移已吸收；known-upstream-issues ① 增 0.2.0-rc 行 + checklist 漂移注记 | 零新增债；**候令：v0.2.0 重打标 → master 合并 → 推送+CI 发布 → 3080 切换**（逐项呈批；慢网对策=重试一次+留痕） |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -109,10 +110,10 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 37 ✅（2026-09-28 收官——四路审计→plan 045 rev2→T0-T17 全落→阶段4/5 过；v0.3.0 定版）。**候用户放行（终审更新）**：①人工实测确认后 → 归档/打标 **单一 v0.2.0**/合并/推送/CI 发布②3080 切换 ③好窗 e2e/gh secret 补验
+- **当前 session**: Session 38 ✅（2026-09-30 收官——DSH 0.2.0-rc 适配：peer 扩钉 + 3434 演练 + 3423 切守卫树七腿矩阵 7/7 + e2e.real 4/4 + 阶段4/5 过；v0.2.0 重定标基线就绪）。**候用户放行（推送序列四步逐项门控）**：①删旧 v0.2.0 tag → 收官提交后重打 ②master 合并 ③push master+tag（CI 自动 Release+npm publish；慢网重试一次+留痕）④3080 生产切换
 > （S33/S34 收官态历史注记：v0.1.3 定版〔peer 域九版本全覆盖〕+ npm latest + **生产 3080=0.1.7-rc.2+fork（017rc2 树）+插件 v0.1.3**（备份先行 237M，回滚位 017a2 一级）；S34 文档批 known-upstream-issues 三问题登记+README/Release 联动，Release/fork 远端活体已由 S35 阶段 0 亲验〔远端 master=5d34b2f、fork head=ebd42731c9〕——详见台账 33/34 行）
-- **所处里程碑**: M7 功能扩展 ✅ 2026-09-28（S35 二次收官）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16；S36 属发版收口非 M6 验收棒）
-- **上一棒**: Session 36（docs/sessions/2026-09-28-session-36.md；再上 S35 2026-09-27-session-35.md）
-- **下一棒**: 本棒执行期（plan 045 T0-T17）；高危门控不变（推送/tag/publish/3080 逐项呈批）；后续候选——上游 0.1.8 跟进、anysearch tag/params 垂直域、429 头池切换
-- **活跃债务**: **清零**（2026-09-28 终审前提达成——处置表见 session-37 记录「债务清零处置表」节：已交付×5/N-A 实证×1/随发布消除×1/已闭合×1/升格 roadmap×2 组/唯一日历行 alexandria 2026-11-16）
-- **更新时间**: 2026-09-28（S37 阶段 6 原子收官——A/B 呈批候令）
+- **所处里程碑**: M7 功能扩展 ✅ 2026-09-28（S35 二次收官）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16；S36/S38 属发版收口非 M6 验收棒）
+- **上一棒**: Session 37（docs/sessions/2026-09-28-session-37.md；再上 S36 2026-09-28-session-36.md）
+- **下一棒**: 推送批（候令）→ 3080 生产切换 → 清场（3423/3434 + /tmp/dshws-s38、/tmp/dshws-s35）；后续候选——上游 0.2.0 稳定线跟进、anysearch tag/params 垂直域、429 头池切换
+- **活跃债务**: **清零**（S38 零新增；唯一日历行 alexandria 2026-11-16 不变）
+- **更新时间**: 2026-09-30（S38 阶段 6 原子收官——推送序列候令）
