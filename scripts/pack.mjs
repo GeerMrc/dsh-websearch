@@ -9,7 +9,7 @@
  *
  * Usage: node scripts/pack.mjs   (run `pnpm run build` first)
  */
-import { readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -69,6 +69,9 @@ function npmPack() {
 }
 
 async function main() {
+  // npm pack requires its destination directory to exist; dist-artifacts/ is
+  // git-ignored, so fresh CI checkouts never have it.
+  await mkdir(join(repoRoot, 'dist-artifacts'), { recursive: true })
   const pkg = JSON.parse(await readFile(pkgPath, 'utf8'))
   const scoped = pkg.name
   const bare = bareName(scoped)
