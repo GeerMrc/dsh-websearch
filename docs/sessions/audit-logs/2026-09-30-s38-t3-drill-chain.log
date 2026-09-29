@@ -1,0 +1,46 @@
+2026-09-29T17:03:02.798Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.91 api.exa.ai→198.18.0.92 api.firecrawl.dev→198.18.0.93 api.anysearch.com→198.18.0.94 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-29T17:03:08.602Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 latencyMs=138
+2026-09-29T17:03:09.279Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=184 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-29T17:03:10.187Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 probeDrop=1 latencyMs=127 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-09-29T17:03:10.868Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=303
+2026-09-29T17:03:10.996Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=79
+2026-09-29T17:06:37.451Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.91 api.exa.ai→198.18.0.92 api.firecrawl.dev→198.18.0.93 api.anysearch.com→198.18.0.94 code=DSHWS_DNS_AUTO_ENABLED
+2026-09-29T17:06:43.257Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=3 latencyMs=136
+2026-09-29T17:06:43.859Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=1 probeDrop=3 latencyMs=100
+2026-09-29T17:06:44.604Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=142
+2026-09-29T17:06:45.172Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=191
+2026-09-29T17:06:45.281Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=64
+2026-09-29T17:08:04.638Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-29T17:08:04.638Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-29T17:08:04.638Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-29T17:08:05.303Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=285
+2026-09-29T17:08:08.663Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:08:09.238Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:08:09.669Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:08:14.064Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-29T17:08:14.066Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-29T17:08:14.433Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-29T17:08:14.497Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-29T17:08:15.006Z [dshws-chain] member dshws-anysearch failed (AnySearch API error (HTTP 422): Unable to extract content from the URL. [extract_failed] (request_id: 2a3df611-ded1-4d13-8a67-3b448c78bff6)); degrading to next member (request-level HTTP 422)
+2026-09-29T17:08:15.007Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-29T17:08:15.876Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=212
+2026-09-29T17:08:17.105Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:08:44.697Z [dshws-dns] resolve host=api.firecrawl.dev via=cache kept=1 latencyMs=0
+2026-09-29T17:08:51.057Z [dsh-websearch] key draw dshws-anysearch …3eb1
+2026-09-29T17:08:51.059Z [dsh-websearch] key draw dshws-anysearch …40dd
+2026-09-29T17:08:51.059Z [dsh-websearch] key draw dshws-anysearch …5497
+2026-09-29T17:08:51.709Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=214
+2026-09-29T17:08:52.361Z [dshws-chain] member dshws-anysearch failed (AnySearch API error (HTTP 422): Unable to extract content from the URL. [extract_failed] (request_id: a6484a4f-8723-4643-9ca7-86cdddb873e9)); degrading to next member (request-level HTTP 422)
+2026-09-29T17:08:52.362Z [dsh-websearch] key draw dshws-firecrawl …b9c1
+2026-09-29T17:08:53.133Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=103
+2026-09-29T17:08:54.296Z [dshws-chain] served-by: dshws-firecrawl
+2026-09-29T17:08:55.460Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:08:55.739Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:08:58.754Z [dsh-websearch] key draw dshws-anysearch …8124
+2026-09-29T17:08:58.756Z [dsh-websearch] key draw dshws-anysearch …72a6
+2026-09-29T17:08:59.135Z [dshws-dns] resolve host=api.anysearch.com via=cache kept=1 latencyMs=0
+2026-09-29T17:08:59.712Z [dshws-chain] member dshws-anysearch failed (AnySearch API error (HTTP 422): Unable to extract content from the URL. [extract_failed] (request_id: 1d491e59-e17c-4814-b507-51cbe7c6dbac)); degrading to next member (request-level HTTP 422)
+2026-09-29T17:08:59.712Z [dsh-websearch] key draw dshws-firecrawl …4406
+2026-09-29T17:09:00.323Z [dshws-dns] resolve host=api.firecrawl.dev via=cache kept=1 latencyMs=0
+2026-09-29T17:09:02.861Z [dshws-chain] served-by: dshws-anysearch
+2026-09-29T17:09:11.360Z [dshws-chain] served-by: dshws-firecrawl
