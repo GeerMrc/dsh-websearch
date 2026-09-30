@@ -1,3 +1,10 @@
+## 2026-09-30 — 官方桌面端采用批（S40，零源码变更：文档/流程/适配验证）
+
+- **官方桌面端全貌定谳**：官方桌面端 = 官方仓 `apps/desktop` Electron 壳（无独立版本库），`download.deepseek.com` 三平台分发 0.2.0-rc.2（Developer ID + 公证实测）；与 web 复用同一 `~/.dsh`（数据层共享、设置与插件按 profile 隔离）。正本 docs/desktop-adoption.md。
+- **插件桌面端适配 PASS（ADR-0023）**：v0.2.0 双端装入官方 desktop profile（安装矢量 = app 内置 launcher 直调，零提权）；官方端四成员全 Configured（共享凭据解析成功）、链序徽标/DNS 韧性卡/会话共享（46+ web 历史会话可见）全活体实测；peer 域免发版（0.2.0-rc.2 ∈ 域内）。
+- **流程立制**：docs/upstream-sync-sop.md（上游监测三线 → 版本决策 → fork 守卫重放 → 双端验证矩阵 → 发版联动 → 治理落盘）；README FAQ 桌面用户条目（app 更新后插件失效为预期 + 自查/重装命令）。
+- **上游登记**：readonly-stack CJS 站点官方仍未修（upstream 停在 0.2.0-rc.2 无后续提交）；桌面端同版但仅 tsx 源码启动可见该噪音，打包产物形态不受影响（KUI ① S40 复查行）。
+
 ## 2026-09-30 — v0.2.0 发布前增补：DSH 0.2.0-rc 宿主适配（S38，v0.2.0 重定标基线）
 
 - **peer 域扩钉**：六个 DSH 宿主包 peer 追加 `0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0`——0.2.0-rc 宿主安装期与运行时兼容门双放行（semver satisfies 双语义矩阵含负控实测）；`dsh-typert-protocol` 留钉 0.1.7-rc.2（wire 层零源码变更）。

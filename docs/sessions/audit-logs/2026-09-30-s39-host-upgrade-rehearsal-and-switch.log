@@ -1,5 +1,7 @@
 # S39 生产宿主升级演练+切换证据（3425 演练场 + 3080 终验，2026-09-30 02:4x CST）
 
+> 【S40 阶段 0 审核加注 2026-09-30】本文件「3080 终验（切换后搜索腿）」段内时间戳为 2026-09-27T18:47:51-56Z 的约 230 行系**前史混入**（特征吻合 S38 七腿矩阵测试流量，非 S39 切换后生产日志）；S39 真实终验证据为该段**尾部 4 行**（2026-09-29T18:47:40-51Z = 切换后，served-by anysearch ×2，与 session-39 记录引用吻合）。原文未改动，读者请按此时间边界取信。
+
 == 3425 演练场 chain log（boot 18:42:4x 起，功能腿全录）==
 2026-09-29T18:42:44.765Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.91 api.exa.ai→198.18.0.92 api.firecrawl.dev→198.18.0.93 api.anysearch.com→198.18.0.94 code=DSHWS_DNS_AUTO_ENABLED
 2026-09-29T18:44:24.652Z [dshws-chain] served-by: dshws-anysearch

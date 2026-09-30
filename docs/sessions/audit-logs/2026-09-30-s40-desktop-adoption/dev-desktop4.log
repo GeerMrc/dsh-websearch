@@ -1,0 +1,4 @@
+[ERR_PNPM_NO_SCRIPT] Missing script: start:desktop
+
+But script matched with start:desktop is present in the root of the workspace,
+so you may run "pnpm -w run start:desktop"
