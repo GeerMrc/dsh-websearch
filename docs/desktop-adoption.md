@@ -96,7 +96,15 @@
   - **并发实测**：生产 web 3080（pid 77804）与官方桌面 19387（pid 6403）同时监听在役，互不干扰——§5 并发结论实证。
   - carrier：`/usr/local/bin/dsh` 未自动安装（app 内对话框 + 管理员提权手动触发）；内置 launcher 直调可用（见 §6）。
   - 事故记录（已闭环）：执行者在只读 dmg 挂载卷上误跑 `--version`（Electron 忽略该 flag 直接启动 GUI），命令取消后 stdout 管道断裂 → 主进程 `write EPIPE` 崩溃弹窗；根因=管道断裂非安装缺陷；进程无残留；副作用=意外完成 `profiles/desktop` 骨架初始化（后续正式启动直接复用）。教训入 dont-do：Electron 二进制禁直跑取版本（读 Info.plist），启动一律 `open -a`。
-- [ ] T3 源码构建 dev 桌面：构建链/隔离 home/调试端口
+- [x] **T3 源码构建 dev 桌面（macOS arm64 主 checkout）— PASS（2026-09-30，历经 5 关，全过程即 runbook）**：
+  - 终态证据：运行时冒烟全过（`Office runtime versions and document round trips passed.`、`No broken requirements found.`、pnpm 11.7.0）；`DSH_HOME=<repo>/apps/desktop/.desktop-build/development/home`（隔离，生产 `~/.dsh` 时间戳全程未变）；inspectors main=9229/renderer=9222/host=9230；host 打印 `dsh web: http://127.0.0.1:19387/?token=…` 且 Electron LISTEN 19387；dev home 独立生成 profiles/desktop + sessions + storages。
+  - **构建/启动五关（SOP 源码构建 runbook 素材，按序排障）**：
+    1. 陈旧 `lib/` 产物致 tsdown RESOLVE_ERROR（`api-trust`/`claim-support` 子路径不在 exports）→ 先 `pnpm run clean`（清 334 路径）再 `pnpm run build` 即绿。
+    2. `.pnpm/node_modules` 陈旧 hoisted 链接（旧布局包：dsh-acp-demo/dsh-examples 等 27+ 条，pnpm 不修剪、clean 也不覆盖）→ 按「symlink 且 target 缺失或无 package.json」精确清扫。
+    3. `native/landlock-run/` 整目录为重构前未跟踪残渣（官方已迁 `native/system`，commit 336ebb235e；`git ls-files` 证实无跟踪文件）→ 删除后 landlock ENOENT 消失。干净克隆无此三关，属本机历史残渣。
+    4. Electron 二进制下载静默挂死 → `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 立解（v44 约 128M 入 `~/Library/Caches/electron`）。
+    5. `preparePrimaryRuntime()` 15 项资产（node 24.21.0 + cpython 3.12.14 standalone + 12 wheels）undici 裸 fetch 挂死且**不吃代理变量** → 先 curl 预热缓存：目标目录为 `apps/desktop/.desktop-build/downloads/`（**注意与根脚本默认 `/tmp/dsh-primary-runtime-downloads` 不同**），文件名=sha256，命中即跳网；国际腿间歇中断时按「nodejs.org→npmmirror / pypi→aliyun/tuna / github→代理链」变换 URL，sha256 强校验兜底字节一致性。
+  - 进程管理教训：`nohup … &` 挂在已结束的前台工具调用下会随会话清理被 SIGTERM；dev 常驻须用受管后台任务或独立终端。
 - [ ] T5 插件桌面适配：安装矢量（已定谳见 §6）/五面矩阵/并发冒烟/风险点
 
 ## 10. 证据清单（harness 树 `fix/readonly-stack-020rc2`，2026-09-30 核对）
