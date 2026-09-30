@@ -168,6 +168,7 @@ dsh-websearch:
 
 ## FAQ / 已知行为
 
+- **官方桌面端（Electron app）能用本插件吗**：能。桌面端与 web 端共用 `~/.dsh`（key/会话/工作区直接共享），插件按 profile 隔离需各自安装：桌面端用 app 内置命令装 `'/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh' plugin --profile desktop add @maricgeer/dsh-websearch`（装完重启 app）。**app 自动更新后插件可能失效/拒装——这是预期行为**（更新会替换捆绑运行时，预发布版本不在插件兼容域时被 peer 门拦下）：自查 `'<同上 launcher>' plugin --profile desktop add @maricgeer/dsh-websearch` 重装即可；仍失败说明需要等插件适配新版（见 [known-upstream-issues](docs/known-upstream-issues.md) 与 [desktop-adoption](docs/desktop-adoption.md)）。
 - **官方 web_fetch 在代理环境报错**：宿主 SSRF 硬防护 × TUN fake-ip 所致（非本插件 bug）。开 `fetchTakeover` 走云端 extract 链即绕开。
 - **Perplexity 哪去了**：已移除（ADR-0017——无免费额度可申请，不满足准入标准）。存量 settings.yaml 的 `perplexity:` 残节无害（schema 透传），可手动清理。
 - **AnySearch 垂直面 tag/params 未实现**：待 key 探针（S22 登记）。
@@ -176,6 +177,8 @@ dsh-websearch:
 
 ## 更多文档
 - [docs/known-upstream-issues.md](docs/known-upstream-issues.md) —— 已知上游 DSH 问题登记表（现象/规避/自查命令，含 fork 修复分支用法）
+- [docs/desktop-adoption.md](docs/desktop-adoption.md) —— 官方桌面端全貌与采用实测（ADR-0023）
+- [docs/upstream-sync-sop.md](docs/upstream-sync-sop.md) —— 随官方上游（npm 线 + 桌面端）迭代的同步 SOP（监测/决策/守卫重放/双端验证/发版联动）
 
 - 架构正本：[docs/00-architecture.md](docs/00-architecture.md)
 - 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0022）
