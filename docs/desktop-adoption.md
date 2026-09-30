@@ -68,7 +68,8 @@
 
 - 外部 CLI 直装**被硬拒**：`dsh plugin --profile desktop` 报 "profile desktop is managed exclusively by the Electron application"（`apps/cli/src/args.ts:83-87`，plugin 子命令在 `args.ts:195` 处再拒）。
 - **唯一合法矢量 = 桌面 app 携带的 carrier `dsh` 命令**：`apps/desktop-host/src/cli.ts:18` 以 `manageDesktopProfile: true` 启动 CLI——即桌面 app 安装时注册的 `dsh` 命令载体（destination 记录在 `.dsh-desktop-command.json` receipt，可据此定位）。
-- Web UI 的 Plugins 页（plugin-inventory）是 catalog/preset 驱动（搜索/预设/开关），**没有自由 spec 输入框**；对第三方插件的实际支持面以 T5a 实测为准（npm 包名 / tarball file: / GitHub Release）。
+- Web UI 的 Plugins 页（plugin-inventory）是 catalog/preset 驱动（搜索/预设/开关），**没有自由 spec 输入框**。
+- **T5a 实测定谳（2026-09-30）**：`/usr/local/bin/dsh` 符号链接并非必需——**直接调用 app 内置 launcher 即可**：`'/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh'`（shell 脚本，`ELECTRON_RUN_AS_NODE=1` 以 app 二进制跑 `app.asar` 内 `dsh-desktop-host/lib/cli.js`）。实测：`--version` → `0.2.0-rc.2`；`plugin --profile desktop list` 放行（外部守卫树 CLI 同命令被拒 `profile "desktop" is managed exclusively by the Electron application`）；无子命令时提示 `plugin needs pnpm arguments to forward (e.g. add <package>)`。**桌面端插件安装矢量 = `<launcher> plugin --profile desktop add <pkg-spec>`**，零提权零 UI。`/usr/local/bin/dsh` 的 app 内对话框安装（osascript 管理员提权，`command-management.ts:138-170`）只是 PATH 便利件，非功能依赖。
 - 装入 desktop profile 后插件对 web profile 无影响（§5 隔离），反之亦然。
 
 ## 7. 对 dsh-websearch 的适配判定（S40 时点）
@@ -86,9 +87,17 @@
 
 > 本节由 T2（官方安装包）/ T3（源码构建 dev）/ T5（桌面插件适配）实测回填：下载校验命令与输出摘要、`CFBundleShortVersionString` 对照、19387 监听证据、home 复用前后对照、carrier 命令 destination、三形态 × 五面（装入/注册/路由/UI/工具）矩阵结果。证据工件归档 `docs/sessions/audit-logs/`。
 
-- [ ] T2 官方安装包（macOS arm64）：下载/签名校验/安装/启动/版本对照/home 复用实测
+- [x] **T2 官方安装包（macOS arm64）— 全部 PASS（2026-09-30）**：
+  - 下载：`desktop/dsh-latest-macos-arm64.dmg` HTTP 200，369,764,183 B（≈55MB/s，6.7s）；dmg sha512 `6b88f10d…37`（feed 内 sha512 属 ZIP 更新产物，与 dmg 天然不同，均各自留档）。
+  - 签名/公证：`com.deepseek.dsh`，Developer ID Application: Hangzhou DeepSeek Artificial Intelligence Co., Ltd（Team `NAN929V4UM`），Timestamp 2026-09-29；`spctl -a -vv` → **accepted, source=Notarized Developer ID**；安装副本 `codesign --verify --deep --strict` valid。
+  - 版本对照：`CFBundleShortVersionString` = `CFBundleVersion` = `0.2.0-rc.2`，与三平台 feed version 逐字一致。
+  - 启动：主进程 pid 6403（`--expose-internals` 起 host），host 监听 `127.0.0.1:19387`，`curl /` → HTTP 401（与 web 同款 process-token 鉴权）；渲染进程经 `dsh-app://` 正常出 UI。
+  - **home 复用实测**：首轮组合更新 `profiles/desktop/cordis.patch.yml`（217B→661B，引导状态 `completion: api-key`——**自动识别共享 `.credentials.yaml` 的 API key，免登录**）；`profiles/desktop/package.json`（bundles=web 模板，无插件）与 `pnpm-workspace.yaml` 内容未动（"Existing files are never touched" 实证）；`profiles/web` 时间戳全程未变（02:28/02:47）；home 顶层零新增；`dsh-runtimes` 未出现（office 载荷惰性安装，符合 README「on first use」）。
+  - **并发实测**：生产 web 3080（pid 77804）与官方桌面 19387（pid 6403）同时监听在役，互不干扰——§5 并发结论实证。
+  - carrier：`/usr/local/bin/dsh` 未自动安装（app 内对话框 + 管理员提权手动触发）；内置 launcher 直调可用（见 §6）。
+  - 事故记录（已闭环）：执行者在只读 dmg 挂载卷上误跑 `--version`（Electron 忽略该 flag 直接启动 GUI），命令取消后 stdout 管道断裂 → 主进程 `write EPIPE` 崩溃弹窗；根因=管道断裂非安装缺陷；进程无残留；副作用=意外完成 `profiles/desktop` 骨架初始化（后续正式启动直接复用）。教训入 dont-do：Electron 二进制禁直跑取版本（读 Info.plist），启动一律 `open -a`。
 - [ ] T3 源码构建 dev 桌面：构建链/隔离 home/调试端口
-- [ ] T5 插件桌面适配：安装矢量/carrier 入口/五面矩阵/并发冒烟/风险点
+- [ ] T5 插件桌面适配：安装矢量（已定谳见 §6）/五面矩阵/并发冒烟/风险点
 
 ## 10. 证据清单（harness 树 `fix/readonly-stack-020rc2`，2026-09-30 核对）
 
