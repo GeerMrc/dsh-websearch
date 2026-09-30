@@ -181,6 +181,6 @@ dsh-websearch:
 - [docs/upstream-sync-sop.md](docs/upstream-sync-sop.md) —— 随官方上游（npm 线 + 桌面端）迭代的同步 SOP（监测/决策/守卫重放/双端验证/发版联动）
 
 - 架构正本：[docs/00-architecture.md](docs/00-architecture.md)
-- 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0022）
+- 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0023）
 - 升级演练手册：[docs/upgrade.md](docs/upgrade.md)
 - 治理看板：[docs/STATUS.md](docs/STATUS.md)
