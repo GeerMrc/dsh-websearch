@@ -1,0 +1,16 @@
+$ pnpm --filter @deepseek-ai/dsh-desktop run start
+native/system/packages/darwin-x64        | [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+native/system/packages/linux-arm64       | [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+native/system/packages/linux-x64         | [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["linux"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+$ tsx scripts/dev.ts --skip-build
+Office runtime versions and document round trips passed.
+No broken requirements found.
+11.7.0
+desktop development: DSH_HOME=/Volumes/IPFSJK/Zcode/deepseek-harness/apps/desktop/.desktop-build/development/home
+desktop development: userData=/Volumes/IPFSJK/Zcode/deepseek-harness/apps/desktop/.desktop-build/development/electron-user-data
+desktop development: inspectors main=9229, renderer=9222, host=9230
+Debugger listening on ws://127.0.0.1:9229/44a226b4-20d6-4c3c-9391-a3d296053700
+For help, see: https://nodejs.org/learn/getting-started/debugging
+
+DevTools listening on ws://127.0.0.1:9222/devtools/browser/f6b6f527-afe0-4788-b766-d6100b1f7b5a
+dsh web: http://127.0.0.1:19387/?token=zZrFPBttOexQeSY4PELJvaUhULboxTCqYqnKTG36fGA

@@ -85,7 +85,7 @@
 
 ## 9. 三形态安装与插件适配实测记录（随 S40 任务回填）
 
-> 本节由 T2（官方安装包）/ T3（源码构建 dev）/ T5（桌面插件适配）实测回填：下载校验命令与输出摘要、`CFBundleShortVersionString` 对照、19387 监听证据、home 复用前后对照、carrier 命令 destination、三形态 × 五面（装入/注册/路由/UI/工具）矩阵结果。证据工件归档 `docs/sessions/audit-logs/`。
+> 本节由 T2（官方安装包）/ T3（源码构建 dev）/ T5（桌面插件适配）实测回填：下载校验命令与输出摘要、`CFBundleShortVersionString` 对照、19387 监听证据、home 复用前后对照、carrier 命令 destination、三形态 × 五面（装入/注册/路由/UI/工具）矩阵结果。证据工件归档 `docs/sessions/audit-logs/2026-09-30-s40-desktop-adoption/`（17 工件 + 索引）。**实测边界声明：本节全部桌面端实测在 macOS arm64（darwin 25.6.0）进行；win-x64 仅有 feed/打包链源码核实，未实装验证。官方 app 常态运行不落盘日志（`app.getPath('logs')` 目录实测为空，§4 日志行为源码推读 + 崩溃时才写）。**
 
 - [x] **T2 官方安装包（macOS arm64）— 全部 PASS（2026-09-30）**：
   - 下载：`desktop/dsh-latest-macos-arm64.dmg` HTTP 200，369,764,183 B（≈55MB/s，6.7s）；dmg sha512 `6b88f10d…37`（feed 内 sha512 属 ZIP 更新产物，与 dmg 天然不同，均各自留档）。

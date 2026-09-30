@@ -24,7 +24,7 @@ Plugin metadata for <某个插件包名>: TypeError: Cannot assign to read only 
 |---|---|
 | 0.1.7-alpha.2 / 0.1.7-rc.1 | ❌ 两处代码路径全裸（都会踩） |
 | **0.1.7-rc.2** | ⚠️ **半修复**：ESM importer 路径官方已修；`MODULE_NOT_FOUND` 的 CJS require-stack 路径**仍未修** |
-| **0.2.0-rc.1 / 0.2.0-rc.2** | ⚠️ **同半修复状态延续**（2026-09-30 S38 实测核对：ESM 站点已修、CJS 站点仍裸）。fork 守卫已移植：分支 `fix/readonly-stack-020rc2` = `dsh-v0.2.0-rc.2` + ebd42731c9 cherry-pick（=9370b2f7f9），S38 3434 演练 + 3423 七腿矩阵全程在该树在役零复发。**S40 2026-09-30 复查**：`git fetch upstream` 后 upstream/master 仍停在 `639ed01539`（0.2.0-rc.2 发布合并，无后续提交），全史 `--grep` 无官方等价修复——守卫继续必要；官方桌面端 0.2.0-rc.2（download.deepseek.com 三平台同版）同受影响，桌面形态无守卫可打，静默影响仅为启动期错误分类噪音（不影响插件功能，桌面端插件适配实测全过，见 [desktop-adoption.md](desktop-adoption.md)） |
+| **0.2.0-rc.1 / 0.2.0-rc.2** | ⚠️ **同半修复状态延续**（2026-09-30 S38 实测核对：ESM 站点已修、CJS 站点仍裸）。fork 守卫已移植：分支 `fix/readonly-stack-020rc2` = `dsh-v0.2.0-rc.2` + ebd42731c9 cherry-pick（=9370b2f7f9），S38 3434 演练 + 3423 七腿矩阵全程在该树在役零复发。**S40 2026-09-30 复查**：`git fetch upstream` 后 upstream/master 仍停在 `639ed01539`（0.2.0-rc.2 发布合并，无后续提交），全史 `--grep` 无官方等价修复——守卫继续必要（仅 fork 源码树/tsx 启动形态需要；官方桌面端跑打包产物，按本条触发条件不受影响——桌面端插件适配实测全过，见 [desktop-adoption.md](desktop-adoption.md)） |
 | 0.1.5-rc.x | ✅ 不受影响——该解析器改写机制在这些版本尚不存在（树中无 `profile-resolution/` 模块） |
 | 0.1.6-alpha.1 | ✅ 机制在（两处裸赋值），但未观察到触发——实测证据见 [S33 演练](sessions/audit-logs/2026-09-26-s33-t6-drill.md)（该线冒烟零症状，生产曾长期在役） |
 

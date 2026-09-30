@@ -131,3 +131,29 @@
 - **错误**：T14（杂项批）执行时被 lint 复零工作占据，四项计划内容（testid 前缀化/大小写统一/字符串手术换映射/魔法数收口）静默未做且提交信息零提及——阶段 4 独立审核以「🔴 声称完成而工件未落盘」家族标准逮住，被迫补做批。
 - **正确**：执行中判定某计划项不做（被挤占/审后判不值得/依赖缺失）→ 当场在 session 记录或提交信息留改判（「不做+理由+去向」），或拆入债务表；禁止无声消失。子教训：**门墙读数读全输出**——`oxlint | tail -1` 只见 Finished 行，26 条警告存活三轮任务未被察觉。
 - **来源**：S37 阶段 4 🔴-1（audit-logs/2026-09-28-s37-stage45-review.md；补做批 d2d9e8a）。
+
+## 桌面端/构建环境（Session 40 入册；含一次用户目击的主进程崩溃弹窗）
+
+### ❌ 不要在 shell 里直跑 Electron app 二进制取版本/探测——Electron 忽略 --version 直接启动 GUI，管道断裂即 EPIPE 主进程崩溃弹窗
+
+- **错误**：在只读 dmg 挂载卷上 `"$APP/Contents/MacOS/DeepSeek Harness" --version`——Electron 不认识该 flag 直接启动整个 app；随后宿主命令被取消、stdout 管道关闭，app 主进程继续写管道 → `Uncaught Exception: Error: write EPIPE` 崩溃弹窗（用户目击「好像安装有问题」，实为管道断裂非安装缺陷）。副作用：意外完成 profiles/desktop 骨架初始化。
+- **正确**：读版本一律 `PlistBuddy -c 'Print :CFBundleShortVersionString' <app>/Contents/Info.plist`（零进程启动）；启动 GUI 一律 `open -a`；确需捕获 GUI 进程 stdout（如取 host token）时以受管后台任务 `tee` 落盘且**绝不关闭其管道**，验完 `osascript quit` + `open -a` 恢复标准启动。
+- **来源**：S40 T2 事故（desktop-adoption §9 T2 事故记录节；截图目击 + 根因链）。
+
+### ❌ 不要对 GUI 启动的进程跑 `ps eww`——会把登录 shell 继承的全部凭据倾倒进输出
+
+- **错误**：为找桌面 host token 对官方 app 主进程 `ps eww -p <pid>`——输出包含 GITHUB_TOKEN/NPM_TOKEN 等真实凭据（工具结果即泄漏面；本批未写入任何交付物）。
+- **正确**：诊断 GUI 进程用 `ps -p <pid> -o command=`（仅命令行）；token/机密类信息走受控落盘日志（如上条的 tee 法），不进终端回显。
+- **来源**：S40 T5c 取证过程（教训自获，未造成外泄）。
+
+### ❌ 不要把 dev 常驻进程用 `nohup … &` 挂在会结束的前台工具调用下——会话清理会 SIGTERM 它
+
+- **错误**：`nohup pnpm run start:desktop … &` 后前台调用结束，约 2 分钟后 dev.ts 被 `terminated`（SIGTERM；nohup 只挡 SIGHUP 不挡组信号）。
+- **正确**：长驻进程用宿主的受管后台任务机制，或独立终端/tmux。
+- **来源**：S40 T3 第三次启动失败现场（dev-desktop8.log 尾行 `terminated`）。
+
+### ❌ 不要信任长期未构建/换树后的主 checkout 直接 build——先 `pnpm run clean`，且 hoisted 旧链接要按判据清扫
+
+- **错误**：直接 `pnpm run build` 撞陈旧 `lib/` 产物（tsdown RESOLVE_ERROR 报 exports 子路径缺失）；清了 lib 又撞 `.pnpm/node_modules` 里旧布局包的 hoisted 符号链接（acp-demo/dsh-examples/landlock 家族，pnpm 与 clean 均不修剪）与未跟踪残渣目录（`native/landlock-run/`，重构前遗留）——同一目标连续五关。
+- **正确**：换树/久未构建先 `pnpm run clean`；投影/解析报包 ENOENT 时按「symlink 且 target 缺失或无 package.json」精确清扫 `.pnpm/node_modules` 顶层与 @scope 两层；疑似残渣目录先 `git ls-files <dir>` 确认零跟踪再删。完整 runbook 见 upstream-sync-sop §3/§6。
+- **来源**：S40 T3 五关全过程（audit-logs/2026-09-30-s40-desktop-adoption/ build-full→dev-desktop11 时序）。

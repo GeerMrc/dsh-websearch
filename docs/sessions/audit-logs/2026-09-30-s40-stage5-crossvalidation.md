@@ -1,0 +1,31 @@
+# S40 阶段 5 交叉验证记录（2026-09-30）
+
+> 第三只眼 Agent（与执行、阶段 4 审核均隔离）；只读实测（live curl/lsof/Info.plist/git 本地 ref/stat），未修改文件、未做 fetch 等写副作用操作。
+
+## 总结论：COMPLETE-WITH-NOTES
+
+用户五目标全部有对应交付物且核心声明经独立实测坐实：**12+ 处数字/事实抽查零漂移**（feed 版本/字节数/releaseDate、dmg sha512、桌面 patch 661B、profiles/web 时间戳、pid 77804、639ed01539、9370b2f7f9、Info.plist、15 项资产、6 处源码行号）；三形态活体终态快照全部在役（3080=node 77804 / 3423=node 21072 / 19387=DeepSeek 25798，均 401 鉴权）。未发现虚假完成声明。
+
+## 三维结论
+
+- **完整度**：五目标映射成立；SOP 治理要素基本齐备（「预防」腿当时缺 dont-do 实物 → 收尾批补）；四件关键产物（更新触发链/peer 二分/home 边界表/三×五矩阵）均可指认。
+- **技术债**：真实搜索腿未随桌面实跑——三处显式诚实标注（§9 T5 矩阵注/ADR-0023 D4/SOP §4）；残渣关 2/3 为「检测清治」非防复发（表述已由收尾批勘正）；/usr/local/bin/dsh 未装不构成依赖；master 合入的程序性前提 = 阶段 4/5 记录归档（本批完成）。
+- **遗漏/前瞻**：Windows 形态留白合理但未显式声明边界（→收尾批补「实测边界 macOS arm64」句）；updater 未来拒装不确定性已三处显式化且未把未观测说成已观测。
+
+## 收尾批处置对照（本记录同批落盘）
+
+| 阶段 5 指出 | 处置 |
+|---|---|
+| 【时限最紧】/tmp 证据易失、§9 空指 | ✅ 归档 `2026-09-30-s40-desktop-adoption/`（17 工件 + 索引） |
+| 阶段 4/5 记录未归档（合入 master 程序前提） | ✅ 本记录 + s40-stage4-review.md |
+| dont-do Electron 条目声称入册实物缺失 | ✅ dont-do.md 补 4 条（EPIPE/ps eww/nohup/hoisted 链接） |
+| CHANGELOG 无 S40 条目 | ✅ 已补 |
+| KUI ①「桌面端同受影响」与触发条件（仅 tsx 源码启动可见）的内部张力 | ✅ 措辞勘正为保守版 |
+| desktop-adoption 缺实测边界句 / 官方日志目录为空系源码推读 | ✅ 补边界句 + 日志注记 |
+| SOP §0⑦ 六件套枚举漏两腿；§4(b) 示例 npm spec 与实际 file: tgz 差异 | ✅ 均补 |
+| plan 047 未补档 | ✅ docs/plans/2026-09-30-047 补档 |
+
+## 隐性债务（显式登记，非阻塞）
+
+- desktop profile（官方 + dev 两处）钉 `file:…/dist-artifacts/dsh-websearch-0.2.0.tgz`——dist-artifacts 为 git-ignored 持久卷目录，误清将断 profile 重装供源（S30 同族债务；SOP §4(b) 已注记差异，官方用户路径以 npm spec 为正）。
+- 官方 app 更新后插件拒装/失活的**实测观测**只能在未来更新事件发生时进行（SOP §1 线 3 + README FAQ 已设预期与自查命令）。

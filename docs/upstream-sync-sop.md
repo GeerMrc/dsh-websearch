@@ -21,7 +21,7 @@
       ↓
 ⑥ fork 守卫重放（仅当官方未修已登记问题）：新版本 worktree + cherry-pick + 重建 + 3434 验证
       ↓
-⑦ 治理落盘（STATUS/roadmap/CHANGELOG/audit-logs/session 记录 + KUI 状态表刷新）
+⑦ 治理落盘（session 记录 + audit-logs 证据归档 + STATUS/roadmap 台账 ✅ + CHANGELOG + 踩坑沉淀〔RCA/dont-do〕+ 接力指令——完整六件套见 §7）
 ```
 
 ## 1. 上游监测三线（快查命令块）
@@ -74,6 +74,8 @@ DSH_HOME=<scratch-home> node --import tsx/esm apps/cli/src/bin.ts plugin --profi
 DSH_HOME=<scratch-home> node --import tsx/esm apps/cli/src/bin.ts web --port 3423 --no-open
 
 # (b) 官方桌面形态（carrier 直调；app 须在跑——profile 锁要求）
+#     官方用户/长期形态用 npm spec；本机验证批次用 file: tgz 亦可（注意：file: 钉路径，
+#     dist-artifacts 为 git-ignored 目录，误清将断该 profile 重装供源——S30 同族债务，登记在案）
 '/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh' plugin --profile desktop add @maricgeer/dsh-websearch
 osascript -e 'quit app "DeepSeek Harness"'; sleep 4; open -a "DeepSeek Harness"   # 重启重新组合
 
