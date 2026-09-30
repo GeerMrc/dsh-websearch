@@ -105,7 +105,8 @@
     4. Electron 二进制下载静默挂死 → `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 立解（v44 约 128M 入 `~/Library/Caches/electron`）。
     5. `preparePrimaryRuntime()` 15 项资产（node 24.21.0 + cpython 3.12.14 standalone + 12 wheels）undici 裸 fetch 挂死且**不吃代理变量** → 先 curl 预热缓存：目标目录为 `apps/desktop/.desktop-build/downloads/`（**注意与根脚本默认 `/tmp/dsh-primary-runtime-downloads` 不同**），文件名=sha256，命中即跳网；国际腿间歇中断时按「nodejs.org→npmmirror / pypi→aliyun/tuna / github→代理链」变换 URL，sha256 强校验兜底字节一致性。
   - 进程管理教训：`nohup … &` 挂在已结束的前台工具调用下会随会话清理被 SIGTERM；dev 常驻须用受管后台任务或独立终端。
-- [ ] T5 插件桌面适配：安装矢量（已定谳见 §6）/五面矩阵/并发冒烟/风险点
+- [x] **T4 dsh web 3423 基线复核 — PASS（2026-09-30）**：生产同款 020rc2 守卫树（worktree `dsh-harness-020rc2`）+ 全新 scratch home `/tmp/dshws-s14a/home`（S39 已清场，本批重建）；`plugin --profile web add file:…dsh-websearch-0.2.0.tgz` 一次过（+6 包；manifest `dependencies` + `dsh.profile.bundles` 双登记）；`--port 3423 --no-open` 启动即监听（HTTP 401 鉴权同款）。UI 实测（浏览器自动化）：侧栏版本横幅 **`0.2.0-rc.2-9370b2f`**（守卫树 commit 实锤）；Settings 导航出现 **Web Search 节**（插件 client.js 完整渲染：链序说明卡、Tavily/Exa/Firecrawl/AnySearch 四成员卡〔未配置态〕、web_fetch 接管开关 ON、**DNS 韧性卡 DoH active + reserved-range 证据行**〔api.*.com → 198.18.0.x，本机 fake-ip 网络下自动启用，正是设计行为〕）；设置页脚 `Current version: 0.2.0-rc.2`。运行时路由佐证：S38 生产切换实录（真实搜索 served-by `dshws-anysearch ×5`，audit-log s38-prod-switch）+ 生产 3080 同树同插件在役。另：0.2.0-rc.2 官方 Preview Notice 原文即宣告「The new desktop app now targets a broad range of users」——桌面端官方定位佐证。
+- [ ] T5 插件桌面适配：安装矢量（已定谳见 §6）/dev 与官方双端五面矩阵/并发冒烟/风险点实测（进行中）
 
 ## 10. 证据清单（harness 树 `fix/readonly-stack-020rc2`，2026-09-30 核对）
 
