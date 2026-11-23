@@ -66,13 +66,13 @@
 | T6 | `src/handover.ts`：`planHandoverOps`、`revertHandover` | `tests/handover.spec.ts` 先红后绿：dshws 搜索钉、dshws 抓取钉、双钉同清、官方 id 保留、第三方 id 保留、空用户层 | T5p |
 | T7 | 宿主 dispose 通道。仅当 T5p 在形态 H、向量=插件页开关的单元里证明 dispose 触发且 `mutate` 落盘时实现；否则不实现，ADR-0024 改为单通道并写明限制 | 实现时：`tests/handover-host.spec.ts` 先红后绿（dispose 触发一次 `mutate`；无钉不调用；抛错被吞并告警；无 settings 服务时空操作），且 T5p 有落盘证据。不实现时：`src/` 无 dispose 写入，`inject` 仍为 `['web','credentials']` | T6 |
 | T8 | 客户端通道：`src/client/handover-watch.ts` 监听 `plugin-manager/changed`，兼容裸名 `dsh-websearch` 与 scoped 名 `@maricgeer/dsh-websearch`，冲突时重读重试一次；宿主缺少 `pluginManager` 或 `configForms` 时不订阅 | `tests/client/handover-watch.spec.tsx` 先红后绿 | T7 |
-| T9 | 文档分离：`locale/zh.json`、`locale/en.json`、`docs/plugin-page.{zh,en}.md`、`package.json` 的 `exports` 与 `files`；README 中英文分工声明与勘正（含 README.md:38 的卸载表述与 :175 的闲置卡条目）；兼容性段写明 0.1.5、0.1.6 宿主启动日志会多一条 `patch: entry "ui-settings-web-search" not found` 告警 | `tests/package-meta.spec.ts` 先红后绿：元信息非空、detail 路径合法、文件存在、已入 `files`、已导出；用户文档按既定结构 | T8 |
-| T10 | `scripts/check-release.mjs` 与 `pnpm run check:release`。tag 模式断言：tag 形如 `vX.Y.Z` 且等于 `package.json` 版本；CHANGELOG 的首个日期二级标题含 `v<版本>`（历史条目里不带 `v` 的提法不算）；`USER_AGENT` 等于 `dsh-websearch/<版本>`；HEAD 被 `origin/master` 或 `master` 包含。两种模式都断言：两份 tarball 含运行必需文件与显示元信息文件、不含内部治理文档、被跟踪文件里没有带值的 `token=` | `tests/check-release.spec.ts` 先红后绿；负控用例：只含历史「0.2.1」提法的 CHANGELOG 必须判失败 | T9 |
+| T9 | 文档分离：`locale/zh.json`、`locale/en.json`、`docs/plugin-page.{zh,en}.md`、`package.json` 的 `exports` 与 `files`；README 中英文分工声明与勘正（含 README.md:38 的卸载表述与 :175 的闲置卡条目）；兼容性段说明 0.1.5、0.1.6 宿主启动时会对该 patch 条目打一条未命中的 loader 告警（逐字文本以实测为准，未实测则只写含义） | `tests/package-meta.spec.ts` 先红后绿：元信息非空、detail 路径合法、文件存在、已入 `files`、已导出；用户文档按既定结构 | T8 |
+| T10 | `scripts/check-release.mjs` 与 `pnpm run check:release`。tag 模式断言：tag 形如 `vX.Y.Z` 且等于 `package.json` 版本；CHANGELOG 的首个日期二级标题含 `v<版本>`（历史条目里不带 `v` 的提法不算）；`USER_AGENT` 等于 `dsh-websearch/<版本>`；tag 对象指向 HEAD，且 HEAD 被 `origin/master` 或 `master` 包含。两种模式都断言：两份 tarball 含运行必需文件与显示元信息文件、不含内部治理文档、被跟踪文件里没有带值的 `token=` | `tests/check-release.spec.ts` 先红后绿；负控用例：只含历史「0.2.1」提法的 CHANGELOG 必须判失败 | T9 |
 | T11 | `release.yml` 改 OIDC（`id-token: write`、npm ≥ 11.21、`--provenance`、`fetch-depth: 0`、无 `NPM_TOKEN`）并加全量门；`ci.yml` 在 PR 与 master 推送上执行发布预演（全量门、一致性校验非 tag 模式、打包、tarball 校验）；加 devDependency `yaml` 与工作流契约测试。契约测试锁定 `release.yml` 里 check-release 的调用行，并要求它与 T18 步骤 2b 的本地调用一致 | 契约测试先红后绿（无 `NPM_TOKEN`、有 `id-token: write`、`fetch-depth: 0`、步骤顺序、check-release 调用行）；fresh clone 本地预演通过。本地预演只执行安装、构建、check-release 非 tag 模式、打包、tarball 校验与契约测试，不跑全量门。YAML 实读命令为 `node -e "require('yaml').parse(require('fs').readFileSync(process.argv[1],'utf8'))" <文件>` | T10 |
 | T12 | rc.5 实测（条目见下）：T5p、环境条目、交还条目、功能腿 | 证据归档 `docs/sessions/audit-logs/2026-11-23-s41-rc5-live/`；T5p 的证据在 T5p 时归档 | T11 |
 | T13 | 实测结果回填 known-upstream-issues 与 desktop-adoption；`docs/release-runbook.md`；`docs/upgrade.md` §6 改写为与 ADR-0026 一致；架构注记 | 交叉链接无断链 | T12 |
 | T14 | 阶段 4：独立 Agent 逐条核验 R1–R8 并跑一次全量测试；核对 T5p 矩阵与日志原文 | 逐任务 PASS；报告含命令原文与实测数字 | T13 |
-| T15 | 阶段 5：独立 Agent 交叉验证；冒烟内容为在 rc.5 的 3434 实例上重做 V2、V3、V5、V7 | COMPLETE | T14 |
+| T15 | 阶段 5：独立 Agent 交叉验证；冒烟内容为在 rc.5 的 3434 实例上重做 V2、V3、V5、V7（V5、V7 在形态 H 与 N 各一次） | COMPLETE | T14 |
 | T16 | 阶段 6：收尾六件套；ADR-0024 按实测结论定稿并转 accepted；CHANGELOG 新增 S41 的日期条目（不含版本号，版本条目由 T17 另增）；STATUS 与 roadmap 收官。S41 的收官范围为 T0–T16；T17、T18 归 Session 42 | 六件套齐全；状态为「候令：代码终审，通过后启动 Session 42」，或 key 窗口不可得分支规定的状态 | T15 |
 | T17 | Session 42：用户确认代码审核后，版本号改 0.2.1、`USER_AGENT`，在 T16 条目之上新增 v0.2.1 的 CHANGELOG 条目；在 feat 分支跑 `check-release` 非 tag 模式与全量门；由 Session 42 的阶段 4 独立核验 | `tests/user-agent.test.ts` 先红后绿；独立核验 PASS | 用户确认；R5 功能腿有留痕 |
 | T18 | Session 42：发布序列（步骤见下），每步单独门控 | 满足 R9 | T17 |
@@ -126,7 +126,10 @@ profile `web`，不接触 `~/.dsh`。首选直接用桌面 app 内置命令
 - R5 的功能腿子句记「受阻」，不得记 PASS。
 - T13–T16 照常进行（文档与收尾不依赖 key）。
 - S41 台账状态记为「至 T16 完成，R5 功能腿受阻，待 key 窗口」；roadmap 行 41 保持未完成。
-- Session 42 不得启动。key 窗口出现后先补做功能腿并通过阶段 4 复验，再启动 Session 42。
+- Session 42 不得启动。key 窗口出现后先补做功能腿并通过阶段 4 复验，再启动 Session 42。复验按增量采信：
+  产品代码未变则不重跑全量，只核对新工件。
+- 本分支允许 R5 未满足时继续阶段 5、6，是对治理规范「上一阶段验收未过，禁止开启下一阶段」的显式例外，
+  须经用户在 2.5 确认。
 
 ## 验收条目（R1-R9）
 
@@ -141,7 +144,7 @@ S41 的阶段 4、5 核验 R1–R8；R9 由 Session 42 核验。
 - **R4 发布门**：`tests/check-release.spec.ts` 与工作流契约测试全绿；fresh clone 本地预演通过；
   `release.yml` 不含 `NPM_TOKEN`。
 - **R5 上游对齐**：`tests/peer-range.spec.ts` 全绿；devDependencies 对齐有结论记录（并入或带证据回退）；
-  功能腿 F1–F4 与 e2e.real 有留痕，或按「key 窗口不可得」记为受阻；对齐清单「DSH 上游维度」逐格确认在案。
+  功能腿 F1–F4 有留痕，e2e.real 有实跑留痕或环境窗失败工件，或按「key 窗口不可得」记为受阻；对齐清单「DSH 上游维度」逐格确认在案。
 - **R6 rc.5 实测**：V1–V8、V10、V11 的证据归档在案。
 - **R7 文档**：`docs/release-runbook.md` 在盘；SOP §2 写明双语义判定、六件套枚举统一、含归档前脱敏；
   `known-upstream-issues.md` 增 rc.5 行；`docs/upgrade.md` §6 与 ADR-0026 一致；README 的过期表述已勘正；
@@ -163,7 +166,7 @@ S41 的阶段 4、5 核验 R1–R8；R9 由 Session 42 核验。
 | check-release tag 模式 | Session 42 步骤 2b 在 master 上推送前；Release 工作流内 | Session 42 | 本地与 CI 两次均通过才发布 |
 | rc.5 实测 V1–V8、V10、V11 | T12 | 3 | 执行者自测，证据归档 |
 | 功能腿 F1–F4 与 e2e.real | T12（key 窗口） | 3 | served-by 留痕与测试输出归档；受阻时按「key 窗口不可得」处置 |
-| 独立冒烟 | 阶段 5 | 5 | 独立 Agent 在 rc.5 的 3434 实例上重做 V2、V3、V5、V7 |
+| 独立冒烟 | 阶段 5 | 5 | 独立 Agent 在 rc.5 的 3434 实例上重做 V2、V3、V5、V7（V5、V7 在形态 H 与 N 各一次） |
 | 桌面端实测（V2、V5、V7 与重启前的中间态） | Session 42 步骤 1 | 用户门控 | 失败则从备份还原并回到 Session 42 修正 |
 | 宪法第 4 步「发版前用户路径冒烟」 | 由「功能腿」与「独立冒烟」两行替代 | 3 / 5 | 在 3434 的 rc.5 实例上执行；3423 运行的是 rc.2 守卫树，不是发版目标宿主 |
 
@@ -206,7 +209,7 @@ T8 的双名兼容与冲突重试；T9 的具名断言与用户文档结构；T1
 V7 的文件级验证方法；T18 的分步门控、备份清单、隧道与回退；本「高危动作预告」节；Context 中未推送提交的事实。
 
 不改变验收标准的增项（明细见 session-41 记录「做了什么」的 T2 条目）：两个 devDependency（`semver`、`yaml`）；
-ADR-0013 的 Status 勘正注；README.md:38 与 :175 的勘正；宪法第 4 步的替代行；T0 的 token 前向遮蔽与 T10 的 token 值扫描。
+ADR-0013 的 Status 勘正注；README.md:38 与 :175 的勘正；宪法第 4 步的替代行；T0 的 token 前向遮蔽与 T10 的 token 值扫描；T9 的旧宿主兼容性说明；Session 42 步骤 5 的吊销 token。
 
 吸收阶段 0 审核的增项：ADR-0027；T2b 的文档债清理；T13 的 SOP、desktop-adoption、`docs/upgrade.md` 勘正。
 
@@ -215,7 +218,8 @@ ADR-0013 的 Status 勘正注；README.md:38 与 :175 的勘正；宪法第 4 �
 1. 交还通道由「宿主 dispose + 客户端」双通道改为「先探针定通道」：新增 T5p；T7 改为条件实现；
    V5、V7、V10 写明向量、浏览器状态、时限与后置断言；新增 V11（逃生口）；插件页卸载与 CLI、手改向量的
    限制、桌面端卸载次序与手动清理方法写入用户文档（R2、R6）。
-2. T12 增功能腿 F1–F4、带 key 的 e2e.real 与对齐清单留痕，并定义 key 窗口不可得时的受阻分支（R5）。
+2. T12 增功能腿 F1–F4、带 key 的 e2e.real 与对齐清单留痕，并定义 key 窗口不可得时的受阻分支（R5）。受阻分支允许 R5 未满足时继续阶段 5、6，
+   是治理规范「上一阶段验收未过，禁止开启下一阶段」的显式例外。
 3. 发布前增草稿 PR 预演门；`release.yml` 增 `fetch-depth: 0`；`ci.yml` 承担发布预演；新增工作流契约测试（R4、R9）。
 4. T17 的一致性校验改为在 feat 分支跑非 tag 模式，tag 模式移到合并之后；CHANGELOG 匹配规则限定为首个
    日期二级标题并加负控；T16 与 T17 的 CHANGELOG 条目分两步写；`docs/upgrade.md` §6 纳入改写（R7）。
@@ -247,7 +251,8 @@ ADR-0013 的 Status 勘正注；README.md:38 与 :175 的勘正；宪法第 4 �
   commit-map）；或原样推送并接受披露。
 - devDependencies 对齐可能引发大面积修复。由 go/no-go 门回退并登记债务。
 - 宿主 dispose 通道在 rc.5 HMR 形态下按源码会被拒绝。由 T5p 实测定夺，不成立则不实现。
-- 形态 H 的插件页开关若没有任何可用通道，交还在该形态下不成立。由 T5p 实测；成立则 R2 改判并回 2.5。
+- 形态 H 的插件页开关若没有任何可用通道，交还在该形态下不成立。由 T5p 实测；该情形成立则 R2 改判并回 2.5。
+- 功能腿在 rc.5 上暴露缺陷：修复后重做功能腿；本 session 无法修复则撤销 `0.2.2-rc.5` 的显式钉并回 2.5。
 - CLI 与手改向量可能没有任何交还通道。由 T5p 实测；无通道则写明限制与手动清理方法。
 - 桌面 app 内置命令可能不能启动 web 形态。退回 rc.5 worktree 构建。
 - 上游持续前移（0.2.3-alpha.2 已发布）。本 session 锚定 rc.5，更高版本留给下一轮 SOP 循环。
