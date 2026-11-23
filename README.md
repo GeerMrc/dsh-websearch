@@ -1,5 +1,7 @@
 # dsh-websearch
 
+> **文档分工**：插件页显示的用户文档是 [docs/plugin-page.zh.md](docs/plugin-page.zh.md)（由 locale `meta.detail` 指定，英文环境读 [docs/plugin-page.en.md](docs/plugin-page.en.md)）；本 README 面向开发、安装与验收。
+>
 > **语言权威声明**：本文件为中文事实正本；`README.en.md` 为英文镜像，两文件不一致时以本文件为准。
 > 版本线：v0.1.0 起（ADR-0020）；**v0.2.0 = DNS 韧性层 + 上游对齐二轮收口**（ADR-0022；含四工具上游对齐修复与质量批——单一版本发布）。内部开发编号 0.2.0–0.9.0 归历史档，见 CHANGELOG。
 
@@ -36,7 +38,7 @@ dsh --profile web --dump-config
 #    dsh-websearch insert 行出现
 ```
 
-**装即接管**：插件随包 `cordis.patch.yml` 钉 `searchProvider: dshws-chain` + `fetchProvider: dshws-fetch-gate`——`plugin add` 单命令即接管，`plugin remove` 单命令完整复原（dump diff 零输出）。无需手写用户层 patch。
+**装即接管**：插件随包 `cordis.patch.yml` 钉 `searchProvider: dshws-chain` + `fetchProvider: dshws-fetch-gate`，并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）——`plugin add` 单命令即接管，`plugin remove` 单命令复原组合（dump diff 零输出），官方设置页随之恢复。无需手写用户层 patch。用户层里另行保存过的 `web` 选择不随卸载清除，见 FAQ。
 
 **卸载**：`dsh plugin --profile web remove dsh-websearch`。已知残留（诚实披露）：settings 默认值与预设目录不随 remove 清理（无害，用户自撰同名目录永不覆写）。
 
@@ -172,7 +174,8 @@ dsh-websearch:
 - **官方 web_fetch 在代理环境报错**：宿主 SSRF 硬防护 × TUN fake-ip 所致（非本插件 bug）。开 `fetchTakeover` 走云端 extract 链即绕开。
 - **Perplexity 哪去了**：已移除（ADR-0017——无免费额度可申请，不满足准入标准）。存量 settings.yaml 的 `perplexity:` 残节无害（schema 透传），可手动清理。
 - **AnySearch 垂直面 tag/params 未实现**：待 key 探针（S22 登记）。
-- **宿主设置页闲置的 web-search-deepseek 配置卡**：接管后不生效仍在（其 key 保存为对 `DEEPSEEK_API_KEY` 的单值写入点）——已知行为，勿在那里配置多 key。
+- **官方「网页搜索与获取」设置页去哪了**：插件启用期间它被隐藏，由「设置 → 网页搜索」接管（ADR-0024）；关闭或卸载插件后自动恢复。要临时调出官方页，在 profile 的 `cordis.patch.yml` 写 `- id: ui-settings-web-search` 与 `disabled: false`。
+- **关闭插件后官方页显示「未加载」**：0.2.0 及更早版本里官方页可见，若在其中把提供方选定为本插件成员并保存，该选择写在用户层，优先于组合包层，关闭插件后成为悬空引用（`web_search` 报 `WEB_PROVIDER_CONFIGURED_MISSING`）。在恢复出来的官方页重新选择提供方即可；手动清理是删除 profile `cordis.patch.yml` 里 `web` 行的 `searchProvider` 与 `fetchProvider`。关闭时自动交还在 rc.5 上没有属于插件的可用通道（宿主 teardown 运行在 HMR 事务内，浏览器半区在事件送达前卸载），实测见 [session-41 记录](docs/sessions/2026-11-23-session-41.md)。
 - **升级**：见 [docs/upgrade.md](docs/upgrade.md)。
 
 ## 更多文档
@@ -181,6 +184,6 @@ dsh-websearch:
 - [docs/upstream-sync-sop.md](docs/upstream-sync-sop.md) —— 随官方上游（npm 线 + 桌面端）迭代的同步 SOP（监测/决策/守卫重放/双端验证/发版联动）
 
 - 架构正本：[docs/00-architecture.md](docs/00-architecture.md)
-- 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0023）
+- 决策记录：[docs/decisions/](docs/decisions/)（ADR-0001..0027）
 - 升级演练手册：[docs/upgrade.md](docs/upgrade.md)
 - 治理看板：[docs/STATUS.md](docs/STATUS.md)

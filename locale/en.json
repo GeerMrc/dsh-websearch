@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "dsh-websearch",
+    "description": "Unified multi-provider web search and fetch with a configurable priority chain, full HA degradation and multi-key pools; takes over the built-in web search and fetch page while enabled and hands it back when disabled.",
+    "detail": "docs/plugin-page.en.md"
+  }
+}

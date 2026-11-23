@@ -1,5 +1,7 @@
 # dsh-websearch
 
+> **Document split**: the plugin page shows [docs/plugin-page.en.md](docs/plugin-page.en.md) (named by the locale `meta.detail`; a Chinese UI reads [docs/plugin-page.zh.md](docs/plugin-page.zh.md)); this README is for development, installation and acceptance.
+>
 > **Language authority**: This file mirrors `README.md` (Chinese), which is the factual source of truth; when the two disagree, the Chinese file wins.
 > Version line: from v0.1.0 (ADR-0020); **v0.2.0 = the DNS resilience layer** (ADR-0022 — a major architecture subsystem, the 0.2.x bump per ADR-0020). Internal dev numbers 0.2.0–0.9.0 are archived history — see CHANGELOG.
 
@@ -62,7 +64,7 @@ pnpm install && pnpm run build && node scripts/pack.mjs   # dual tarballs into d
 # Option 3: a file: tarball dependency in the profile package.json + pnpm install
 ```
 
-Installing takes over web_search / web_fetch (bundle-pinned install order, last writer wins); uninstalling restores the host defaults. Reload the page after swapping the package (the client bundle is served from `/plugins/*?rev=` runtime routes).
+Installing takes over web_search / web_fetch (bundle-pinned install order, last writer wins) and hides the built-in "Web search and fetch" settings page while the plugin is enabled (ADR-0024); uninstalling restores the host defaults and that page. A `web` selection saved separately in the user layer is not removed by uninstall; see the FAQ. Reload the page after swapping the package (the client bundle is served from `/plugins/*?rev=` runtime routes).
 
 **Upgrade**: full rehearsal manual at [docs/upgrade.md](docs/upgrade.md) (pack → swap → dump diff → GUI smoke → search → degradation). Same-version swaps are skipped — bump the version first for preview installs.
 
@@ -172,13 +174,14 @@ Combination constraints (fail-loud: on 0.1.5/0.1.6 hosts the settings validate h
 - **Official web_fetch errors under a proxy**: host SSRF hard protection × TUN fake-ip (not a plugin bug). Enable `fetchTakeover` to route through the cloud extract chain.
 - **Where did Perplexity go**: removed (ADR-0017 — no free API key tier available, fails the admission bar). Residual `perplexity:` sections in stored settings.yaml are harmless (schema passthrough); feel free to clean manually.
 - **AnySearch vertical tag/params not implemented**: pending a key probe (registered S22).
-- **Idle web-search-deepseek card on the host settings page**: inert after takeover (its key field is a single-value write to `DEEPSEEK_API_KEY`) — known behavior; do not configure multi-keys there.
+- **Where the built-in "Web search and fetch" page went**: it is hidden while the plugin is enabled and "Settings → Web Search" takes over (ADR-0024); it comes back when the plugin is disabled or uninstalled. To bring it back temporarily, write `- id: ui-settings-web-search` with `disabled: false` into the profile's `cordis.patch.yml`.
+- **The built-in page shows "not loaded" after the plugin is disabled**: in 0.2.0 and earlier the built-in page was visible. A provider of this plugin selected and saved there lives in the user layer, outranks the bundle layer, and dangles once the plugin is off (`web_search` fails with `WEB_PROVIDER_CONFIGURED_MISSING`). Pick a provider again on the restored page; the manual cleanup is deleting `searchProvider` and `fetchProvider` from the `web` row of the profile's `cordis.patch.yml`. An automatic handover at disable time has no plugin-side channel on rc.5 (the host teardown runs inside an HMR transaction and the browser half is unloaded before the event arrives); see the [session-41 record](docs/sessions/2026-11-23-session-41.md).
 - **Upgrades**: see [docs/upgrade.md](docs/upgrade.md).
 
 ## More docs
 - [docs/known-upstream-issues.md](docs/known-upstream-issues.md) — known upstream DSH issues register (zh; symptoms/workarounds/self-checks, incl. the fork fix-branch usage)
 
 - Architecture: [docs/00-architecture.md](docs/00-architecture.md)
-- Decision records: [docs/decisions/](docs/decisions/) (ADR-0001..0022)
+- Decision records: [docs/decisions/](docs/decisions/) (ADR-0001..0027)
 - Upgrade rehearsal manual: [docs/upgrade.md](docs/upgrade.md)
 - Governance board: [docs/STATUS.md](docs/STATUS.md)

@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "dsh-websearch",
+    "description": "多源统一网页搜索与抓取：可配置优先级链、全链路高可用降级、多 API key 池；启用即接管官方「网页搜索与获取」，关闭即自动交还官方。",
+    "detail": "docs/plugin-page.zh.md"
+  }
+}
