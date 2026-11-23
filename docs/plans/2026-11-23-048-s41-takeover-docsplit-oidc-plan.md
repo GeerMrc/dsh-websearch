@@ -38,7 +38,8 @@
   插件页卸载会发该事件（rc.5 `packages/boot/plugin-manager/src/index.ts:1148-1175`、`:1397`）；
   无 hmr 服务时开关结果是 `restart-required`，fiber 不卸载（rc.5 `packages/boot/plugin-manager/src/index.ts:1381`），
   卸载运行中的 bundle 被拒（rc.5 `:1153-1156`）。
-- 宿主兼容门用 `includePrerelease: true`（`packages/boot/app-boot/src/plugin-compatibility.ts:77`）。
+- 宿主兼容门用 `includePrerelease: true`（`packages/boot/app-boot/src/plugin-compatibility.ts:77`）。按该语义，
+  连上界版本的预发布（如 `0.3.0-rc.1`）也满足 `<0.3.0`，会被放行（`tests/peer-range.spec.ts`）。
   双语义矩阵与上游三线监测的原始数字见 `docs/sessions/audit-logs/2026-11-23-s41-stage0-audit-of-s40.md`。
 - npm trusted publishing 要求 npm ≥ 11.5.1、`id-token: write`、`repository.url` 与仓库一致，新建配置须在
   2 天内完成首次发布：https://docs.npmjs.com/trusted-publishers 。dist-tag 的 OIDC 支持要求 npm ≥ 11.21.0。

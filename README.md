@@ -21,7 +21,7 @@
 > 1. `dsh` **0.1.6-alpha.2**：任意工具调用崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`——避开该版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+）。
 > 2. `dsh` **0.1.7-alpha.2/rc.1（rc.2 半修）**：tsx 源码启动下宿主启动期报 `Plugin metadata … TypeError: Cannot assign to read only property 'stack'`——npm 安装/构建产物用户不受影响；源码启动用户可用 [fork 修复分支](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2)。
 
-前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0`（S32/S33/S38 全跨度——显式钉已演练预发布版，semver satisfies 实测在案；0.1.8 稳定线未演练仍排除））、node ≥ 22.19。
+前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.2-rc.5 || >=0.2.0 <0.3.0`（S32/S33/S38/S41 全跨度——显式钉的是已演练预发布版，范围由 `tests/peer-range.spec.ts` 按两种 semver 语义守护；0.1.8 稳定线未演练仍排除。宿主兼容门按 `includePrerelease` 放行 0.2.x 预发布，显式钉是「已演练」的记录而非过门条件，见 ADR-0027））、node ≥ 22.19。
 
 ```sh
 # 1. 打包（仓库根）
@@ -42,7 +42,7 @@ dsh --profile web --dump-config
 
 ## 安装、升级与注意事项
 
-**安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版，上限 0.1.8）：
+**安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版、0.2.0-rc 线、0.2.2-rc.5 与 0.2.x 稳定版；0.1.8 与 0.3.x 不在域内）：
 
 方式一（npm registry，推荐）：
 
