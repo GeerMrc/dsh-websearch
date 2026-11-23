@@ -10,7 +10,8 @@ origin: plan 048 T5–T8 / Session 41 / 前置 ADR-0013（决策 7）
 
 ## Status
 
-proposed（2026-11-23，Session 41；决策 4 的宿主通道以 plan 048 的 V10 实测为准，通过后转 accepted）
+proposed（2026-11-23 起草，Session 41；2026-11-24 按阶段 2 第 1 轮审核修订。决策 4 的通道取舍以
+plan 048 的 T5p 探针矩阵为准，定稿后转 accepted）
 
 ## Context（背景）
 
@@ -31,6 +32,10 @@ ADR-0013 让插件随包 patch 钉住 `web` 行的提供方选择并禁用 `web-
   配置编辑器才删除用户层的 `config`。只清一个键会留下半截覆盖，rc.5 下抓取会报 `WEB_PROVIDER_AMBIGUOUS`。
 - 桌面端没有 HMR：关闭 bundle 不卸载 fiber，只静态重组，重启后才生效；Web 客户端在重启前存活，
   并会收到转发的 `plugin-manager/changed`。
+- 启用 HMR 的宿主上，插件页开关运行在 HMR 事务内；配置编辑器的 `edit()` 在有 hmr 服务时经
+  `hmr.runExclusive` 执行，而 `runExclusive` 拒绝嵌套事务。dispose 钩子里调用 `settings.mutate` 在这类
+  宿主上会被拒绝。
+- CLI 或手改触发的重组不发 `plugin-manager/changed`。
 - 宿主兼容门放行 0.2.x 预发布（ADR-0027），插件可能运行在未演练过的宿主上，守卫必须对缺失的宿主面安全。
 
 ## Decision（决策）
@@ -43,19 +48,23 @@ ADR-0013 让插件随包 patch 钉住 `web` 行的提供方选择并禁用 `web-
    保持原样。它们是关闭插件后官方提供方无需重启即可接管的前提。`web-search-deepseek` 维持 ADR-0013 的禁用。
 3. **交还守卫只处理本插件自己的残留**：`web` 命名空间用户层的 `searchProvider` / `fetchProvider`
    是 `dshws-*` 时，把这两个键一起 unset。官方 id、第三方 id 与空值一律不碰。
-4. **两条通道**：有 HMR 的宿主走插件 dispose；桌面端走客户端对 `plugin-manager/changed` 的监听，
-   发现本 bundle 不再启用即执行交还。两条通道都只在告警日志里报告失败，绝不影响开关、启动或关闭。
+4. **通道由探针定**。客户端对 `plugin-manager/changed` 的监听是主通道：发现本 bundle 不再启用即执行交还。
+   宿主 dispose 通道只在 rc.5 实例上的探针证明「关闭时 dispose 触发且写入落盘」时才实现。通道只在告警
+   日志里报告失败，绝不影响开关、启动或关闭。
 5. **被交还的钉值不恢复**。重新启用后回到默认链，用户可在本插件设置里重新配置。
 6. **逃生口**：用户层写 `{id: ui-settings-web-search, disabled: false}` 可强制显示官方页，与 dsh-subagent-plus 一致。
 7. **旧宿主退化**：行 id 不存在时 patch 条目按 Loader 语义告警后跳过；`web` 字段不是 volatile 的宿主上
-   `mutate` 抛错被守卫吞掉，成为空操作。
+   `mutate` 抛错被守卫吞掉，成为空操作。此项按设计推断表述，声明域内各宿主均有该行，未实测。
+8. **不经插件页的关闭向量**（CLI、手改 profile、`remove`）不触发 `plugin-manager/changed`。用户文档写明
+   这一限制与手动清理方法：删除 profile `cordis.patch.yml` 里 `web` 行的两个键。
 
 ## Rationale（理由）
 
 - 一行声明式 patch 即可得到对称性：层在则官方页隐，层去则官方页现，没有需要自己维护的还原逻辑。
 - 保留官方提供方行，使「关闭即由官方接管」在重启后立刻成立，也让官方提供方留作暖备。
 - 守卫只认用户层，不靠比较生效值去猜来源；只认 `dshws-*` 前缀，保证不误删用户对官方或第三方提供方的选择。
-- 双通道沿用 dsh-mm-resilience P4 的已验证模式，覆盖桌面与 HMR 两种宿主。
+- 客户端通道沿用 dsh-mm-resilience P4 的做法。该做法在兄弟仓只有单元测试支撑；本决策以 rc.5 实例上的
+  探针矩阵为准，不沿用其「已验证」的说法。
 
 ## Alternatives Considered（被排除的方案）
 
@@ -83,10 +92,10 @@ ADR-0013 让插件随包 patch 钉住 `web` 行的提供方选择并禁用 `web-
 
 ### 负面后果 / 风险
 - 官方卡上的 DeepSeek 计费方式与旧版搜索接口设置在接管期间不可达。前者由默认值承担，后者对应行本就已禁用。
-- 宿主 dispose 通道在 HMR 重组期间存在重入可能 → 由 V10 实测定夺；不安全则降级为告警式空操作，
-  桌面端不受影响。
+- 启用 HMR 的宿主上，dispose 通道按源码会被拒绝 → 以 T5p 探针为准；不成立则不实现，只保留客户端通道。
+- 关闭时没有浏览器在线，或经 CLI、手改、`remove` 关闭时，交还不会发生 → 用户文档写明限制与手动清理方法。
 - 用户在官方卡里保存过的 `dshws-*` 钉值会在关闭时被清除且不恢复 → 在用户文档中明示。
-- 客户端在关闭瞬间未运行且宿主无 HMR 时交还会缺席，直到下一次启用再关闭 → 已知限制，记录于用户文档。
+- 逃生口（决策 6）与桌面端关闭后、重启前的中间态 → 由 plan 048 的 V11 与 Session 42 步骤 1 实测。
 
 ## References（关联）
 

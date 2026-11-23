@@ -28,24 +28,33 @@ accepted（2026-11-23，Session 41；用户批准计划）
   `release.yml`、无 environment、允许直接 `npm publish`、未勾选 dist-tag 管理。
 - 本机默认 registry 是 npmmirror，一切 npmjs 操作必须显式指定 registry。
 - 仓库同时产出两份 tarball：scoped 名发 npm，裸名供 profile 本地安装。
+- actions/checkout 默认 `fetch-depth: 1`，runner 上没有 `master` 引用，「tag 提交在 master 上」无从断言。
+- `CHANGELOG.md` 的历史条目里已有不带 `v` 的「0.2.1」提法，子串匹配会被历史条目空满足。
+- `docs/upgrade.md` §6 仍写「修复后重推同 tag」与手工 `npm publish`，与本决策相反，须同步改写。
 
 ## Decision（决策）
 
 tag 推送即发布确认点；发布由 OIDC 完成，且只有通过版本三同步门的提交才能被发布。
 
-1. `release.yml` 改为 OIDC：`permissions` 含 `id-token: write`，删除 `NPM_TOKEN`，发布前安装 npm 11，
-   `npm publish` 带 `--provenance` 并显式指定 `https://registry.npmjs.org`。
+1. `release.yml` 改为 OIDC：`permissions` 含 `id-token: write`，删除 `NPM_TOKEN`，发布前安装不低于 11.21.0 的
+   npm（`npm install -g npm@11`），`npm publish` 带 `--provenance` 并显式指定 `https://registry.npmjs.org`；
+   checkout 设 `fetch-depth: 0`。
 2. 发布前依次执行：全量门（typecheck 两面、lint、test、check:i18n、build）、一致性校验、打包、
    tarball 校验、GitHub Release、npm 发布。任一步失败则不发布。
 3. 一致性校验 `scripts/check-release.mjs` 在 tag 模式下断言：tag 形如 `vX.Y.Z` 且等于 `package.json` 版本；
-   CHANGELOG 含该版本的条目；`USER_AGENT` 等于 `dsh-websearch/<版本>`；tag 提交在 `master` 上。
+   CHANGELOG 的首个日期二级标题含 `v<版本>`（历史条目里不带 `v` 的提法不算）；`USER_AGENT` 等于
+   `dsh-websearch/<版本>`；tag 提交在 `master` 上。
 4. tarball 校验断言两份 tarball 都含运行必需文件与显示元信息文件，且不含内部治理文档与任何带值的
-   `token=`。该校验在 `ci.yml` 的每次 master 推送上也执行，使问题在打 tag 之前暴露。
+   `token=`。非 tag 模式与 tarball 校验由 `ci.yml` 在每次 PR 与 master 推送上执行，使问题在打 tag 之前暴露。
 5. 推送方式为 `git push --atomic origin master v<X.Y.Z>`，tag 为带注解 tag。master、远端 tag、npm 版本
-   由同一次操作与同一条流水线产生。
-6. 版本号只在用户完成代码审核并明确确认后变更，一个批次只变一次；tag 在推送时才创建。
+   由同一次操作与同一条流水线产生。打 tag 之前先推送 feat 分支开草稿 PR，让 `ci.yml` 在候选提交上完成
+   发布预演。
+6. 版本号只在用户完成代码审核并明确确认后变更，一个批次只变一次；tag 在推送时才创建。序列为：在
+   feat 分支跑非 tag 模式校验与全量门并经独立核验；合并 `master`、建带注解 tag 后在 `master` 上跑 tag
+   模式校验；再原子推送。
 7. tag 推送后若发布失败，不移动 tag；修复后以更高的补丁号重发。
 8. 若首次发布因 dist-tag 权限被拒，停下来请用户在 npm 侧处理，不退回 token。
+9. 首次 OIDC 发布成功后，吊销仓库 secret `NPM_TOKEN` 与 npm 侧对应 token。
 
 ## Rationale（理由）
 
@@ -82,6 +91,7 @@ tag 推送即发布确认点；发布由 OIDC 完成，且只有通过版本三�
 - 首次 OIDC 发布必须在配置创建后 2 天内完成 → 过期由用户删除重建配置，代码不受影响。
 - 发布流水线变长（多跑一次全量门）→ 换取「发布的正是通过全量门的提交」。
 - tag 推送后失败不能原地重试修正后的代码，只能升补丁号 → 已知代价，换来 tag 的不可变性。
+- 发布预演需要先推送 feat 分支并开草稿 PR → 与发版推送同属公开动作，均经用户门控。
 
 ## References（关联）
 
