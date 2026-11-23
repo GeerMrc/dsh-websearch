@@ -67,7 +67,7 @@ pnpm install && pnpm run build && node scripts/pack.mjs   # 双名 tarball 入 d
 
 **升级**：完整演练手册见 [docs/upgrade.md](docs/upgrade.md)（打包→换包→dump 对照→GUI 冒烟→搜索→降级六步 + 发版前上游对齐确认）。同版本号换包会被跳过——预览场景先 bump 版本。
 
-**CI/发布**（v0.2.0 起）：master 推送/PR 跑全量门禁（typecheck/lint/test/i18n/build，node 22/24 矩阵）；推送 `v*` 标签自动发布——双名 tarball 附 GitHub Release、scoped 包发布至 npmjs.org（标签推送即发布确认点）。
+**CI/发布**（v0.2.0 起；OIDC 与一致性门自 ADR-0026 起）：master 推送与 PR 跑全量门禁加发布预演（typecheck/lint/test/i18n/build，node 22/24 矩阵；打包并校验 tarball 内容）。推送 `v*` 标签即发布确认点：流水线先跑全量门与 `scripts/check-release.mjs`（tag、package.json、CHANGELOG、`USER_AGENT` 四处版本一致，tag 指向 master 上的提交），再发布——双名 tarball 附 GitHub Release，scoped 包经 OIDC trusted publishing 发布到 npmjs.org，不使用长期 token。本地发版步骤见 [docs/release-runbook.md](docs/release-runbook.md)。
 
 **注意事项**：
 - key 值永不下发客户端；设置页徽标只显示整数计数（refs 白名单限定五成员，防跨凭据探测）。

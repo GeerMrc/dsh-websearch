@@ -68,7 +68,7 @@ Installing takes over web_search / web_fetch (bundle-pinned install order, last 
 
 **Upgrade**: full rehearsal manual at [docs/upgrade.md](docs/upgrade.md) (pack → swap → dump diff → GUI smoke → search → degradation). Same-version swaps are skipped — bump the version first for preview installs.
 
-**CI / release** (from v0.2.0): pushes/PRs to master run the full gate (typecheck/lint/test/i18n/build on a node 22/24 matrix); pushing a `v*` tag releases automatically — dual-name tarballs attach to the GitHub Release and the scoped package publishes to npmjs.org (the tag push is the release confirmation point).
+**CI / release** (from v0.2.0; OIDC and the consistency gate from ADR-0026): pushes and PRs to master run the full gate plus the release rehearsal (typecheck/lint/test/i18n/build on a node 22/24 matrix; pack both tarballs and check their contents). Pushing a `v*` tag is the release confirmation point: the pipeline runs the full gate and `scripts/check-release.mjs` (tag, package.json, CHANGELOG and `USER_AGENT` agree; the tag points at a commit on master) before publishing — dual-name tarballs attach to the GitHub Release and the scoped package publishes to npmjs.org through OIDC trusted publishing, with no long-lived token. The local release steps are in [docs/release-runbook.md](docs/release-runbook.md).
 
 **Notes**:
 - Key values never reach the client; the settings badge shows integer counts only (refs whitelisted to the five members, blocking cross-credential probing).

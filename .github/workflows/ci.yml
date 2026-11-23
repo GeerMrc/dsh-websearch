@@ -1,4 +1,8 @@
-# CI gate (S36 T9): the local close-out wall, replicated on GitHub.
+# CI gate: the local close-out wall, replicated on GitHub — on every pull
+# request and every push to master. It ends with the release rehearsal of
+# ADR-0026: pack both distribution tarballs and check their contents, so a
+# packaging defect surfaces before a tag triggers the real pipeline. Nothing
+# here publishes; that is release.yml's job on a vX.Y.Z tag.
 # Node matrix matches engines (^22.19 || >=24); pnpm comes from the
 # packageManager field; pnpm-workspace.yaml ships the release-age gate
 # config so CI installs behave exactly like local ones.
@@ -37,3 +41,7 @@ jobs:
         run: pnpm run check:i18n
       - name: Build
         run: pnpm run build
+      - name: "Release rehearsal: pack dual names"
+        run: node scripts/pack.mjs
+      - name: "Release rehearsal: tarball check"
+        run: node scripts/check-release.mjs --tarballs dist-artifacts
