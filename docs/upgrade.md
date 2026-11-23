@@ -83,14 +83,21 @@
 
 ## 6. 发布链失败恢复（tag v* 自动发布的中断续作）
 
-自动链：`push tag v*` → CI `Release`（build → pack 双名 → gh release create 附双 tarball → npm publish scoped 到 registry.npmjs.org）。中断点与续作：
+> 2026-11-24 按 [ADR-0026](decisions/adr-0026-oidc-release-and-three-sync-gate.md) 改写。旧版的两种做法已废止：发布前失败后
+> 「重推同 tag」（删 tag 重打、`git tag -f`），以及绕过流水线「手工补发 `npm publish`」。逐步操作、判据与 npm 侧原因的对照表
+> 只在 [release-runbook.md](release-runbook.md) 维护，本节只留规则。
 
-| 中断态 | 现象 | 续作 |
+自动链：`push tag v*` → `Release`（全量门 → 一致性门 → pack 双名 → tarball 校验 → gh release create 附双 tarball → npm publish，经 OIDC trusted publishing）。
+
+| 中断态 | 处置 | tag |
 |---|---|---|
-| build/pack 失败 | run 红在发布前 | 修复后**重推同 tag**（删本地 tag 重打或 `git tag -f`+push -f）；零半发布态 |
-| `gh release create` 失败（网络/瞬时） | Release 页无条目 | 重跑该 run（Actions 页 Re-run）——release 未创建则幂等重试成立 |
-| Release 已建但 npm publish 失败 | Release 页有 v0.2.0 条目、`npm view` 无该版 | 二选一：**a)** Re-run 整 job 前先 `gh release delete v0.2.0 --yes`（release create 非幂等，会死于 "already exists"）；**b)** 手工补发：`npm publish dist-artifacts/maricgeer-dsh-websearch-<ver>.tgz --registry https://registry.npmjs.org --access public`（**必须显式 --registry**——本机默认 registry 为 npmmirror，裸 `npm publish` 会误发镜像） |
-| npm publish 成功但需重发（内容修复） | 同版本 npm 拒绝（防覆写保护） | bump 版本（0.2.1）+ 重打 tag 走全链；**禁止 force 覆写已发布版** |
+| 发布步之前失败（门、一致性校验、打包、tarball 校验） | tag 已公开，不移动；修复后以更高的补丁号重发 | 不动 |
+| GitHub Release 步瞬时失败 | Actions 页 Re-run 同一个 run | 不动 |
+| npm 发布步失败 | 读诊断步的输出，对照 runbook 第 10 节；只需在 npm 侧改设置的，改完 Re-run 同一个 run | 不动 |
+| 已发布但内容需要修 | 升补丁号走全链；不覆盖已发布版本 | 不动 |
+
+规则：tag 推送后不移动、不强推、不删除。不手工 `npm publish`：本机 npm 是 10.x、默认 registry 是 npmmirror、没有 provenance，
+而且绕过了一致性门。Re-run 读的是 tag 所在提交里的工作流文件，tag 推送之后对 `release.yml` 的修改对这次发布不起作用。
 
 ## 5. 回退
 

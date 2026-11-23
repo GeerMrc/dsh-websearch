@@ -2,7 +2,7 @@
 
 > **给谁看**：使用 dsh-websearch 插件（或任何 DSH 插件）的用户。上游宿主 `dsh`（[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)）的已知问题在这里登记——**这些不是本插件的 bug**，但会让插件（乃至整个宿主）表现异常。每条按「现象 → 影响版本 → 根因 → 怎么办 → 怎么自查」组织，照做即可；技术沿革折叠在每条末尾供进阶读者。
 >
-> **维护规则**：上游每发新版本，我们按 [docs/upgrade.md](upgrade.md) 的演练矩阵逐线实测后更新本表（登记与销项都以实测为准，不凭发布说明推断）。上游现势最近核对：2026-11-24（S41 阶段 0 独立审核：npm `next`=0.2.2-rc.5、`alpha`=0.2.3-alpha.2；upstream master 即 `dsh-v0.2.3-alpha.2`；官方桌面 feed 三平台版本见 [desktop-adoption §3](desktop-adoption.md)）。逐问题最近全面核对：2026-09-30（0.2.0-rc.2 线，S38 适配批）；上一次 2026-09-26（0.1.7-rc.2 线）。
+> **维护规则**：上游每发新版本，我们按 [docs/upgrade.md](upgrade.md) 的演练矩阵逐线实测后更新本表（登记与销项都以实测为准，不凭发布说明推断）。上游现势最近核对：2026-11-24（S41 阶段 0 独立审核：npm `next`=0.2.2-rc.5、`alpha`=0.2.3-alpha.2；upstream master 即 `dsh-v0.2.3-alpha.2`；官方桌面 feed 三平台版本见 [desktop-adoption §3](desktop-adoption.md)）。逐问题最近全面核对：2026-09-30（0.2.0-rc.2 线，S38 适配批）；上一次 2026-09-26（0.1.7-rc.2 线）。问题 ①⑤⑥ 另有 2026-11-24 的 0.2.2-rc.5 核对（S41，各条写明是实测还是读源码）。
 
 ---
 
@@ -25,7 +25,7 @@ Plugin metadata for <某个插件包名>: TypeError: Cannot assign to read only 
 | 0.1.7-alpha.2 / 0.1.7-rc.1 | ❌ 两处代码路径全裸（都会踩） |
 | **0.1.7-rc.2** | ⚠️ **半修复**：ESM importer 路径官方已修；`MODULE_NOT_FOUND` 的 CJS require-stack 路径**仍未修** |
 | **0.2.0-rc.1 / 0.2.0-rc.2** | ⚠️ **同半修复状态延续**（2026-09-30 S38 实测核对：ESM 站点已修、CJS 站点仍裸）。fork 守卫已移植：分支 `fix/readonly-stack-020rc2` = `dsh-v0.2.0-rc.2` + ebd42731c9 cherry-pick（=9370b2f7f9），S38 3434 演练 + 3423 七腿矩阵全程在该树在役零复发。**S40 2026-09-30 复查**：`git fetch upstream` 后 upstream/master 仍停在 `639ed01539`（0.2.0-rc.2 发布合并，无后续提交），全史 `--grep` 无官方等价修复——守卫继续必要（仅 fork 源码树/tsx 启动形态需要；官方桌面端跑打包产物，按本条触发条件不受影响——桌面端插件适配实测全过，见 [desktop-adoption.md](desktop-adoption.md)） |
-| **0.2.2-rc.5** | ❔ **未核对**（2026-11-24 登记，S41）：官方桌面在该版本用打包产物启动，不满足下文的源码启动触发条件；源码启动该线时 CJS 站点是否已修，随 S41 的 rc.5 演练回填 |
+| **0.2.2-rc.5** | ⚠️ **半修复状态延续**（2026-11-24 S41 读 tag `dsh-v0.2.2-rc.5` 的源码：ESM 站点经 `replaceErrorMessage` 有守卫；CJS 站点 `packages/boot/app-boot/src/profile-resolution/resolver.ts:819` 仍是裸赋值 `error.stack = …`）。**未在 rc.5 的源码启动形态下实跑**；fork 守卫也还没有重放到这条线。用桌面 app 内置命令（打包产物）启动的 rc.5 实例日志里，该症状出现 0 次，符合下文的触发条件 |
 | 0.1.5-rc.x | ✅ 不受影响——该解析器改写机制在这些版本尚不存在（树中无 `profile-resolution/` 模块） |
 | 0.1.6-alpha.1 | ✅ 机制在（两处裸赋值），但未观察到触发——实测证据见 [S33 演练](sessions/audit-logs/2026-09-26-s33-t6-drill.md)（该线冒烟零症状，生产曾长期在役） |
 
@@ -114,7 +114,7 @@ npm 系安装器默认的 semver 规则**不认「跨版本号的预发布版**�
 
 ### 怎么办
 
-- **插件侧已处理**：本插件的 peer 域**逐个显式钉住每个已演练的预发布版**（`|| 0.1.6-alpha.1 || … || 0.1.7-rc.2`），安装器与运行时两层都能过——这是有意为之的设计，不是版本串写乱了。
+- **插件侧已处理**：本插件的 peer 域**逐个显式钉住每个已演练的预发布版**（`|| 0.1.6-alpha.1 || … || 0.2.2-rc.5`，以 `package.json` 为准），安装器与运行时两层都能过——这是有意为之的设计，不是版本串写乱了。钉到 `0.2.2-rc.5` 的改动随 v0.2.0 之后的下一个版本发布。
 - **其他插件作者**：如果你的插件也要跨预发布宿主版本，照同样方式逐钉；每钉一个新版本前先按 [docs/upgrade.md](upgrade.md) 演练。
 - **安装时仍见 cordis unmet-peer 警告**（`dsh-typert-protocol … requires cordis ~4.0.4`）：告警级非错误，三线+生产实测无害，详见 [upgrade.md](upgrade.md) 的「已知 unmet-peer 告警」节。
 
@@ -145,3 +145,61 @@ Node 内置 undici 属代际漂移面：其 hostname 解析入口（自行调用
 ### 怎么办 / 自查
 
 升级 node 大版本后跑一次拦截回归：`pnpm exec vitest run tests/dns/intercept.test.ts`（含「patched module answer drives a real global fetch」端到端锁，红即失效）；失效则按 ADR-0022 备选否决记录改走 undici Agent 方案并修订 ADR。
+
+---
+
+## 问题 ⑤（易踩坑，非 bug）0.2.2-rc.5 起官方「网页搜索与获取」设置卡不再随 `web-search-deepseek` 一同隐藏（S41 登记）
+
+### 现象
+插件页的「内置插件配置」里同时有官方的「网页搜索与获取」和 dsh-websearch 两张卡。在官方卡里把提供方存成 `dshws-*` 之后关闭插件，
+官方卡显示 `dshws-<成员>（未加载）`；按源码，此后 `web_search` 每次调用报 `WEB_PROVIDER_CONFIGURED_MISSING`，不会自动回退到官方提供方
+（这一句本轮未实跑搜索）。
+
+### 影响版本（实测矩阵）
+| 宿主版本 | 状态 |
+|---|---|
+| 0.2.0-rc.2 | ✅ 官方卡随 `web-search-deepseek` 行被禁用而消失（ADR-0013 决策 7 的依据；本轮未复测） |
+| **0.2.2-rc.5** | ❌ 两卡并存。2026-11-24 S41 实测（桌面 app 内置命令 0.2.2-rc.5 + 临时 `DSH_HOME`）：用户层的 `dshws-*` 钉值在关闭插件后原样残留 |
+| 0.2.3-alpha.2 及以后 | ❔ 未核对 |
+
+### 根因
+rc.5 的这张卡改为依赖 `web` 命名空间（`packages/client/ui-settings-web-search/src/client/index.ts:43,72`），而 `web` 行必须保持启用，
+所以只禁用 `web-search-deepseek` 管不到它。钉值残留是因为用户层优先于随包层，关闭 bundle 只移除随包层。
+
+### 怎么办
+- 换用带 ADR-0024 接管行的插件版本（v0.2.0 没有）：它随包禁用官方设置页所在的行 `ui-settings-web-search`，插件启用期间列表里没有官方卡。
+- 已经残留的钉值：打开该 profile 的 `cordis.patch.yml`，把 `web` 行下的 `searchProvider` 与 `fetchProvider` 两个键一起删掉，再重启宿主。
+  只删一个会留下半截覆盖。
+- `ui-settings-web-search` 行自 0.1.7-alpha.1 起存在。0.1.5、0.1.6 线的宿主会对这条 patch 打一条未命中的 loader 告警后跳过
+  （按源码推断，未在旧宿主上实测）。
+
+### 怎么自查
+```sh
+dsh --profile <profile> --dump-config | grep -n -A2 '^- id: ui-settings-web-search'
+# 第三行是 disabled: true = 插件的接管在生效；这一行不存在或没有 disabled = 官方页可见
+```
+
+---
+
+## 问题 ⑥（插件作者向，非 bug）启用 HMR 的宿主上，bundle 被关闭后插件自己没有执行通道（S41 登记）
+
+### 现象
+在插件页关闭一个 bundle 时，插件宿主侧由 `ctx.effect` 注册的 teardown 会运行，但其中经 `settings.mutate` 写配置被拒，宿主日志出现
+`HMR transactions cannot be nested`；由 `ctx.on('dispose')` 注册的处理器不运行；插件的客户端代码在收到 `plugin-manager/changed`
+之前已被退订。凡是设计成「关闭时由插件自己清理」的逻辑都不生效。
+
+### 影响版本（实测矩阵）
+| 宿主形态 | 结果 |
+|---|---|
+| 0.2.2-rc.5，web profile（HMR 启用） | ❌ 如上。2026-11-24 S41 实测，向量为插件页开关 |
+| 0.2.2-rc.5 桌面端 | ❔ 未实测。rc.5 的基础 patch 只在 headless、sdk、acp 三个 bundle 里禁用 `hmr` 行，而桌面端的插件页与设置保存都可用，据此判断桌面端同样启用 HMR |
+| 同一实例人为禁用 `hmr` 行 | 设置保存失败，不代表任何真实宿主 |
+
+### 根因
+rc.5 把 `hmr`、`plugin-manager`、`config-editor`、`settings` 四行钉在同一个条件上（`!ctx.get('profileContext')`）。插件页开关运行在
+`hmr.runExclusive` 的事务里；配置编辑器的 `edit()` 在有 hmr 服务时同样经 `runExclusive`，而它拒绝嵌套事务
+（`packages/boot/hmr/src/index.ts:269`）。命令行卸载与手改则不转发 `plugin-manager/changed`。
+
+### 怎么办
+不把「关闭时的清理」设计成插件自己的职责。需要随开关对称生效的宿主配置放进随包的 `cordis.patch.yml`：层在则生效，层去则自动失效。
+需要清除的用户层值在插件启用期间处理，或在用户文档里写明手动清理方法。

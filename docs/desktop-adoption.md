@@ -89,6 +89,19 @@
 - **host 半区（provider/DNS 层）**：跑在 host 子进程（纯 Node，`ELECTRON_RUN_AS_NODE` 模式），无浏览器 API 依赖；进程级 DNS 拦截层（`installDnsLayer`）按设计在 host 进程内生效——Electron 化不改变其运行面，T5e 只读观测确认。
 - **凭据**：`.credentials.yaml` 共享（§5），桌面端无需重配 key；`credential-ref` 解析路径不变。
 
+**2026-11-24 复核（S41；本机 app 已自动更新到 0.2.2-rc.5）**
+
+- **peer 域：不再免发版**。宿主兼容门用 `includePrerelease: true`，rc.5 落在 `>=0.2.0 <0.3.0` 内即可运行；安装器的 peer 判定按默认语义
+  不认 rc.5。v0.2.0 的 peer 域没有显式钉它；显式钉 `0.2.2-rc.5` 的改动随下一个版本发布（ADR-0027，`tests/peer-range.spec.ts`）。
+- **运行面实测**（app 内置命令 + 临时 `DSH_HOME`，profile `web`，端口 3434；未接触 `~/.dsh`）：内置命令自报 `0.2.2-rc.5`；候选包
+  （v0.2.0 加 S41 改动）装入后，`--dump-config` 的 `web` 行是两个 dshws 钉值，`ui-settings-web-search` 与 `web-search-deepseek` 为
+  disabled；设置页「网页搜索」节照常渲染，DNS 卡显示 DoH 生效中；插件页开关关、开各一次，接管随层去层回；插件详情页显示本地化的
+  标题、描述与用户文档。真实搜索与抓取没有在 rc.5 上实跑，需要 key 窗口。
+- **与 S40 判定的差异**：官方「网页搜索与获取」设置卡在 rc.5 不再随 `web-search-deepseek` 一同隐藏；插件被关闭后自己没有执行通道。
+  两条见 [known-upstream-issues.md](known-upstream-issues.md) 的问题 ⑤ 与问题 ⑥。
+- **桌面 profile 本身未测**：按 rc.5 的基础 patch 推断桌面端启用 HMR，未在桌面 profile 上实测。候选包装入本机桌面端留到发布序列的
+  步骤 1，经用户指令后执行。
+
 ## 8. 官方版 vs 社区版（防混淆）
 
 网上教程常混提两者：**官方版** = 本文的 Electron 桌面端（官方仓构建、官方签名、`download.deepseek.com` 分发、DeepSeek 账号体系、复用 `~/.dsh`）；**社区版 "DSH Desktop"**（文档站 dshtauri.mintlify.app，Gitee LangChat/deepseek-harness-desktop）= 第三方 Tauri 壳、自带运行时、**非 DeepSeek 官方产品**，与本文对象无代码关系。本插件只对官方版做适配承诺；社区版不在支持面。
