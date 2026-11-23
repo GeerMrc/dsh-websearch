@@ -13,4 +13,4 @@ Debugger listening on ws://127.0.0.1:9229/44a226b4-20d6-4c3c-9391-a3d296053700
 For help, see: https://nodejs.org/learn/getting-started/debugging
 
 DevTools listening on ws://127.0.0.1:9222/devtools/browser/f6b6f527-afe0-4788-b766-d6100b1f7b5a
-dsh web: http://127.0.0.1:19387/?token=zZrFPBttOexQeSY4PELJvaUhULboxTCqYqnKTG36fGA
+dsh web: http://127.0.0.1:19387/?token=<redacted>
