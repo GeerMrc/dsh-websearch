@@ -10,7 +10,8 @@ origin: plan 048 T10–T11 / Session 41 / 前置 ADR-0007、ADR-0020
 
 ## Status
 
-accepted（2026-11-23，Session 41；用户批准计划）
+accepted（2026-11-23 起草，Session 41；2026-11-24 按阶段 2 第 1 轮审核修订决策 1、3 至 6 并新增决策 9。
+决策正文尚未据以执行；修订项待用户在 2.5 确认，确认时点见 session-41 记录）
 
 ## Context（背景）
 

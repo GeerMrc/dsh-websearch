@@ -10,8 +10,8 @@ origin: plan 048 T5–T8 / Session 41 / 前置 ADR-0013（决策 7）
 
 ## Status
 
-proposed（2026-11-23 起草，Session 41；2026-11-24 按阶段 2 第 1 轮审核修订。决策 4 的通道取舍以
-plan 048 的 T5p 探针矩阵为准，定稿后转 accepted）
+proposed（2026-11-23 起草，Session 41；2026-11-24 按阶段 2 第 1、2 轮审核修订。决策 4 的通道取舍以
+plan 048 的 T5p 探针矩阵为准，T16 按实测结论定稿后转 accepted）
 
 ## Context（背景）
 
@@ -53,10 +53,12 @@ ADR-0013 让插件随包 patch 钉住 `web` 行的提供方选择并禁用 `web-
    日志里报告失败，绝不影响开关、启动或关闭。
 5. **被交还的钉值不恢复**。重新启用后回到默认链，用户可在本插件设置里重新配置。
 6. **逃生口**：用户层写 `{id: ui-settings-web-search, disabled: false}` 可强制显示官方页，与 dsh-subagent-plus 一致。
-7. **旧宿主退化**：行 id 不存在时 patch 条目按 Loader 语义告警后跳过；`web` 字段不是 volatile 的宿主上
-   `mutate` 抛错被守卫吞掉，成为空操作。此项按设计推断表述，声明域内各宿主均有该行，未实测。
-8. **不经插件页的关闭向量**（CLI、手改 profile、`remove`）不触发 `plugin-manager/changed`。用户文档写明
-   这一限制与手动清理方法：删除 profile `cordis.patch.yml` 里 `web` 行的两个键。
+7. **旧宿主退化**：`ui-settings-web-search` 行自 0.1.7-alpha.1 起存在；peer 域内的 0.1.5 与 0.1.6 线共 5 个
+   宿主没有该行，指向它的 patch 条目按 Loader 语义告警后跳过，不中断启动。`web` 字段不是 volatile 的宿主上
+   `mutate` 抛错被守卫吞掉，成为空操作。两项均为源码或设计推断，未在旧宿主上实测。
+8. **不经插件页的关闭向量**（CLI、手改 profile 的 `dsh.profile.bundles`）不触发 `plugin-manager/changed`。
+   插件页卸载会触发；无 HMR 的桌面端不允许卸载运行中的 bundle，卸载次序为先关闭、重启、再卸载。用户文档
+   写明这些限制与手动清理方法：删除 profile `cordis.patch.yml` 里 `web` 行的两个键。
 
 ## Rationale（理由）
 
