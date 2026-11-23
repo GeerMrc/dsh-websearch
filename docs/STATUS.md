@@ -102,6 +102,7 @@
 | 39 | 2026-09-30 | 生产端全栈升级批（用户指令：上游最新 DSH+插件最新，备份→演练→正式三段） | ✅ | docs/sessions/2026-09-30-session-39.md；audit-logs/2026-09-30-s39-host-upgrade-rehearsal-and-switch.log；全量备份 240M（dsh-ops-backups/3080-full-pre-020rc2-host-*）；演练场 3425 全绿（兼容门/旧会话渲染/链序/搜索+抓取+错误路径降级活体）；正式切换 **3080 = 020rc2 守卫树（0.2.0-rc.2+fork）+ 插件 v0.2.0**（pid 77804——S40 阶段 0 审核勘正：77445 为切换时初值，02:54 日志重挂后 77804 在役）；两级回滚位在案 | 零新增债；树级回滚注记（切换后新会话回滚旧宿主或不可读——数据级备份覆盖切换前态） |
 | 40 | 2026-09-30 | 官方桌面端采用批（用户指令：桌面端调研×三形态验证×插件桌面适配×上游同步规范；plan 047 两轮独立计划审核+2.5 终审） | ✅ | docs/sessions/2026-09-30-session-40.md；docs/desktop-adoption.md + upstream-sync-sop.md + ADR-0023 + README 桌面条目 + KUI①S40 复查行 + dont-do×4；官方桌面端定谳 = 官方仓 Electron 壳（0.2.0-rc.2 三平台，feed/签名/公证/更新通道实测）；**插件 v0.2.0 桌面端双端适配全绿**（安装矢量=内置 launcher 直调；官方端四成员 Configured/会话共享 46+/DNS DoH 活体；peer 域内**免发版**）；T3 源码构建五关排障 runbook；阶段4 PASS-WITH-NOTES（🟡 b52b6db 清偿）+ 阶段5 COMPLETE-WITH-NOTES（清单全处置）；audit-logs s40-desktop-adoption(17 工件)+stage4/stage5 记录 | 🟢×3：桌面真实搜索腿未实跑（三处声明覆盖）/desktop profile 钉 file: tgz（npm spec 为正）/Windows 未实装（边界声明）；**候令：feat 分支合入 master+推送** |
 | 38 | 2026-09-30 | DSH 0.2.0-rc 适配批·v0.2.0 重定标准备（用户指令 2026-09-29：上游更新先适配、流程化实测后重打 v0.2.0；plan 046 rev1）+ 推送批（用户放行 2026-09-30 + VPS 隧道指示） | ✅ | docs/sessions/2026-09-30-session-38.md（含推送执行录三事件）；audit-logs s38-stage0-audit-of-s37 + t0-terminal-gate + t1-satisfies-matrix + t3-drill×2 + t4-7leg-matrix + t4b-e2e-real；peer 六包扩钉（0.2.0-rc.1/rc.2/>=0.2.0 <0.3.0，双语义矩阵含负控）；3434 演练 + 3423 切守卫树七腿异题矩阵 **7/7**（29 served-by 零失败）+ e2e.real 错误路径 **4/4**；阶段4 全绿 607\|17(624) + tsc/lint/i18n 0 错；阶段5 三正交 COMPLETE；422 深度二次排查（用户质询）=非未对齐 bug·四方证据+裸 curl 复现+换 key 无关+瞬时窗口自愈，新发现 AnySearch 422 承载漂移已吸收；known-upstream-issues ① 增 0.2.0-rc 行 + checklist 漂移注记；**推送批**：master `6b5330d`+tag `v0.2.0`+fork `fix/readonly-stack-020rc2` 经 VPS SOCKS 隧道全落，CI/Release 双 success，GitHub Release v0.2.0 双 tarball + npm 0.2.0 发布（pack.mjs mkdir 与 npm publish `./` 前缀两 CI 缺陷当批修复） | 零新增债；**候令：npm 拉装核验 → 3080 切换 → 清场** |
+| 41 | 2026-11-23 | 接管官方「网页搜索与获取」设置页 + 对称交还、插件页文档分离、OIDC 发布自动化、上游 0.2.2-rc.5 对齐（用户指令；plan 048） | 🚧 | docs/sessions/2026-11-23-session-41.md；plan 048 | 承接 S40 🟡×10（处置中，见 session-41 记录） |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -112,11 +113,12 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 40 ✅（官方桌面端采用批：桌面端全貌定谳〔官方仓 Electron 壳 0.2.0-rc.2，download.deepseek.com 三平台〕+ 三形态验证 + **插件 v0.2.0 桌面端双端适配全绿〔免发版〕** + upstream-sync-sop 立制〔ADR-0023〕）。**生产 3080 = 020rc2 守卫树〔detached@9370b2f7f9〕+ 插件 v0.2.0**（S39 交付，本批零接触）；官方桌面 app 在役（19387，共享 ~/.dsh，含插件 v0.2.0）；3423 dev web 在役。发布面：master `92a15d7` + tag v0.2.0 + npm 0.2.0 latest（S40 零源码变更零发版）。feat/s40-desktop-adoption 待合入 master+推送（候令）。
-> （S38 收官态历史注记：017rc2 树 + 插件 v0.2.0 曾于 2026-09-30 02:26-02:36 临时在役〔pid 76655，备份点 3080-pre-020plugin-*〕，同夜被 S39 升级至 020rc2 守卫树——S40 阶段 0 审核勘正层叠表述）
-> （S33/S34 收官态历史注记：v0.1.3 定版〔peer 域九版本全覆盖〕+ npm latest + **生产 3080=0.1.7-rc.2+fork（017rc2 树）+插件 v0.1.3**（备份先行 237M，回滚位 017a2 一级）；S34 文档批 known-upstream-issues 三问题登记+README/Release 联动，Release/fork 远端活体已由 S35 阶段 0 亲验〔远端 master=5d34b2f、fork head=ebd42731c9〕——详见台账 33/34 行）
-- **所处里程碑**: M7 功能扩展 ✅ 2026-09-28（S35 二次收官）；M5 ✅。M4 ✅。M3 宿主包完备（🚧 机械面 ✅）。M6 ⏳（准备棒 S16；S36/S38 属发版收口非 M6 验收棒）
-- **上一棒**: Session 39（docs/sessions/2026-09-30-session-39.md；再上 S38 2026-09-30-session-38.md）
-- **下一棒候选**: feat/s40 合入 master+推送（候令）、官方桌面/上游新版本首轮监测演练（upstream-sync-sop §1 三线，当前无新版本）、anysearch tag/params 垂直域、429 头池切换、alexandria 2026-11-16 日历行
-- **活跃债务**: 🟢×3（S40：桌面真实搜索腿未实跑〔三处声明覆盖〕/desktop profile 钉 file: tgz〔npm spec 为正〕/Windows 桌面形态未实装〔边界声明〕）+ 候令合入推送；唯一日历行 alexandria 2026-11-16 不变
-- **更新时间**: 2026-09-30（S40 官方桌面端采用批收官——桌面端适配全绿+SOP 立制；S39 生产态延续在役）
+- **当前 session**: Session 41 🚧（接管官方「网页搜索与获取」设置页 + 对称交还 / 插件页文档分离 / OIDC 发布自动化 / 上游 0.2.2-rc.5 对齐——用户指令 2026-11-23；plan 048；分支 feat/s41-takeover-docsplit-oidc）。阶段 0 独立审核 S40 = PASS，结论与原始数字见 docs/sessions/audit-logs/2026-11-23-s41-stage0-audit-of-s40.md。
+- **发布面**: npm latest = v0.2.0（@maricgeer/dsh-websearch），tag v0.2.0；origin/master = `619b99c1`。本地 master 另含 S40 的合并提交（2026-10-01）与本 session 提交，均未推送。S40 记录与此前台账里的「待合入 master」表述有误，S41 阶段 0 审核 🟡-4 已指认。
+- **上游现势**: 本机官方桌面 app = 0.2.2-rc.5（2026-11-18 自动更新）；npm `next`、`alpha` 与桌面 feed 三平台的版本见上述 audit-log g 项。
+- **运行环境现势**: 3080、3423、19387 均无监听（机器 2026-10-11 重启后未拉起）；3080 是否有意停机待用户确认。
+- **所处里程碑**: M7 功能扩展（S41 棒）；M3 宿主包完备（🚧 机械面 ✅）；M6 上游验收通过 ⏳（准备棒 S16）
+- **上一棒**: Session 40（docs/sessions/2026-09-30-session-40.md）
+- **下一棒候选**: 收官时刷新
+- **活跃债务**: 阶段 0 审核 🟡×10（处置映射见 docs/sessions/2026-11-23-session-41.md）；🟢 项归属见 plan 048 债务映射节
+- **更新时间**: 2026-11-24（S41 启动刷新）

@@ -12,6 +12,8 @@ origin: roadmap S40 桌面端采用批（用户计划批准 2026-09-30）；证�
 
 accepted（2026-09-30 起草并随 S40 双端实测矩阵全绿转 accepted；证据链见 desktop-adoption.md §9 与 session-40 记录）
 
+> 前提勘正（2026-11-23，[ADR-0027](adr-0027-compat-gate-semantics-and-explicit-pins.md)）：D3 括注「预发布不在 `>=0.2.0 <0.3.0` 区间，官方桌面每升一版都可能拒装」与宿主兼容门的实际语义不符。宿主门以 `includePrerelease: true` 判定，0.2.x 预发布会被放行到未演练的宿主，而不是被拦下。本 ADR 正文按 immutable 规则保留，版本判定以 ADR-0027 为准。
+
 ## Context（背景）
 
 官方 DSH 0.2.0-rc.2 起 `download.deepseek.com` 分发 Electron 桌面客户端（同仓 `apps/desktop` 构建，非独立版本库）。桌面端与 `dsh web` 复用同一 `$DSH_HOME`（数据层共享、设置与**插件按 profile 隔离**），host 跑同一 Web 应用栈（19387 vs 3080）。本插件此前只适配 web profile。约束：桌面 profile 受 CLI 守卫（外部 `dsh plugin --profile desktop` 硬拒，唯一矢量 = app 内置 carrier）；桌面更新通道为 nightly + `allowPrerelease`（一次更新即替换捆绑运行时）；`dsh.client.platform: "web"` 契合桌面渲染进程（跑同一 web 客户端栈）。
