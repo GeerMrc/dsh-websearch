@@ -194,6 +194,8 @@ describe('WebSearchToolviewRow (ADR-0010 takeover)', () => {
         }),
       },
       remote: {},
+      // Optional injection: the stub serves neither remote.pluginManager nor configForms, so no handover watch starts.
+      inject: vi.fn(() => ({ dispose: () => {} })),
       effect: vi.fn((fn: () => unknown) => {
         fn()
         return () => {}
