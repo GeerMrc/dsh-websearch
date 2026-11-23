@@ -1,0 +1,13 @@
+version: 0.2.3-alpha.2
+files:
+  - url: >-
+      https://download.deepseek.com/dsh-desk/bin/mac-arm64/deepseek-harness-0.2.3-alpha.2-mac-arm64.zip
+    sha512: >-
+      bqSJCFTUwpq8+PK6H0KKLaculWQfdzR2R0MJWvGnsnpTxn3AZjWcvnhuFqLn2lWEBg1FdWOLroOgOwQeDKfHuw==
+    size: 365597921
+path: >-
+  https://download.deepseek.com/dsh-desk/bin/mac-arm64/deepseek-harness-0.2.3-alpha.2-mac-arm64.zip
+sha512: >-
+  bqSJCFTUwpq8+PK6H0KKLaculWQfdzR2R0MJWvGnsnpTxn3AZjWcvnhuFqLn2lWEBg1FdWOLroOgOwQeDKfHuw==
+releaseDate: '2026-11-23T03:12:30.263Z'
+stagingPercentage: 10

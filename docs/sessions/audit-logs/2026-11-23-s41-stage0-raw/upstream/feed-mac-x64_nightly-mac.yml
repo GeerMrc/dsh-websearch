@@ -1,0 +1,12 @@
+version: 0.2.1-rc.4
+files:
+  - url: >-
+      https://download.deepseek.com/dsh-desk/bin/mac-x64/deepseek-harness-0.2.1-rc.4-mac-x64.zip
+    sha512: >-
+      QGjNHmZbT7ZG6i/laeUYvoZ0yc/uypdnCr6rOzCSJrgIPQOvq1523CBdrFpmcvoSF4E6URAW3yV+h54JF3UhaA==
+    size: 369524912
+path: >-
+  https://download.deepseek.com/dsh-desk/bin/mac-x64/deepseek-harness-0.2.1-rc.4-mac-x64.zip
+sha512: >-
+  QGjNHmZbT7ZG6i/laeUYvoZ0yc/uypdnCr6rOzCSJrgIPQOvq1523CBdrFpmcvoSF4E6URAW3yV+h54JF3UhaA==
+releaseDate: '2026-10-27T08:15:01.407Z'

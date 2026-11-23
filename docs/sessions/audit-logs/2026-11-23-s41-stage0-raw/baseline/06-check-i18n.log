@@ -1,0 +1,4 @@
+$ node scripts/check-locales.mjs && node scripts/check-cjk.mjs
+check-locales: ok — 179 keys, union/en/zh parity holds
+check-cjk: ok — 41 files, zero CJK literals outside the dictionary
+exit_code=0 duration_s=0.3

@@ -1,0 +1,2 @@
+$ tsc --noEmit -p tsconfig.client.json
+exit_code=0 duration_s=1.4

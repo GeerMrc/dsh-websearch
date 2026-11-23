@@ -1,0 +1,4 @@
+$ oxlint src tests
+Found 0 warnings and 0 errors.
+Finished in 31ms on 87 files with 96 rules using 12 threads.
+exit_code=0 duration_s=0.3

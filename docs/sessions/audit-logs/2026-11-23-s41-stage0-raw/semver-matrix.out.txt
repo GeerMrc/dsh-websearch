@@ -1,0 +1,21 @@
+semver used: /Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/semver@7.8.5/node_modules/semver (version 7.8.5)
+package: @maricgeer/dsh-websearch@0.2.0
+dsh-* peer count: 6 -> @deepseek-ai/dsh-agent, @deepseek-ai/dsh-credentials, @deepseek-ai/dsh-settings, @deepseek-ai/dsh-system-prompt, @deepseek-ai/dsh-tools, @deepseek-ai/dsh-web
+six ranges byte-identical: true
+range: >=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.0 <0.3.0
+valid range: >=0.1.5-rc.1 <0.1.8||0.1.6-alpha.1||0.1.6-alpha.2||0.1.7-alpha.1||0.1.7-alpha.2||0.1.7-rc.1||0.1.7-rc.2||0.2.0-rc.1||0.2.0-rc.2||>=0.2.0 <0.3.0
+
+| version | default satisfies | includePrerelease satisfies | control |
+|---|---|---|---|
+| 0.2.0-rc.2 | true | true | probe |
+| 0.2.1-rc.5 | false | true | probe |
+| 0.2.2-rc.1 | false | true | probe |
+| 0.2.2-rc.5 | false | true | probe |
+| 0.2.2 | true | true | probe |
+| 0.2.3-alpha.2 | false | true | probe |
+| 0.1.8 | false | false | negative |
+| 0.3.0 | false | false | negative |
+
+per-package answer divergence across six ranges: 0
+negative controls default: 0.1.8=false, 0.3.0=false
+negative controls includePrerelease: 0.1.8=false, 0.3.0=false

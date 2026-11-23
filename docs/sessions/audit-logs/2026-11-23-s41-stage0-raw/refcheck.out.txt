@@ -1,0 +1,39 @@
+tokens checked: 351
+dsh-websearch path refs NOT existing at HEAD: 5
+  docs/sessions/audit-logs/2026-09-30-s40-stage5-crossvalidation.md -> docs/plans/2026-09-30-047
+  docs/dont-do.md -> STATUS.md
+  docs/session-roadmap.md -> STATUS.md
+  CHANGELOG.md -> tests/e2e.real/perplexity.real.test.ts
+  CHANGELOG.md -> docs/decisions/adr-0001..0005
+bare doc refs NOT existing under docs/: 0
+harness-tree path refs NOT existing at 9370b2f7f9: 10
+  docs/sessions/2026-09-30-session-40.md -> native/landlock-run
+  docs/desktop-adoption.md -> apps/web/dist
+  docs/desktop-adoption.md -> vendor/landlock
+  docs/desktop-adoption.md -> apps/desktop/.env
+  docs/desktop-adoption.md -> apps/desktop/.desktop-build/development/home
+  docs/desktop-adoption.md -> native/landlock-run/
+  docs/desktop-adoption.md -> apps/desktop/.desktop-build/downloads/
+  docs/upstream-sync-sop.md -> native/landlock-run/
+  docs/upstream-sync-sop.md -> apps/desktop/.desktop-build/downloads/
+  docs/dont-do.md -> native/landlock-run/
+
+multi-carrier transcription counts (file: occurrences) for S40-specific measured values
+  [369,764,183] files=3 total=3 :: session-40.md×1, desktop-adoption.md×1, README.md×1
+  [6b88f10d] files=2 total=2 :: desktop-adoption.md×1, README.md×1
+  [NAN929V4UM] files=2 total=2 :: session-40.md×1, desktop-adoption.md×1
+  [46+] files=4 total=4 :: session-40.md×1, desktop-adoption.md×1, STATUS.md×1, CHANGELOG.md×1
+  [661B] files=2 total=2 :: desktop-adoption.md×1, s40-stage5-crossvalidation.md×1
+  [17 工件] files=6 total=6 :: session-40.md×1, 047-desktop-adoption-plan.md×1, desktop-adoption.md×1, s40-stage4-review.md×1, s40-stage5-crossvalidation.md×1, STATUS.md×1
+  [607] files=6 total=7 :: session-40.md×2, desktop-adoption.md×1, upstream-sync-sop.md×1, STATUS.md×1, session-roadmap.md×1, CHANGELOG.md×1
+  [639ed01539] files=4 total=4 :: session-40.md×1, s40-stage4-review.md×1, s40-stage5-crossvalidation.md×1, known-upstream-issues.md×1
+  [9370b2f7f9] files=6 total=7 :: session-40.md×2, upstream-sync-sop.md×1, s40-stage4-review.md×1, s40-stage5-crossvalidation.md×1, known-upstream-issues.md×1, STATUS.md×1
+  [77804] files=6 total=9 :: session-40.md×1, 047-desktop-adoption-plan.md×1, desktop-adoption.md×1, s40-stage4-review.md×2, s40-stage5-crossvalidation.md×2, STATUS.md×2
+  [21072] files=2 total=2 :: 047-desktop-adoption-plan.md×1, s40-stage5-crossvalidation.md×1
+  [25798] files=3 total=3 :: 047-desktop-adoption-plan.md×1, s40-stage4-review.md×1, s40-stage5-crossvalidation.md×1
+  [6403] files=2 total=3 :: desktop-adoption.md×2, s40-stage4-review.md×1
+  [3425] files=2 total=2 :: STATUS.md×1, session-roadmap.md×1
+  [17(624)] files=4 total=4 :: session-40.md×1, STATUS.md×1, session-roadmap.md×1, CHANGELOG.md×1
+  [17\|] files=2 total=2 :: STATUS.md×1, session-roadmap.md×1
+  [110M] files=2 total=2 :: session-40.md×1, s40-stage4-review.md×1
+  [27+] files=2 total=2 :: session-40.md×1, desktop-adoption.md×1
