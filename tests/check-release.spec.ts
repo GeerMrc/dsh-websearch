@@ -23,6 +23,14 @@ import {
  */
 const VERSION = '0.2.1'
 
+/**
+ * A token-shaped value for the scanner's fixtures, built by interpolation so
+ * this file never holds a matchable `token=<value>` literal: the release
+ * gate's token scan covers the tests like every other tracked file.
+ */
+const FAKE_TOKEN = 'FAKEfake0FAKEfake1FAKEfake2FAKEfake3FAKEfake4FAKE'
+const FAKE_TOKEN_URL = `dsh web: http://127.0.0.1:3434/?token=${FAKE_TOKEN}`
+
 function git(cwd: string, ...args: string[]): void {
   const result = spawnSync('git', args, { cwd, encoding: 'utf8' })
   if (result.status !== 0) throw new Error(`git ${args.join(' ')} failed: ${result.stderr}`)
@@ -109,10 +117,10 @@ describe('token scan', () => {
   it('reports lines carrying a host token value and ignores the redacted marker', () => {
     const text = [
       'dsh web: http://127.0.0.1:3434/?token=<redacted>',
-      'dsh web: http://127.0.0.1:3434/?token=wt_PJGpi5WfG3Up_8Wo03enHwLYvRkx9UKTASrD9jpM',
+      FAKE_TOKEN_URL,
       'see https://example.invalid/?token=short',
     ].join('\n')
-    expect(tokenFindings(text)).toEqual(['dsh web: http://127.0.0.1:3434/?token=wt_PJGpi5WfG3Up_8Wo03enHwLYvRkx9UKTASrD9jpM'])
+    expect(tokenFindings(text)).toEqual([FAKE_TOKEN_URL])
   })
 })
 
@@ -186,7 +194,7 @@ describe('main', () => {
   it('fails on a tracked file that carries a host token value, whatever else was requested', async () => {
     const repo = await makeRepo({
       'package.json': manifest(VERSION),
-      'evidence.log': 'dsh web: http://127.0.0.1:3434/?token=wt_PJGpi5WfG3Up_8Wo03enHwLYvRkx9UKTASrD9jpM\n',
+      'evidence.log': `${FAKE_TOKEN_URL}\n`,
     })
     await packTarballs(dir, () => {})
     const problems = await main(['--tarballs', dir], repo)
