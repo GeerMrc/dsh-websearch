@@ -15,6 +15,11 @@ accepted（2026-09-06；用户方向裁定〔AskUserQuestion 获答方案 B〕+ 
 **amend** ADR-0001 组合面 / ADR-0004 D2 接线形态 / ADR-0009 D5 博弈规则——三 ADR
 已加注记互指，非整体 superseded；ADR-0004 D3 链中立性实质不变）
 
+> 前提勘正（2026-11-24，[ADR-0024](adr-0024-takeover-and-symmetric-handover.md)）：决策 7 所依赖的现象「禁用
+> `web-search-deepseek` 后官方设置卡随之消失」只在宿主 0.2.0-rc.2 及更早版本成立。0.2.2-rc.5 起该卡片在 `web`
+> 命名空间被服务期间一直存在，不再随该行消失，于是官方卡与本插件并存。隐藏官方卡改由禁用
+> `ui-settings-web-search` 行实现，见 ADR-0024；本 ADR 的钉扎决策（`searchProvider: dshws-chain`）不变。
+
 ## Context
 
 用户提议（2026-09-06）：「不装插件时用宿主默认 websearch；装了本插件就自动接管」——

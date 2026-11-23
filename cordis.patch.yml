@@ -1,3 +1,14 @@
+# Bundle layer for dsh-websearch (ADR-0013, ADR-0024). Disabling or uninstalling
+# the bundle in the Plugins page removes this whole layer, so every override
+# below is derived state: the official rows return with their config intact.
+#
+# Takeover: pin the seam's selection to this plugin's chain and gate, and hide
+# the official "web search and fetch" settings page, a pure edit surface that
+# would otherwise let users select another provider while this plugin is on.
+# Runtime rows are intentionally NOT disabled: web, web-fetch-http,
+# web-deepseek-api, tool-web and the preset rows must stay up so the official
+# providers take over as soon as this bundle is off. Entries carry no `name`
+# guard on purpose: a mismatched guard makes the host skip the entry silently.
 - insert:
     - id: dsh-websearch
       name: dsh-websearch
@@ -6,4 +17,6 @@
     searchProvider: dshws-chain
     fetchProvider: dshws-fetch-gate
 - id: web-search-deepseek
+  disabled: true
+- id: ui-settings-web-search
   disabled: true
