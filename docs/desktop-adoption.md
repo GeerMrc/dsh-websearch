@@ -30,7 +30,17 @@
 | win-x64 | `dsh-desk/feeds/win-x64/nightly.yml` | **0.2.0-rc.2** | `dsh-desk/bin/win-x64/deepseek-harness-0.2.0-rc.2-win-x64.exe` | 289,313,640 | 2026-09-29T10:35:27Z |
 
 （三 feed 均带 sha512；此处省略，自查命令见 §9 与 SOP。）
-- 更新通道：固定 `channel: 'nightly'` + `allowPrerelease: true`（`apps/desktop/src/update-coordinator.ts:69-70`）；另有服务端强更策略（`mandatory-update-policy.ts`，字段含 `bundledDshVersion`）可强制用户升级。**含义：桌面端会自动升到更新的预发布版本，一次更新即替换捆绑运行时——插件 peer 域随即面临失配，这是桌面形态的固有迭代压力**（应对见 SOP 桌面更新链）。
+
+**2026-11-24 复测（S41 阶段 0 独立审核；三平台已不同版）**
+
+| target | feed | version | releaseDate | 备注 |
+|---|---|---|---|---|
+| mac-arm64 | `dsh-desk/feeds/mac-arm64/nightly-mac.yml` | **0.2.3-alpha.2** | 2026-11-23T03:12:30Z | `stagingPercentage: 10` |
+| mac-x64 | `dsh-desk/feeds/mac-x64/nightly-mac.yml` | 0.2.1-rc.4 | 2026-10-27T08:15:01Z | |
+| win-x64 | `dsh-desk/feeds/win-x64/nightly.yml` | 0.2.3-alpha.2 | 2026-11-23T03:03:15Z | |
+
+本机官方 app：`CFBundleShortVersionString` = **0.2.2-rc.5**（Info.plist mtime 2026-11-18，经自动更新到达）。原始输出见 `sessions/audit-logs/2026-11-23-s41-stage0-raw/upstream/`。
+- 更新通道：固定 `channel: 'nightly'` + `allowPrerelease: true`（`apps/desktop/src/update-coordinator.ts:69-70`）；另有服务端强更策略（`mandatory-update-policy.ts`，字段含 `bundledDshVersion`）可强制用户升级。**含义：桌面端会自动升到更新的预发布版本，一次更新即替换捆绑运行时**。宿主兼容门按 `includePrerelease: true` 判定（`packages/boot/app-boot/src/plugin-compatibility.ts:77`），0.2.x 预发布会被放行——插件不会被拒装，而是直接运行在未演练过的宿主上，这是桌面形态的固有迭代压力（判定与应对见 [ADR-0027](decisions/adr-0027-compat-gate-semantics-and-explicit-pins.md) 与 SOP 桌面更新链）。
 - 签名/公证：macOS Developer ID（notarytool）+ forceCodeSigning；Windows EV 证书 + SignTool + RFC3161 时间戳（`apps/desktop/electron-builder.config.mjs` 与 `apps/desktop/.env.*.example`）。校验命令见 §9。
 
 ## 4. 与 `dsh web` 的架构对照

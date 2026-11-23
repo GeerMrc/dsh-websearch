@@ -2,7 +2,7 @@
 
 > **给谁看**：使用 dsh-websearch 插件（或任何 DSH 插件）的用户。上游宿主 `dsh`（[deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)）的已知问题在这里登记——**这些不是本插件的 bug**，但会让插件（乃至整个宿主）表现异常。每条按「现象 → 影响版本 → 根因 → 怎么办 → 怎么自查」组织，照做即可；技术沿革折叠在每条末尾供进阶读者。
 >
-> **维护规则**：上游每发新版本，我们按 [docs/upgrade.md](upgrade.md) 的演练矩阵逐线实测后更新本表（登记与销项都以实测为准，不凭发布说明推断）。最近全面核对：2026-09-30（0.2.0-rc.2 线，S38 适配批；同日 S40 桌面端采用批复查 upstream + 官方桌面 feed）；上一次 2026-09-26（0.1.7-rc.2 线）。
+> **维护规则**：上游每发新版本，我们按 [docs/upgrade.md](upgrade.md) 的演练矩阵逐线实测后更新本表（登记与销项都以实测为准，不凭发布说明推断）。上游现势最近核对：2026-11-24（S41 阶段 0 独立审核：npm `next`=0.2.2-rc.5、`alpha`=0.2.3-alpha.2；upstream master 即 `dsh-v0.2.3-alpha.2`；官方桌面 feed 三平台版本见 [desktop-adoption §3](desktop-adoption.md)）。逐问题最近全面核对：2026-09-30（0.2.0-rc.2 线，S38 适配批）；上一次 2026-09-26（0.1.7-rc.2 线）。
 
 ---
 
@@ -25,6 +25,7 @@ Plugin metadata for <某个插件包名>: TypeError: Cannot assign to read only 
 | 0.1.7-alpha.2 / 0.1.7-rc.1 | ❌ 两处代码路径全裸（都会踩） |
 | **0.1.7-rc.2** | ⚠️ **半修复**：ESM importer 路径官方已修；`MODULE_NOT_FOUND` 的 CJS require-stack 路径**仍未修** |
 | **0.2.0-rc.1 / 0.2.0-rc.2** | ⚠️ **同半修复状态延续**（2026-09-30 S38 实测核对：ESM 站点已修、CJS 站点仍裸）。fork 守卫已移植：分支 `fix/readonly-stack-020rc2` = `dsh-v0.2.0-rc.2` + ebd42731c9 cherry-pick（=9370b2f7f9），S38 3434 演练 + 3423 七腿矩阵全程在该树在役零复发。**S40 2026-09-30 复查**：`git fetch upstream` 后 upstream/master 仍停在 `639ed01539`（0.2.0-rc.2 发布合并，无后续提交），全史 `--grep` 无官方等价修复——守卫继续必要（仅 fork 源码树/tsx 启动形态需要；官方桌面端跑打包产物，按本条触发条件不受影响——桌面端插件适配实测全过，见 [desktop-adoption.md](desktop-adoption.md)） |
+| **0.2.2-rc.5** | ❔ **未核对**（2026-11-24 登记，S41）：官方桌面在该版本用打包产物启动，不满足下文的源码启动触发条件；源码启动该线时 CJS 站点是否已修，随 S41 的 rc.5 演练回填 |
 | 0.1.5-rc.x | ✅ 不受影响——该解析器改写机制在这些版本尚不存在（树中无 `profile-resolution/` 模块） |
 | 0.1.6-alpha.1 | ✅ 机制在（两处裸赋值），但未观察到触发——实测证据见 [S33 演练](sessions/audit-logs/2026-09-26-s33-t6-drill.md)（该线冒烟零症状，生产曾长期在役） |
 

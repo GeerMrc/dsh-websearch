@@ -653,3 +653,30 @@ P0 两轮 APPROVED / T0 PASS（🔴0🟡4🟢4）/ T1 五工件 / T2 矩阵（�
 锚点：门墙 601/601·双面 tsc 0·0w0e·i18n 179 键（audit-logs/2026-09-28-s37-stage45-review.md）；peer 域 satisfies 实测完整（六包 28 版，T0 正本）；对齐矩阵信封表含数组 detail/code/request_id 三新形态 + alexandria 带日期行。
 
 债务变动：🟢 新增——alexandria 到期（2026-11-16）/request_id 余面/429 头/toolview-common；🟢 清偿——request_id anysearch 两路（收窄）、17 死键、lint 遗留。R6 裁定：净减实测 -187（核心）/ -93（PB src），≥250 未达如实复盘。
+
+## S38–S40 补账（S41 T2b，2026-11-24）
+
+三棒的 progress 台账当时未更新（S41 阶段 0 独立审核应清项 5）。此处只补指针与状态，不重新核验；各棒的验收证据以指针指向的记录与 audit-log 为准。
+
+| 批次 | 日期 | 任务与验收正本 | 状态 |
+|---|---|---|---|
+| S38 DSH 0.2.0-rc 适配批·v0.2.0 重定标准备与推送 | 2026-09-30 | `docs/sessions/2026-09-30-session-38.md`（plan 046；audit-logs `2026-09-30-s38-*`） | ✅ v0.2.0 已发布（tag、GitHub Release、npm） |
+| S39 生产端全栈升级批 | 2026-09-30 | `docs/sessions/2026-09-30-session-39.md`（audit-logs `2026-09-30-s39-host-upgrade-rehearsal-and-switch.log`） | ✅ 当时切换完成；3080 自 2026-10-11 重启后不在役 |
+| S40 官方桌面端采用批 | 2026-09-30 | `docs/sessions/2026-09-30-session-40.md`（plan 047；audit-logs `2026-09-30-s40-desktop-adoption/` 及同前缀的阶段 4、5 记录） | ✅ 已合入本地 master，未推送 |
+
+S40 的已验锚点（来源：`docs/sessions/audit-logs/2026-11-23-s41-stage0-audit-of-s40.md` d 项与 e 项）：
+
+| 锚点 | 所在 commit | 说明 |
+|---|---|---|
+| `docs/desktop-adoption.md` 在盘，三形态实测节完整 | `ede714d` | 抽验吻合数与偏差项见来源文件；偏差登记为延后项 |
+| `docs/upstream-sync-sop.md` 在盘，七节 | `ede714d` | 2026-11-24 由 S41 T2b 修订 §1、§2、§4、§7，修订后待 S41 阶段 4 重验 |
+| `docs/decisions/adr-0023-desktop-adoption-dual-profile.md` 在盘，D1–D4 | `65a4479` | S41 加前提勘正注，指向 ADR-0027 |
+| `docs/known-upstream-issues.md`、`docs/dont-do.md` 在盘 | `ede714d` | known-upstream-issues 于 2026-11-24 由 S41 T2b 更新现势 |
+| `.github/workflows/release.yml` / `ci.yml`、`scripts/pack.mjs`、`cordis.patch.yml`、`src/index.ts` | `6b5330d` / `5f4908f` / `4608a1a` / `045c497` / `d2d9e8a` | 基线提交 `26b646e` 时产品代码相对各自 commit 零 diff |
+
+## S41 批次台账（2026-11-23/24，接管官方「网页搜索与获取」设置页 + 插件页文档分离 + OIDC 发布自动化）
+
+计划：plan 048（`docs/plans/2026-11-23-048-s41-takeover-docsplit-oidc-plan.md`）。任务表、债务变动与新增锚点随 session 推进回填，收官时在阶段 6 定稿。
+
+- 阶段 0 独立审核：PASS；正本 `docs/sessions/audit-logs/2026-11-23-s41-stage0-audit-of-s40.md`，基线数字见同文件 e 项。
+- 阶段 2 独立审核：三轮，终为 APPROVED；正本 `docs/sessions/audit-logs/2026-11-23-s41-stage2-plan-review-r1.md` 至 `r3.md`。

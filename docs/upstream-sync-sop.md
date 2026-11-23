@@ -21,7 +21,7 @@
       ↓
 ⑥ fork 守卫重放（仅当官方未修已登记问题）：新版本 worktree + cherry-pick + 重建 + 3434 验证
       ↓
-⑦ 治理落盘（session 记录 + audit-logs 证据归档 + STATUS/roadmap 台账 ✅ + CHANGELOG + 踩坑沉淀〔RCA/dont-do〕+ 接力指令——完整六件套见 §7）
+⑦ 治理落盘（收尾六件套，见 §7：交付物 / session 记录 / progress+STATUS / 踩坑沉淀 / CHANGELOG / 接力指令）
 ```
 
 ## 1. 上游监测三线（快查命令块）
@@ -37,18 +37,20 @@ npm view @deepseek-ai/dsh-web versions dist-tags --json | tail -12
 curl -s https://download.deepseek.com/dsh-desk/feeds/mac-arm64/nightly-mac.yml | head -3
 curl -s https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml | head -3
 
-# 辅线：桌面 host 协议版本（fork 守卫重放之外的第二条失配线，当前 = 4）
-grep DESKTOP_HOST_PROTOCOL_VERSION /Volumes/IPFSJK/Zcode/deepseek-harness/apps/desktop/src/host-protocol.ts
+# 辅线：桌面 host 协议版本（fork 守卫重放之外的第二条失配线）——读 upstream 远端内容，不读本地钉死的检出文件
+git -C /Volumes/IPFSJK/Zcode/deepseek-harness show upstream/master:apps/desktop/src/host-protocol.ts | grep DESKTOP_HOST_PROTOCOL_VERSION
 ```
 
-判定口径：**桌面 feed version ≈ dsh 家族版本 ≈ 捆绑 runtime 版本**（三平台同版；版本映射表正本在 desktop-adoption §3，随 feed 变化回填）。
+判定口径：**桌面 feed version ≈ dsh 家族版本 ≈ 捆绑 runtime 版本**（三平台可以不同版：2026-11-24 实测 mac-arm64 与 win-x64 为 0.2.3-alpha.2、mac-x64 为 0.2.1-rc.4；版本映射表正本在 desktop-adoption §3，随 feed 变化回填）。
 
 ## 2. 新版本决策树
 
-1. 取新版本号 `V`，对插件 peer 六包域逐包 `semver.satisfies(V, 域)` **实测**（禁目测——dont-do semver 条目）。
-2. `V` 落在域内（如显式枚举过的预发布或 `>=0.2.0 <0.3.0` 稳定区间）→ **免发版**：跑 §3 演练 + §4 双端验证，记录即可。
-3. `V` 落在域外（新预发布/新稳定线）→ 走 AGENTS.md「上游适配强制流程」：`npm view` 全列表 + 扩钉 peer 域（devDeps 同步换树演练）+ `USER_AGENT` 版本钉（tests/user-agent.test.ts 防漂）+ [upstream-alignment-checklist.md](upstream-alignment-checklist.md) 全绿 → §4 发版。
-4. 任一步失败 → 不 tag、不发布、登记 KUI。
+对每个新版本号 `V`，先用真实 semver 实测**两种语义**（禁目测——dont-do semver 条目；依据见 [ADR-0027](decisions/adr-0027-compat-gate-semantics-and-explicit-pins.md)）：
+
+1. 默认语义 `satisfies(V, 域)` 为真 → `V` 已演练并显式钉在域内：**免发版**，跑 §3 演练 + §4 双端验证，记录即可。
+2. 默认语义为假、宿主门语义 `satisfies(V, 域, { includePrerelease: true })` 为真 → `V` **尚未演练，但宿主会放行**（0.2.x 预发布都属于这一类）：走 AGENTS.md「上游适配强制流程」——`npm view` 全列表 + 目标版本实例上的功能演练 + devDeps 换树 + `USER_AGENT` 版本钉（tests/user-agent.test.ts 防漂）+ [upstream-alignment-checklist.md](upstream-alignment-checklist.md) 全绿 → 显式扩钉 peer 域 → §4 发版。
+3. 两种语义都为假 → 域外，宿主会拒绝安装：按第 2 步演练后扩钉。
+4. 任一步失败 → 不 tag、不发布、撤销该版本的显式钉、登记 KUI。
 
 ## 3. fork 守卫重放 runbook（已登记官方未修问题，见 KUI）
 
@@ -88,7 +90,7 @@ osascript -e 'quit app "DeepSeek Harness"'; sleep 4; open -a "DeepSeek Harness" 
 
 **验证锚点（浏览器自动化打开 `http://127.0.0.1:<port>/?token=<从启动日志取>`）**：①Settings 导航出现 **Web Search** 节（= host 半区注册 + client.js 经 `/plugins/` 加载）；②成员卡状态与预期一致（官方端共享凭据应全 Configured + Primary/Standby 徽标）；③web_fetch 接管开关态；④DNS 韧性卡（DoH active + reserved-range 证据行 = DNS 层活体）；⑤设置页脚版本 = 官方桌面 feed version。**运行时真实搜索腿**不随验证烧 API——由插件仓 `pnpm test`（607 套件）+ e2e.real（有 key 窗口）+ 生产 3080 在役实录覆盖。**并发**：3080 + 3423/3434 + 19387 三进程同跑为常规态（会话互斥写锁是设计行为）。
 
-**macOS 桌面端取证注意**：官方 app 无远程调试口；拿 token URL 须以受管后台任务直启二进制并 tee 日志（`'<app>/Contents/MacOS/DeepSeek Harness' 2>&1 | tee <log>`），验完 `quit` + `open -a` 恢复标准启动；**绝不关闭其管道**（EPIPE 主进程崩溃弹窗，S40 事故在案）；**禁 `ps eww` 于 GUI 进程**（会倾倒继承环境里的全部凭据）。
+**macOS 桌面端取证注意**：官方 app 无远程调试口；拿 token URL 须以受管后台任务直启二进制并 tee 日志（`'<app>/Contents/MacOS/DeepSeek Harness' 2>&1 | tee <log>`），验完 `quit` + `open -a` 恢复标准启动；**绝不关闭其管道**（EPIPE 主进程崩溃弹窗，S40 事故在案）；**禁 `ps eww` 于 GUI 进程**（会倾倒继承环境里的全部凭据）。**归档前脱敏**：tee 落盘的日志在入库前执行 `sed -i '' -E 's#(token=)[A-Za-z0-9._~+/=-]{8,}#\1<redacted>#g' <文件>`，再用 `git grep -nE 'token=[A-Za-z0-9._~+/=-]{8,}'` 确认计数为 0——host 进程 token 也是凭据，S14c、S32、S33、S40 四批证据日志曾带值入库。
 
 ## 5. 插件发版与桌面端联动
 
@@ -109,4 +111,4 @@ osascript -e 'quit app "DeepSeek Harness"'; sleep 4; open -a "DeepSeek Harness" 
 
 ## 7. 红线与高危门控（本 SOP 全程适用）
 
-3080 生产禁触（仅用户明确指令）；`v*` tag 推送 / `npm publish` 先确认；仓库外写入、系统配置修改、大范围删除 fail-closed；DNS 相关只读观测；凭据零明文（含：诊断命令不得倾倒进程环境）。治理留痕：每轮循环按 session-governance 收尾六件套落盘（session 记录 + audit-logs 证据 + STATUS/roadmap/CHANGELOG 同步）。
+3080 生产禁触（仅用户明确指令）；`v*` tag 推送 / `npm publish` 先确认；仓库外写入、系统配置修改、大范围删除 fail-closed；DNS 相关只读观测；凭据零明文（含：诊断命令不得倾倒进程环境）。治理留痕：每轮循环按 session-governance 收尾六件套落盘——① 交付物 ② session 记录（含 audit-logs 证据归档，带参数头与输出原文）③ progress 台账与 STATUS、roadmap 更新 ④ 踩坑沉淀（RCA / dont-do）⑤ CHANGELOG ⑥ 接力指令；六项齐全才算收官。
