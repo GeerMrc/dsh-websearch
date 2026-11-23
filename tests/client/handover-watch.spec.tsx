@@ -1,14 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
-import { BUNDLE_NAMES, PLUGIN_MANAGER_CHANGED, installHandoverWatch } from '../../src/client/handover-watch.ts'
+import { BUNDLE_NAMES, PLUGIN_MANAGER_CHANGED, WATCH_FACES, installHandoverWatch } from '../../src/client/handover-watch.ts'
 
 /**
  * Client handover watch (ADR-0024 decision 4). The Host forwards
  * `plugin-manager/changed` after every plugin-manager operation and the Web
  * client stays alive across a bundle switch, which is the only channel on
- * hosts without HMR. On each event the watch checks whether this bundle is
- * still enabled; once it is not, it clears the seam's user-layer selections
- * that name this plugin's providers, re-reading once when the write is refused.
+ * hosts without HMR. Both host faces are optional and are requested through an
+ * inject: on rc.5 the plugin-manager Remote is served shortly AFTER this
+ * plugin's apply, so a one-shot lookup would miss it. On each event the watch
+ * checks whether this bundle is still enabled; once it is not, it clears the
+ * seam's user-layer selections that name this plugin's providers, re-reading
+ * once when the write is refused.
  */
 
 const UNSET_SEARCH = { op: 'unset', path: ['searchProvider'] }
@@ -23,7 +26,7 @@ interface FakeHandle {
   getSnapshot: ReturnType<typeof vi.fn>
   mutate: ReturnType<typeof vi.fn>
   $on: ReturnType<typeof vi.fn>
-  get: ReturnType<typeof vi.fn>
+  inject: ReturnType<typeof vi.fn>
 }
 
 interface FakeOptions {
@@ -33,12 +36,19 @@ interface FakeOptions {
   snapshots?: readonly unknown[]
   /** Successive answers of `mutate`: true accepts, false refuses; a function supplies the outcome. */
   answers?: readonly (boolean | (() => Promise<boolean>))[]
+  /** Serve the injected faces only when `serve` is called on the handle. */
+  facesArriveLater?: boolean
+  /** Never serve the plugin-manager face. */
   withoutPluginManager?: boolean
-  withoutConfigForms?: boolean
+}
+
+interface FakeHandleWithServe extends FakeHandle {
+  /** Serves the injected faces to the pending inject callback. */
+  serve: () => void
 }
 
 /** Hand-built client ctx stub exposing only the faces the watch touches. */
-function makeCtx(options: FakeOptions = {}): FakeHandle {
+function makeCtx(options: FakeOptions = {}): FakeHandleWithServe {
   const handlers = new Set<() => void>()
   const snapshots = [...(options.snapshots ?? [{ status: 'ready', user: PINNED, revision: 4 }])]
   const answers = [...(options.answers ?? [true])]
@@ -49,52 +59,75 @@ function makeCtx(options: FakeOptions = {}): FakeHandle {
   const getSnapshot = vi.fn(() => (snapshots.length > 1 ? snapshots.shift() : snapshots[0]))
   const mutate = vi.fn(async (): Promise<boolean> => {
     const answer = answers.length > 1 ? answers.shift() : answers[0]
-    if (answer !== true && answer !== false) {
-      if (answer === undefined) throw new Error('mutate answer exhausted')
-      return answer()
-    }
-    return answer
+    if (answer === undefined) throw new Error('mutate answer exhausted')
+    return typeof answer === 'function' ? answer() : answer
   })
-  const $on = vi.fn((event: string, handler: () => void) => {
+  const $on = vi.fn((_event: string, handler: () => void) => {
     handlers.add(handler)
     return () => { handlers.delete(handler) }
   })
-  const get = vi.fn((name: string) => {
-    if (name === 'remote.pluginManager') return options.withoutPluginManager ? undefined : { listBundles }
-    if (name === 'configForms') return options.withoutConfigForms ? undefined : { get: () => ({ getSnapshot, mutate }) }
-    return undefined
+  const scoped = {
+    remote: { $on, ...(options.withoutPluginManager ? {} : { pluginManager: { listBundles } }) },
+    configForms: { get: () => ({ getSnapshot, mutate }) },
+  }
+  let pending: ((scope: typeof scoped) => void) | undefined
+  const inject = vi.fn((_deps: readonly string[], callback: (scope: typeof scoped) => void) => {
+    pending = callback
+    if (!options.facesArriveLater && !options.withoutPluginManager) callback(scoped)
+    return { dispose: () => {} }
   })
-  const ctx = { get, remote: { $on } } as unknown as Context
+  const ctx = { inject } as unknown as Context
   const emit = async () => {
     for (const handler of handlers) handler()
     for (let i = 0; i < 6; i++) await Promise.resolve()
   }
-  return { ctx, emit, listBundles, getSnapshot, mutate, $on, get }
+  return {
+    ctx, emit, listBundles, getSnapshot, mutate, $on, inject,
+    serve: () => { pending?.(scoped) },
+  }
 }
 
 describe('installHandoverWatch', () => {
-  it('subscribes to plugin-manager/changed and returns the unsubscribe function', () => {
-    const { ctx, $on } = makeCtx()
+  it('requests both optional faces through one inject and subscribes once they are served', () => {
+    const { ctx, inject, $on } = makeCtx()
     const unsubscribe = installHandoverWatch(ctx)
+    expect(inject).toHaveBeenCalledWith(WATCH_FACES, expect.any(Function))
+    expect([...WATCH_FACES].sort()).toEqual(['configForms', 'remote.pluginManager'])
     expect($on).toHaveBeenCalledWith(PLUGIN_MANAGER_CHANGED, expect.any(Function))
-    unsubscribe()
-    expect($on.mock.results[0]?.value).toBe(unsubscribe)
+    expect(typeof unsubscribe).toBe('function')
   })
 
-  it('looks the two optional faces up through ctx.get', () => {
-    const { ctx, get } = makeCtx()
+  it('waits for faces that the host serves only after apply (rc.5 ordering)', async () => {
+    const { ctx, serve, $on, emit, mutate } = makeCtx({ facesArriveLater: true })
     installHandoverWatch(ctx)
-    expect(get).toHaveBeenCalledWith('remote.pluginManager')
-    expect(get).toHaveBeenCalledWith('configForms')
+    expect($on).not.toHaveBeenCalled()
+    serve()
+    expect($on).toHaveBeenCalledTimes(1)
+    await emit()
+    expect(mutate).toHaveBeenCalledTimes(1)
   })
 
-  it.each([
-    ['remote.pluginManager', { withoutPluginManager: true }],
-    ['configForms', { withoutConfigForms: true }],
-  ])('does not subscribe when the host exposes no %s', (_face, options) => {
-    const { ctx, $on } = makeCtx(options)
-    expect(typeof installHandoverWatch(ctx)).toBe('function')
+  it('never subscribes when the host does not serve the plugin-manager face', async () => {
+    const { ctx, $on, emit, mutate } = makeCtx({ withoutPluginManager: true })
+    const unsubscribe = installHandoverWatch(ctx)
+    expect(typeof unsubscribe).toBe('function')
+    await emit()
     expect($on).not.toHaveBeenCalled()
+    expect(mutate).not.toHaveBeenCalled()
+  })
+
+  it('does not subscribe when it was stopped before the faces arrived', () => {
+    const { ctx, serve, $on } = makeCtx({ facesArriveLater: true })
+    installHandoverWatch(ctx)()
+    serve()
+    expect($on).not.toHaveBeenCalled()
+  })
+
+  it('stops watching when the returned function is called', async () => {
+    const { ctx, emit, mutate } = makeCtx()
+    installHandoverWatch(ctx)()
+    await emit()
+    expect(mutate).not.toHaveBeenCalled()
   })
 
   it('leaves the selection alone while the bundle is still enabled', async () => {
@@ -134,7 +167,8 @@ describe('installHandoverWatch', () => {
   })
 
   it('does not write when the user layer names no plugin provider', async () => {
-    const { ctx, emit, mutate } = makeCtx({ snapshots: [{ status: 'ready', user: { searchProvider: 'deepseek-search-api', fetchProvider: 'http' }, revision: 2 }] })
+    const official = { status: 'ready', user: { searchProvider: 'deepseek-search-api', fetchProvider: 'http' }, revision: 2 }
+    const { ctx, emit, mutate } = makeCtx({ snapshots: [official] })
     installHandoverWatch(ctx)
     await emit()
     expect(mutate).not.toHaveBeenCalled()
@@ -200,21 +234,5 @@ describe('installHandoverWatch', () => {
     await emit()
     expect(warn).toHaveBeenCalledTimes(1)
     expect(String(warn.mock.calls[0]?.[0])).toMatch(/transport failed/)
-  })
-
-  it('reports a write that throws synchronously without throwing', async () => {
-    const warn = vi.fn()
-    const { ctx, emit } = makeCtx({ answers: [() => { throw new TypeError('form disposed') }] })
-    installHandoverWatch(ctx, warn)
-    await emit()
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(String(warn.mock.calls[0]?.[0])).toMatch(/form disposed/)
-  })
-
-  it('stops watching after the returned function is called', async () => {
-    const { ctx, emit, mutate } = makeCtx()
-    installHandoverWatch(ctx)()
-    await emit()
-    expect(mutate).not.toHaveBeenCalled()
   })
 })

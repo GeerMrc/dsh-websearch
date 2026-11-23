@@ -7,11 +7,16 @@
  * its fibers. On each event the watch asks whether this bundle is still
  * enabled; once it is not, it clears the seam's user-layer selections that name
  * this plugin's providers (see `../handover.ts`), re-reading once when the Host
- * refuses the write. Both host faces are optional: a host without the
- * plugin-manager Remote or the settings forms gets no watch.
+ * refuses the write.
+ *
+ * Both host faces are optional. They are requested through one inject, which
+ * waits: on rc.5 the plugin-manager Remote is served shortly after this
+ * plugin's apply, so a one-shot lookup at apply time misses it. A host that
+ * never serves both faces gets no watch.
  *
  * @module dsh-websearch/client/handover-watch
  */
+import type { Inject } from '@deepseek-ai/cordis'
 import { planHandoverOps, WEB_NAMESPACE } from '../handover.ts'
 import type { SelectionUnset } from '../handover.ts'
 
@@ -21,9 +26,8 @@ export const BUNDLE_NAMES = ['dsh-websearch', '@maricgeer/dsh-websearch'] as con
 /** Event the Host forwards after every plugin-manager operation. */
 export const PLUGIN_MANAGER_CHANGED = 'plugin-manager/changed'
 
-/** Optional host faces, looked up through `ctx.get` so their absence is not an error. */
-const PLUGIN_MANAGER_FACE = 'remote.pluginManager'
-const CONFIG_FORMS = 'configForms'
+/** Optional host faces the watch needs; both are injected together. */
+export const WATCH_FACES = ['remote.pluginManager', 'configForms']
 
 /** A refused write is retried once against a fresh snapshot. */
 const WRITE_ATTEMPTS = 2
@@ -44,10 +48,15 @@ interface ConfigFormsFace {
   get(ns: string): SeamForm;
 }
 
-/** The client context faces the watch touches. */
+/** The faces of the injected scope the watch reads; each is narrowed before use. */
+interface WatchScope {
+  remote: { $on(event: string, handler: () => void): () => void; pluginManager?: unknown };
+  configForms?: unknown;
+}
+
+/** The client context face the watch starts from. */
 interface WatchHost {
-  get(name: string): unknown;
-  remote: { $on(event: string, handler: () => void): () => void };
+  inject(deps: Inject, callback: (scoped: WatchScope) => void): unknown;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -98,21 +107,31 @@ async function handoverWhenDisabled(
 
 /**
  * Start watching plugin-manager operations and hand the seam's selection back
- * once this bundle is no longer enabled.
+ * once this bundle is no longer enabled. The subscription begins when both
+ * optional host faces have been served, which may be after this call returns.
  * @param ctx - The client context of this plugin's browser half.
  * @param warn - Receives the reason when the bundle list, the form or the write fails.
- * @returns The function that stops the watch; a no-op when the host lacks either face.
+ * @returns The function that stops the watch; calling it before the faces are
+ * served prevents the subscription from ever starting.
  */
 export function installHandoverWatch(ctx: WatchHost, warn: (message: string) => void = warnToConsole): () => void {
-  const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
-  const forms = ctx.get(CONFIG_FORMS);
-  if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)) {
-    // Nothing to watch on this host: a host without the two faces gets an inert unsubscriber.
-    return () => {};
-  }
-  return ctx.remote.$on(PLUGIN_MANAGER_CHANGED, () => {
-    void handoverWhenDisabled(pluginManager, forms, warn).catch((error: unknown) => {
-      warn(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+  let unsubscribe: (() => void) | undefined;
+  let stopped = false;
+  ctx.inject(WATCH_FACES, (scoped) => {
+    if (stopped) return;
+    // Both faces were named in the inject, so each is served here or the callback would not run.
+    const pluginManager = scoped.remote.pluginManager;
+    const configForms = scoped.configForms;
+    if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(configForms)) return;
+    unsubscribe = scoped.remote.$on(PLUGIN_MANAGER_CHANGED, () => {
+      void handoverWhenDisabled(pluginManager, configForms, warn).catch((error: unknown) => {
+        warn(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+      });
     });
   });
+  return () => {
+    stopped = true;
+    unsubscribe?.();
+    unsubscribe = undefined;
+  };
 }

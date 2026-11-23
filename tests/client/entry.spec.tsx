@@ -56,8 +56,8 @@ function makeCtx() {
     locale,
     slots,
     remote,
-    // Optional service lookups: the stub exposes neither remote.pluginManager nor configForms.
-    get: vi.fn(() => undefined),
+    // Optional injection: the stub serves neither remote.pluginManager nor configForms, so no handover watch starts.
+    inject: vi.fn(() => ({ dispose: () => {} })),
     effect: vi.fn((fn: () => unknown) => {
       fn()
       return () => {}
