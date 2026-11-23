@@ -56,6 +56,8 @@ function makeCtx() {
     locale,
     slots,
     remote,
+    // Optional service lookups: the stub exposes neither remote.pluginManager nor configForms.
+    get: vi.fn(() => undefined),
     effect: vi.fn((fn: () => unknown) => {
       fn()
       return () => {}

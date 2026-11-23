@@ -19,6 +19,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { WebSearchSettingsController } from './controller.ts'
 import type { WebSearchSettingsPorts } from './controller.ts'
+import { installHandoverWatch } from './handover-watch.ts'
 import { mountKeyCountsRemote } from './key-counts-remote.ts'
 import type { KeyCountsNamespace } from './key-counts-remote.ts'
 import type { DnsNamespace } from './dns-remote.ts'
@@ -46,6 +47,10 @@ export const inject = ['slots', 'locale', 'remote', 'remote.settings', 'remote.c
 export function apply(ctx: Context): void {
   const t = ctx.locale.bind(NS)
   ctx.effect(() => ctx.locale.register(NS, { zh, en }))
+  // S41 (ADR-0024): hand the seam's selection back once this bundle is switched
+  // off. The browser half is the only channel on hosts without HMR, where the
+  // switch does not unload fibers; hosts lacking either face subscribe to nothing.
+  ctx.effect(() => installHandoverWatch(ctx))
   // S35 T9: the toolview rows read the sanitized DNS ring through the shared
   // store; this entry owns the Context, so it registers the pull (a host
   // without the DNS service keeps the section on its empty-state copy).

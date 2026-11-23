@@ -30,9 +30,15 @@ const PLUGIN_PROVIDER_PREFIX = 'dshws-'
  */
 export interface HandoverSettings {
   /** Live descriptors of every configurable entry; only `ns`, `revision` and `user` are read. */
-  describe(): readonly { ns: string; revision: number; user?: unknown }[]
+  describe(): readonly { ns: string; revision: number; user?: unknown }[];
   /** Applies path edits to the user section of one namespace. */
-  mutate(ns: string, ops: readonly SettingsPathOp[], expectedRevision?: number): Promise<void>
+  mutate(ns: string, ops: readonly SettingsPathOp[], expectedRevision?: number): Promise<void>;
+}
+
+/** One cleared selection key; the only edit the handover ever plans. */
+export interface SelectionUnset {
+  op: 'unset';
+  path: readonly string[];
 }
 
 /**
@@ -51,7 +57,7 @@ export function isPluginProviderId(value: unknown): value is string {
  * @param user - The user section of the seam's settings descriptor.
  * @returns One `unset` per selection key whose user value names a plugin provider, in field order.
  */
-export function planHandoverOps(user: unknown): SettingsPathOp[] {
+export function planHandoverOps(user: unknown): SelectionUnset[] {
   if (typeof user !== 'object' || user === null) return []
   const section = user as Record<string, unknown>
   return SELECTION_KEYS
