@@ -11,6 +11,8 @@ import { parse } from 'yaml'
  * locally before the push.
  */
 interface Step {
+  id?: string
+  if?: string
   uses?: string
   run?: string
   env?: Record<string, unknown>
@@ -28,6 +30,8 @@ interface LoadedWorkflow {
   on: Record<string, unknown>
   permissions: Record<string, unknown>
   with: Record<string, unknown>[]
+  /** Every step, in job and step order. */
+  steps: Step[]
   /** `run` commands of every step, in job and step order. */
   runs: string[]
 }
@@ -41,6 +45,7 @@ function load(name: string): LoadedWorkflow {
     on: doc.on ?? {},
     permissions: doc.permissions ?? {},
     with: steps.map((step) => step.with ?? {}),
+    steps,
     runs: steps.map((step) => step.run).filter((run): run is string => run !== undefined),
   }
 }
@@ -96,6 +101,18 @@ describe('release workflow (ADR-0026)', () => {
     expect(publish).toMatch(/--registry https:\/\/registry\.npmjs\.org/)
     expect(publish).toMatch(/--provenance/)
     expect(publish).toMatch(/--access public/)
+  })
+
+  it('prints the npm-side reason when the publish fails, and nothing when it succeeds', () => {
+    // npm reports a failed token exchange only at verbose level in its debug log, then fails
+    // with a generic ENEEDAUTH. That log stays on the runner and a re-run reads the workflow
+    // from the tagged commit, so this step is the only way to see why a first publish failed.
+    const publish = release.steps.findIndex((step) => step.run?.includes('npm publish '))
+    const diagnose = release.steps.findIndex((step) => /grep -hE ' \[a-z\]\+ oidc ' /.test(step.run ?? ''))
+    expect(publish).toBeGreaterThan(-1)
+    expect(release.steps[publish].id).toBe('publish')
+    expect(diagnose).toBeGreaterThan(publish)
+    expect(release.steps[diagnose].if).toBe("failure() && steps.publish.outcome == 'failure'")
   })
 })
 
