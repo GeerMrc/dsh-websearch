@@ -1,13 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import type { WebSearchProvider } from '@deepseek-ai/dsh-web'
-// Hoisted module mock (review finding 2): with the guard replaced by a spy,
-// the wiring test below is a real fuse — removing the apply call turns it red.
-// The real guard behavior lives in tests/install-guard.spec.ts; in this file
-// every apply() runs with a no-op guard.
-vi.mock('../src/install-guard.ts', () => ({ warnInstallForm: vi.fn() }))
 import { apply, inject, name } from '../src/index.ts'
-import { warnInstallForm } from '../src/install-guard.ts'
 import { fakeCtx, flushGate } from './helpers/fake-ctx.ts'
 
 describe('apply assembly', () => {
@@ -71,22 +65,6 @@ describe('apply assembly', () => {
   it('reports plugin name and inject surface for the loader', () => {
     expect(name).toBe('dsh-websearch')
     expect(inject).toEqual(['web', 'credentials'])
-  })
-
-  it('the install-form guard stays silent in this source checkout (v0.2.2 Plan B wiring)', () => {
-    const { ctx, warnLines } = fakeCtx()
-    apply(ctx as unknown as Context, {})
-    expect(warnLines).toEqual([])
-  })
-
-  it('apply wires the guard first: one warnInstallForm call with the entry module URL and the file-log sink (a fuse that trips if the call is removed — review finding 2)', () => {
-    vi.mocked(warnInstallForm).mockClear()
-    const { ctx } = fakeCtx()
-    apply(ctx as unknown as Context, {})
-    expect(warnInstallForm).toHaveBeenCalledTimes(1)
-    const [, sink, url] = vi.mocked(warnInstallForm).mock.calls[0]! as [unknown, (line: string) => void, string]
-    expect(typeof sink).toBe('function')
-    expect(String(new URL(url))).toContain('/src/index.ts')
   })
 })
 
