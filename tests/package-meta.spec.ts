@@ -114,17 +114,20 @@ describe('plugin display metadata (ADR-0025 插件页文档分离)', () => {
 
 describe('governance files are not clobbered (S41 incident guard)', () => {
   /**
-   * Twice this session a whole-file rewrite script wrote a governance file's own path
-   * as its content (`writeFileSync(t = f, ...)` evaluation-order slip), and the clobbered
-   * file was committed. A governance file that equals its own path — or shrinks to a
-   * stub — must never reach a commit again.
+   * Governance-file rewrites must never silently no-op or clobber. Two flavors
+   * hit this session and were committed: a whole-file rewrite wrote the file's
+   * own path as its content (`writeFileSync(t = f, ...)` evaluation-order slip),
+   * and an append script's broken quoting replaced 98 lines with the file path
+   * (patterns.md, incident 3). A file that equals its own path — or shrinks to
+   * a stub — must never reach a commit again.
    */
-  it('keeps STATUS, the session record, the roadmap and the ledger above stub size and free of self-path content', () => {
+  it('keeps the governance corpus above stub size and free of self-path content', () => {
     const files = [
       'docs/STATUS.md',
       'docs/sessions/2026-11-23-session-41.md',
       'docs/session-roadmap.md',
       'docs/progress/progress-M7.md',
+      'docs/patterns.md',
     ]
     for (const file of files) {
       const text = read(file)
