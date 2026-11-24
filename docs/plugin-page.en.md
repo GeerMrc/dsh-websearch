@@ -1,8 +1,8 @@
 # dsh-websearch (multi-provider web search)
 
-Tavily, Exa, Firecrawl, AnySearch and DeepSeek in one search chain that you order yourself: when the first member fails the next one takes over, and each provider can rotate several API keys. Once enabled, the agent's web search and page fetches are served by this plugin.
+Tavily, Exa, Firecrawl, AnySearch and DeepSeek in one search chain you order yourself, taking over DSH's web search and page fetch.
 
-## What it does
+## Features and advantages
 
 | Provider | Search | Fetch | Free tier |
 |---|---|---|---|
@@ -12,44 +12,26 @@ Tavily, Exa, Firecrawl, AnySearch and DeepSeek in one search chain that you orde
 | AnySearch | yes | yes | yes |
 | DeepSeek (paid fallback) | yes | no | none; off by default |
 
-- **Chain failover**: members are tried in the order you set. A member with no key, a disabled member, or a failed or timed-out request moves on to the next; the search fails only when every member has failed, and the error lists each member's reason.
-- **Key rotation**: a provider can hold several keys. When one is rejected, the next key of the same provider is tried before the chain degrades.
-- **Source badge**: the tool row of every search and fetch shows which member actually served it.
-- **DNS resilience**: on networks where name resolution is restricted, it switches to encrypted resolution and probes the route first; on a healthy network it changes nothing.
+- **High availability**: a failed member is skipped for the next one; the search fails only when every member has. Each provider can rotate several keys.
+- **Unified settings**: one search language, region and domain allow/block list applies to every member.
+- **Transparent sourcing**: the tool row of every search and fetch shows which member served it.
+- **DNS resilience**: encrypted resolution kicks in on restricted networks; healthy networks are untouched.
+- **Install and take over**: enabled, it replaces the built-in "Web search and fetch"; disabled, the built-in providers take back over.
 
-## Settings
+## Install and use
 
-Location: Settings → Web Search. Changes apply from the next search on.
+- After install the takeover works with zero configuration; enter API keys per member under Settings → Web Search (stored only in your local credentials; the page shows counts only).
+- After swapping or upgrading the package, restart DSH — or toggle the plugin off and on — for the new version to take effect.
+- Setting changes apply from the next search; no restart needed.
 
-- **Provider cards**: enter API keys, enable or disable a provider, override its endpoint, tune its search parameters.
-- **Search chain**: reorder the members; the first one is the primary search.
-- **Take over web_fetch**: on, page fetches go through the plugin's cloud fetch chain; off, they use plain local HTTP.
-- **DNS resilience**: on, off, or automatic.
-- **Advanced**: fallback member, timeouts, one shared search language and region, and more.
+## Notes
 
-API keys stay in your local credential store; the page only shows how many keys each provider has.
+- Disabling the plugin hands search and fetch back to the built-in providers; the plugin's settings are kept and apply again on re-enable.
+- The "enable component" switch on the detail page only deactivates the plugin itself and leaves a state with no settings entry; recover by switching it back on there.
+- A selection saved on the official settings page by an older version must be cleared before the chain takes effect: disable the plugin and re-save a choice on the restored page, or use the one-click notice card at the top of the settings page.
+- Uninstalling from the command line does not clear that selection.
 
-## Takeover and handover
+## Version and compatibility
 
-- **While this plugin is enabled**: the built-in "Web search and fetch" settings page is hidden in the Plugins page, and this plugin decides which provider serves search and fetch.
-- **When this plugin is disabled or uninstalled**: the built-in settings page comes back and search and fetch return to the built-in providers.
-- **One exception**: if an earlier version let you pick one of this plugin's members on the built-in settings page, that choice lives in the host layer, outranks this plugin and bypasses the chain (a direct connection with no failover). When the plugin detects it, a notice card appears at the top of the "Web Search" settings page; its "Clear pinned selection" button removes it in one click (the chain takes over again, and the official providers take over cleanly when this plugin is disabled). Two manual ways as well:
-  - After disabling the plugin, pick the providers again on the restored built-in page and save. The automatic choice for search together with the local direct fetch is the default.
-  - Or stop the host, open `cordis.patch.yml` in the active profile directory (`~/.dsh/profiles/desktop/` for the desktop app), delete both `searchProvider` and `fetchProvider` under the `web` row, then start the host again.
-
-  Uninstalling the plugin from the command line does not clear this choice.
-
-## Turning the plugin off
-
-Use the switch next to dsh-websearch in the plugin list: it removes everything this plugin contributes to the takeover, and the built-in settings page comes back.
-The plugin's detail page also carries an "enable component dsh-websearch" switch. It only deactivates the plugin itself and leaves the takeover settings in place.
-After switching it off, the built-in settings page is still hidden, Settings has no "Web Search" section, yet the plugin list still shows the plugin as enabled;
-switching the list switch off and on does not reset it. To recover, go back to the detail page and switch it on again.
-
-## Compatibility
-
-DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). On 0.1.5 and 0.1.6 hosts the startup log is expected to carry one extra warning about an unmatched patch entry of this plugin;
-it is harmless (not measured on those lines).
-
-DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). On 0.1.5 and 0.1.6 hosts the startup log carries one extra warning about an unmatched patch entry of this plugin; it is harmless.
-
+- The installed version is shown under the detail page's source information; upgrade by uninstalling, then installing the new version.
+- Compatible with DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). 0.1.5 and 0.1.6 hosts log one harmless patch warning at startup.
