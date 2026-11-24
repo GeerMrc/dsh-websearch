@@ -11,8 +11,9 @@ origin: plan 048 T10–T11 / Session 41 / 前置 ADR-0007、ADR-0020
 ## Status
 
 accepted（2026-11-23 起草，Session 41；2026-11-24 按阶段 2 第 1 轮审核修订决策 1、3 至 6 并新增决策 9。
-决策 1 至 4 已据以执行：`release.yml`、`ci.yml`、`scripts/check-release.mjs`（T10、T11、T11b，以及阶段 4 第 1 轮核验后的 F9）。
-决策 5 至 7、9 属于发布序列与发布后的处置，尚未发生。修订项在 2.5 的确认尚未获答复，时点见 session-41 记录）
+决策 1 至 4 已据以执行：`release.yml`、`ci.yml`、`scripts/check-release.mjs`（T10、T11、T11b，以及阶段 4 核验后对令牌扫描与
+入口判定的加固）。决策 5、6、9 属于发布序列与发布后的处置，尚未发生；决策 7、8 是发布失败时的处置规则，是否用到取决于首次发布。
+修订项在 2.5 的确认尚未获答复，时点见 session-41 记录）
 
 ## Context（背景）
 

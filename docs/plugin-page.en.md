@@ -34,7 +34,7 @@ API keys stay in your local credential store; the page only shows how many keys 
 - **While this plugin is enabled**: the built-in "Web search and fetch" settings page is hidden in the Plugins page, and this plugin decides which provider serves search and fetch.
 - **When this plugin is disabled or uninstalled**: the built-in settings page comes back and search and fetch return to the built-in providers.
 - **One exception**: if an earlier version let you pick one of this plugin's members on the built-in settings page, that choice lives in the host layer and is not removed when the plugin is disabled.
-  The built-in page then shows it as not loaded, and search and fetch fail. To clear it: stop the host, open `cordis.patch.yml` in the active profile directory
+  The built-in page then shows it as not loaded. To clear it: stop the host, open `cordis.patch.yml` in the active profile directory
   (`~/.dsh/profiles/desktop/` for the desktop app), delete both `searchProvider` and `fetchProvider` under the `web` row, then start the host again.
   Uninstalling the plugin from the command line leaves this choice in place as well.
 

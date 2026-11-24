@@ -88,7 +88,7 @@ osascript -e 'quit app "DeepSeek Harness"'; sleep 4; open -a "DeepSeek Harness" 
 #                     .runDesktopCli('<dev project>', '<dev targets>/<target>/runtime/primary-runtime/dependencies')
 ```
 
-**验证锚点（浏览器自动化打开 `http://127.0.0.1:<port>/?token=<从启动日志取>`）**：①Settings 导航出现 **Web Search** 节（= host 半区注册 + client.js 经 `/plugins/` 加载）；②成员卡状态与预期一致（官方端共享凭据应全 Configured + Primary/Standby 徽标）；③web_fetch 接管开关态；④DNS 韧性卡（DoH active + reserved-range 证据行 = DNS 层活体）；⑤设置页脚版本 = 官方桌面 feed version。**运行时真实搜索腿**不随验证烧 API——由插件仓 `pnpm test`（用例数见当期 progress 台账，不在此抄录）+ e2e.real（有 key 窗口）+ 生产 3080 在役实录覆盖。**并发**：3080 + 3423/3434 + 19387 三进程同跑为常规态（会话互斥写锁是设计行为）。
+**验证锚点（浏览器自动化打开 `http://127.0.0.1:<port>/?token=<从启动日志取>`）**：①Settings 导航出现 **Web Search** 节（= host 半区注册 + client.js 经 `/plugins/` 加载）；②成员卡状态与预期一致（官方端共享凭据应全 Configured + Primary/Standby 徽标）；③web_fetch 接管开关态；④DNS 韧性卡（DoH active + reserved-range 证据行 = DNS 层活体）；⑤设置页脚版本 = 官方桌面 feed version。**运行时真实搜索腿**不随验证烧 API——由插件仓 `pnpm test`（用例数见当期 progress 台账，不在此抄录）+ e2e.real（有 key 窗口）+ 在役实例的真实搜索记录（哪个实例在役以 STATUS 为准）覆盖。**并发**：3080 + 3423/3434 + 19387 三进程同跑为常规态（会话互斥写锁是设计行为）。
 
 **macOS 桌面端取证注意**：官方 app 无远程调试口；拿 token URL 须以受管后台任务直启二进制并 tee 日志（`'<app>/Contents/MacOS/DeepSeek Harness' 2>&1 | tee <log>`），验完 `quit` + `open -a` 恢复标准启动；**绝不关闭其管道**（EPIPE 主进程崩溃弹窗，S40 事故在案）；**禁 `ps eww` 于 GUI 进程**（会倾倒继承环境里的全部凭据）。**归档前脱敏**：tee 落盘的日志在入库前执行 `sed -i '' -E 's#(token=)[A-Za-z0-9._~+/=-]{8,}#\1<redacted>#g' <文件>`，再用 `git grep -nE 'token=[A-Za-z0-9._~+/=-]{8,}'` 确认计数为 0——host 进程 token 也是凭据，S14c、S32、S33、S40 四批证据日志曾带值入库。
 

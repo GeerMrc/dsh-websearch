@@ -72,13 +72,15 @@ node scripts/check-release.mjs --tarballs dist-artifacts
 随后来的是独立核验（Session 42 阶段 4），核验对象是版本变更后的提交。
 
 在单独的克隆里做本节，不要在主检出里做：`node scripts/pack.mjs` 会写当前检出的 `dist-artifacts/`，而主检出的这个目录里
-放着本机桌面端可能还在引用的裸名 tarball。本机 npm 是 10.x，流水线是 11.x，`npm pack` 的产物随 npm 版本不同，
+放着本机桌面端可能还在引用的裸名 tarball。执行机上的 npm 版本可能与流水线不同（写本手册时本机是 10.x、流水线是 11.x），`npm pack` 的产物随 npm 版本不同，
 所以本地打出的 tarball 与发布出去的不是同一份字节。桌面端实测用的是本地这份；发布后按第 9 节核对 CI 打的那份。
 
 ## 6. 候选包装入桌面端实测（用户门控）
 
 备份 `~/.dsh/profiles/desktop` 的 `package.json`、`cordis.patch.yml`、`pnpm-lock.yaml`，用 app 内置命令装入
 第 5 节打出的裸名 tarball，重启 app，按 plan 048「发布序列」步骤 1 的验收项核对；不过则从备份还原并回到第 4 节。
+桌面 profile 的依赖行会因此指向第 5 节那个克隆里的路径：把该克隆保留到第 11 节第 4 步做完，或在发布后改用 GitHub Release 里
+CI 打的裸名 tarball。
 这一步写生产 profile，只在用户当时明确指令后执行。
 
 ## 7. 合并、打 tag、推送
