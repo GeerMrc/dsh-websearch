@@ -1,0 +1,77 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话":
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- heading "插件" [level=1]
+- generic: 安装、启用和配置插件
+- button "插件说明":
+- button "刷新":
+  - generic: 刷新
+- group "添加插件":
+  - button "添加插件":
+    - generic: 添加插件
+  - button "选择添加插件方式":
+- heading "内置插件配置" [level=3]
+- list:
+  - button "查看 子智能体": 子智能体
+  - generic: 设置子智能体的递归层级、数量和模型。
+  - button "查看 网页搜索与获取": 网页搜索与获取
+  - generic: 选择网页搜索与网页获取使用的提供方。
+  - button "查看 Agent 循环": Agent 循环
+  - generic: 控制 Agent 派发工具调用的方式。
+  - button "查看 终端": 终端
+  - generic: 限制每条命令最多能跑多久、最多输出多少内容。
+- heading "实验性插件" [level=3]
+- button "更多":
+  - text: 更多
+- list:
+  - button "查看 语音输入": 语音输入
+  - generic: 实验性
+  - generic: 在本机使用 SenseVoice 转写录音，首次使用需安装依赖。
+  - status
+  - switch "启用 语音输入"
+  - button "查看 自定义插件索引": 自定义插件索引
+  - generic: 实验性
+  - generic: 在插件页添加“发现”标签页，从你添加的插件索引中浏览和安装插件。
+  - status
+  - switch "启用 自定义插件索引"
+  - button "查看 自动授权审查": 自动授权审查
+  - generic: 实验性
+  - generic: 提供“自动审查”访问模式：每次工具调用前，由模型对照你的要求检查，获准的调用立即运行，被拒绝的调用等你审批。
+  - status
+  - switch "启用 自动授权审查"
+  - button "查看 变更请求与工作树": 变更请求与工作树
+  - generic: 实验性
+  - generic: 在会话侧栏集中跟踪关联的 GitHub PR：查看检查状态、评审意见与代码差异，并把修改建议交给智能体继续处理。也可查看本地改动，用独立工作树隔离任务。GitHub 功能需要本机安装 gh 并登录。
+  - status
+  - switch "启用 变更请求与工作树"
+- heading "已安装插件" [level=3]
+- list:
+  - button "查看 dsh-websearch": dsh-websearch
+  - generic: 多源统一网页搜索与抓取：可配置优先级链、全链路高可用降级、多 API key 池；启用即接管官方「网页搜索与获取」，关闭即自动交还官方。
+  - status
+  - switch "启用 dsh-websearch" [checked]

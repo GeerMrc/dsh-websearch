@@ -1,0 +1,22 @@
+{
+ "run": 6,
+ "step": "OFF",
+ "note": "same page as runs 3-5; watch p7cp4g installed by the ON at 1795497336699 (third ON in this page's lifetime); OFF at least 130 s later",
+ "stateBefore": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497471798,
+ "msSinceWatchInstall": 135099,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497471914,
+   "newLines": "1795497471880 p7cp4g client: watch stopped (unsubscriber called, +135181ms); received=0\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ }
+}

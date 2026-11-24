@@ -1,0 +1,15 @@
+{
+ "run": 6,
+ "step": "ON",
+ "note": "same page as runs 3-5 (third ON in this page's lifetime)",
+ "onClick": "clicked (aria-checked was false)",
+ "onClickAtEpochMs": 1795497336635,
+ "onPoll": [
+  {
+   "atEpochMs": 1795497336745,
+   "newLines": "1795497336699 p7cp4g client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795497336702 p7cp4g client: watch faces served +3ms; stopped=false\n1795497336702 p7cp4g client: watch subscribed (+3ms)\n"
+  }
+ ],
+ "waitedMs": 100004,
+ "logAfterWait": "1795497015895 sm8o6y client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497015930 sm8o6y client: watch faces served +35ms; stopped=false\n1795497015930 sm8o6y client: watch subscribed (+35ms)\n1795497019527 p1y4px client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497019548 p1y4px client: watch faces served +21ms; stopped=false\n1795497019548 p1y4px client: watch subscribed (+21ms)\n1795497023125 2lte9a client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497023147 2lte9a client: watch faces served +22ms; stopped=false\n1795497023147 2lte9a client: watch subscribed (+22ms)\n1795497207952 2lte9a client: plugin-manager/changed received (#1, +184827ms)\n1795497208067 2lte9a client: handover pass: bundle state disabled\n1795497208067 2lte9a client: handover pass: snapshot {\"status\":\"ready\",\"revision\":25,\"user\":{\"searchProvider\":\"dshws-tavily\",\"fetchProvider\":\"dshws-fetch-gate\"}}; ops=[{\"op\":\"unset\",\"path\":[\"searchProvider\"]},{\"op\":\"unset\",\"path\":[\"fetchProvider\"]}]\n1795497208392 2lte9a client: handover pass: mutate accepted=true\n1795497208392 2lte9a client: handover pass finished\n1795497214084 2lte9a client: plugin-manager/changed received (#2, +190959ms)\n1795497214402 2lte9a client: handover pass: bundle state enabled\n1795497214402 2lte9a client: handover pass finished\n1795497270052 2lte9a client: watch stopped (unsubscriber called, +246927ms); received=2\n1795497290660 pnu99g client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795497290664 pnu99g client: watch faces served +4ms; stopped=false\n1795497290664 pnu99g client: watch subscribed (+4ms)\n1795497310424 pnu99g client: watch stopped (unsubscriber called, +19764ms); received=0\n1795497336699 p7cp4g client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795497336702 p7cp4g client: watch faces served +3ms; stopped=false\n1795497336702 p7cp4g client: watch subscribed (+3ms)\n"
+}

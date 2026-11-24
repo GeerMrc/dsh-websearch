@@ -1,0 +1,139 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "New session":
+- button "Collapse sidebar":
+- button "New session":
+  - generic: New Session
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "Global panels":
+  - button "Plugins":
+    - generic: Plugins
+  - button "Automation tasks":
+    - generic: Automation tasks
+  - button "Unpin Automation tasks from sidebar":
+  - button "More":
+    - generic: More
+- generic: Workspaces
+- button "Search sessions":
+- textbox "Search session names"
+- button "View options":
+- button "Add workspace":
+- tree "Sessions":
+  - treeitem "Default workspace" [expanded]:
+    - generic: Default workspace
+  - treeitem "New Session":
+    - generic: New Session
+- button "Account menu":
+  - generic: More
+- button "Back to plugins":
+  - generic: Plugins
+- button "Uninstall dsh-websearch":
+  - text: Uninstall
+- status
+- switch "Enable dsh-websearch" [checked]
+- heading "dsh-websearch" [level=3]
+- generic: v0.2.0
+- paragraph:
+  - code: dsh-websearch
+- paragraph: Unified multi-provider web search and fetch with a configurable priority chain, full HA degradation and multi-key pools; takes over the built-in "Web search and fetch" settings page while enabled and restores it when disabled.
+- region "Details":
+  - heading "dsh-websearch (multi-provider web search)" [level=1]
+  - paragraph: "Tavily, Exa, Firecrawl, AnySearch and DeepSeek in one search chain that you order yourself: when the first member fails the next one takes over, and each provider can rotate several API keys. Once enabled, the agent's web search and page fetches are served by this plugin."
+  - heading "What it does" [level=2]
+  - table:
+    - rowgroup:
+      - row "Provider Search Fetch Free tier":
+        - columnheader "Provider"
+        - columnheader "Search"
+        - columnheader "Fetch"
+        - columnheader "Free tier"
+    - rowgroup:
+      - row "Tavily yes yes yes":
+        - cell "Tavily"
+        - cell "yes"
+        - cell "yes"
+        - cell "yes"
+      - row "Exa yes no yes":
+        - cell "Exa"
+        - cell "yes"
+        - cell "no"
+        - cell "yes"
+      - row "Firecrawl yes yes yes":
+        - cell "Firecrawl"
+        - cell "yes"
+        - cell "yes"
+        - cell "yes"
+      - row "AnySearch yes yes yes":
+        - cell "AnySearch"
+        - cell "yes"
+        - cell "yes"
+        - cell "yes"
+      - row "DeepSeek (paid fallback) yes no none; off by default":
+        - cell "DeepSeek (paid fallback)"
+        - cell "yes"
+        - cell "no"
+        - cell "none; off by default"
+  - list:
+    - strong: Chain failover
+    - text: ": members are tried in the order you set. A member with no key, a disabled member, or a failed or timed-out request moves on to the next; the search fails only when every member has failed, and the error lists each member's reason."
+    - strong: Key rotation
+    - text: ": a provider can hold several keys. When one is rejected, the next key of the same provider is tried before the chain degrades."
+    - strong: Source badge
+    - text: ": the tool row of every search and fetch shows which member actually served it."
+    - strong: DNS resilience
+    - text: ": on networks where name resolution is restricted, it switches to encrypted resolution and probes the route first; on a healthy network it changes nothing."
+  - heading "Settings" [level=2]
+  - paragraph: "Location: Settings → Web Search. Changes apply from the next search on."
+  - list:
+    - strong: Provider cards
+    - text: ": enter API keys, enable or disable a provider, override its endpoint, tune its search parameters."
+    - strong: Search chain
+    - text: ": reorder the members; the first one is the primary search."
+    - strong: Take over web_fetch
+    - text: ": on, page fetches go through the plugin's cloud fetch chain; off, they use plain local HTTP."
+    - strong: DNS resilience
+    - text: ": on, off, or automatic."
+    - strong: Advanced
+    - text: ": fallback member, timeouts, one shared search language and region, and more."
+  - paragraph: API keys stay in your local credential store; the page only shows how many keys each provider has.
+  - heading "Takeover and handover" [level=2]
+  - list:
+    - strong: While this plugin is enabled
+    - text: ": the built-in \"Web search and fetch\" settings page is hidden in the Plugins page, and this plugin decides which provider serves search and fetch."
+    - strong: When this plugin is disabled or uninstalled
+    - text: ": the built-in settings page comes back and search and fetch return to the built-in providers."
+    - strong: One exception
+    - text: ": if an earlier version let you pick one of this plugin's members on the built-in settings page, that choice lives in the host layer and is not removed when the plugin is disabled. The built-in page then shows it as not loaded. To clear it: stop the host, open"
+    - code: cordis.patch.yml
+    - text: in the active profile directory (
+    - code: ~/.dsh/profiles/desktop/
+    - text: for the desktop app), delete both
+    - code: searchProvider
+    - text: and
+    - code: fetchProvider
+    - text: under the
+    - code: web
+    - text: row, then start the host again. Uninstalling the plugin from the command line leaves this choice in place as well.
+  - heading "Turning the plugin off" [level=2]
+  - paragraph: Use the switch next to dsh-websearch in the plugin list. The plugin's detail page also carries an "enable component" switch; it is a different operation from the list switch, so use the list switch to turn this plugin off.
+  - heading "Compatibility" [level=2]
+  - paragraph: DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). On 0.1.5 and 0.1.6 hosts the startup log carries one extra warning about an unmatched patch entry of this plugin; it is harmless.
+  - paragraph:
+    - text: "Development, packaging and the full configuration reference are in the project README:"
+    - link "https://github.com/GeerMrc/dsh-websearch":
+      - /url: https://github.com/GeerMrc/dsh-websearch
+      - text: https://github.com/GeerMrc/dsh-websearch
+- heading "Components" [level=4]
+- generic: 1 total · 1 running
+- list:
+  - generic: dsh-websearch
+  - generic: Unified multi-provider web search and fetch with a configurable priority chain, full HA degradation and multi-key pools; takes over the built-in "Web search and fetch" settings page while enabled and restores it when disabled.
+  - generic: Running
+  - switch "Enable component dsh-websearch" [checked]
+- heading "Source" [level=4]
+- term: Code source
+- definition:
+  - code: file:/tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz
+- term: Current version
+- definition: 0.2.0

@@ -1,0 +1,47 @@
+## M4: after reselecting official providers on the official page and clicking 保存 (plugin still off)
+## user-level file:
+-rw-------  1 aibot  wheel  541 Nov 24 12:45 /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: deepseek-search-api
+    fetchProvider: http
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+## CMD: ... --profile web --dump-config > evidence/m4-dump-off-after-reselect-save.yml 2> evidence/m4-dump-off-after-reselect-save.stderr.txt
+2026-11-24 12:45:57
+EXIT=0
+## dump stderr:
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: deepseek-search-api
+    fetchProvider: http
+LAYER # == @deepseek-ai/dsh-base
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+LAYER # == @deepseek-ai/dsh-web-app
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+## diff vs M3 after-remove dump (plugin removed, clean user layer):
+367a368
+> # == @deepseek-ai/dsh-base, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+370a372
+>     searchProvider: deepseek-search-api
+371a374
+> # == @deepseek-ai/dsh-base
+(diff exit=1)

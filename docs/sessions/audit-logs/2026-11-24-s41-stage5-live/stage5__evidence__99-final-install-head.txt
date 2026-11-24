@@ -1,0 +1,44 @@
+## Final: swap probe6 -> HEAD candidate (plugin currently OFF via the plugin page after run 9)
+## user-level == clean-zh ?
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/stage5/backup/cordis.patch.yml.clean-zh
+2026-11-24 13:26:19
+remove EXIT=0
+add EXIT=0
+2026-11-24 13:26:20
+## installed hashes (HEAD candidate = docs 78b0668c/c4a23bda, locale b8509091/43f7ca73, client efb95deb, patch 8d26bd19, index 7d639210):
+23ffec332ddc06b8 ./LICENSE
+564135f9210ea827 ./README.en.md
+3e9d810ee22f0d1e ./README.md
+8d26bd190421fd64 ./cordis.patch.yml
+c4a23bda17f499f1 ./docs/plugin-page.en.md
+78b0668c46dbab16 ./docs/plugin-page.zh.md
+efb95deb12a11a6e ./lib/client.js
+195b12af5b872f24 ./lib/index.d.ts
+7d6392107836c861 ./lib/index.js
+43f7ca73d0a8e4bb ./locale/en.json
+b850909168ae9033 ./locale/zh.json
+c94b83ccb3de4011 ./package.json
+## profile package.json:
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-websearch"
+      ]
+    }
+  },
+  "dependencies": {
+    "dsh-websearch": "file:/tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz"
+  }
+}
+## tarball sha256:
+2fbf3a6d4c4c9ed374baf2e9eb84beb45352e36f2873ccc4574b605ed2704326  /tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz
+## instance:
+COMMAND PID NODE NAME
+DeepSeek 95257 TCP 127.0.0.1:3434
+http_code=401

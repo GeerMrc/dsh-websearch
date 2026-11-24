@@ -1,0 +1,72 @@
+diff --git a/src/client/handover-watch.ts b/src/client/handover-watch.ts
+index 29d8896..d45b784 100644
+--- a/src/client/handover-watch.ts
++++ b/src/client/handover-watch.ts
+@@ -60,6 +60,12 @@ interface WatchHost {
+   inject(deps: Inject, callback: (scoped: WatchScope) => void): unknown;
+ }
+ 
++const PROBE_KEY = 'dshws-probe6';
++const PROBE_TAG = Math.random().toString(36).slice(2, 8);
++const probe = (message: string) => {
++  try { sessionStorage.setItem(PROBE_KEY, `${sessionStorage.getItem(PROBE_KEY) ?? ''}${Date.now()} ${PROBE_TAG} client: ${message}\n`); } catch { /* storage unavailable */ }
++};
++
+ function isRecord(value: unknown): value is Record<string, unknown> {
+   return typeof value === 'object' && value !== null;
+ }
+@@ -93,15 +99,20 @@ async function handoverWhenDisabled(
+   forms: ConfigFormsFace,
+   warn: (message: string) => void,
+ ): Promise<void> {
+-  if ((await bundleState(pluginManager)) !== 'disabled') return;
++  const state = await bundleState(pluginManager);
++  probe(`handover pass: bundle state ${state}`);
++  if (state !== 'disabled') return;
+   const form = forms.get(WEB_NAMESPACE);
+   for (let attempt = 0; attempt < WRITE_ATTEMPTS; attempt++) {
+     const snapshot = form.getSnapshot();
+     const ops = planHandoverOps(snapshot.user);
+     const revision = snapshot.revision;
++    probe(`handover pass: snapshot ${JSON.stringify({ status: snapshot.status, revision, user: snapshot.user })}; ops=${JSON.stringify(ops)}`);
+     // Without a revision the write has no fence; the next event retries.
+     if (ops.length === 0 || revision === undefined) return;
+-    if (await form.mutate(ops, revision)) return;
++    const accepted = await form.mutate(ops, revision);
++    probe(`handover pass: mutate accepted=${accepted}`);
++    if (accepted) return;
+   }
+   warn(`handover refused ${WRITE_ATTEMPTS} times: the ${WEB_NAMESPACE} selection still names a plugin provider`);
+ }
+@@ -118,20 +129,30 @@ async function handoverWhenDisabled(
+ export function installHandoverWatch(ctx: WatchHost, warn: (message: string) => void = warnToConsole): () => void {
+   let unsubscribe: (() => void) | undefined;
+   let stopped = false;
++  let received = 0;
++  const installAt = Date.now();
++  const oneShot = (ctx as unknown as { get?(name: string): unknown }).get?.('remote.pluginManager');
++  probe(`install: one-shot get(remote.pluginManager) -> ${isPluginManagerFace(oneShot) ? 'PluginManagerFace' : String(oneShot)}; watch faces requested`);
+   ctx.inject(WATCH_FACES, (scoped) => {
++    probe(`watch faces served +${Date.now() - installAt}ms; stopped=${stopped}`);
+     if (stopped) return;
+     // Both faces were named in the inject, so each is served here or the callback would not run.
+     const pluginManager = scoped.remote.pluginManager;
+     const configForms = scoped.configForms;
+     if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(configForms)) return;
+     unsubscribe = scoped.remote.$on(PLUGIN_MANAGER_CHANGED, () => {
+-      void handoverWhenDisabled(pluginManager, configForms, warn).catch((error: unknown) => {
++      received += 1;
++      probe(`plugin-manager/changed received (#${received}, +${Date.now() - installAt}ms)`);
++      void handoverWhenDisabled(pluginManager, configForms, warn).then(() => probe('handover pass finished')).catch((error: unknown) => {
++        probe(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+         warn(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+       });
+     });
++    probe(`watch subscribed (+${Date.now() - installAt}ms)`);
+   });
+   return () => {
+     stopped = true;
++    probe(`watch stopped (unsubscriber called, +${Date.now() - installAt}ms); received=${received}`);
+     unsubscribe?.();
+     unsubscribe = undefined;
+   };

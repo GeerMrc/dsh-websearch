@@ -1,0 +1,77 @@
+{
+ "run": 2,
+ "note": "three rapid page reloads (about 3 s apart) with the plugin enabled, then wait, then OFF",
+ "reloads": [
+  {
+   "i": 1,
+   "reloadAtEpochMs": 1795496902479,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "i": 2,
+   "reloadAtEpochMs": 1795496906138,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "i": 3,
+   "reloadAtEpochMs": 1795496909738,
+   "closeDialog": "clicked: 关闭"
+  }
+ ],
+ "steps": [
+  {
+   "step": "open plugins",
+   "result": "clicked: 插件"
+  },
+  {
+   "step": "back to list if on detail",
+   "result": "not found: 返回插件"
+  }
+ ],
+ "baseline": {
+  "atEpochMs": 1795496915376,
+  "log": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n",
+  "state": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  }
+ },
+ "off": {
+  "offClickAtEpochMs": 1795496920394,
+  "offClick": "clicked (aria-checked was true)",
+  "poll": [
+   {
+    "atEpochMs": 1795496920411,
+    "log": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n"
+   },
+   {
+    "atEpochMs": 1795496920535,
+    "log": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n1795496920468 d75o26 client: watch stopped (unsubscriber called, +10617ms); received=0\n"
+   }
+  ],
+  "stateAfter": {
+   "officialCardVisible": true,
+   "switchChecked": "false"
+  },
+  "logAfter": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n1795496920468 d75o26 client: watch stopped (unsubscriber called, +10617ms); received=0\n"
+ },
+ "on": {
+  "onClickAtEpochMs": 1795496925538,
+  "onClick": "clicked (aria-checked was false)",
+  "poll": [
+   {
+    "atEpochMs": 1795496925546,
+    "log": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n1795496920468 d75o26 client: watch stopped (unsubscriber called, +10617ms); received=0\n"
+   },
+   {
+    "atEpochMs": 1795496925670,
+    "log": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n1795496920468 d75o26 client: watch stopped (unsubscriber called, +10617ms); received=0\n1795496925630 hezfc5 client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496925633 hezfc5 client: watch faces served +3ms; stopped=false\n1795496925633 hezfc5 client: watch subscribed (+3ms)\n"
+   }
+  ],
+  "stateAfter": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  },
+  "logAfter": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n1795496920468 d75o26 client: watch stopped (unsubscriber called, +10617ms); received=0\n1795496925630 hezfc5 client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496925633 hezfc5 client: watch faces served +3ms; stopped=false\n1795496925633 hezfc5 client: watch subscribed (+3ms)\n"
+ }
+}

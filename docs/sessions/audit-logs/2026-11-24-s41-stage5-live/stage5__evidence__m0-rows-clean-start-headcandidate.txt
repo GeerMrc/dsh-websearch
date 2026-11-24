@@ -1,0 +1,47 @@
+CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' --profile web --dump-config > evidence/m0-dump-clean-start-headcandidate.yml 2> logs/33-dump-head.stderr
+2026-11-24 12:34:21
+EXIT=0
+    1305 /tmp/dshws-s41/stage5/evidence/m0-dump-clean-start-headcandidate.yml
+stderr bytes:        0
+token-pattern count: 0
+== rows ==
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: locale
+  name: '@deepseek-ai/dsh-client-locale'
+  config:
+    preference: zh
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: ui-settings-general
+  name: '@deepseek-ai/dsh-client-ui-settings-general'
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+== diff clean-start(prev candidate) vs clean-start(HEAD candidate) ==
+(diff exit=0)
+== sha256 ==
+6c52e02aa48006bf29553f38cf3fb10462a2f090ac663a2f3f30ac34df23a154  /tmp/dshws-s41/stage5/evidence/m0-dump-clean-start-prevcandidate.yml
+6c52e02aa48006bf29553f38cf3fb10462a2f090ac663a2f3f30ac34df23a154  /tmp/dshws-s41/stage5/evidence/m0-dump-clean-start-headcandidate.yml

@@ -1,0 +1,190 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话":
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- button "返回插件":
+  - generic: 插件
+- button "卸载 dsh-websearch":
+  - text: 卸载
+- status
+- switch "启用 dsh-websearch" [checked]
+- heading "dsh-websearch" [level=3]
+- generic: v0.2.0
+- paragraph:
+  - code: dsh-websearch
+- paragraph: 多源统一网页搜索与抓取：可配置优先级链、全链路高可用降级、多 API key 池；启用即接管官方「网页搜索与获取」，关闭后官方设置页自动恢复。
+- region "详细介绍":
+  - heading "dsh-websearch（多源网页搜索）" [level=1]
+  - paragraph: 把 Tavily、Exa、Firecrawl、AnySearch 和 DeepSeek 收进一条由你排序的搜索链：排在前面的成员失败时自动换下一个，每家可配多把 API key 轮换。启用后，Agent 的网页搜索与网页获取由本插件提供。
+  - heading "它做什么" [level=2]
+  - table:
+    - rowgroup:
+      - row "成员 搜索 抓取 免费额度":
+        - columnheader "成员"
+        - columnheader "搜索"
+        - columnheader "抓取"
+        - columnheader "免费额度"
+    - rowgroup:
+      - row "Tavily 支持 支持 有":
+        - cell "Tavily"
+        - cell "支持"
+        - cell "支持"
+        - cell "有"
+      - row "Exa 支持 不支持 有":
+        - cell "Exa"
+        - cell "支持"
+        - cell "不支持"
+        - cell "有"
+      - row "Firecrawl 支持 支持 有":
+        - cell "Firecrawl"
+        - cell "支持"
+        - cell "支持"
+        - cell "有"
+      - row "AnySearch 支持 支持 有":
+        - cell "AnySearch"
+        - cell "支持"
+        - cell "支持"
+        - cell "有"
+      - row "DeepSeek（付费兜底） 支持 不支持 无，默认不参与":
+        - cell "DeepSeek（付费兜底）"
+        - cell "支持"
+        - cell "不支持"
+        - cell "无，默认不参与"
+  - list:
+    - strong: 搜索链降级
+    - text: ：按你排的顺序逐个尝试。成员没配 key、被停用，或者请求失败、超时，都跳到下一个；全部失败才报错，并给出每个成员的失败原因。
+    - strong: 多 key 轮换
+    - text: ：一家可以填多把 key。某把失效时，先在同一家换 key 重试，再降级到下一家。
+    - strong: 来源标注
+    - text: ：每次搜索和抓取的工具行上会标出实际由哪个成员提供服务。
+    - strong: DNS 韧性
+    - text: ：在解析受限的网络里，自动改用加密解析并预先探测线路；网络正常时不做任何改动。
+  - heading "设置项" [level=2]
+  - paragraph: 位置：设置 → 网页搜索。修改从下一次搜索起生效。
+  - list:
+    - strong: 成员卡
+    - text: ：为每家填 API key、启停成员、覆盖接口地址、调整该家的搜索参数。
+    - strong: 搜索链
+    - text: ：调整成员的先后顺序，排在最前的是主搜索。
+    - strong: 接管 web_fetch
+    - text: ：开启时，网页获取走本插件的云端抓取链；关闭时走本机直接抓取。
+    - strong: DNS 韧性
+    - text: ：开启、关闭，或保持自动。
+    - strong: 详细配置
+    - text: ：兜底成员、超时、统一的搜索语言与地区等。
+  - paragraph: API key 只保存在你本机的凭据里；页面上只显示每家已配置的 key 数量。
+  - heading "接管与交还" [level=2]
+  - list:
+    - strong: 启用本插件时
+    - text: ：插件页里官方的「网页搜索与获取」设置页隐藏，搜索与抓取使用哪个提供方由本插件决定。
+    - strong: 关闭或卸载本插件时
+    - text: ：官方设置页自动恢复，搜索与抓取交回官方提供方。
+    - strong: 一处例外
+    - text: ：如果你在旧版本里通过官方设置页把提供方选定为本插件的某个成员，这个选择保存在宿主层，关闭本插件后不会随之清除。 官方页上会显示「未加载」。清除方法：关闭宿主，打开当前配置目录下的
+    - code: cordis.patch.yml
+    - text: （桌面端是
+    - code: ~/.dsh/profiles/desktop/
+    - text: ），把
+    - code: web
+    - text: 行下的
+    - code: searchProvider
+    - text: 与
+    - code: fetchProvider
+    - text: 两个键一起删掉，再启动宿主。 用命令行卸载本插件同样不会清除这个选择。
+  - heading "关闭插件" [level=2]
+  - paragraph: 用插件列表里 dsh-websearch 右侧的开关。插件详情页里还有一个「启用组件」开关，它与列表里的开关不是同一个操作； 要关闭本插件，请用列表里的开关。
+  - heading "兼容性" [level=2]
+  - paragraph: DSH 0.1.5-rc.1 到 0.2.x（含 0.2.2-rc.5）。在 0.1.5 与 0.1.6 的宿主上，启动日志里会多一条关于本插件补丁条目未命中的告警，可以忽略。
+  - paragraph:
+    - text: 开发、打包与完整的配置参考见项目 README：
+    - link "https://github.com/GeerMrc/dsh-websearch":
+      - /url: https://github.com/GeerMrc/dsh-websearch
+      - text: https://github.com/GeerMrc/dsh-websearch
+- heading "包含的组件" [level=4]
+- generic: 共 1 个 · 1 运行中
+- list:
+  - generic: dsh-websearch
+  - generic: 多源统一网页搜索与抓取：可配置优先级链、全链路高可用降级、多 API key 池；启用即接管官方「网页搜索与获取」，关闭后官方设置页自动恢复。
+  - generic: 运行中
+  - switch "启用组件 dsh-websearch" [checked]
+- heading "来源信息" [level=4]
+- term: 代码来源
+- definition:
+  - code: file:/tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz
+- term: 当前版本
+- definition: 0.2.0
+- dialog "设置":
+  - generic: 设置
+  - navigation:
+    - button "通用设置":
+      - generic: 通用设置
+    - button "模型":
+      - generic: 模型
+    - button "内置插件":
+      - generic: 内置插件
+    - button "网页搜索":
+      - generic: 网页搜索
+    - button "Agent 预设":
+      - generic: Agent 预设
+  - button "打开配置文件"
+  - button "关闭":
+    - generic: 关闭
+  - heading "网页搜索 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。" [level=3]:
+    - text: 网页搜索
+    - button "管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。":
+  - paragraph: 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。
+  - heading "搜索链" [level=4]
+  - button "链序即主备序：首位是主搜索工具��—失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Firecrawl → AnySearch。":
+  - button "详细配置":
+    - text: 详细配置
+  - button "Tavily 配置":
+    - img "未配置"
+    - strong: Tavily
+  - switch "Tavily 启用" [checked] [disabled]
+  - button "Exa 配置":
+    - img "未配置"
+    - strong: Exa
+  - switch "Exa 启用" [checked] [disabled]
+  - button "Firecrawl 配置":
+    - img "未配置"
+    - strong: Firecrawl
+  - switch "Firecrawl 启用" [checked] [disabled]
+  - button "AnySearch 配置":
+    - img "未配置"
+    - strong: AnySearch
+  - switch "AnySearch 启用" [checked] [disabled]
+  - button "接管 web_fetch（插件链） 配置":
+    - strong: 接管 web_fetch（插件链）
+    - button "开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。":
+  - switch "接管 web_fetch（插件链）" [active]
+  - button "DNS 韧性 配置":
+    - img "DoH 生效中"
+    - strong: DNS 韧性
+    - button "为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。":
+  - switch "DNS 韧性 启用" [checked]
+  - status: 检出保留段证据——已启用
+  - paragraph: "证据: api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96"

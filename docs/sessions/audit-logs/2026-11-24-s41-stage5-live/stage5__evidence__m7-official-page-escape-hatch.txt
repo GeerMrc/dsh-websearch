@@ -1,0 +1,43 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话":
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- button "返回插件":
+  - generic: 插件
+- heading "网页搜索与获取" [level=3]
+- paragraph: 选择网页搜索与网页获取使用的提供方。
+- region "网页搜索提供方":
+  - heading "网页搜索提供方" [level=4]
+  - button "网页搜索提供方 dshws-chain":
+    - generic: dshws-chain
+  - paragraph: 请在该插件自己的设置中配置
+- region "网页获取提供方":
+  - heading "网页获取提供方" [level=4]
+  - button "网页获取提供方 dshws-fetch-gate":
+    - generic: dshws-fetch-gate
+  - paragraph: 请在该插件自己的设置中配置
+- button "保存" [disabled]

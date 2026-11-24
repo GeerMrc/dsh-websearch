@@ -1,0 +1,66 @@
+CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' --profile web --dump-config > evidence/m0-dump-clean-start-prevcandidate.yml 2> logs/22-clean-start.stderr
+2026-11-24 12:31:06
+EXIT=0
+    1305 /tmp/dshws-s41/stage5/evidence/m0-dump-clean-start-prevcandidate.yml
+stderr bytes:        0
+token-pattern count: 0
+== user-level file now ==
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+== rows ==
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: locale
+  name: '@deepseek-ai/dsh-client-locale'
+  config:
+    preference: zh
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: ui-settings-general
+  name: '@deepseek-ai/dsh-client-ui-settings-general'
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+== diff baseline(asfound) vs clean-start ==
+368c368
+< # == @deepseek-ai/dsh-base, patched by dsh-websearch, /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+---
+> # == @deepseek-ai/dsh-base, patched by dsh-websearch
+372c372
+<     searchProvider: dshws-tavily
+---
+>     searchProvider: dshws-chain
+374d373
+< # == @deepseek-ai/dsh-base, patched by dsh-websearch
+(diff exit=1)

@@ -1,0 +1,80 @@
+CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' --profile web --dump-config > evidence/m3-dump-after-cli-remove-prevcandidate.yml 2> logs/31-m3-dump.stderr
+2026-11-24 12:33:09
+EXIT=0
+    1295 /tmp/dshws-s41/stage5/evidence/m3-dump-after-cli-remove-prevcandidate.yml
+stderr bytes:        0
+token-pattern count: 0
+== rows ==
+LAYER # == @deepseek-ai/dsh-base
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    fetchProvider: http
+LAYER # == @deepseek-ai/dsh-base
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+== layer comments mentioning websearch ==
+1:# == @deepseek-ai/dsh-base
+167:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+177:# == @deepseek-ai/dsh-base
+181:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+197:# == @deepseek-ai/dsh-base
+200:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+207:# == @deepseek-ai/dsh-base
+216:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+271:# == @deepseek-ai/dsh-base
+274:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+281:# == @deepseek-ai/dsh-base
+298:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+316:# == @deepseek-ai/dsh-base
+319:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+328:# == @deepseek-ai/dsh-base
+339:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+347:# == @deepseek-ai/dsh-base
+350:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+359:# == @deepseek-ai/dsh-base
+380:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+387:# == @deepseek-ai/dsh-base
+397:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+402:# == @deepseek-ai/dsh-base
+413:# == @deepseek-ai/dsh-web-app
+533:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+538:# == @deepseek-ai/dsh-web-app
+584:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+589:# == @deepseek-ai/dsh-web-app
+== any 'dshws' / 'dsh-websearch' occurrence ==
+533:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+584:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+(grep exit=0)
+== diff clean-start(pre-candidate) vs after-remove ==
+368d367
+< # == @deepseek-ai/dsh-base, patched by dsh-websearch
+372,373c371
+<     searchProvider: dshws-chain
+<     fetchProvider: dshws-fetch-gate
+---
+>     fetchProvider: http
+378,379d375
+<   disabled: true
+< # == @deepseek-ai/dsh-base
+668d663
+< # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+671,672d665
+<   disabled: true
+< # == @deepseek-ai/dsh-web-app
+1303,1305d1295
+< # == dsh-websearch
+< - id: dsh-websearch
+<   name: dsh-websearch
+(diff exit=1)

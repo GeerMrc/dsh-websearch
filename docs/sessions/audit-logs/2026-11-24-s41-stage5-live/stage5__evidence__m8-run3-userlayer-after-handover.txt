@@ -1,0 +1,38 @@
+## M8 Run 3: user layer after the plugin-page OFF in which the watch received plugin-manager/changed and mutate was accepted (plugin switched back ON at 13:13:34)
+2026-11-24 13:13:52
+## user-level file:
+-rw-------  1 aibot  wheel  426 Nov 24 13:13 /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+## user-level == clean-zh ?
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/stage5/backup/cordis.patch.yml.clean-zh
+## CMD: ... --profile web --dump-config > evidence/m8-run3-dump-after-handover.yml 2> evidence/m8-run3-dump-after-handover.stderr.txt
+EXIT=0
+## dump stderr bytes:        0
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+## diff vs clean-start(HEAD candidate) — the probe build shares cordis.patch.yml with HEAD:
+(diff exit=0)

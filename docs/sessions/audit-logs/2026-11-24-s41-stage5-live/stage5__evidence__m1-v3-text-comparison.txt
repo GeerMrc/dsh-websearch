@@ -1,0 +1,38 @@
+# Output of tools/v3-compare.mjs (a11y snapshot vs HEAD candidate package files).
+== zh: m1-v3-detail-zh-headcandidate-after-pagereload.txt (detail region: 87 a11y nodes)
+PASS  locale meta.title ("dsh-websearch") is the page heading
+PASS  locale meta.description appears verbatim on the page
+PASS  locale meta.detail names the rendered document
+PASS  document heading rendered: "dsh-websearch（多源网页搜索）"
+PASS  document heading rendered: "它做什么"
+PASS  document heading rendered: "设置项"
+PASS  document heading rendered: "接管与交还"
+PASS  document heading rendered: "关闭插件"
+PASS  document heading rendered: "兼容性"
+PASS  every prose line (22) and link (1) of docs/plugin-page.zh.md is inside the detail region
+PASS  every table cell (20) of the document is inside the detail region  -- []
+PASS  no README-only heading (20 candidates, exact node match) is inside the detail region
+PASS  README-only markers are absent from the detail region  -- []
+PASS  current copy present ("清除方法" …)  -- []
+PASS  none of the pre-2df185d sentences is rendered on the page  -- []
+PASS  no "包元信息错误" / metadata error status on the page
+PASS  code source is the HEAD candidate tarball
+== en: m1-v3-detail-en-headcandidate.txt (detail region: 87 a11y nodes)
+PASS  locale meta.title ("dsh-websearch") is the page heading
+PASS  locale meta.description appears verbatim on the page
+PASS  locale meta.detail names the rendered document
+PASS  document heading rendered: "dsh-websearch (multi-provider web search)"
+PASS  document heading rendered: "What it does"
+PASS  document heading rendered: "Settings"
+PASS  document heading rendered: "Takeover and handover"
+PASS  document heading rendered: "Turning the plugin off"
+PASS  document heading rendered: "Compatibility"
+PASS  every prose line (22) and link (1) of docs/plugin-page.en.md is inside the detail region
+PASS  every table cell (20) of the document is inside the detail region  -- []
+PASS  no README-only heading (20 candidates, exact node match) is inside the detail region
+PASS  README-only markers are absent from the detail region  -- []
+PASS  current copy present ("To clear it" …)  -- []
+PASS  none of the pre-2df185d sentences is rendered on the page  -- []
+PASS  no "包元信息错误" / metadata error status on the page
+PASS  code source is the HEAD candidate tarball
+== ALL CHECKS PASS

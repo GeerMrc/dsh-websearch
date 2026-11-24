@@ -1,0 +1,96 @@
+## FINAL STATE of the scratch instance — re-verified after the supplementary CLI-remove-with-pins cell (2026-11-24 13:38:18)
+## instance listener:
+COMMAND PID NODE NAME
+DeepSeek 95257 TCP 127.0.0.1:3434
+## profile package.json:
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-websearch"
+      ]
+    }
+  },
+  "dependencies": {
+    "dsh-websearch": "file:/tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz"
+  }
+}
+## user-level cordis.patch.yml:
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+## user-level sha256 (clean-zh reference a3ae0faa66f57a72...):
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+## installed package file hashes (HEAD candidate):
+23ffec332ddc06b8 ./LICENSE
+564135f9210ea827 ./README.en.md
+3e9d810ee22f0d1e ./README.md
+8d26bd190421fd64 ./cordis.patch.yml
+c4a23bda17f499f1 ./docs/plugin-page.en.md
+78b0668c46dbab16 ./docs/plugin-page.zh.md
+efb95deb12a11a6e ./lib/client.js
+195b12af5b872f24 ./lib/index.d.ts
+7d6392107836c861 ./lib/index.js
+43f7ca73d0a8e4bb ./locale/en.json
+b850909168ae9033 ./locale/zh.json
+c94b83ccb3de4011 ./package.json
+## CMD: ... --profile web --dump-config > evidence/99-final-dump-config.yml 2> evidence/99-final-dump-config.stderr.txt
+EXIT=0
+## dump stderr bytes:        0
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: locale
+  name: '@deepseek-ai/dsh-client-locale'
+  config:
+    preference: zh
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: ui-settings-general
+  name: '@deepseek-ai/dsh-client-ui-settings-general'
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+## diff vs clean-start(HEAD candidate) — expect identical:
+(diff exit=0)
+6c52e02aa48006bf29553f38cf3fb10462a2f090ac663a2f3f30ac34df23a154  /tmp/dshws-s41/stage5/evidence/99-final-dump-config.yml
+## launcher plugin ops on this profile after 13:26:30 (expect exactly my supplementary remove+add pair at 13:37:57-58):
+13:37:57  operation-cNgogV
+13:37:58  /tmp/dshws-s41/home-rc5/profiles/web/.plugin-manager/logs
+13:37:58  operation-bJwA1O
+## main repo: HEAD 56208f0, status lines 0

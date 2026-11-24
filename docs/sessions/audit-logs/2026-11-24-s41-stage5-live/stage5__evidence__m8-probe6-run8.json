@@ -1,0 +1,24 @@
+{
+ "run": 8,
+ "note": "no CLI operation since 13:09:54 local; fresh page load (reloaded by the previous call, which hit the tool timeout while waiting); first OFF since load",
+ "baselineLog": "1795497600692 yu9lyn client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497600715 yu9lyn client: watch faces served +23ms; stopped=false\n1795497600715 yu9lyn client: watch subscribed (+23ms)\n",
+ "stateBefore": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497728824,
+ "msSinceWatchInstall": 128132,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497728934,
+   "newLines": "1795497728881 yu9lyn client: watch stopped (unsubscriber called, +128189ms); received=0\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ },
+ "logAfterOff": "1795497600692 yu9lyn client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497600715 yu9lyn client: watch faces served +23ms; stopped=false\n1795497600715 yu9lyn client: watch subscribed (+23ms)\n1795497728881 yu9lyn client: watch stopped (unsubscriber called, +128189ms); received=0\n",
+ "survived": false
+}

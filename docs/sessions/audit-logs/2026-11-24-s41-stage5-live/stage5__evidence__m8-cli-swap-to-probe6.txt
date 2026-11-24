@@ -1,0 +1,14 @@
+✓ Lockfile passes supply-chain policies (verified 395ms ago)
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+
+dependencies:
++ dsh-websearch 0.2.0
+
+Done in 390ms using pnpm v11.28.5

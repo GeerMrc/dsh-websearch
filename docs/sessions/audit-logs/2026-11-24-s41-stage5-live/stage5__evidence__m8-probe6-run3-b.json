@@ -1,0 +1,56 @@
+{
+ "run": 3,
+ "part": "B: first OFF about 2.5 minutes after the last page reload",
+ "baselineAt": 1795497207887,
+ "baselineState": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497207888,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497207893,
+   "newLines": null
+  },
+  {
+   "atEpochMs": 1795497207998,
+   "newLines": "1795497207952 2lte9a client: plugin-manager/changed received (#1, +184827ms)\n"
+  },
+  {
+   "atEpochMs": 1795497208103,
+   "newLines": "1795497208067 2lte9a client: handover pass: bundle state disabled\n1795497208067 2lte9a client: handover pass: snapshot {\"status\":\"ready\",\"revision\":25,\"user\":{\"searchProvider\":\"dshws-tavily\",\"fetchProvider\":\"dshws-fetch-gate\"}}; ops=[{\"op\":\"unset\",\"path\":[\"searchProvider\"]},{\"op\":\"unset\",\"path\":[\"fetchProvider\"]}]\n"
+  },
+  {
+   "atEpochMs": 1795497208416,
+   "newLines": "1795497208392 2lte9a client: handover pass: mutate accepted=true\n1795497208392 2lte9a client: handover pass finished\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ },
+ "installedSectionAfterOff": "- heading \"已安装插件\" [level=3]\n- list:\n  - button \"查看 dsh-websearch\": dsh-websearch\n  - generic: 多源统一网页搜索与抓取：可配置优先级链、全链路高可用降级、多 API key 池；启用即接管官方「网页搜索与获取」，关闭后官方设置页自动恢复。\n  - status\n  - switch \"启用 dsh-websearch\"",
+ "logAfterOff": "1795497015895 sm8o6y client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497015930 sm8o6y client: watch faces served +35ms; stopped=false\n1795497015930 sm8o6y client: watch subscribed (+35ms)\n1795497019527 p1y4px client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497019548 p1y4px client: watch faces served +21ms; stopped=false\n1795497019548 p1y4px client: watch subscribed (+21ms)\n1795497023125 2lte9a client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497023147 2lte9a client: watch faces served +22ms; stopped=false\n1795497023147 2lte9a client: watch subscribed (+22ms)\n1795497207952 2lte9a client: plugin-manager/changed received (#1, +184827ms)\n1795497208067 2lte9a client: handover pass: bundle state disabled\n1795497208067 2lte9a client: handover pass: snapshot {\"status\":\"ready\",\"revision\":25,\"user\":{\"searchProvider\":\"dshws-tavily\",\"fetchProvider\":\"dshws-fetch-gate\"}}; ops=[{\"op\":\"unset\",\"path\":[\"searchProvider\"]},{\"op\":\"unset\",\"path\":[\"fetchProvider\"]}]\n1795497208392 2lte9a client: handover pass: mutate accepted=true\n1795497208392 2lte9a client: handover pass finished\n",
+ "onClick": "clicked (aria-checked was false)",
+ "onClickAtEpochMs": 1795497214012,
+ "onPoll": [
+  {
+   "atEpochMs": 1795497214021,
+   "newLines": null
+  },
+  {
+   "atEpochMs": 1795497214125,
+   "newLines": "1795497214084 2lte9a client: plugin-manager/changed received (#2, +190959ms)\n"
+  },
+  {
+   "atEpochMs": 1795497214438,
+   "newLines": "1795497214402 2lte9a client: handover pass: bundle state enabled\n1795497214402 2lte9a client: handover pass finished\n"
+  }
+ ],
+ "stateAfterOn": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "logAfterOn": "1795497015895 sm8o6y client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497015930 sm8o6y client: watch faces served +35ms; stopped=false\n1795497015930 sm8o6y client: watch subscribed (+35ms)\n1795497019527 p1y4px client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497019548 p1y4px client: watch faces served +21ms; stopped=false\n1795497019548 p1y4px client: watch subscribed (+21ms)\n1795497023125 2lte9a client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497023147 2lte9a client: watch faces served +22ms; stopped=false\n1795497023147 2lte9a client: watch subscribed (+22ms)\n1795497207952 2lte9a client: plugin-manager/changed received (#1, +184827ms)\n1795497208067 2lte9a client: handover pass: bundle state disabled\n1795497208067 2lte9a client: handover pass: snapshot {\"status\":\"ready\",\"revision\":25,\"user\":{\"searchProvider\":\"dshws-tavily\",\"fetchProvider\":\"dshws-fetch-gate\"}}; ops=[{\"op\":\"unset\",\"path\":[\"searchProvider\"]},{\"op\":\"unset\",\"path\":[\"fetchProvider\"]}]\n1795497208392 2lte9a client: handover pass: mutate accepted=true\n1795497208392 2lte9a client: handover pass finished\n1795497214084 2lte9a client: plugin-manager/changed received (#2, +190959ms)\n1795497214402 2lte9a client: handover pass: bundle state enabled\n1795497214402 2lte9a client: handover pass finished\n"
+}

@@ -1,0 +1,71 @@
+== CMD: tools/rows.sh evidence/00-baseline-dump-asfound.yml web ui-settings-web-search web-search-deepseek dsh-websearch web-fetch-http web-deepseek-api locale ui-settings-general
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch, /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-tavily
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: locale
+  name: '@deepseek-ai/dsh-client-locale'
+  config:
+    preference: zh
+LAYER # == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: ui-settings-general
+  name: '@deepseek-ai/dsh-client-ui-settings-general'
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+== CMD: grep -n '^# == ' <dump>
+1:# == @deepseek-ai/dsh-base
+167:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+177:# == @deepseek-ai/dsh-base
+181:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+197:# == @deepseek-ai/dsh-base
+200:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+207:# == @deepseek-ai/dsh-base
+216:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+271:# == @deepseek-ai/dsh-base
+274:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+281:# == @deepseek-ai/dsh-base
+298:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+316:# == @deepseek-ai/dsh-base
+319:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+328:# == @deepseek-ai/dsh-base
+339:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+347:# == @deepseek-ai/dsh-base
+350:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+359:# == @deepseek-ai/dsh-base
+368:# == @deepseek-ai/dsh-base, patched by dsh-websearch, /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+374:# == @deepseek-ai/dsh-base, patched by dsh-websearch
+380:# == @deepseek-ai/dsh-base
+385:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+392:# == @deepseek-ai/dsh-base
+402:# == @deepseek-ai/dsh-base, patched by @deepseek-ai/dsh-web-app
+407:# == @deepseek-ai/dsh-base
+418:# == @deepseek-ai/dsh-web-app
+538:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+543:# == @deepseek-ai/dsh-web-app
+589:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+594:# == @deepseek-ai/dsh-web-app
+669:# == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+673:# == @deepseek-ai/dsh-web-app
+1304:# == dsh-websearch

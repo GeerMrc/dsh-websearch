@@ -1,0 +1,24 @@
+{
+ "run": 9,
+ "step": "OFF",
+ "note": "CLI remove+add at 13:22:46; three rapid reloads; pins hand-seeded at about 13:23:35; this OFF is the first since the last reload",
+ "stateBefore": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497910721,
+ "msSinceWatchInstall": 125477,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497910833,
+   "newLines": "1795497910775 l4de4g client: watch stopped (unsubscriber called, +125531ms); received=0\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ },
+ "logAfterOff": "1795497779004 a5b87y client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497779039 a5b87y client: watch faces served +35ms; stopped=false\n1795497779039 a5b87y client: watch subscribed (+35ms)\n1795497782138 ku1gog client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497782162 ku1gog client: watch faces served +24ms; stopped=false\n1795497782162 ku1gog client: watch subscribed (+24ms)\n1795497785244 l4de4g client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497785266 l4de4g client: watch faces served +22ms; stopped=false\n1795497785266 l4de4g client: watch subscribed (+22ms)\n1795497910775 l4de4g client: watch stopped (unsubscriber called, +125531ms); received=0\n",
+ "survived": false
+}

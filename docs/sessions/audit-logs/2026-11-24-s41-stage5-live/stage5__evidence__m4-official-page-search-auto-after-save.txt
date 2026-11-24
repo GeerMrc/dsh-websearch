@@ -1,0 +1,46 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话":
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- button "返回插件":
+  - generic: 插件
+- heading "网页搜索与获取" [level=3]
+- paragraph: 选择网页搜索与网页获取使用的提供方。
+- region "网页搜索提供方":
+  - heading "网页搜索提供方" [level=4]
+  - button "网页搜索提供方 自动选择":
+    - generic: 自动选择
+  - paragraph: 跟随当前会话的模型：DeepSeek 模型使用 DeepSeek 服务端搜索，搜索不按次收费；其他模型使用 DeepSeek Search API。
+  - paragraph:
+    - link "网页搜索与获取指南":
+      - /url: https://api-docs.deepseek.com/zh-cn/guides/search
+- region "网页获取提供方":
+  - heading "网页获取提供方" [level=4]
+  - button "网页获取提供方 本机直接获取":
+    - generic: 本机直接获取
+  - paragraph: 免费，可访问内网和本机。不支持需要 JavaScript 或登录的页面，也不支持 PDF。
+- button "保存" [disabled]

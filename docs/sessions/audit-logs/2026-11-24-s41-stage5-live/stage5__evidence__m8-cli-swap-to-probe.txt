@@ -1,0 +1,41 @@
+## M8: swap HEAD candidate -> probe build (same name+version; identical cordis.patch.yml and lib/index.js)
+2026-11-24 13:01:43
+✓ Lockfile passes supply-chain policies (verified 4m ago)
+Already up to date
+
+dependencies:
+- dsh-websearch 0.2.0
+
+Done in 219ms using pnpm v11.28.5
+EXIT=0
+✓ Lockfile passes supply-chain policies (verified 397ms ago)
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+
+dependencies:
++ dsh-websearch 0.2.0
+
+Done in 398ms using pnpm v11.28.5
+EXIT=0
+2026-11-24 13:01:45
+## installed hashes:
+23ffec332ddc06b8 ./LICENSE
+564135f9210ea827 ./README.en.md
+3e9d810ee22f0d1e ./README.md
+8d26bd190421fd64 ./cordis.patch.yml
+c4a23bda17f499f1 ./docs/plugin-page.en.md
+78b0668c46dbab16 ./docs/plugin-page.zh.md
+a69a2b0715ed816f ./lib/client.js
+195b12af5b872f24 ./lib/index.d.ts
+7d6392107836c861 ./lib/index.js
+43f7ca73d0a8e4bb ./locale/en.json
+b850909168ae9033 ./locale/zh.json
+c94b83ccb3de4011 ./package.json
+## user-level sha (clean-zh = a3ae0faa...):
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml

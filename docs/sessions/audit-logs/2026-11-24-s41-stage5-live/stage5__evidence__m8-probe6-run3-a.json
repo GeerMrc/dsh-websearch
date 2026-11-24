@@ -1,0 +1,43 @@
+{
+ "run": 3,
+ "note": "CLI remove+add of the same probe6 tarball at 13:09:54 local while this tab sat on the plugins list; hot-load lines below are this tab's own (per-tab sessionStorage)",
+ "reloads": [
+  {
+   "i": 1,
+   "reloadAtEpochMs": 1795497015730,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "i": 2,
+   "reloadAtEpochMs": 1795497019403,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "i": 3,
+   "reloadAtEpochMs": 1795497023015,
+   "closeDialog": "clicked: 关闭"
+  }
+ ],
+ "steps": [
+  {
+   "step": "open plugins",
+   "result": "clicked: 插件"
+  },
+  {
+   "step": "back to list if on detail",
+   "result": "not found: 返回插件"
+  }
+ ],
+ "hotLoad": {
+  "readAtEpochMs": 1795497015728,
+  "log": "1795496902637 m3b1ru client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496902669 m3b1ru client: watch faces served +32ms; stopped=false\n1795496902669 m3b1ru client: watch subscribed (+32ms)\n1795496906247 3epo8q client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496906270 3epo8q client: watch faces served +23ms; stopped=false\n1795496906270 3epo8q client: watch subscribed (+23ms)\n1795496909851 d75o26 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496909874 d75o26 client: watch faces served +23ms; stopped=false\n1795496909874 d75o26 client: watch subscribed (+23ms)\n1795496920468 d75o26 client: watch stopped (unsubscriber called, +10617ms); received=0\n1795496925630 hezfc5 client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496925633 hezfc5 client: watch faces served +3ms; stopped=false\n1795496925633 hezfc5 client: watch subscribed (+3ms)\n1795496994831 hezfc5 client: watch stopped (unsubscriber called, +69201ms); received=0\n1795496994841 0dgbae client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496994844 0dgbae client: watch faces served +3ms; stopped=false\n1795496994844 0dgbae client: watch subscribed (+3ms)\n"
+ },
+ "baseline": {
+  "atEpochMs": 1795497028644,
+  "log": "1795497015895 sm8o6y client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497015930 sm8o6y client: watch faces served +35ms; stopped=false\n1795497015930 sm8o6y client: watch subscribed (+35ms)\n1795497019527 p1y4px client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497019548 p1y4px client: watch faces served +21ms; stopped=false\n1795497019548 p1y4px client: watch subscribed (+21ms)\n1795497023125 2lte9a client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497023147 2lte9a client: watch faces served +22ms; stopped=false\n1795497023147 2lte9a client: watch subscribed (+22ms)\n",
+  "state": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  }
+ }
+}

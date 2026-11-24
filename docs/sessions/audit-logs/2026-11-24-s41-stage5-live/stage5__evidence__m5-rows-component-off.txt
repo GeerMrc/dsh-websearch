@@ -1,0 +1,75 @@
+## M5: bundle enabled, component 'dsh-websearch' switched OFF on the detail page, user layer clean
+## user-level file sha (clean-zh = a3ae0faa...):
+25666787ac325c4126fcb9543c3b0ed8094d46dd8bb45f59a49f20467d39eb9e  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+- id: dsh-websearch
+  disabled: true
+## CMD: ... --profile web --dump-config > evidence/m5-dump-component-off.yml 2> evidence/m5-dump-component-off.stderr.txt
+2026-11-24 12:47:33
+EXIT=0
+    1306 /tmp/dshws-s41/stage5/evidence/m5-dump-component-off.yml
+## dump stderr:
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: dsh-websearch
+  name: dsh-websearch
+  disabled: true
+## tail of dump (last 12 lines):
+      - id: present
+        name: '@deepseek-ai/dsh-tool-present'
+      - id: tool-plugin-manager
+        name: '@deepseek-ai/dsh-plugin-manager/tools'
+        disabled: !!js '!ctx.get(''profileContext'')'
+      - id: tool-plugin-market
+        name: '@deepseek-ai/dsh-plugin-market/tools'
+        disabled: !!js '!ctx.get(''profileContext'')'
+# == dsh-websearch, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: dsh-websearch
+  name: dsh-websearch
+  disabled: true
+## diff vs clean-start(HEAD candidate, component on):
+1303c1303
+< # == dsh-websearch
+---
+> # == dsh-websearch, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+1305a1306
+>   disabled: true
+(diff exit=1)
+## .plugin-manager state files:
+total 0
+drwx------   3 aibot  wheel   96 Nov 24 12:41 .
+drwxr-xr-x   9 aibot  wheel  288 Nov 24 12:47 ..
+drwx------  23 aibot  wheel  736 Nov 24 12:41 logs

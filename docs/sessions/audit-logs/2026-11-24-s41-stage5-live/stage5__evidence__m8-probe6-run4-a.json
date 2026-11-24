@@ -1,0 +1,21 @@
+{
+ "run": 4,
+ "step": "A",
+ "note": "same page as run 3 (watch 2lte9a); plugin was switched ON at 13:13:34 local; this OFF comes later",
+ "stateBefore": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497270007,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497270116,
+   "newLines": "1795497270052 2lte9a client: watch stopped (unsubscriber called, +246927ms); received=2\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ }
+}

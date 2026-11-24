@@ -1,0 +1,22 @@
+{
+ "run": 5,
+ "step": "OFF",
+ "note": "same page as run 4-A; watch pnu99g installed by the ON at 1795497290660 (second ON in this page's lifetime)",
+ "stateBefore": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497310377,
+ "msSinceWatchInstall": 19717,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497310486,
+   "newLines": "1795497310424 pnu99g client: watch stopped (unsubscriber called, +19764ms); received=0\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ }
+}

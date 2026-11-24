@@ -1,0 +1,26 @@
+== user-level patch after restoring 接管 web_fetch ==
+-rw-------  1 aibot  wheel  502 Nov 24 12:40 /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+- id: dsh-websearch
+  name: dsh-websearch
+  config:
+    fetchTakeover: true
+== diff clean-zh vs now (expect no diff) ==
+11a12,15
+> - id: dsh-websearch
+>   name: dsh-websearch
+>   config:
+>     fetchTakeover: true
+(diff exit=1)
+b0bf31b1282ce40125f7aa1c5bc3a46427c4402e498419fa091220ad4b8846c8  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/stage5/backup/cordis.patch.yml.clean-zh

@@ -1,0 +1,36 @@
+[
+ {
+  "round": 1,
+  "offClickAtEpochMs": 1795496631704,
+  "offClick": "clicked (aria-checked was true)",
+  "logAfterOff": "1795496631773 client: plugin-manager/changed received (#1, +126517ms)\n",
+  "stateAfterOff": {
+   "officialCardVisible": true,
+   "switchChecked": "false"
+  },
+  "onClickAtEpochMs": 1795496634725,
+  "onClick": "clicked (aria-checked was false)",
+  "logAfterOn": "1795496631773 client: plugin-manager/changed received (#1, +126517ms)\n1795496634805 client: plugin-manager/changed received (#2, +129549ms)\n",
+  "stateAfterOn": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  }
+ },
+ {
+  "round": 2,
+  "offClickAtEpochMs": 1795496638247,
+  "offClick": "clicked (aria-checked was true)",
+  "logAfterOff": "1795496638311 client: watch stopped (unsubscriber called, +116671ms); received=2\n",
+  "stateAfterOff": {
+   "officialCardVisible": true,
+   "switchChecked": "false"
+  },
+  "onClickAtEpochMs": 1795496641267,
+  "onClick": "clicked (aria-checked was false)",
+  "logAfterOn": "1795496638311 client: watch stopped (unsubscriber called, +116671ms); received=2\n1795496641347 client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496641352 client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496641359 client: watch faces served +7ms; stopped=false\n1795496641359 client: watch subscribed (+7ms)\n",
+  "stateAfterOn": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  }
+ }
+]

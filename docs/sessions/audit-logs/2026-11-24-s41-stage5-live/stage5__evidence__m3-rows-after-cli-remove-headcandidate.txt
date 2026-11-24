@@ -1,0 +1,38 @@
+## user-level == clean-zh ?
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/stage5/backup/cordis.patch.yml.clean-zh
+## CMD: ... --profile web --dump-config > evidence/m3-dump-after-cli-remove-headcandidate.yml 2> evidence/m3-dump-after-cli-remove-headcandidate.stderr.txt
+2026-11-24 12:41:18
+EXIT=0
+    1295 /tmp/dshws-s41/stage5/evidence/m3-dump-after-cli-remove-headcandidate.yml
+## dump stderr bytes:        0
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    fetchProvider: http
+LAYER # == @deepseek-ai/dsh-base
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+## occurrences of dshws / dsh-websearch in dump:
+533:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+584:# == @deepseek-ai/dsh-web-app, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+(grep exit=0)
+## diff vs prep-pass after-remove dump (expect identical):
+(diff exit=0)
+679f1714441658fb99c4f1b8774afaeb9d25d1d771ba31590ea55417ecc67eea  /tmp/dshws-s41/stage5/evidence/m3-dump-after-cli-remove-headcandidate-withsettingsrow.yml
+679f1714441658fb99c4f1b8774afaeb9d25d1d771ba31590ea55417ecc67eea  /tmp/dshws-s41/stage5/evidence/m3-dump-after-cli-remove-headcandidate.yml
+679f1714441658fb99c4f1b8774afaeb9d25d1d771ba31590ea55417ecc67eea  /tmp/dshws-s41/stage5/evidence/m3-dump-after-cli-remove-prevcandidate.yml

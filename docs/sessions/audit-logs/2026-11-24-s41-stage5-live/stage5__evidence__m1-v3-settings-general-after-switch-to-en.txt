@@ -1,0 +1,142 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "New session":
+- button "Collapse sidebar":
+- button "New session":
+  - generic: New Session
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "Global panels":
+  - button "Plugins":
+    - generic: Plugins
+  - button "Automation tasks":
+    - generic: Automation tasks
+  - button "Unpin Automation tasks from sidebar":
+  - button "More":
+    - generic: More
+- generic: Workspaces
+- button "Search sessions":
+- textbox "Search session names"
+- button "View options":
+- button "Add workspace":
+- tree "Sessions":
+  - treeitem "Default workspace" [expanded]:
+    - generic: Default workspace
+  - treeitem "New Session":
+    - generic: New Session
+- button "Account menu":
+  - generic: More
+- heading "Plugins" [level=1]
+- generic: Install, enable, and configure plugins
+- button "About plugins":
+- button "Refresh":
+  - generic: Refresh
+- group "Add plugin":
+  - button "Add plugin":
+    - generic: Add plugin
+  - button "Choose how to add a plugin":
+- heading "Built-in plugin settings" [level=3]
+- list:
+  - button "View Subagent": Subagent
+  - generic: Set Subagent recursion depth, count, and models.
+  - button "View Agent loop": Agent loop
+  - generic: Control how the Agent dispatches tool calls.
+  - button "View Shell": Shell
+  - generic: Limit how long each command may run and how much it may output.
+- heading "Experimental plugins" [level=3]
+- button "More":
+  - text: More
+- list:
+  - button "View Voice input": Voice input
+  - generic: Experimental
+  - generic: Transcribe recordings locally with SenseVoice; first use requires installing dependencies.
+  - status
+  - switch "Enable Voice input"
+  - button "View Custom plugin indexes": Custom plugin indexes
+  - generic: Experimental
+  - generic: Adds a Discover tab to Plugins, where you browse and install plugins from plugin indexes you add.
+  - status
+  - switch "Enable Custom plugin indexes"
+  - button "View Auto authorization review": Auto authorization review
+  - generic: Experimental
+  - generic: "Adds an Auto review access mode: before each tool call, a model checks it against what you asked for, runs allowed calls at once, and holds denied calls for your approval."
+  - status
+  - switch "Enable Auto authorization review"
+  - button "View Change requests & worktrees": Change requests & worktrees
+  - generic: Experimental
+  - generic: "Keep linked GitHub pull requests beside your conversation: follow checks and reviews, inspect diffs, and send feedback to the agent. Review local changes and use a separate worktree to isolate each task. GitHub features require the gh CLI installed and signed in on the host."
+  - status
+  - switch "Enable Change requests & worktrees"
+- heading "Installed plugins" [level=3]
+- list:
+  - button "View dsh-websearch": dsh-websearch
+  - generic: Unified multi-provider web search and fetch with a configurable priority chain, full HA degradation and multi-key pools; takes over the built-in "Web search and fetch" settings page while enabled and restores it when disabled.
+  - status
+  - switch "Enable dsh-websearch" [checked]
+- dialog "Settings":
+  - generic: Settings
+  - navigation:
+    - button "General":
+      - generic: General
+    - button "Models":
+      - generic: Models
+    - button "Built-in plugins":
+      - generic: Built-in plugins
+    - button "Web Search":
+      - generic: Web Search
+    - button "Agent presets":
+      - generic: Agent presets
+  - button "Open configuration file"
+  - button "Close":
+    - generic: Close
+  - generic: Permission
+  - generic: Choose the default permission mode for new sessions
+  - button "Workspace Write":
+    - text: Workspace Write
+  - generic: Language
+  - button "English" [active]:
+    - text: English
+  - generic: Appearance
+  - button "Light":
+    - text: Light
+  - button "Dark":
+    - text: Dark
+  - button "System" [pressed]:
+    - text: System
+  - generic: Font size
+  - generic: Only affects conversation content
+  - generic: "14"
+  - button "Increase font size":
+  - button "Decrease font size":
+  - generic: px
+  - button "More font settings":
+  - generic: Work details
+  - generic: Choose how much detail to show for tool calls
+  - button "Detailed":
+    - text: Detailed
+  - generic: When to Collapse Work Details
+  - generic: Choose when to automatically collapse work details
+  - button "On completion":
+    - text: On completion
+  - generic: Replies After Collapse
+  - generic: Choose which assistant replies stay visible when work details collapse
+  - button "All replies":
+    - text: All replies
+  - generic: Show coding view
+  - generic: Shows trajectory, code diffs, and all Agent presets
+  - switch "Show coding view" [checked]
+  - generic: Keyboard shortcuts
+  - paragraph: View and edit available shortcuts and input actions
+  - button "Edit shortcuts"
+  - generic: Send behavior while busy
+  - generic: What Enter and the Send button do while the agent is running; Cmd/Ctrl+Enter uses the other behavior
+  - button "Queue":
+    - text: Queue
+  - generic: Performance & usage
+  - generic: Choose how much performance and usage information to show
+  - button "Detailed":
+    - text: Detailed
+  - generic: Upload Session Log when using the official model API
+  - generic: Help improve DeepSeek models and products.
+  - switch "Upload Session Log when using the official model API" [checked]
+  - generic: "Current version: 0.2.2-rc.5"

@@ -1,0 +1,17 @@
+[
+ {
+  "sample": 1,
+  "reloadStartedAtEpochMs": 1795496513766,
+  "log": "1795496513968 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496513998 client: watch faces served +30ms; stopped=false\n1795496513998 client: watch subscribed (+30ms)\n"
+ },
+ {
+  "sample": 2,
+  "reloadStartedAtEpochMs": 1795496517671,
+  "log": "1795496517802 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496517831 client: watch faces served +29ms; stopped=false\n1795496517831 client: watch subscribed (+29ms)\n"
+ },
+ {
+  "sample": 3,
+  "reloadStartedAtEpochMs": 1795496521524,
+  "log": "1795496521640 client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496521667 client: watch faces served +27ms; stopped=false\n1795496521667 client: watch subscribed (+27ms)\n"
+ }
+]

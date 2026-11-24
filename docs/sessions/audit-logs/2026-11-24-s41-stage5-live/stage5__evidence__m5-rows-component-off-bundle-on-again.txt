@@ -1,0 +1,43 @@
+## M5: component OFF (user layer), bundle switched OFF -> ON again via the plugin list
+## user-level file:
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+- id: dsh-websearch
+  disabled: true
+## CMD: ... --profile web --dump-config > evidence/m5-dump-component-off-bundle-on-again.yml 2> evidence/m5-dump-component-off-bundle-on-again.stderr.txt
+2026-11-24 12:49:07
+EXIT=0
+## dump stderr:
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch, patched by /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+- id: dsh-websearch
+  name: dsh-websearch
+  disabled: true
+## diff vs m5-dump-component-off.yml (expect identical):
+(diff exit=0)

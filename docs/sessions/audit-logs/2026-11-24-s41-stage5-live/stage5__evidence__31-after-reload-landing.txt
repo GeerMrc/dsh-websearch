@@ -1,0 +1,50 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话" [selected]:
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- banner:
+  - button "打开右侧边栏":
+- generic: 探索未至之境
+- generic: 预览版
+- button "选择工作区":
+  - generic: 默认工作区
+- button "标准模式":
+  - generic: 标准模式
+- textbox "描述你想要构建的内容, / 调用指令, @ 文件或对话"
+- generic: 描述你想要构建的内容, / 调用指令, @ 文件或对话
+- button "添加文件或调用指令":
+- button "访问模式，当前：工作区内修改":
+  - generic: 工作区内修改
+- button "请选择模型":
+  - generic: 请选择模型
+- button "发送消息" [disabled]:
+- dialog "开始使用":
+  - heading "开始使用" [level=2]
+  - button "关闭" [active]:
+  - paragraph: 登录 DeepSeek 账号，或添加 API Key，即可开始使用。你的项目和文件保存在本地。
+  - button "添加 API Key"
+  - button "登录"

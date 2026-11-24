@@ -1,0 +1,47 @@
+# Diagnostic instrumentation used for stage-5 M8 (scratch copy of HEAD 56208f0 at /tmp/dshws-s41/stage5/probe-build; never committed).
+# Probe tarball: /tmp/dshws-s41/stage5/candidates/probe/dsh-websearch-0.2.0.tgz sha256 7bcd13f0e8a79fd54d8deb28948c414cf3b3eab1b72825ce77036486578f9202
+diff --git a/src/client/handover-watch.ts b/src/client/handover-watch.ts
+index 29d8896..ef51580 100644
+--- a/src/client/handover-watch.ts
++++ b/src/client/handover-watch.ts
+@@ -60,6 +60,10 @@ interface WatchHost {
+   inject(deps: Inject, callback: (scoped: WatchScope) => void): unknown;
+ }
+ 
++const probe = (message: string) => {
++  try { localStorage.setItem('dshws-probe', `${localStorage.getItem('dshws-probe') ?? ''}${Date.now()} client: ${message}\n`); } catch { /* storage unavailable */ }
++};
++
+ function isRecord(value: unknown): value is Record<string, unknown> {
+   return typeof value === 'object' && value !== null;
+ }
+@@ -118,20 +122,29 @@ async function handoverWhenDisabled(
+ export function installHandoverWatch(ctx: WatchHost, warn: (message: string) => void = warnToConsole): () => void {
+   let unsubscribe: (() => void) | undefined;
+   let stopped = false;
++  let received = 0;
++  const installAt = Date.now();
++  const oneShot = (ctx as unknown as { get?(name: string): unknown }).get?.('remote.pluginManager');
++  probe(`install: one-shot get(remote.pluginManager) -> ${isPluginManagerFace(oneShot) ? 'PluginManagerFace' : String(oneShot)}; watch faces requested`);
+   ctx.inject(WATCH_FACES, (scoped) => {
++    probe(`watch faces served +${Date.now() - installAt}ms; stopped=${stopped}`);
+     if (stopped) return;
+     // Both faces were named in the inject, so each is served here or the callback would not run.
+     const pluginManager = scoped.remote.pluginManager;
+     const configForms = scoped.configForms;
+     if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(configForms)) return;
+     unsubscribe = scoped.remote.$on(PLUGIN_MANAGER_CHANGED, () => {
++      received += 1;
++      probe(`plugin-manager/changed received (#${received}, +${Date.now() - installAt}ms)`);
+       void handoverWhenDisabled(pluginManager, configForms, warn).catch((error: unknown) => {
+         warn(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+       });
+     });
++    probe(`watch subscribed (+${Date.now() - installAt}ms)`);
+   });
+   return () => {
+     stopped = true;
++    probe(`watch stopped (unsubscriber called, +${Date.now() - installAt}ms); received=${received}`);
+     unsubscribe?.();
+     unsubscribe = undefined;
+   };

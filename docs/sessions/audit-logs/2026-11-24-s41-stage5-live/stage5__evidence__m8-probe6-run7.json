@@ -1,0 +1,29 @@
+{
+ "run": 7,
+ "note": "fresh page load; first OFF since load, about 60 s after it",
+ "onClick": "clicked (aria-checked was false)",
+ "stateAfterOn": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ },
+ "reloadAtEpochMs": 1795497516953,
+ "closeDialog": "clicked: 关闭",
+ "baselineLog": "1795497517135 w6fsoa client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497517159 w6fsoa client: watch faces served +24ms; stopped=false\n1795497517159 w6fsoa client: watch subscribed (+24ms)\n",
+ "openPlugins": "clicked: 插件",
+ "back": "not found: 返回插件",
+ "offClick": "clicked (aria-checked was true)",
+ "offClickAtEpochMs": 1795497566781,
+ "msSinceWatchInstall": 49646,
+ "offPoll": [
+  {
+   "atEpochMs": 1795497566900,
+   "newLines": "1795497566857 w6fsoa client: watch stopped (unsubscriber called, +49722ms); received=0\n"
+  }
+ ],
+ "stateAfterOff": {
+  "officialCardVisible": true,
+  "switchChecked": "false"
+ },
+ "logAfterOff": "1795497517135 w6fsoa client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497517159 w6fsoa client: watch faces served +24ms; stopped=false\n1795497517159 w6fsoa client: watch subscribed (+24ms)\n1795497566857 w6fsoa client: watch stopped (unsubscriber called, +49722ms); received=0\n",
+ "survived": false
+}

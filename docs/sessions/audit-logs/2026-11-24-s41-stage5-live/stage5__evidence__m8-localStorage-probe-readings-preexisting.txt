@@ -1,0 +1,8 @@
+# Browser localStorage key 'dshws-probe' as found in the scratch instance origin (read 2026-11-24 ~13:00 local, BEFORE any M8 run of mine).
+# These four lines were written earlier by the executor's archived probe (tools__probe4.mjs) and never archived as a raw file (stage-4 r1 F17). They are reported here as found, not as my measurement.
+# epoch-ms (UTC)                    -> local time (UTC+8)   -> reading
+1795457756551 2026-11-23T18:15:56.551Z -> 02:15:56.551 -> client: watch subscribed
+1795457773512 2026-11-23T18:16:13.512Z -> 02:16:13.512 -> client: watch stopped (unsubscriber called)
+1795458121296 2026-11-23T18:22:01.296Z -> 02:22:01.296 -> client: watch subscribed
+1795458124694 2026-11-23T18:22:04.694Z -> 02:22:04.694 -> client: watch stopped (unsubscriber called)
+# note: no 'plugin-manager/changed received' line exists between the subscribed/stopped pairs.

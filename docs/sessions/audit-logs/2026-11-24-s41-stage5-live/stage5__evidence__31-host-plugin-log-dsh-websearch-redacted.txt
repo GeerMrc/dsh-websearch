@@ -1,0 +1,79 @@
+# Source: /tmp/dshws-s41/home-rc5/logs/dsh-websearch.log (the plugin's own log under the scratch DSH_HOME), token values redacted (0 matches).
+# Timestamps are UTC; local time is UTC+8.
+# 2026-11-24T04:34:16Z = 12:34:16 local, 5 s after 'plugin add <HEAD candidate>' at 12:34:11 -> host half re-applied without restart.
+# 2026-11-24T04:39:44Z = 12:39:44 local, after the plugin-page switch OFF -> ON -> host half re-applied.
+# 2026-11-24T04:41:35Z = 12:41:35 local, 5 s after 'plugin add <HEAD candidate>' (re-add after M3) at 12:41:30.
+2026-11-23T17:49:30.150Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T17:49:31.134Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=3 latencyMs=270
+2026-11-23T17:49:31.371Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=235 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T17:49:31.651Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=279
+2026-11-23T17:49:31.832Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=180
+2026-11-23T17:49:31.889Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=55
+2026-11-23T17:55:21.670Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T17:55:22.511Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=4 latencyMs=135
+2026-11-23T17:55:22.802Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=286 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T17:55:22.978Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=174
+2026-11-23T17:55:23.103Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=124
+2026-11-23T17:55:23.156Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=53
+2026-11-23T18:05:32.627Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T18:05:33.594Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=4 latencyMs=257
+2026-11-23T18:05:33.774Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=179 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T18:05:33.909Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=135
+2026-11-23T18:05:34.182Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=271
+2026-11-23T18:05:34.240Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=57
+2026-11-23T18:08:54.243Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T18:08:55.044Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=91
+2026-11-23T18:08:55.242Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=197 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T18:08:55.442Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=200
+2026-11-23T18:08:55.602Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=159
+2026-11-23T18:08:55.656Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=54
+2026-11-23T18:10:19.849Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T18:10:20.650Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=92
+2026-11-23T18:10:20.746Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=96 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T18:10:21.003Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=256
+2026-11-23T18:10:21.181Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=177
+2026-11-23T18:10:21.240Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=57
+2026-11-23T18:15:47.820Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T18:15:48.712Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=183
+2026-11-23T18:15:48.939Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=225 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T18:15:49.153Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=213
+2026-11-23T18:15:49.386Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=232
+2026-11-23T18:15:49.444Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=56
+2026-11-23T18:22:03.754Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T18:22:04.694Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=231
+2026-11-23T18:26:56.912Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-23T18:26:57.754Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=3 latencyMs=134
+2026-11-23T18:26:58.100Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=344 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-23T18:26:58.211Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=110
+2026-11-23T18:26:58.425Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=213
+2026-11-23T18:26:58.621Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=194
+2026-11-24T03:51:34.120Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-24T03:51:35.024Z [dshws-dns] resolve host=api.tavily.com via=223.6.6.6 kept=4 latencyMs=194
+2026-11-24T03:51:35.256Z [dshws-dns] resolve host=api.exa.ai via=223.6.6.6 kept=2 probeDrop=2 latencyMs=230 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-24T03:51:35.467Z [dshws-dns] resolve host=api.firecrawl.dev via=223.6.6.6 kept=1 latencyMs=210
+2026-11-24T03:51:35.608Z [dshws-dns] resolve host=api.anysearch.com via=223.6.6.6 kept=1 latencyMs=140
+2026-11-24T03:51:35.664Z [dshws-dns] resolve host=api.deepseek.com via=223.6.6.6 kept=2 latencyMs=56
+2026-11-24T03:51:49.434Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-24T03:51:50.287Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=88
+2026-11-24T03:51:50.379Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=89 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-24T03:51:50.627Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=244
+2026-11-24T03:51:50.745Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=117
+2026-11-24T03:51:50.800Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=53
+2026-11-24T04:34:16.423Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-24T04:34:17.192Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=53
+2026-11-24T04:34:17.372Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=178 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-24T04:34:17.661Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=287
+2026-11-24T04:34:17.764Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=103
+2026-11-24T04:34:17.819Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=53
+2026-11-24T04:39:44.158Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-24T04:39:44.999Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=4 latencyMs=131
+2026-11-24T04:39:45.415Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=414 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-24T04:39:45.502Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=85
+2026-11-24T04:39:45.817Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=314
+2026-11-24T04:39:45.870Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=50
+2026-11-24T04:41:35.683Z [dshws-dns] decision enable/poisoned hits=api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96 code=DSHWS_DNS_AUTO_ENABLED
+2026-11-24T04:41:36.555Z [dshws-dns] resolve host=api.tavily.com via=223.5.5.5 kept=3 latencyMs=163
+2026-11-24T04:41:36.615Z [dshws-dns] resolve host=api.exa.ai via=223.5.5.5 kept=2 probeDrop=2 latencyMs=58 code=DSHWS_DNS_PROBE_ALL_FAILED
+2026-11-24T04:41:36.702Z [dshws-dns] resolve host=api.firecrawl.dev via=223.5.5.5 kept=1 latencyMs=86
+2026-11-24T04:41:37.054Z [dshws-dns] resolve host=api.anysearch.com via=223.5.5.5 kept=1 latencyMs=352
+2026-11-24T04:41:37.114Z [dshws-dns] resolve host=api.deepseek.com via=223.5.5.5 kept=2 latencyMs=59

@@ -1,0 +1,17 @@
+{
+ "run": 5,
+ "step": "ON",
+ "note": "same page as run 4-A (second ON in this page's lifetime)",
+ "onClick": "clicked (aria-checked was false)",
+ "onClickAtEpochMs": 1795497290593,
+ "onPoll": [
+  {
+   "atEpochMs": 1795497290702,
+   "newLines": "1795497290660 pnu99g client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795497290664 pnu99g client: watch faces served +4ms; stopped=false\n1795497290664 pnu99g client: watch subscribed (+4ms)\n"
+  }
+ ],
+ "stateAfterOn": {
+  "officialCardVisible": false,
+  "switchChecked": "true"
+ }
+}

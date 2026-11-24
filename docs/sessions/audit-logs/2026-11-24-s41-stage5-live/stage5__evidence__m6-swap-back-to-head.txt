@@ -1,0 +1,66 @@
+## M6 cleanup + stale-layer probe: swap prod -> HEAD candidate via CLI (same name, same version 0.2.0)
+## CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' plugin --profile web remove dsh-websearch
+2026-11-24 12:56:44
+EXIT=0
+## CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' plugin --profile web add /tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz
+2026-11-24 12:56:45
+EXIT=0
+2026-11-24 12:56:45
+## installed hashes (HEAD = docs 78b0668c / c4a23bda, locale b8509091 / 43f7ca73, patch 8d26bd19):
+23ffec332ddc06b8 ./LICENSE
+564135f9210ea827 ./README.en.md
+3e9d810ee22f0d1e ./README.md
+8d26bd190421fd64 ./cordis.patch.yml
+c4a23bda17f499f1 ./docs/plugin-page.en.md
+78b0668c46dbab16 ./docs/plugin-page.zh.md
+efb95deb12a11a6e ./lib/client.js
+195b12af5b872f24 ./lib/index.d.ts
+7d6392107836c861 ./lib/index.js
+43f7ca73d0a8e4bb ./locale/en.json
+b850909168ae9033 ./locale/zh.json
+c94b83ccb3de4011 ./package.json
+## profile package.json:
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-websearch"
+      ]
+    }
+  },
+  "dependencies": {
+    "dsh-websearch": "file:/tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz"
+  }
+}
+## CMD: ... --profile web --dump-config > evidence/m6-dump-after-cli-swap-back-to-head.yml 2> evidence/m6-dump-after-cli-swap-back-to-head.stderr.txt
+EXIT=0
+## dump stderr bytes:        0
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+## diff vs clean-start(HEAD candidate) — expect identical:
+(diff exit=0)
+## user-level sha (clean-zh = a3ae0faa...):
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml

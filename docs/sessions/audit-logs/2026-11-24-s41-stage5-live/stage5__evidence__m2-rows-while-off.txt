@@ -1,0 +1,64 @@
+CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' --profile web --dump-config > evidence/m2-dump-while-off-via-plugins-page.yml 2> logs/51-dump-off.stderr
+2026-11-24 12:39:26
+EXIT=0
+    1295 /tmp/dshws-s41/stage5/evidence/m2-dump-while-off-via-plugins-page.yml
+stderr bytes:      100
+dsh: [/tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml] patch: entry "dsh-websearch" not found
+token-pattern count: 0
+== rows ==
+LAYER # == @deepseek-ai/dsh-base
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    fetchProvider: http
+LAYER # == @deepseek-ai/dsh-base
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+== user-level file while off ==
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: ui-settings-general
+  name: "@deepseek-ai/dsh-client-ui-settings-general"
+  config:
+    welcomeNoticeVersion: 2026-09-28.1
+- id: locale
+  name: "@deepseek-ai/dsh-client-locale"
+  config:
+    preference: zh
+- id: dsh-websearch
+  name: dsh-websearch
+  config:
+    fetchTakeover: false
+== diff clean-start(HEAD candidate) vs off ==
+368d367
+< # == @deepseek-ai/dsh-base, patched by dsh-websearch
+372,373c371
+<     searchProvider: dshws-chain
+<     fetchProvider: dshws-fetch-gate
+---
+>     fetchProvider: http
+378,379d375
+<   disabled: true
+< # == @deepseek-ai/dsh-base
+668d663
+< # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+671,672d665
+<   disabled: true
+< # == @deepseek-ai/dsh-web-app
+1303,1305d1295
+< # == dsh-websearch
+< - id: dsh-websearch
+<   name: dsh-websearch
+(diff exit=1)

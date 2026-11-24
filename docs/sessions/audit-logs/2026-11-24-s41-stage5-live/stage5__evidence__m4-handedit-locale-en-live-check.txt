@@ -1,0 +1,75 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "New session":
+- button "Collapse sidebar":
+- button "New session":
+  - generic: New Session
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "Global panels":
+  - button "Plugins":
+    - generic: Plugins
+  - button "Automation tasks":
+    - generic: Automation tasks
+  - button "Unpin Automation tasks from sidebar":
+  - button "More":
+    - generic: More
+- generic: Workspaces
+- button "Search sessions":
+- textbox "Search session names"
+- button "View options":
+- button "Add workspace":
+- tree "Sessions":
+  - treeitem "Default workspace" [expanded]:
+    - generic: Default workspace
+  - treeitem "New Session":
+    - generic: New Session
+- button "Account menu":
+  - generic: More
+- heading "Plugins" [level=1]
+- generic: Install, enable, and configure plugins
+- button "About plugins":
+- button "Refresh":
+  - generic: Refresh
+- group "Add plugin":
+  - button "Add plugin":
+    - generic: Add plugin
+  - button "Choose how to add a plugin":
+- heading "Built-in plugin settings" [level=3]
+- list:
+  - button "View Subagent": Subagent
+  - generic: Set Subagent recursion depth, count, and models.
+  - button "View Agent loop": Agent loop
+  - generic: Control how the Agent dispatches tool calls.
+  - button "View Shell": Shell
+  - generic: Limit how long each command may run and how much it may output.
+- heading "Experimental plugins" [level=3]
+- button "More":
+  - text: More
+- list:
+  - button "View Voice input": Voice input
+  - generic: Experimental
+  - generic: Transcribe recordings locally with SenseVoice; first use requires installing dependencies.
+  - status
+  - switch "Enable Voice input"
+  - button "View Custom plugin indexes": Custom plugin indexes
+  - generic: Experimental
+  - generic: Adds a Discover tab to Plugins, where you browse and install plugins from plugin indexes you add.
+  - status
+  - switch "Enable Custom plugin indexes"
+  - button "View Auto authorization review": Auto authorization review
+  - generic: Experimental
+  - generic: "Adds an Auto review access mode: before each tool call, a model checks it against what you asked for, runs allowed calls at once, and holds denied calls for your approval."
+  - status
+  - switch "Enable Auto authorization review"
+  - button "View Change requests & worktrees": Change requests & worktrees
+  - generic: Experimental
+  - generic: "Keep linked GitHub pull requests beside your conversation: follow checks and reviews, inspect diffs, and send feedback to the agent. Review local changes and use a separate worktree to isolate each task. GitHub features require the gh CLI installed and signed in on the host."
+  - status
+  - switch "Enable Change requests & worktrees"
+- heading "Installed plugins" [level=3]
+- list:
+  - button "View dsh-websearch": dsh-websearch
+  - generic: Unified multi-provider web search and fetch with a configurable priority chain, full HA degradation and multi-key pools; takes over the built-in "Web search and fetch" settings page while enabled and restores it when disabled.
+  - status
+  - switch "Enable dsh-websearch" [checked]

@@ -1,0 +1,61 @@
+# a11y snapshot (domSnapshot), token values redacted
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话":
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- button "返回插件":
+  - generic: 插件
+- heading "网页搜索与获取" [level=3]
+- paragraph: 选择网页搜索与网页获取使用的提供方。
+- region "网页搜索提供方":
+  - heading "网页搜索提供方" [level=4]
+  - button "网页搜索提供方 DeepSeek Search API":
+    - generic: DeepSeek Search API
+  - paragraph: 会产生费用，由「计费方式」选定的账号或 API Key 支付。
+  - paragraph:
+    - link "网页搜索与获取指南":
+      - /url: https://api-docs.deepseek.com/zh-cn/guides/search
+  - generic: 每次搜索结果数
+  - textbox "每次搜索结果数":
+    - /placeholder: ""
+    - text: "10"
+  - paragraph: 每次搜索返回的结果条数，1–50，默认 10。
+  - generic: 计费方式
+  - button "计费方式 自动":
+    - generic: 自动
+  - paragraph: 跟随当前会话的 DeepSeek 账号或 API Key；会话用其他模型时，优先用 API Key，没有则用已登录账号。
+- region "网页获取提供方":
+  - heading "网页获取提供方" [level=4]
+  - button "网页获取提供方 dshws-fetch-gate（未加载）" [expanded]:
+    - generic: dshws-fetch-gate（未加载）
+- button "保存"
+- menu:
+  - menuitem "本机直接获取" [active]:
+    - generic: 本机直接获取
+  - menuitem "DeepSeek Fetch API":
+    - generic: DeepSeek Fetch API
+  - menuitem "dshws-fetch-gate（未加载）":
+    - generic: dshws-fetch-gate（未加载）

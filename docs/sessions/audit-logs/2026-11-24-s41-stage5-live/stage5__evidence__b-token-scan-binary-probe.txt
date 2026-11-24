@@ -1,0 +1,5 @@
+CMD: node /tmp/dshws-s41/stage5/tools/token-binary-probe.mjs /tmp/dshws-s41/stage5/clone /tmp/dshws-s41/stage5/probe-out
+text            git grep exit=0 stdout="HEAD:evidence.log:1:dsh web: http://127.0.0.1:3434/?token=<synthetic>" -> main() returns 3 problem(s); token-related: 1 [maricgeer-dsh-websearch-0.2.0.tgz: tarball not | dsh-websearch-0.2.0.tgz: tarball not found in  | evidence.log:1 carries a host token value]
+binary          git grep exit=0 stdout="Binary file HEAD:evidence.bin matches" -> main() returns 2 problem(s); token-related: 0 [maricgeer-dsh-websearch-0.2.0.tgz: tarball not | dsh-websearch-0.2.0.tgz: tarball not found in ]
+binary-no-nul   git grep exit=1 stdout="" -> main() returns 2 problem(s); token-related: 0 [maricgeer-dsh-websearch-0.2.0.tgz: tarball not | dsh-websearch-0.2.0.tgz: tarball not found in ]
+EXIT=0

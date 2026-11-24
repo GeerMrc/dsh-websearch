@@ -1,0 +1,88 @@
+## CMD: DSH_HOME=/tmp/dshws-s41/home-rc5 '<launcher>' plugin --profile web add /tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz
+2026-11-24 12:41:30
+EXIT=0
+2026-11-24 12:41:31
+## stdout:
+✓ Lockfile passes supply-chain policies (verified 30s ago)
+Progress: resolved 0, reused 1, downloaded 0, added 0
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+Packages: +6
+++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/aibot/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 6, reused 6, downloaded 0, added 6, done
+
+dependencies:
++ dsh-websearch 0.2.0
+
+Done in 387ms using pnpm v11.28.5
+## stderr:
+## CMD: ... --profile web --dump-config > evidence/m3-dump-after-cli-add-back-headcandidate.yml 2> evidence/m3-dump-after-cli-add-back-headcandidate.stderr.txt
+EXIT=0
+## dump stderr bytes:        0
+token-pattern count: 0
+## rows:
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+LAYER # == @deepseek-ai/dsh-base, patched by dsh-websearch
+- id: web-search-deepseek
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+  disabled: true
+LAYER # == @deepseek-ai/dsh-base
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+LAYER # == @deepseek-ai/dsh-base
+- id: web-fetch-http
+  name: '@deepseek-ai/dsh-web-fetch-http'
+LAYER # == @deepseek-ai/dsh-web-app, patched by dsh-websearch
+- id: ui-settings-web-search
+  name: '@deepseek-ai/dsh-client-ui-settings-web-search'
+  disabled: true
+LAYER # == dsh-websearch
+- id: dsh-websearch
+  name: dsh-websearch
+## diff vs clean-start(HEAD candidate) dump (expect identical):
+(diff exit=0)
+6c52e02aa48006bf29553f38cf3fb10462a2f090ac663a2f3f30ac34df23a154  /tmp/dshws-s41/stage5/evidence/m3-dump-after-cli-add-back-headcandidate.yml
+## user-level file (sha):
+a3ae0faa66f57a722f689785c7db653a27e613eb520b4e3c0d70220565aafb3b  /tmp/dshws-s41/home-rc5/profiles/web/cordis.patch.yml
+## installed hashes:
+23ffec332ddc06b8 ./LICENSE
+564135f9210ea827 ./README.en.md
+3e9d810ee22f0d1e ./README.md
+8d26bd190421fd64 ./cordis.patch.yml
+c4a23bda17f499f1 ./docs/plugin-page.en.md
+78b0668c46dbab16 ./docs/plugin-page.zh.md
+efb95deb12a11a6e ./lib/client.js
+195b12af5b872f24 ./lib/index.d.ts
+7d6392107836c861 ./lib/index.js
+43f7ca73d0a8e4bb ./locale/en.json
+b850909168ae9033 ./locale/zh.json
+c94b83ccb3de4011 ./package.json
+## profile package.json:
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-websearch"
+      ]
+    }
+  },
+  "dependencies": {
+    "dsh-websearch": "file:/tmp/dshws-s41/stage5/candidates/head/dsh-websearch-0.2.0.tgz"
+  }
+}
+## instance:
+COMMAND PID NODE NAME
+DeepSeek 95257 TCP 127.0.0.1:3434

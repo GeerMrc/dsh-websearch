@@ -1,0 +1,64 @@
+{
+ "run": 1,
+ "steps": [
+  {
+   "step": "reload",
+   "reloadAtEpochMs": 1795496854442,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "step": "open plugins",
+   "result": "clicked: 插件"
+  },
+  {
+   "step": "back to list if on detail",
+   "result": "not found: 返回插件"
+  }
+ ],
+ "baseline": {
+  "atEpochMs": 1795496859821,
+  "log": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n",
+  "state": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  }
+ },
+ "off": {
+  "offClickAtEpochMs": 1795496864834,
+  "offClick": "clicked (aria-checked was true)",
+  "poll": [
+   {
+    "atEpochMs": 1795496864850,
+    "log": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n"
+   },
+   {
+    "atEpochMs": 1795496864974,
+    "log": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n1795496864910 fkttcf client: watch stopped (unsubscriber called, +10248ms); received=0\n"
+   }
+  ],
+  "stateAfter": {
+   "officialCardVisible": true,
+   "switchChecked": "false"
+  },
+  "logAfter": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n1795496864910 fkttcf client: watch stopped (unsubscriber called, +10248ms); received=0\n"
+ },
+ "on": {
+  "onClickAtEpochMs": 1795496868943,
+  "onClick": "clicked (aria-checked was false)",
+  "poll": [
+   {
+    "atEpochMs": 1795496868952,
+    "log": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n1795496864910 fkttcf client: watch stopped (unsubscriber called, +10248ms); received=0\n"
+   },
+   {
+    "atEpochMs": 1795496869077,
+    "log": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n1795496864910 fkttcf client: watch stopped (unsubscriber called, +10248ms); received=0\n1795496869030 5h7m3q client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496869033 5h7m3q client: watch faces served +3ms; stopped=false\n1795496869033 5h7m3q client: watch subscribed (+3ms)\n"
+   }
+  ],
+  "stateAfter": {
+   "officialCardVisible": false,
+   "switchChecked": "true"
+  },
+  "logAfter": "1795496854662 fkttcf client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795496854692 fkttcf client: watch faces served +30ms; stopped=false\n1795496854692 fkttcf client: watch subscribed (+30ms)\n1795496864910 fkttcf client: watch stopped (unsubscriber called, +10248ms); received=0\n1795496869030 5h7m3q client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795496869033 5h7m3q client: watch faces served +3ms; stopped=false\n1795496869033 5h7m3q client: watch subscribed (+3ms)\n"
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "run": 9,
+ "note": "CLI remove+add of the same probe6 tarball at 13:22:45 local; three rapid page reloads follow; OFF comes at least 115 s after the last reload",
+ "hotLoadBeforeReload": "1795497600692 yu9lyn client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497600715 yu9lyn client: watch faces served +23ms; stopped=false\n1795497600715 yu9lyn client: watch subscribed (+23ms)\n1795497728881 yu9lyn client: watch stopped (unsubscriber called, +128189ms); received=0\n1795497754868 t5a5v2 client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795497754872 t5a5v2 client: watch faces served +4ms; stopped=false\n1795497754872 t5a5v2 client: watch subscribed (+4ms)\n1795497766852 t5a5v2 client: watch stopped (unsubscriber called, +11984ms); received=0\n1795497766864 f9qedn client: install: one-shot get(remote.pluginManager) -> PluginManagerFace; watch faces requested\n1795497766868 f9qedn client: watch faces served +4ms; stopped=false\n1795497766868 f9qedn client: watch subscribed (+4ms)\n",
+ "reloads": [
+  {
+   "i": 1,
+   "reloadAtEpochMs": 1795497778838,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "i": 2,
+   "reloadAtEpochMs": 1795497782013,
+   "closeDialog": "clicked: 关闭"
+  },
+  {
+   "i": 3,
+   "reloadAtEpochMs": 1795497785132,
+   "closeDialog": "clicked: 关闭"
+  }
+ ],
+ "baselineLog": "1795497779004 a5b87y client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497779039 a5b87y client: watch faces served +35ms; stopped=false\n1795497779039 a5b87y client: watch subscribed (+35ms)\n1795497782138 ku1gog client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497782162 ku1gog client: watch faces served +24ms; stopped=false\n1795497782162 ku1gog client: watch subscribed (+24ms)\n1795497785244 l4de4g client: install: one-shot get(remote.pluginManager) -> undefined; watch faces requested\n1795497785266 l4de4g client: watch faces served +22ms; stopped=false\n1795497785266 l4de4g client: watch subscribed (+22ms)\n",
+ "openPlugins": "clicked: 插件",
+ "back": "not found: 返回插件"
+}
