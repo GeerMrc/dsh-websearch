@@ -1,0 +1,185 @@
+$ vitest run
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/preset-authoring.test.ts (9 tests) 23ms
+ ✓ tests/key-counts.test.ts (7 tests) 80ms
+ ✓ tests/credentials.test.ts (6 tests) 111ms
+ ✓ tests/client/controller.spec.ts (41 tests) 114ms
+ ✓ tests/dns/intercept.test.ts (18 tests) 36ms
+ ✓ tests/providers/exa.test.ts (29 tests) 28ms
+ ✓ tests/providers/anysearch.test.ts (23 tests) 36ms
+ ✓ tests/providers/tavily.test.ts (36 tests) 32ms
+ ✓ tests/providers/firecrawl.test.ts (28 tests) 32ms
+ ✓ tests/fetch-gate.test.ts (8 tests) 22ms
+ ✓ tests/providers/deepseek.test.ts (15 tests) 40ms
+ ✓ tests/config.test.ts (48 tests) 27ms
+ ✓ tests/e2e/loopback.test.ts (18 tests) 336ms
+ ✓ tests/chain/search-chain.test.ts (51 tests) 27ms
+ ✓ tests/dns/probe.test.ts (10 tests) 19ms
+ ✓ tests/peer-range.spec.ts (23 tests) 15ms
+ ✓ tests/apply.test.ts (30 tests) 469ms
+ ✓ tests/dns/observability.test.ts (11 tests) 10ms
+ ✓ tests/chain-log.test.ts (4 tests) 14ms
+ ✓ tests/chain/fetch-chain.test.ts (6 tests) 7ms
+ ✓ tests/chain/registry.test.ts (7 tests) 4ms
+ ✓ tests/dns/resolver.test.ts (13 tests) 7ms
+ ✓ tests/keys.test.ts (14 tests) 14ms
+ ✓ tests/pack.test.ts (4 tests) 20ms
+ ✓ tests/settings.test.ts (11 tests) 10ms
+ ✓ tests/client/locales.spec.ts (6 tests) 6ms
+ ✓ tests/check-release.spec.ts (17 tests) 915ms
+ ✓ tests/handover.spec.ts (14 tests) 9ms
+ ✓ tests/client/handover-watch.spec.tsx (19 tests) 7ms
+ ✓ tests/dns/detect.test.ts (14 tests) 8ms
+ ✓ tests/dns/transport.test.ts (12 tests) 16ms
+ ✓ tests/package-meta.spec.ts (9 tests) 6ms
+ ✓ tests/release-workflow.spec.ts (8 tests) 4ms
+ ✓ tests/takeover.spec.ts (3 tests) 6ms
+ ✓ tests/patch.test.ts (10 tests) 3ms
+ ✓ tests/user-agent.test.ts (1 test) 2ms
+ ✓ tests/errors.test.ts (7 tests) 4ms
+ ✓ tests/key-counts.artifact.test.ts (2 tests) 3ms
+ ✓ tests/e2e.real/anysearch.real.test.ts (4 tests | 3 skipped) 2ms
+ ✓ tests/e2e.real/tavily.real.test.ts (5 tests | 4 skipped) 1ms
+ ✓ tests/e2e.real/deepseek.real.test.ts (2 tests | 1 skipped) 3ms
+ ✓ tests/e2e.real/exa.real.test.ts (4 tests | 3 skipped) 2ms
+ ✓ tests/e2e.real/firecrawl.real.test.ts (5 tests | 4 skipped) 1ms
+ ↓ tests/e2e.real/chain.real.test.ts (2 tests | 2 skipped)
+stderr | tests/client/entry.spec.tsx > client entry > apply injects the settings.section slot with the registration contract
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+stderr | tests/client/entry.spec.tsx > client entry > the composed slot disposer detaches both the event subscription and the registration
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+stderr | tests/client/entry.spec.tsx > client entry > the bound section renders live remote state through the controller
+Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <button>.
+    at button
+    at Tooltip (/Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@deepseek-ai+dsh-client-ui-primitives@0.2.2-rc.5_@deepseek-ai+cordis@4.1.0/node_modules/@deepseek-ai/dsh-client-ui-primitives/lib/index.js:2241:20)
+    at button
+    at div
+    at div
+    at FetchTakeoverRow (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/chain-cards.tsx:206:10)
+    at div
+    at div
+    at WebSearchSettingsSection (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/section.tsx:82:10)
+    at BoundWebSearchSettingsSection (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/section.tsx:30:66)
+
+stderr | tests/client/section.spec.tsx > WebSearchSettingsSection > renders one card per member in snapshot order with brand labels
+Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <button>.
+    at button
+    at Tooltip (/Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@deepseek-ai+dsh-client-ui-primitives@0.2.2-rc.5_@deepseek-ai+cordis@4.1.0/node_modules/@deepseek-ai/dsh-client-ui-primitives/lib/index.js:2241:20)
+    at button
+    at div
+    at div
+    at FetchTakeoverRow (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/chain-cards.tsx:206:10)
+    at div
+    at div
+    at WebSearchSettingsSection (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/section.tsx:82:10)
+
+stderr | tests/client/entry.spec.tsx > client entry > the bound section renders live remote state through the controller
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+stderr | tests/client/entry.spec.tsx > client entry > saving a key in the bound section reaches ctx.remote.credentials.set
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+
+ ❯ tests/client/fetch-view.spec.tsx (7 tests | 1 failed) 151ms
+     ✓ renders the served-by badge behind the host output preamble (0.1.5 布局) 94ms
+     ✓ expands to the host-shaped fetch card and strips the signature from the raw text 18ms
+     ✓ tolerates the turndown-escaped signature form (html 转义形态) 3ms
+     ✓ renders no badge for a gate-OFF direct fetch without the signature (无签名) 5ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 18ms
+     ✓ surfaces the failure note on an error result (error 态) 10ms
+     × registers the web_fetch toolview takeover at priority -1 (shadow 契约载荷) 3ms
+ ✓ tests/client/entry.spec.tsx (6 tests) 216ms
+ ❯ tests/client/toolview.spec.tsx (11 tests | 1 failed) 234ms
+     ✓ renders the served-by badge on the collapsed call row for a chain result 91ms
+     ✓ expands to the host-shaped web card (answer + sources + truncated + raw + inspect) 28ms
+     ✓ parses the signature after the 0.1.5 formatSearchOutput preamble (0.1.5 布局) 12ms
+     ✓ joins unique member labels when multiple members served the queries (多成员) 3ms
+     ✓ renders the raw member id when the served-by id is unknown (未知 id 原样) 2ms
+     ✓ renders no badge for a result without the signature line (直连/外来) 11ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 8ms
+     ✓ renders the collapsed row without a badge while the call is running (running 态) 7ms
+     ✓ surfaces the failure note on an error result (error 态) 9ms
+     × registers the web_search toolview takeover at priority -1 (shadow 契约载荷) 3ms
+     ✓ renders the empty state without a fetcher and the entries after a registered fetcher refresh 58ms
+ ✓ tests/client/section.spec.tsx (82 tests) 4302ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/client/fetch-view.spec.tsx > WebFetchToolviewRow (S28 takeover) > registers the web_fetch toolview takeover at priority -1 (shadow 契约载荷)
+TypeError: ctx.inject is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:120:7
+    118|   let unsubscribe: (() => void) | undefined;
+    119|   let stopped = false;
+    120|   ctx.inject(WATCH_FACES, (scoped) => {
+       |       ^
+    121|     if (stopped) return;
+    122|     // Both faces were named in the inject, so each is served here or …
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/fetch-view.spec.tsx:143:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/fetch-view.spec.tsx:147:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/client/toolview.spec.tsx > WebSearchToolviewRow (ADR-0010 takeover) > registers the web_search toolview takeover at priority -1 (shadow 契约载荷)
+TypeError: ctx.inject is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:120:7
+    118|   let unsubscribe: (() => void) | undefined;
+    119|   let stopped = false;
+    120|   ctx.inject(WATCH_FACES, (scoped) => {
+       |       ^
+    121|     if (stopped) return;
+    122|     // Both faces were named in the inject, so each is served here or …
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/toolview.spec.tsx:198:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/toolview.spec.tsx:202:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed | 45 passed | 1 skipped (48)
+      Tests  2 failed | 701 passed | 17 skipped (720)
+   Start at  02:59:08
+   Duration  6.26s (transform 3.06s, setup 458ms, import 6.92s, tests 7.43s, environment 3.08s)
+
+[ELIFECYCLE] Test failed. See above for more details.
+exit=1

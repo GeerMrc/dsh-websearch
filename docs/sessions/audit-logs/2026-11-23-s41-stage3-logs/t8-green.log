@@ -1,0 +1,72 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/handover.spec.ts (14 tests) 6ms
+ ✓ tests/client/handover-watch.spec.tsx (20 tests) 7ms
+stderr | tests/client/entry.spec.tsx > client entry > apply injects the settings.section slot with the registration contract
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+stderr | tests/client/entry.spec.tsx > client entry > the composed slot disposer detaches both the event subscription and the registration
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+stderr | tests/client/entry.spec.tsx > client entry > the bound section renders live remote state through the controller
+Warning: validateDOMNesting(...): <button> cannot appear as a descendant of <button>.
+    at button
+    at Tooltip (/Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@deepseek-ai+dsh-client-ui-primitives@0.2.2-rc.5_@deepseek-ai+cordis@4.1.0/node_modules/@deepseek-ai/dsh-client-ui-primitives/lib/index.js:2241:20)
+    at button
+    at div
+    at div
+    at FetchTakeoverRow (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/chain-cards.tsx:206:10)
+    at div
+    at div
+    at WebSearchSettingsSection (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/section.tsx:82:10)
+    at BoundWebSearchSettingsSection (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/section.tsx:30:66)
+
+stderr | tests/client/entry.spec.tsx > client entry > the bound section renders live remote state through the controller
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+stderr | tests/client/entry.spec.tsx > client entry > saving a key in the bound section reaches ctx.remote.credentials.set
+[dshws-dns] describeDnsStatus failed: TypeError: ctx.remote.$mount is not a function
+    at /Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:37
+    at Object.<anonymous> (/Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/entry.spec.tsx:62:7)
+    at Object.Mock [as effect] (file:///Volumes/IPFSJK/Zcode/dsh-websearch/node_modules/.pnpm/@vitest+spy@4.1.11/node_modules/@vitest/spy/dist/index.js:332:34)
+    at mountKeyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/key-counts-remote.ts:81:13)
+    at keyCountsRemote (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:103:20)
+    at Object.describeKeyCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/index.ts:119:29)
+    at WebSearchSettingsController.refreshCounts (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:666:41)
+    at WebSearchSettingsController.init (/Volumes/IPFSJK/Zcode/dsh-websearch/src/client/controller.ts:411:57)
+
+ ✓ tests/client/entry.spec.tsx (6 tests) 202ms
+
+ Test Files  3 passed (3)
+      Tests  40 passed (40)
+   Start at  02:04:38
+   Duration  1.37s (transform 386ms, setup 30ms, import 835ms, tests 214ms, environment 299ms)
+

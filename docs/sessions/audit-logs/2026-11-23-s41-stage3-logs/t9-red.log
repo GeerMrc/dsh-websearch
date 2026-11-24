@@ -1,0 +1,167 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/package-meta.spec.ts (9 tests | 9 failed) 8ms
+     × ships locale/zh.json with a non-empty title, description and detail path 3ms
+     × ships locale/en.json with a non-empty title, description and detail path 0ms
+     × points the zh detail at a valid path whose Markdown file ships in the package 0ms
+     × points the en detail at a valid path whose Markdown file ships in the package 0ms
+     × lists the locale resources in files without publishing the rest of docs/ 3ms
+     × exposes the locale resources and package.json so the host reader can resolve them 1ms
+     × keeps the two user documents structurally aligned 0ms
+     × keeps zh free of raw HTML, which the plugin page omits 0ms
+     × keeps en free of raw HTML, which the plugin page omits 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > ships locale/zh.json with a non-empty title, description and detail path
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/locale/zh.json'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ locale tests/package-meta.spec.ts:23:57
+ ❯ tests/package-meta.spec.ts:44:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > ships locale/en.json with a non-empty title, description and detail path
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/locale/en.json'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ locale tests/package-meta.spec.ts:23:57
+ ❯ tests/package-meta.spec.ts:44:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > points the zh detail at a valid path whose Markdown file ships in the package
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/locale/zh.json'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ locale tests/package-meta.spec.ts:23:57
+ ❯ tests/package-meta.spec.ts:53:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > points the en detail at a valid path whose Markdown file ships in the package
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/locale/en.json'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ locale tests/package-meta.spec.ts:23:57
+ ❯ tests/package-meta.spec.ts:53:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > lists the locale resources in files without publishing the rest of docs/
+AssertionError: expected [ 'lib', 'cordis.patch.yml', …(1) ] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
+-   "locale",
+-   "docs/plugin-page.zh.md",
+-   "docs/plugin-page.en.md",
++ [
++   "lib",
++   "cordis.patch.yml",
++   "README.en.md",
+  ]
+
+ ❯ tests/package-meta.spec.ts:61:23
+     59|
+     60|   it('lists the locale resources in files without publishing the rest …
+     61|     expect(pkg.files).toEqual(expect.arrayContaining(['locale', ...Obj…
+       |                       ^
+     62|     // docs/ also holds the internal governance records; only the two …
+     63|     expect(pkg.files).not.toContain('docs')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > exposes the locale resources and package.json so the host reader can resolve them
+AssertionError: expected [ '.', './client', './package.json' ] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
+-   "./locale/*.json",
++ [
++   ".",
++   "./client",
+    "./package.json",
+  ]
+
+ ❯ tests/package-meta.spec.ts:67:44
+     65|
+     66|   it('exposes the locale resources and package.json so the host reader…
+     67|     expect(Object.keys(pkg.exports ?? {})).toEqual(expect.arrayContain…
+       |                                            ^
+     68|   })
+     69|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > keeps the two user documents structurally aligned
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/docs/plugin-page.zh.md'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ tests/package-meta.spec.ts:71:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > keeps zh free of raw HTML, which the plugin page omits
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/docs/plugin-page.zh.md'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ tests/package-meta.spec.ts:78:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  tests/package-meta.spec.ts > plugin display metadata (ADR-0025 插件页文档分离) > keeps en free of raw HTML, which the plugin page omits
+Error: ENOENT: no such file or directory, open '/Volumes/IPFSJK/Zcode/dsh-websearch/docs/plugin-page.en.md'
+ ❯ read tests/package-meta.spec.ts:22:44
+     20|   exports?: Record<string, unknown>
+     21| }
+     22| const read = (relative: string): string => readFileSync(new URL(`../${…
+       |                                            ^
+     23| const locale = (lang: string): LocaleMeta => JSON.parse(read(`locale/$…
+     24|
+ ❯ tests/package-meta.spec.ts:78:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed (9)
+   Start at  02:24:11
+   Duration  129ms (transform 17ms, setup 14ms, import 11ms, tests 8ms, environment 0ms)
+

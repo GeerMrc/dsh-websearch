@@ -1,0 +1,11 @@
+- heading "网页搜索与获取" [level=3]
+- paragraph: 选择网页搜索与网页获取使用的提供方。
+- region "网页搜索提供方":
+  - heading "网页搜索提供方" [level=4]
+  - button "网页搜索提供方 dshws-tavily（未加载）":
+    - generic: dshws-tavily（未加载）
+- region "网页获取提供方":
+  - heading "网页获取提供方" [level=4]
+  - button "网页获取提供方 dshws-fetch-gate（未加载）":
+    - generic: dshws-fetch-gate（未加载）
+- button "保存" [disabled]

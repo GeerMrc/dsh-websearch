@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/pack.test.ts (4 tests) 8ms
+ ✓ tests/takeover.spec.ts (3 tests) 5ms
+ ✓ tests/apply.test.ts (30 tests) 443ms
+
+ Test Files  3 passed (3)
+      Tests  37 passed (37)
+   Start at  01:46:19
+   Duration  668ms (transform 250ms, setup 35ms, import 313ms, tests 456ms, environment 0ms)
+

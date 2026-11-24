@@ -1,0 +1,12 @@
+package/LICENSE
+package/README.en.md
+package/README.md
+package/cordis.patch.yml
+package/docs/plugin-page.en.md
+package/docs/plugin-page.zh.md
+package/lib/client.js
+package/lib/index.d.ts
+package/lib/index.js
+package/locale/en.json
+package/locale/zh.json
+package/package.json

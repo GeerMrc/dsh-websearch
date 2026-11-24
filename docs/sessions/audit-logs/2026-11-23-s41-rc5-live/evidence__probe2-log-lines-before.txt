@@ -1,0 +1,1 @@
+host log lines before swap: 2

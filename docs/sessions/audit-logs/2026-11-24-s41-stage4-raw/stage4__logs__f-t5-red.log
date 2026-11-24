@@ -1,0 +1,80 @@
+$ git show 98fe583^:cordis.patch.yml > cordis.patch.yml
+exit=0
+$ git diff --stat
+ cordis.patch.yml | 13 -------------
+ 1 file changed, 13 deletions(-)
+$ pnpm exec vitest run tests/patch.test.ts
+
+ RUN  v4.1.11 /private/tmp/dshws-s41/stage4/clone
+
+ ❯ tests/patch.test.ts (10 tests | 2 failed) 6ms
+     ✓ inserts the plugin row (组装面不变) 1ms
+     ✓ pins the web row config with both keys restated and no name guard 0ms
+     ✓ does not pin the fetch chain (fetch 接线保持手动可选) 0ms
+     ✓ retires the official legacy search entry via row-level disable (ADR-0013 Decision 7, S14c) 0ms
+     × hides the official web search and fetch settings page via row-level disable (ADR-0024) 2ms
+     ✓ never disables the web row (the seam this plugin, the preset tool rows and the official providers all inject) 0ms
+     ✓ never disables the web-fetch-http row (the official fetch provider that takes over once this bundle is off) 0ms
+     ✓ never disables the web-deepseek-api row (the official DeepSeek Search API provider) 0ms
+     ✓ never disables the tool-web row (the web_search and web_fetch tools) 0ms
+     × overrides exactly the seam pin, the legacy search row and the settings page row 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/patch.test.ts > bundle patch content (ADR-0013 装即接管, ADR-0024 接管设置页) > hides the official web search and fetch settings page via row-level disable (ADR-0024)
+AssertionError: expected '- insert:\n    - id: dsh-websearch\n …' to match /^- id: ui-settings-web-search\s*\n\s…/m
+
+- Expected:
+/^- id: ui-settings-web-search\s*\n\s*disabled: true\s*$/m
+
++ Received:
+"- insert:
+    - id: dsh-websearch
+      name: dsh-websearch
+- id: web
+  config:
+    searchProvider: dshws-chain
+    fetchProvider: dshws-fetch-gate
+- id: web-search-deepseek
+  disabled: true
+"
+
+ ❯ tests/patch.test.ts:51:19
+     49|
+     50|   it('hides the official web search and fetch settings page via row-le…
+     51|     expect(patch).toMatch(/^- id: ui-settings-web-search\s*\n\s*disabl…
+       |                   ^
+     52|   })
+     53|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/patch.test.ts > bundle patch content (ADR-0013 装即接管, ADR-0024 接管设置页) > overrides exactly the seam pin, the legacy search row and the settings page row
+AssertionError: expected [ 'web', 'web-search-deepseek' ] to deeply equal [ 'web', 'web-search-deepseek', …(1) ]
+
+- Expected
++ Received
+
+  [
+    "web",
+    "web-search-deepseek",
+-   "ui-settings-web-search",
+  ]
+
+ ❯ tests/patch.test.ts:66:25
+     64|     // Locks the whole override set: adding another official row here …
+     65|     // deliberate decision, and so does dropping one.
+     66|     expect(overrideIds).toEqual(['web', 'web-search-deepseek', 'ui-set…
+       |                         ^
+     67|   })
+     68| })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 8 passed (10)
+   Start at  03:03:28
+   Duration  103ms (transform 14ms, setup 11ms, import 9ms, tests 6ms, environment 0ms)
+
+exit=1

@@ -1,0 +1,267 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/client/handover-watch.spec.tsx (19 tests | 19 failed) 8ms
+     × requests both optional faces through one inject and subscribes once they are served 3ms
+     × waits for faces that the host serves only after apply (rc.5 ordering) 1ms
+     × never subscribes when the host does not serve the plugin-manager face 0ms
+     × does not subscribe when it was stopped before the faces arrived 0ms
+     × stops watching when the returned function is called 0ms
+     × leaves the selection alone while the bundle is still enabled 0ms
+     × clears the plugin selections once the bundle is disabled, fenced by the snapshot revision 0ms
+     × also hands over once the bundle has been uninstalled and is no longer listed 0ms
+     × recognizes the bundle under the name dsh-websearch 0ms
+     × recognizes the bundle under the name @maricgeer/dsh-websearch 0ms
+     × accepts a Remote-style bundle list 0ms
+     × does not write when the user layer names no plugin provider 0ms
+     × does not write without a revision to fence the write 0ms
+     × does not write when the bundle list cannot be recognised 0ms
+     × re-reads and retries once when the first write is refused 0ms
+     × stops retrying when the fresh snapshot no longer names a plugin provider 0ms
+     × reports a twice-refused write without throwing 0ms
+     × reports a failing bundle list without throwing 1ms
+     × reports a rejecting write without throwing 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 19 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > requests both optional faces through one inject and subscribes once they are served
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:93:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > waits for faces that the host serves only after apply (rc.5 ordering)
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:102:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > never subscribes when the host does not serve the plugin-manager face
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:112:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > does not subscribe when it was stopped before the faces arrived
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:121:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > stops watching when the returned function is called
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > leaves the selection alone while the bundle is still enabled
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:135:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > clears the plugin selections once the bundle is disabled, fenced by the snapshot revision
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:142:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > also hands over once the bundle has been uninstalled and is no longer listed
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:150:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > recognizes the bundle under the name dsh-websearch
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > recognizes the bundle under the name @maricgeer/dsh-websearch
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:157:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > accepts a Remote-style bundle list
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:164:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > does not write when the user layer names no plugin provider
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:172:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > does not write without a revision to fence the write
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:179:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > does not write when the bundle list cannot be recognised
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:186:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > re-reads and retries once when the first write is refused
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:195:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > stops retrying when the fresh snapshot no longer names a plugin provider
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:206:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > reports a twice-refused write without throwing
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:214:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > reports a failing bundle list without throwing
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:223:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/19]⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx > installHandoverWatch > reports a rejecting write without throwing
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+    105|  */
+    106| export function installHandoverWatch(ctx: WatchHost, warn: (message: s…
+    107|   const pluginManager = ctx.get(PLUGIN_MANAGER_FACE);
+       |                             ^
+    108|   const forms = ctx.get(CONFIG_FORMS);
+    109|   if (!isPluginManagerFace(pluginManager) || !isConfigFormsFace(forms)…
+ ❯ tests/client/handover-watch.spec.tsx:233:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/19]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  19 failed (19)
+   Start at  02:13:45
+   Duration  152ms (transform 25ms, setup 12ms, import 23ms, tests 8ms, environment 0ms)
+

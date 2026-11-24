@@ -1,0 +1,37 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/pack.test.ts (5 tests | 1 failed) 35ms
+     ✓ strips the scope for the bare name and is idempotent on bare input 1ms
+     ✓ flips the name field on disk during fn and restores the file byte-identical afterwards 2ms
+     ✓ restores the original file even when fn throws, and rethrows the error 1ms
+     ✓ fails loud when no name field is present and leaves the file untouched 1ms
+     × still packs when invoked through a symlinked path, instead of exiting 0 with nothing packed 29ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/pack.test.ts > scripts/pack.mjs dual-name helpers > still packs when invoked through a symlinked path, instead of exiting 0 with nothing packed
+AssertionError: expected '' to match /packed scope-pkg-1\.0\.0\.tgz \+ pkg-…/
+
+- Expected:
+/packed scope-pkg-1\.0\.0\.tgz \+ pkg-1\.0\.0\.tgz/
+
++ Received:
+""
+
+ ❯ tests/pack.test.ts:81:27
+     79|
+     80|     expect(result.stderr).toBe('')
+     81|     expect(result.stdout).toMatch(/packed scope-pkg-1\.0\.0\.tgz \+ pk…
+       |                           ^
+     82|     expect(existsSync(join(real, 'dist-artifacts', 'pkg-1.0.0.tgz'))).…
+     83|   }, 20_000)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  11:25:43
+   Duration  125ms (transform 15ms, setup 10ms, import 12ms, tests 35ms, environment 0ms)
+

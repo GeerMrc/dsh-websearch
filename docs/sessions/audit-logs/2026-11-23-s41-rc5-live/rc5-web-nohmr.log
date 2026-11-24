@@ -1,0 +1,6 @@
+[dshws-probe] host: apply
+[dshws-probe] host: settings injected; registering effect-teardown probes
+dsh web: http://127.0.0.1:3435/?token=<redacted>
+[dshws-probe] host: effect teardown fired
+[dshws-probe] host: web descriptor {"revision":0,"user":{"searchProvider":"dshws-tavily","fetchProvider":"dshws-fetch-gate"}}
+[dshws-probe] host: bound callback running

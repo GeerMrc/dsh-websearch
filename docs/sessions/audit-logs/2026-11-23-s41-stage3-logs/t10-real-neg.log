@@ -1,0 +1,4 @@
+$ node scripts/check-release.mjs --tag v0.2.1
+check-release: tag v0.2.1 does not name the package.json version (0.2.0); expected v<version> with a stable triple
+check-release: 1 problem(s)
+[ELIFECYCLE] Command failed with exit code 1.

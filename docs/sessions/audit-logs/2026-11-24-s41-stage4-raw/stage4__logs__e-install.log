@@ -1,0 +1,69 @@
+✓ Lockfile passes supply-chain policies (verified 26m ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +313
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 313, reused 313, downloaded 0, added 313, done
+
+dependencies:
++ @deepseek-ai/dsh-typert-protocol 0.1.7-rc.2
++ @deepseek-ai/schemastery 3.18.4
+
+devDependencies:
++ @deepseek-ai/cordis 4.1.0
++ @deepseek-ai/dsh-agent 0.2.2-rc.5
++ @deepseek-ai/dsh-api-remotes 0.2.2-rc.5
++ @deepseek-ai/dsh-client-locale 0.2.2-rc.5
++ @deepseek-ai/dsh-client-store 0.2.2-rc.5
++ @deepseek-ai/dsh-client-ui-primitives 0.2.2-rc.5
++ @deepseek-ai/dsh-client-ui-renderer 0.2.2-rc.5
++ @deepseek-ai/dsh-client-ui-settings 0.2.2-rc.5
++ @deepseek-ai/dsh-client-ui-slots 0.2.2-rc.5
++ @deepseek-ai/dsh-credentials 0.2.2-rc.5
++ @deepseek-ai/dsh-llm 0.2.2-rc.5
++ @deepseek-ai/dsh-settings 0.2.2-rc.5
++ @deepseek-ai/dsh-system-prompt 0.2.2-rc.5
++ @deepseek-ai/dsh-tools 0.2.2-rc.5
++ @deepseek-ai/dsh-util-code-language 0.2.2-rc.5
++ @deepseek-ai/dsh-util-workspace-path 0.2.2-rc.5
++ @deepseek-ai/dsh-web 0.2.2-rc.5
++ @shikijs/langs 4.4.3
++ @shikijs/themes 4.4.3
++ @testing-library/dom 10.4.2
++ @testing-library/react 16.3.3
++ @types/node 22.20.4
++ @types/react 18.3.31
++ @types/react-dom 18.3.0
++ @types/semver 7.8.0
++ anser 2.3.5
++ clsx 2.1.1
++ diff 9.0.0
++ immer 10.2.0
++ jsdom 29.1.1
++ katex 0.18.9
++ mdast-util-from-markdown 2.0.3
++ mdast-util-gfm 3.1.0
++ mdast-util-math 3.0.0
++ micromark-core-commonmark 2.0.4
++ micromark-extension-gfm 3.0.0
++ micromark-extension-math 3.1.0
++ micromark-factory-space 2.1.0
++ micromark-util-character 2.1.1
++ micromark-util-classify-character 2.0.1
++ micromark-util-sanitize-uri 2.0.1
++ micromark-util-symbol 2.0.1
++ oxlint 1.76.0
++ react 18.3.1
++ react-dom 18.2.0
++ semver 7.8.5
++ shiki 4.4.3
++ simple-icons 16.31.0
++ tsdown 0.22.14
++ typescript 6.0.3
++ vitest 4.1.11
++ yaml 2.9.1
++ zod 4.6.5
++ zustand 4.4.7
+
+Done in 1.1s using pnpm v11.7.0
+exit=0

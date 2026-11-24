@@ -1,0 +1,24 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/handover.spec.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/handover.spec.ts [ tests/handover.spec.ts ]
+Error: Cannot find module '../src/handover.ts' imported from /Volumes/IPFSJK/Zcode/dsh-websearch/tests/handover.spec.ts
+ ❯ tests/handover.spec.ts:2:1
+      1| import { describe, expect, it, vi } from 'vitest'
+      2| import { isPluginProviderId, planHandoverOps, revertHandover, WEB_NAME…
+       | ^
+      3| import type { HandoverSettings } from '../src/handover.ts'
+      4|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  01:58:52
+   Duration  116ms (transform 20ms, setup 15ms, import 0ms, tests 0ms, environment 0ms)
+

@@ -1,0 +1,51 @@
+✓ Lockfile passes supply-chain policies (verified 1m ago)
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 202, reused 153, downloaded 0, added 0
+Progress: resolved 203, reused 153, downloaded 0, added 0
+Progress: resolved 380, reused 267, downloaded 16, added 0
+Packages: +47 -43
++++++++++++++++++++++++++++++++++++++++++---------------------------------------
+Progress: resolved 385, reused 268, downloaded 45, added 47, done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
+- @deepseek-ai/dsh-typert-protocol 0.1.7-rc.2
+
+devDependencies:
+- @deepseek-ai/cordis 4.0.4
++ @deepseek-ai/cordis 4.1.0
+- @deepseek-ai/dsh-agent 0.1.7-rc.2
++ @deepseek-ai/dsh-agent 0.2.2-rc.5
+- @deepseek-ai/dsh-api-remotes 0.1.7-rc.2
++ @deepseek-ai/dsh-api-remotes 0.2.2-rc.5
+- @deepseek-ai/dsh-client-locale 0.1.7-rc.2
++ @deepseek-ai/dsh-client-locale 0.2.2-rc.5
+- @deepseek-ai/dsh-client-store 0.1.7-rc.2
++ @deepseek-ai/dsh-client-store 0.2.2-rc.5
+- @deepseek-ai/dsh-client-ui-primitives 0.1.7-rc.2
++ @deepseek-ai/dsh-client-ui-primitives 0.2.2-rc.5
+- @deepseek-ai/dsh-client-ui-renderer 0.1.7-rc.2
++ @deepseek-ai/dsh-client-ui-renderer 0.2.2-rc.5
+- @deepseek-ai/dsh-client-ui-settings 0.1.7-rc.2
++ @deepseek-ai/dsh-client-ui-settings 0.2.2-rc.5
+- @deepseek-ai/dsh-client-ui-slots 0.1.7-rc.2
++ @deepseek-ai/dsh-client-ui-slots 0.2.2-rc.5
+- @deepseek-ai/dsh-credentials 0.1.7-rc.2
++ @deepseek-ai/dsh-credentials 0.2.2-rc.5
+- @deepseek-ai/dsh-llm 0.1.7-rc.2
++ @deepseek-ai/dsh-llm 0.2.2-rc.5
+- @deepseek-ai/dsh-settings 0.1.7-rc.2
++ @deepseek-ai/dsh-settings 0.2.2-rc.5
+- @deepseek-ai/dsh-system-prompt 0.1.7-rc.2
++ @deepseek-ai/dsh-system-prompt 0.2.2-rc.5
+- @deepseek-ai/dsh-tools 0.1.7-rc.2
++ @deepseek-ai/dsh-tools 0.2.2-rc.5
++ @deepseek-ai/dsh-typert-protocol 0.1.7-rc.2
+- @deepseek-ai/dsh-util-code-language 0.1.7-rc.2
++ @deepseek-ai/dsh-util-code-language 0.2.2-rc.5
+- @deepseek-ai/dsh-util-workspace-path 0.1.7-rc.2
++ @deepseek-ai/dsh-util-workspace-path 0.2.2-rc.5
+- @deepseek-ai/dsh-web 0.1.7-rc.2
++ @deepseek-ai/dsh-web 0.2.2-rc.5
+
+Done in 5.6s using pnpm v11.7.0

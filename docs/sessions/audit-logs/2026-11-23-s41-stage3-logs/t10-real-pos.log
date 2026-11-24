@@ -1,0 +1,2 @@
+$ node scripts/check-release.mjs --tarballs /tmp/dshws-s41/t10-tarballs
+check-release: ok

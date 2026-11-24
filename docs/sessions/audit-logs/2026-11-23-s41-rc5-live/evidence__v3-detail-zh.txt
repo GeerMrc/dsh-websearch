@@ -1,0 +1,19 @@
+(UI language zh-CN; candidate built from 41dc6ed-equivalent tree + T9)
+- switch "启用 dsh-websearch" [checked]
+- heading "dsh-websearch" [level=3]
+- generic: v0.2.0
+- paragraph: 多源统一网页搜索与抓取：可配置优先级链、全链路高可用降级、多 API key 池；启用即接管官方「网页搜索与获取」，关闭即自动交还官方。
+- region "详细介绍":
+  - heading "dsh-websearch（多源网页搜索）" [level=1]
+  - paragraph: 把 Tavily、Exa、Firecrawl、AnySearch 和 DeepSeek 收进一条由你排序的搜索链：…
+  - heading "它做什么" [level=2]
+  - table: (成员 搜索 抓取 免费额度; 5 rows)
+  - list: 搜索链降级 / 多 key 轮换 / 来源标注 / DNS 韧性
+  - heading "设置项" [level=2]
+  - heading "接管与交还" [level=2]
+  - heading "关闭插件" [level=2]
+  - heading "兼容性" [level=2]
+  - paragraph: … link "https://github.com/GeerMrc/dsh-websearch"
+- heading "包含的组件" [level=4]
+- generic: 共 1 个 · 1 运行中
+Region length 2887 chars (was 16130 with the README). README markers present: 语言权威声明=false 成员准入标准=false 快速开始=false pnpm=false

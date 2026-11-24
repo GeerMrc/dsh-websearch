@@ -1,0 +1,13 @@
+$ oxlint src tests
+
+  ! unicorn(prefer-string-starts-ends-with): Prefer String#startsWith over a regex with a caret.
+    ,-[tests/package-meta.spec.ts:58:16]
+ 57 |       profile.push(heading[1]!.length)
+ 58 |     } else if (/^- /.test(line)) {
+    :                ^^^^^^^^^^
+ 59 |       listItems += 1
+    `----
+  help: Replace `/^- /.test(line)` with `line.startsWith('- ')`.
+
+Found 1 warning and 0 errors.
+Finished in 32ms on 95 files with 96 rules using 12 threads.

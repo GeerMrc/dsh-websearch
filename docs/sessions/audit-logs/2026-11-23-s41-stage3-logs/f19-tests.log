@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/package-meta.spec.ts (10 tests) 5ms
+ ✓ tests/release-workflow.spec.ts (8 tests) 4ms
+ ✓ tests/check-release.spec.ts (19 tests) 465ms
+
+ Test Files  3 passed (3)
+      Tests  37 passed (37)
+   Start at  11:13:05
+   Duration  576ms (transform 78ms, setup 32ms, import 89ms, tests 473ms, environment 0ms)
+

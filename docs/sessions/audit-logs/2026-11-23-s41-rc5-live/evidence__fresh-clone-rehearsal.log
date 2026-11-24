@@ -1,0 +1,61 @@
+clone moved to 3eebf97; tracked history contains the scratch token literal in 0 file(s) at HEAD
+## pnpm install --frozen-lockfile
+Already up to date
+Done in 218ms using pnpm v11.7.0
+install EXIT=0
+## pnpm run build
+$ tsdown && tsdown -c tsdown.client.config.ts
+ℹ tsdown v0.22.14 powered by rolldown v1.2.11
+ℹ config file: /private/tmp/dshws-s41/rehearsal/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: node22.19.0
+ℹ tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 3 files
+ℹ lib/index.js    155.68 kB │ gzip: 45.77 kB
+ℹ lib/index.d.ts   52.10 kB │ gzip: 13.17 kB
+ℹ 2 files, total: 207.77 kB
+✔ Build complete in 584ms
+ℹ tsdown v0.22.14 powered by rolldown v1.2.11
+ℹ config file: /private/tmp/dshws-s41/rehearsal/tsdown.client.config.ts 
+ℹ entry: src/client/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+ℹ Build start
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.
+
+ℹ Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- zod
+ℹ lib/client.js  359.04 kB │ gzip: 79.59 kB
+ℹ 1 files, total: 359.04 kB
+✔ Build complete in 34ms
+build EXIT=0
+## release-related contract tests
+
+ RUN  v4.1.11 /private/tmp/dshws-s41/rehearsal
+
+ ✓ tests/package-meta.spec.ts (9 tests) 4ms
+ ✓ tests/patch.test.ts (10 tests) 3ms
+ ✓ tests/pack.test.ts (4 tests) 8ms
+ ✓ tests/release-workflow.spec.ts (7 tests) 4ms
+ ✓ tests/check-release.spec.ts (17 tests) 460ms
+
+ Test Files  5 passed (5)
+      Tests  47 passed (47)
+   Start at  02:39:02
+   Duration  589ms (transform 158ms, setup 59ms, import 170ms, tests 479ms, environment 0ms)
+
+tests EXIT=0
+## node scripts/pack.mjs
+packed maricgeer-dsh-websearch-0.2.0.tgz + dsh-websearch-0.2.0.tgz → dist-artifacts/
+pack EXIT=0
+## node scripts/check-release.mjs --tarballs dist-artifacts
+check-release: ok
+tarball check EXIT=0
+dirty tracked files after rehearsal: 0

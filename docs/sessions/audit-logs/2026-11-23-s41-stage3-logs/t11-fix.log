@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/check-release.spec.ts (17 tests) 459ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  02:38:39
+   Duration  571ms (transform 26ms, setup 12ms, import 24ms, tests 459ms, environment 0ms)
+

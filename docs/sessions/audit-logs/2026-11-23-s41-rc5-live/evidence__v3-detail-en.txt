@@ -1,0 +1,18 @@
+(UI language en)
+- switch "Enable dsh-websearch" [checked]
+- heading "dsh-websearch" [level=3]
+- generic: v0.2.0
+- paragraph: Unified multi-provider web search and fetch with a configurable priority chain, full HA degradation and multi-key pools; takes over the built-in web search and fetch page while enabled and hands it back when disabled.
+- region "Details":
+  - heading "dsh-websearch (multi-provider web search)" [level=1]
+  - paragraph: "Tavily, Exa, Firecrawl, AnySearch and DeepSeek in one search chain that you order yourself: …"
+  - heading "What it does" [level=2]
+  - table: (Provider Search Fetch Free tier; 5 rows)
+  - heading "Settings" [level=2]
+  - heading "Takeover and handover" [level=2]
+  - heading "Turning the plugin off" [level=2]
+  - heading "Compatibility" [level=2]
+  - paragraph: … link "https://github.com/GeerMrc/dsh-websearch"
+- heading "Components" [level=4]
+- generic: 1 total · 1 running
+README markers present: Language authority=false Quick start=false pnpm=false; CJK characters inside the region: false

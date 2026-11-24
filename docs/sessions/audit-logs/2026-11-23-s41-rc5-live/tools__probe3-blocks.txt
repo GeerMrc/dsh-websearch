@@ -1,0 +1,23 @@
+@@FILE src/client/handover-watch.ts
+@@OLD
+  probe(`client: install pluginManager=${isPluginManagerFace(pluginManager)} forms=${isConfigFormsFace(forms)}`);
+@@NEW
+  const describeFace = (value: unknown): string => {
+    if (value === undefined || value === null) return String(value);
+    const proto = Object.getPrototypeOf(value) as object | null;
+    return `${typeof value} keys=[${Object.keys(value).slice(0, 14).join(',')}] proto=[${proto ? Object.getOwnPropertyNames(proto).slice(0, 14).join(',') : ''}]`;
+  };
+  probe(`client: install pluginManager=${isPluginManagerFace(pluginManager)} forms=${isConfigFormsFace(forms)}`);
+  probe(`client: get(remote.pluginManager) → ${describeFace(pluginManager)}`);
+  probe(`client: typeof ctx.inject → ${typeof (ctx as unknown as { inject?: unknown }).inject}`);
+  (ctx as unknown as { inject(names: string[], callback: (scoped: unknown) => void): void }).inject(['remote.pluginManager'], (scoped) => {
+    const face = (scoped as { remote?: Record<string, unknown> }).remote?.pluginManager;
+    probe(`client: optional inject remote.pluginManager available (+${Date.now() - INSTALL_AT}ms) → ${describeFace(face)}`);
+  });
+@@END
+@@OLD
+export function installHandoverWatch(ctx: WatchHost, warn: (message: string) => void = warnToConsole): () => void {
+@@NEW
+const INSTALL_AT = Date.now();
+export function installHandoverWatch(ctx: WatchHost, warn: (message: string) => void = warnToConsole): () => void {
+@@END

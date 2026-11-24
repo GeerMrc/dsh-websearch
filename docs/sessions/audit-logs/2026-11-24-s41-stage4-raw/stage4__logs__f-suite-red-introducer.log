@@ -1,0 +1,121 @@
+##### state 1: baseline 26b646e client entry (no handover-watch.ts)
+ D src/client/handover-watch.ts
+M  src/client/index.ts
+ ✓ tests/client/fetch-view.spec.tsx (7 tests) 124ms
+ ✓ tests/client/toolview.spec.tsx (11 tests) 210ms
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+vitest-exit=0
+##### state 2: 82b3a86 (T8 first)
+M  src/client/handover-watch.ts
+ ❯ tests/client/fetch-view.spec.tsx (7 tests | 1 failed) 124ms
+     ✓ renders the served-by badge behind the host output preamble (0.1.5 布局) 82ms
+     ✓ expands to the host-shaped fetch card and strips the signature from the raw text 15ms
+     ✓ tolerates the turndown-escaped signature form (html 转义形态) 2ms
+     ✓ renders no badge for a gate-OFF direct fetch without the signature (无签名) 4ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 8ms
+     ✓ surfaces the failure note on an error result (error 态) 10ms
+     × registers the web_fetch toolview takeover at priority -1 (shadow 契约载荷) 3ms
+ ❯ tests/client/toolview.spec.tsx (11 tests | 1 failed) 209ms
+     ✓ renders the served-by badge on the collapsed call row for a chain result 80ms
+     ✓ expands to the host-shaped web card (answer + sources + truncated + raw + inspect) 24ms
+     ✓ parses the signature after the 0.1.5 formatSearchOutput preamble (0.1.5 布局) 9ms
+     ✓ joins unique member labels when multiple members served the queries (多成员) 2ms
+     ✓ renders the raw member id when the served-by id is unknown (未知 id 原样) 2ms
+     ✓ renders no badge for a result without the signature line (直连/外来) 9ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 8ms
+     ✓ renders the collapsed row without a badge while the call is running (running 态) 5ms
+     ✓ surfaces the failure note on an error result (error 态) 8ms
+     × registers the web_search toolview takeover at priority -1 (shadow 契约载荷) 2ms
+     ✓ renders the empty state without a fetcher and the entries after a registered fetcher refresh 57ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/fetch-view.spec.tsx:143:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/fetch-view.spec.tsx:147:5
+TypeError: ctx.get is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:107:29
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/toolview.spec.tsx:198:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/toolview.spec.tsx:202:5
+ Test Files  2 failed (2)
+      Tests  2 failed | 16 passed (18)
+vitest-exit=1
+##### state 3: 41dc6ed (T8 fix)
+ ❯ tests/client/fetch-view.spec.tsx (7 tests | 1 failed) 140ms
+     ✓ renders the served-by badge behind the host output preamble (0.1.5 布局) 96ms
+     ✓ expands to the host-shaped fetch card and strips the signature from the raw text 16ms
+     ✓ tolerates the turndown-escaped signature form (html 转义形态) 3ms
+     ✓ renders no badge for a gate-OFF direct fetch without the signature (无签名) 4ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 8ms
+     ✓ surfaces the failure note on an error result (error 态) 10ms
+     × registers the web_fetch toolview takeover at priority -1 (shadow 契约载荷) 3ms
+ ❯ tests/client/toolview.spec.tsx (11 tests | 1 failed) 231ms
+     ✓ renders the served-by badge on the collapsed call row for a chain result 97ms
+     ✓ expands to the host-shaped web card (answer + sources + truncated + raw + inspect) 27ms
+     ✓ parses the signature after the 0.1.5 formatSearchOutput preamble (0.1.5 布局) 11ms
+     ✓ joins unique member labels when multiple members served the queries (多成员) 3ms
+     ✓ renders the raw member id when the served-by id is unknown (未知 id 原样) 2ms
+     ✓ renders no badge for a result without the signature line (直连/外来) 11ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 8ms
+     ✓ renders the collapsed row without a badge while the call is running (running 态) 6ms
+     ✓ surfaces the failure note on an error result (error 态) 8ms
+     × registers the web_search toolview takeover at priority -1 (shadow 契约载荷) 2ms
+     ✓ renders the empty state without a fetcher and the entries after a registered fetcher refresh 56ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+TypeError: ctx.inject is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:120:7
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/fetch-view.spec.tsx:143:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/fetch-view.spec.tsx:147:5
+TypeError: ctx.inject is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:120:7
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/toolview.spec.tsx:198:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/toolview.spec.tsx:202:5
+ Test Files  2 failed (2)
+      Tests  2 failed | 16 passed (18)
+vitest-exit=1
+##### restore HEAD
+(status above should be empty)
+ ❯ tests/client/fetch-view.spec.tsx (7 tests | 1 failed) 121ms
+     ✓ renders the served-by badge behind the host output preamble (0.1.5 布局) 79ms
+     ✓ expands to the host-shaped fetch card and strips the signature from the raw text 15ms
+     ✓ tolerates the turndown-escaped signature form (html 转义形态) 2ms
+     ✓ renders no badge for a gate-OFF direct fetch without the signature (无签名) 3ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 8ms
+     ✓ surfaces the failure note on an error result (error 态) 9ms
+     × registers the web_fetch toolview takeover at priority -1 (shadow 契约载荷) 3ms
+ ❯ tests/client/toolview.spec.tsx (11 tests | 1 failed) 207ms
+     ✓ renders the served-by badge on the collapsed call row for a chain result 80ms
+     ✓ expands to the host-shaped web card (answer + sources + truncated + raw + inspect) 25ms
+     ✓ parses the signature after the 0.1.5 formatSearchOutput preamble (0.1.5 布局) 10ms
+     ✓ joins unique member labels when multiple members served the queries (多成员) 2ms
+     ✓ renders the raw member id when the served-by id is unknown (未知 id 原样) 2ms
+     ✓ renders no badge for a result without the signature line (直连/外来) 9ms
+     ✓ falls back to the generic tool card when the meta shape mismatches (形状不符回退) 7ms
+     ✓ renders the collapsed row without a badge while the call is running (running 态) 5ms
+     ✓ surfaces the failure note on an error result (error 态) 8ms
+     × registers the web_search toolview takeover at priority -1 (shadow 契约载荷) 2ms
+     ✓ renders the empty state without a fetcher and the entries after a registered fetcher refresh 57ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+TypeError: ctx.inject is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:120:7
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/fetch-view.spec.tsx:143:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/fetch-view.spec.tsx:147:5
+TypeError: ctx.inject is not a function
+ ❯ installHandoverWatch src/client/handover-watch.ts:120:7
+ ❯ src/client/index.ts:53:20
+ ❯ Object.<anonymous> tests/client/toolview.spec.tsx:198:9
+ ❯ apply src/client/index.ts:53:7
+ ❯ tests/client/toolview.spec.tsx:202:5
+ Test Files  2 failed (2)
+      Tests  2 failed | 16 passed (18)
+vitest-exit=1

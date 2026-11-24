@@ -1,0 +1,25 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/check-release.spec.ts (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/check-release.spec.ts [ tests/check-release.spec.ts ]
+Error: Cannot find module '../scripts/check-release.mjs' imported from /Volumes/IPFSJK/Zcode/dsh-websearch/tests/check-release.spec.ts
+ ❯ tests/check-release.spec.ts:6:1
+      4| import { join } from 'node:path'
+      5| import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+      6| import {
+       | ^
+      7|   FORBIDDEN_ENTRY,
+      8|   REQUIRED_ENTRIES,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  02:30:22
+   Duration  118ms (transform 25ms, setup 15ms, import 0ms, tests 0ms, environment 0ms)
+

@@ -1,0 +1,247 @@
+=== 8c0dc8a 11-24 00:24 AI Bot
+docs(s41-t0): 阶段 0 audit-log（S40 独立审核 PASS：零阻塞级、应清级十项，处置映射见 session-41 记录）+ 基线/semver 双语义矩阵/上游监测原始输出归档 + session-41 骨架
+
+ docs/sessions/2026-11-23-session-41.md             |  71 +++++
+ .../2026-11-23-s41-stage0-audit-of-s40.md          | 326 +++++++++++++++++++++
+ .../baseline/01-install.log                        |   6 +
+ .../baseline/02-typecheck.log                      |   2 +
+ .../baseline/03-typecheck-client.log               |   2 +
+ .../2026-11-23-s41-stage0-raw/baseline/04-lint.log |   4 +
+ .../2026-11-23-s41-stage0-raw/baseline/05-test.log | 135 +++++++++
+ .../baseline/06-check-i18n.log                     |   4 +
+ .../baseline/07-build.log                          |  32 ++
+ .../2026-11-23-s41-stage0-raw/baseline/env.txt     |   8 +
+ .../baseline/status_after_install.txt              |   0
+ .../baseline/status_final.txt                      |   0
+ .../2026-11-23-s41-stage0-raw/baseline/summary.tsv |   8 +
+ .../2026-11-23-s41-stage0-raw/refcheck.out.txt     |  39 +++
+ .../2026-11-23-s41-stage0-raw/run-baseline.sh      |  54 ++++
+ .../2026-11-23-s41-stage0-raw/semver-matrix.mjs    |  50 ++++
+ .../semver-matrix.out.txt                          |  21 ++
+ .../2026-11-23-s41-stage0-raw/smoke-subset.log     |  83 ++++++
+ .../upstream/feed-mac-arm64.yml                    |  13 +
+ .../upstream/feed-mac-x64_nightly-mac.yml          |  12 +
+ .../upstream/feed-win-x64_nightly.yml              |  13 +
+ .../2026-11-23-s41-stage0-raw/upstream/feed.err    |   0
+ .../upstream/harness-ls-remote-head.err            |   0
+ .../upstream/harness-ls-remote-head.txt            |   2 +
+ .../upstream/harness-ls-remote-tags.err            |   0
+ .../upstream/harness-ls-remote-tags.txt            |  45 +++
+ .../upstream/harness-remote-v.txt                  |   6 +
+ .../upstream/npm-_deepseek-ai_cordis.json          |  23 ++
+ .../upstream/npm-_deepseek-ai_cordis.json.err      |   0
+ .../upstream/npm-_deepseek-ai_dsh-agent.json       |  58 ++++
+ .../upstream/npm-_deepseek-ai_dsh-agent.json.err   |   0
+ .../upstream/npm-_deepseek-ai_dsh-credentials.json |  58 ++++
+ .../npm-_deepseek-ai_dsh-credentials.json.err      |   0
+ .../upstream/npm-_deepseek-ai_dsh-settings.json    |  58 ++++
+ .../npm-_deepseek-ai_dsh-settings.json.err         |   0
+ .../npm-_deepseek-ai_dsh-system-prompt.json        |  58 ++++
+ .../npm-_deepseek-ai_dsh-system-prompt.json.err    |   0
+ .../upstream/npm-_deepseek-ai_dsh-tools.json       |  58 ++++
+ .../upstream/npm-_deepseek-ai_dsh-tools.json.err   |   0
+ .../upstream/npm-_deepseek-ai_dsh-web.json         |  58 ++++
+ .../upstream/npm-_deepseek-ai_dsh-web.json.err     |   0
+ .../upstream/upstream-master-host-protocol.ts      |   4 +
+ .../upstream/ws-ls-remote-origin.err               |   0
+ .../upstream/ws-ls-remote-origin.txt               |   3 +
+ 44 files changed, 1314 insertions(+)
+=== 6beb37a 11-24 00:24 AI Bot
+chore(s41-t0): 阶段 0 应清项——归档证据日志中的 host 进程 token 值全部替换为 <redacted>（对应实例均已消亡；其中 9 个文件已在公开历史，故只前向修复、不重写历史）
+
+ docs/sessions/audit-logs/2026-09-06-s14c-stage45-verification.md        | 2 +-
+ .../audit-logs/2026-09-23-s32-t6-drill-evidence/015rc3-server.log       | 2 +-
+ .../audit-logs/2026-09-23-s32-t6-drill-evidence/015rc3-server2.log      | 2 +-
+ .../audit-logs/2026-09-23-s32-t6-drill-evidence/015rc3-server3.log      | 2 +-
+ .../audit-logs/2026-09-23-s32-t6-drill-evidence/016a2-server.log        | 2 +-
+ .../audit-logs/2026-09-23-s32-t6-drill-evidence/017a2-server.log        | 2 +-
+ .../audit-logs/2026-09-26-s33-t6-drill-evidence/015rc3-server.log       | 2 +-
+ .../audit-logs/2026-09-26-s33-t6-drill-evidence/017rc2-server.log       | 2 +-
+ .../audit-logs/2026-09-26-s33-t6-drill-evidence/017rc2-server2.log      | 2 +-
+ .../audit-logs/2026-09-30-s40-desktop-adoption/dev-desktop10.log        | 2 +-
+ .../audit-logs/2026-09-30-s40-desktop-adoption/dev-desktop11.log        | 2 +-
+ .../audit-logs/2026-09-30-s40-desktop-adoption/official-app.log         | 2 +-
+ docs/sessions/audit-logs/2026-09-30-s40-desktop-adoption/web-3423.log   | 2 +-
+ 13 files changed, 13 insertions(+), 13 deletions(-)
+=== 65a4479 11-24 00:29 AI Bot
+docs(s41-t1): 阶段 1 计划与决策落盘——plan 048（WBS T0–T18、R1–R8、验证矩阵、债务映射）+ 用户批准原文存档；ADR-0024 接管与对称交还（proposed，待 V10）、ADR-0025 显示元信息与用户文档分离、ADR-0026 OIDC 发布与三同步门、ADR-0027 宿主兼容门语义与显式钉策略；ADR-0023 加前提勘正注；roadmap S41 行；STATUS 台账行与当前位置块启动刷新
+
+ docs/STATUS.md                                     |  18 +--
+ .../adr-0023-desktop-adoption-dual-profile.md      |   2 +
+ .../adr-0024-takeover-and-symmetric-handover.md    |  98 +++++++++++++++
+ .../adr-0025-display-meta-and-user-docs-split.md   |  85 +++++++++++++
+ .../adr-0026-oidc-release-and-three-sync-gate.md   |  92 ++++++++++++++
+ ...0027-compat-gate-semantics-and-explicit-pins.md |  75 ++++++++++++
+ .../2026-11-23-048-s41-approved-plan-snapshot.md   | 109 +++++++++++++++++
+ ...26-11-23-048-s41-takeover-docsplit-oidc-plan.md | 133 +++++++++++++++++++++
+ docs/session-roadmap.md                            |   1 +
+ docs/sessions/2026-11-23-session-41.md             |   5 +-
+ 10 files changed, 609 insertions(+), 9 deletions(-)
+=== 699de19 11-24 01:01 AI Bot
+docs(s41-t2): 阶段 2 第 1 轮审核 NEEDS REVISION 的修订——plan 048 修订版（新增 T5p 探针定通道、T7 条件实现、rc.5 功能腿、草稿 PR 预演门、T17/T18 归 Session 42、验证矩阵十行、R9、差异登记节）；ADR-0024/0026/0027 同步修订；第 1 轮 audit-log 与处置留痕
+
+ .../adr-0024-takeover-and-symmetric-handover.md    |  25 +-
+ .../adr-0026-oidc-release-and-three-sync-gate.md   |  22 +-
+ ...0027-compat-gate-semantics-and-explicit-pins.md |   8 +-
+ ...26-11-23-048-s41-takeover-docsplit-oidc-plan.md | 246 +++++++++++------
+ docs/sessions/2026-11-23-session-41.md             |  23 +-
+ .../2026-11-23-s41-stage2-plan-review-r1.md        | 295 +++++++++++++++++++++
+ 6 files changed, 522 insertions(+), 97 deletions(-)
+=== a806223 11-24 01:16 AI Bot
+docs(s41-t2): 阶段 2 第 2 轮复审 NEEDS REVISION 的修订——更正旧宿主事实（ui-settings-web-search 行自 0.1.7-alpha.1 起）、R4 移出 Session 42 子句并写明核验范围 R1–R8、新增 key 窗口不可得分支、验证矩阵增 T5p 行并统一全量门口径、T4 恢复字面计数、差异登记改为须回并补全；ADR-0024/0026/0027 同步；第 2 轮 audit-log
+
+ .../adr-0024-takeover-and-symmetric-handover.md    |  14 +-
+ .../adr-0026-oidc-release-and-three-sync-gate.md   |   3 +-
+ ...0027-compat-gate-semantics-and-explicit-pins.md |   3 +-
+ ...26-11-23-048-s41-takeover-docsplit-oidc-plan.md | 116 ++++++++-----
+ docs/sessions/2026-11-23-session-41.md             |  33 ++--
+ .../2026-11-23-s41-stage2-plan-review-r2.md        | 192 +++++++++++++++++++++
+ 6 files changed, 296 insertions(+), 65 deletions(-)
+=== e3072be 11-24 01:23 AI Bot
+docs(s41-t2): 阶段 2 第 3 轮复审 APPROVED（必改 0、建议 6）；吸收六项建议（tag 指向 HEAD 断言、命令行 remove 限定、功能腿失败分支、受阻分支的增量复验与例外说明、措辞修正、差异节补全）；第 3 轮 audit-log
+
+ .../adr-0024-takeover-and-symmetric-handover.md    |   2 +-
+ .../adr-0026-oidc-release-and-three-sync-gate.md   |   2 +-
+ ...26-11-23-048-s41-takeover-docsplit-oidc-plan.md |  23 +++--
+ docs/sessions/2026-11-23-session-41.md             |   4 +
+ .../2026-11-23-s41-stage2-plan-review-r3.md        | 111 +++++++++++++++++++++
+ 5 files changed, 131 insertions(+), 11 deletions(-)
+=== b88e46b 11-24 01:32 AI Bot
+docs(s41-t2b): 应清级文档债清理批（先债后新）——SOP：六件套枚举统一、§2 改为双语义判定树、监测辅线改读 upstream 远端、归档前脱敏、三平台版本口径；desktop-adoption：2026-11-24 复测版本表与兼容门语义勘正；known-upstream-issues：上游现势与 0.2.2-rc.5 待核对行；S40 记录勘注；S40 阶段 4/5 记录溯源补记；progress-M7 补 S38–S40 账、登记阶段 0 已验锚点与 S41 台账骨架；session-41 记
+
+ docs/desktop-adoption.md                           | 12 +++++++++-
+ docs/known-upstream-issues.md                      |  3 ++-
+ docs/progress/progress-M7.md                       | 27 ++++++++++++++++++++++
+ docs/sessions/2026-09-30-session-40.md             | 11 +++++++++
+ docs/sessions/2026-11-23-session-41.md             | 14 ++++++++++-
+ .../audit-logs/2026-09-30-s40-stage4-review.md     |  4 ++++
+ .../2026-09-30-s40-stage5-crossvalidation.md       |  4 ++++
+ docs/upstream-sync-sop.md                          | 22 ++++++++++--------
+ 8 files changed, 84 insertions(+), 13 deletions(-)
+=== b7ddba6 11-24 01:42 AI Bot
+build(s41-t3): peer 范围显式钉 0.2.2-rc.5 并用契约测试守护——tests/peer-range.spec.ts 三类断言（已演练版本两种语义皆真 / 宿主门放行但默认语义为假 / 两种语义皆假）；五处 peer 表述勘正，AGENTS.md 改为指向 package.json 与守护测试；加 semver 与 @types/semver 开发依赖（lockfile 仅增相关条目，干净目录冻结安装正反验证通过）
+
+ AGENTS.md                                          |  2 +-
+ README.en.md                                       |  4 +-
+ README.md                                          |  4 +-
+ ...0027-compat-gate-semantics-and-explicit-pins.md |  8 ++-
+ ...26-11-23-048-s41-takeover-docsplit-oidc-plan.md |  3 +-
+ docs/sessions/2026-11-23-session-41.md             |  8 +++
+ package.json                                       | 14 ++--
+ pnpm-lock.yaml                                     | 11 +++
+ tests/peer-range.spec.ts                           | 80 ++++++++++++++++++++++
+ 9 files changed, 119 insertions(+), 15 deletions(-)
+=== 317ec74 11-24 01:45 AI Bot
+build(s41-t4): devDependencies 对齐 0.2.2-rc.5——17 个 @deepseek-ai/dsh-* 开发依赖升到 0.2.2-rc.5，cordis 4.1.0，schemastery 3.19.0；dsh-typert-protocol 与运行时依赖同钉不动；go 判定：源码零修复，typecheck、lint、全量测试、i18n、build 全绿
+
+ docs/sessions/2026-11-23-session-41.md |   9 +
+ package.json                           |  36 +-
+ pnpm-lock.yaml                         | 985 +++++++++++++++++----------------
+ 3 files changed, 541 insertions(+), 489 deletions(-)
+=== 98fe583 11-24 01:46 AI Bot
+feat(s41-t5): 接管官方「网页搜索与获取」设置页——cordis.patch.yml 追加禁用 ui-settings-web-search 行与头注释（运行时行一律不动）；tests/patch.test.ts 增运行时行永不禁用的负向断言与覆盖集合精确锁定；ADR-0013 加前提勘正注
+
+ cordis.patch.yml                                   | 13 ++++++
+ docs/decisions/adr-0013-install-takeover-search.md |  5 ++
+ docs/sessions/2026-11-23-session-41.md             |  6 +++
+ tests/patch.test.ts                                | 53 ++++++++++++++++------
+ 4 files changed, 63 insertions(+), 14 deletions(-)
+=== 6a5ba45 11-24 02:00 AI Bot
+feat(s41-t6): src/handover.ts——交还的纯逻辑：planHandoverOps 只为用户层里指向本插件提供方的选择键规划 unset（两键同清），revertHandover 经 settings 服务写入且只告警不抛出；tests/handover.spec.ts 14 条；session 记录补 rc.5 实测与 V7 修复前基线
+
+ docs/sessions/2026-11-23-session-41.md |   9 +++
+ src/handover.ts                        |  85 +++++++++++++++++++++
+ tests/handover.spec.ts                 | 133 +++++++++++++++++++++++++++++++++
+ 3 files changed, 227 insertions(+)
+=== 82b3a86 11-24 02:04 AI Bot
+feat(s41-t8): 客户端交还通道——src/client/handover-watch.ts 监听 plugin-manager/changed，本 bundle 不再启用时清除接缝用户层里指向本插件提供方的选择键（写入被拒则重读重试一次）；经 ctx.get 可选读取 remote.pluginManager 与 configForms，宿主缺少任一面时不订阅；planHandoverOps 返回类型收紧为 SelectionUnset；tests/client/handover-watch.spec.
+
+ docs/sessions/2026-11-23-session-41.md |   7 ++
+ src/client/handover-watch.ts           | 118 ++++++++++++++++++
+ src/client/index.ts                    |   5 +
+ src/handover.ts                        |  12 +-
+ tests/client/entry.spec.tsx            |   2 +
+ tests/client/handover-watch.spec.tsx   | 220 +++++++++++++++++++++++++++++++++
+ 6 files changed, 361 insertions(+), 3 deletions(-)
+=== 41dc6ed 11-24 02:15 AI Bot
+fix(s41-t8): 交还守卫改为经一次可选注入请求 remote.pluginManager 与 configForms，就绪后才订阅——rc.5 上插件管理器 Remote 在本插件 apply 之后约 47ms 才被服务，一次性的 ctx.get 读不到（rc.5 实测 V7 失败的根因）；就绪前被停止则不再订阅；测试重写并新增该时序用例；结构接口对齐 Cordis 的 inject 签名
+
+ docs/sessions/2026-11-23-session-41.md |  10 +++
+ src/client/handover-watch.ts           |  57 ++++++++++------
+ tests/client/entry.spec.tsx            |   4 +-
+ tests/client/handover-watch.spec.tsx   | 118 +++++++++++++++++++--------------
+ 4 files changed, 118 insertions(+), 71 deletions(-)
+=== fbcc6c2 11-24 02:23 AI Bot
+docs(s41-t5p): 探针结论入 session 记录——rc.5 图形界面宿主上插件关闭后没有任何属于自己的执行通道（宿主 teardown 在 HMR 事务内、写入被拒；客户端半区在事件送达前被卸载；命令行不转发事件）；前提更正：桌面端启用 HMR（四行同一启用条件）；交还路线列为待用户裁决事项
+
+ docs/sessions/2026-11-23-session-41.md | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+=== 390ab80 11-24 02:29 AI Bot
+feat(s41-t9): 插件页文档分离——locale/{zh,en}.json 提供 meta.title/description/detail，详情页改为渲染 docs/plugin-page.{zh,en}.md（用户文档），README 回归开发文档并声明分工；package.json 暴露 ./locale/*.json、files 逐文件列入两份用户文档；README 中英文勘正接管相关的过期表述；tests/package-meta.spec.ts 契约 9 条；rc.5 实测 V3 中英文通过
+
+ README.en.md                           |  9 ++--
+ README.md                              |  9 ++--
+ docs/plugin-page.en.md                 | 46 ++++++++++++++++++++
+ docs/plugin-page.zh.md                 | 46 ++++++++++++++++++++
+ docs/sessions/2026-11-23-session-41.md |  7 +++
+ locale/en.json                         |  7 +++
+ locale/zh.json                         |  7 +++
+ package.json                           |  6 ++-
+ tests/package-meta.spec.ts             | 78 ++++++++++++++++++++++++++++++++++
+ 9 files changed, 208 insertions(+), 7 deletions(-)
+=== e95c729 11-24 02:33 AI Bot
+build(s41-t10): 发布一致性门 scripts/check-release.mjs（pnpm run check:release）——tag 组：tag 等于 package.json 版本、CHANGELOG 首个日期标题含该版本、USER_AGENT 带该版本、tag 指向 HEAD 且 HEAD 在 master 上；tarball 组：两个 tarball 含全部必需文件且不含内部文档与源码；每次扫描被跟踪文件里的 host token 值；不带参数拒绝运行；tests/check-relea
+
+ docs/sessions/2026-11-23-session-41.md |   9 ++
+ package.json                           |   3 +-
+ scripts/check-release.d.mts            |  39 ++++++
+ scripts/check-release.mjs              | 211 +++++++++++++++++++++++++++++
+ tests/check-release.spec.ts            | 233 +++++++++++++++++++++++++++++++++
+ 5 files changed, 494 insertions(+), 1 deletion(-)
+=== 6f2ce32 11-24 02:37 AI Bot
+ci(s41-t11): release.yml 改为 OIDC trusted publishing——id-token: write、fetch-depth: 0、npm 11、--provenance，去掉 NPM_TOKEN；发布前跑全量门与两次 scripts/check-release.mjs（tag 一致性、tarball 校验）；ci.yml 在 PR 与 master 推送上做发布预演（构建、打包、tarball 校验）；tests/release-workflow.spec.ts 契约 7 条（
+
+ .github/workflows/ci.yml               |  10 ++-
+ .github/workflows/release.yml          |  42 +++++++++---
+ README.en.md                           |   2 +-
+ README.md                              |   2 +-
+ docs/sessions/2026-11-23-session-41.md |   8 +++
+ package.json                           |   1 +
+ pnpm-lock.yaml                         |   3 +
+ tests/release-workflow.spec.ts         | 116 +++++++++++++++++++++++++++++++++
+ 8 files changed, 171 insertions(+), 13 deletions(-)
+=== 3eebf97 11-24 02:39 AI Bot
+fix(s41-t11): check-release 测试夹具改为插值拼出的合成 token 值——fresh clone 预演中发布门的 token 扫描命中了测试文件自身（夹具里贴了带值的字面量）；文件里不再有可匹配字面量，扫描对测试照常生效；session 记录更正 T10「token 扫描为 0」的适用范围
+
+ docs/sessions/2026-11-23-session-41.md |  9 ++++++++-
+ tests/check-release.spec.ts            | 14 +++++++++++---
+ 2 files changed, 19 insertions(+), 4 deletions(-)
+=== 7ea2adb 11-24 02:42 AI Bot
+docs(s41-t11): session 记录补记 fresh clone 重做预演的结果——提交 3eebf97 上安装、构建、47 条契约测试、打包、tarball 校验退出码全为 0；同时写明未演练的两部分（GitHub 上的真实 OIDC 运行、真实仓库上的 --tag 通过）
+
+ docs/sessions/2026-11-23-session-41.md | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+=== 2b74865 11-24 02:47 AI Bot
+ci(s41-t11b): release.yml 发布失败时打印 npm 侧的 trusted publishing 原因——npm 把换取发布凭据的失败只写进 runner 上的 verbose 日志、再以笼统的 ENEEDAUTH 失败，而重跑读的是 tag 所在提交的工作流；新步骤仅在发布步失败时运行，只打印 oidc 记录器的行；契约测试先红后绿；session 记录同步
+
+ .github/workflows/release.yml          |  9 +++++++++
+ docs/sessions/2026-11-23-session-41.md | 13 +++++++++++++
+ tests/release-workflow.spec.ts         | 17 +++++++++++++++++
+ 3 files changed, 39 insertions(+)
+=== cdd2894 11-24 02:54 AI Bot
+docs(s41-t13): 新建发布手册 release-runbook；upgrade.md §6 按 ADR-0026 改写（废止重推同 tag 与手工补发）；rc.5 实测回填 known-upstream-issues（问题 ①③ 更新，新增 ⑤⑥）、desktop-adoption §7、架构注记与决策索引；ADR-0024 按实测更正但仍为 proposed；plan 048 增「实测更正」节；session 记录与交付物表同步
+
+ docs/00-architecture.md                            |  15 ++
+ .../adr-0024-takeover-and-symmetric-handover.md    |  35 +++--
+ docs/desktop-adoption.md                           |  13 ++
+ docs/known-upstream-issues.md                      |  64 ++++++++-
+ ...26-11-23-048-s41-takeover-docsplit-oidc-plan.md |  27 ++++
+ docs/release-runbook.md                            | 160 +++++++++++++++++++++
+ docs/sessions/2026-11-23-session-41.md             |   7 +-
+ docs/upgrade.md                                    |  19 ++-
+ 8 files changed, 318 insertions(+), 22 deletions(-)
+=== a66ef5d 11-24 02:55 AI Bot
+docs(s41-t13): session 记录补记 T13 条目——上一个提交里这次编辑未匹配成功而未被主 Agent 发现；同时如实记下这一过程失误
+
+ docs/sessions/2026-11-23-session-41.md | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)

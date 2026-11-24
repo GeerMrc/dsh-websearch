@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/handover.spec.ts (14 tests) 5ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  01:59:43
+   Duration  114ms (transform 27ms, setup 12ms, import 23ms, tests 5ms, environment 0ms)
+

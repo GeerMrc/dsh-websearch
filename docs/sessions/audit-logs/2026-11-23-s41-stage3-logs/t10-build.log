@@ -1,0 +1,31 @@
+$ tsdown && tsdown -c tsdown.client.config.ts
+ℹ tsdown v0.22.14 powered by rolldown v1.2.11
+ℹ config file: /Volumes/IPFSJK/Zcode/dsh-websearch/tsdown.config.ts 
+ℹ entry: src/index.ts
+ℹ target: node22.19.0
+ℹ tsconfig: tsconfig.json
+ℹ Build start
+ℹ Cleaning 3 files
+ℹ lib/index.js    155.68 kB │ gzip: 45.77 kB
+ℹ lib/index.d.ts   52.10 kB │ gzip: 13.17 kB
+ℹ 2 files, total: 207.77 kB
+✔ Build complete in 588ms
+ℹ tsdown v0.22.14 powered by rolldown v1.2.11
+ℹ config file: /Volumes/IPFSJK/Zcode/dsh-websearch/tsdown.client.config.ts 
+ℹ entry: src/client/index.ts
+ℹ target: es2024
+ℹ tsconfig: tsconfig.json
+
+ WARN  `external` is deprecated. Use `deps.neverBundle` instead.
+
+ℹ Build start
+
+ WARN  inlineDynamicImports option is deprecated, please use codeSplitting: false instead.
+
+ℹ Hint: consider adding deps.onlyBundle option to avoid unintended bundling of dependencies, or set deps.onlyBundle: false to disable this hint.
+See more at https://tsdown.dev/options/dependencies#deps-onlybundle
+Detected dependencies in bundle:
+- zod
+ℹ lib/client.js  359.04 kB │ gzip: 79.59 kB
+ℹ 1 files, total: 359.04 kB
+✔ Build complete in 46ms

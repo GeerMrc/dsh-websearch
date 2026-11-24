@@ -1,0 +1,39 @@
+{
+ "file": ".github/workflows/ci.yml",
+ "name": "CI",
+ "on": {
+  "push": {
+   "branches": [
+    "master"
+   ]
+  },
+  "pull_request": null
+ },
+ "jobs": {
+  "test": {
+   "runsOn": "ubuntu-latest",
+   "strategy": {
+    "fail-fast": false,
+    "matrix": {
+     "node": [
+      22,
+      24
+     ]
+    }
+   },
+   "steps": [
+    "1. [uses] actions/checkout@v4",
+    "2. [uses] pnpm/action-setup@v4",
+    "3. [uses] actions/setup-node@v4 {\"node-version\":\"${{ matrix.node }}\",\"cache\":\"pnpm\"}",
+    "4. [run] pnpm install --frozen-lockfile",
+    "5. [run] pnpm run typecheck ⏎ pnpm run typecheck:client ⏎ ",
+    "6. [run] pnpm run lint",
+    "7. [run] pnpm test",
+    "8. [run] pnpm run check:i18n",
+    "9. [run] pnpm run build",
+    "10. [run] node scripts/pack.mjs",
+    "11. [run] node scripts/check-release.mjs --tarballs dist-artifacts"
+   ]
+  }
+ }
+}

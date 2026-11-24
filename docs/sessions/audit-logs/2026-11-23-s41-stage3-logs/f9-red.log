@@ -1,0 +1,94 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/check-release.spec.ts (18 tests | 3 failed) 473ms
+     ✓ accepts a tag only when it is the v-prefixed package version 1ms
+     ✓ requires the user agent to carry the package version 0ms
+     ✓ reads the version from the first dated heading only 0ms
+     ✓ is not satisfied by a historical mention of the bare version 0ms
+     ✓ rejects a first dated heading that names another version or lacks the v prefix 0ms
+     ✓ lists the required entries that are missing, by name 0ms
+     ✓ flags internal governance documents and sources, never the two user documents 0ms
+     × locates lines carrying a host token value without repeating the value 4ms
+     ✓ refuses to run when no check was requested 2ms
+     ✓ passes the tag checks when tag, manifest, changelog and user agent agree and the tag sits on HEAD in master 72ms
+     ✓ fails the tag checks while the changelog lacks a v-prefixed entry for the version 69ms
+     ✓ fails the tag checks when the tag names a version the manifest does not carry 41ms
+     ✓ fails when the tag does not point at HEAD or HEAD is not on master 90ms
+     × fails on a tracked file that carries a host token value, whatever else was requested 57ms
+     × refuses to pass the token scan outside a git repository 24ms
+     ✓ fails when the tarballs are missing, incomplete or ship internal documents 56ms
+     ✓ passes the tarball checks when both tarballs carry exactly the required files 55ms
+     ✓ names every shipped artifact as required and keeps the forbidden rule narrow 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/check-release.spec.ts > token scan > locates lines carrying a host token value without repeating the value
+AssertionError: expected [ Array(1) ] to deeply equal [ 'evidence.log:1' ]
+
+- Expected
++ Received
+
+  [
+-   "evidence.log:1",
++   "evidence.log:1:dsh web: http://127.0.0.1:3434/?token=<redacted>",
+  ]
+
+ ❯ tests/check-release.spec.ts:124:23
+    122|     ].join('\n')
+    123|     const locations = tokenFindings(text)
+    124|     expect(locations).toEqual(['evidence.log:1'])
+       |                       ^
+    125|     expect(locations.join('\n')).not.toContain(FAKE_TOKEN)
+    126|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/check-release.spec.ts > main > fails on a tracked file that carries a host token value, whatever else was requested
+AssertionError: expected [ Array(1) ] to deeply equal [ StringMatching{…} ]
+
+- Expected
++ Received
+
+  [
+-   StringMatching /^evidence\.log:1 carries a host token value/,
++   "evidence.log:1:dsh web: http://127.0.0.1:3434/?token=<redacted>",
+  ]
+
+ ❯ tests/check-release.spec.ts:203:22
+    201|     await packTarballs(dir, () => {})
+    202|     const problems = await main(['--tarballs', dir], repo)
+    203|     expect(problems).toEqual([expect.stringMatching(/^evidence\.log:1 …
+       |                      ^
+    204|     // the gate's own output goes to CI logs, so it names the place an…
+    205|     expect(problems.join('\n')).not.toContain(FAKE_TOKEN)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/check-release.spec.ts > main > refuses to pass the token scan outside a git repository
+AssertionError: promise resolved "[]" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+[]
+
+ ❯ tests/check-release.spec.ts:213:55
+    211|     await packTarballs(dir, () => {})
+    212|     try {
+    213|       await expect(main(['--tarballs', dir], outside)).rejects.toThrow…
+       |                                                       ^
+    214|     } finally {
+    215|       await rm(outside, { recursive: true, force: true })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 15 passed (18)
+   Start at  03:22:17
+   Duration  580ms (transform 26ms, setup 12ms, import 23ms, tests 473ms, environment 0ms)
+

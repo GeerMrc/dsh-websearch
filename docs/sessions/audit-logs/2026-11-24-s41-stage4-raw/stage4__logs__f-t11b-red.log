@@ -1,0 +1,47 @@
+$ git show 3eebf97:.github/workflows/release.yml > .github/workflows/release.yml
+exit=0
+$ git diff --stat
+ .github/workflows/release.yml | 9 ---------
+ 1 file changed, 9 deletions(-)
+$ pnpm exec vitest run tests/release-workflow.spec.ts
+
+ RUN  v4.1.11 /private/tmp/dshws-s41/stage4/clone
+
+ ❯ tests/release-workflow.spec.ts (8 tests | 1 failed) 5ms
+     ✓ publishes through OIDC trusted publishing, never a stored token 1ms
+     ✓ is triggered by v* tags only and checks out the full history 0ms
+     ✓ runs the gates in order: typecheck, lint, tests, i18n, build, tag check, pack, tarball check, release, publish 0ms
+     ✓ installs npm 11 before the consistency check and the publish 0ms
+     ✓ publishes the scoped tarball to the npmjs registry with provenance 0ms
+     × prints the npm-side reason when the publish fails, and nothing when it succeeds 2ms
+     ✓ runs on every pull request and on pushes to master 0ms
+     ✓ rehearses the release without publishing: build, pack, tarball check 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/release-workflow.spec.ts > release workflow (ADR-0026) > prints the npm-side reason when the publish fails, and nothing when it succeeds
+AssertionError: expected undefined to be 'publish' // Object.is equality
+
+- Expected:
+"publish"
+
++ Received:
+undefined
+
+ ❯ tests/release-workflow.spec.ts:113:39
+    111|     const diagnose = release.steps.findIndex((step) => /grep -hE ' \[a…
+    112|     expect(publish).toBeGreaterThan(-1)
+    113|     expect(release.steps[publish].id).toBe('publish')
+       |                                       ^
+    114|     expect(diagnose).toBeGreaterThan(publish)
+    115|     expect(release.steps[diagnose].if).toBe("failure() && steps.publis…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  03:03:08
+   Duration  121ms (transform 16ms, setup 11ms, import 30ms, tests 5ms, environment 0ms)
+
+exit=1

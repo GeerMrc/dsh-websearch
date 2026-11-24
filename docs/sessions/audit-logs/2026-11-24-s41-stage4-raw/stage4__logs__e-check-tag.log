@@ -1,0 +1,3 @@
+check-release: tag v0.2.1 does not name the package.json version (0.2.0); expected v<version> with a stable triple
+check-release: 1 problem(s)
+exit=1

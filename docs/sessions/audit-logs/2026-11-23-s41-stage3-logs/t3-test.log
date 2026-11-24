@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/peer-range.spec.ts (23 tests) 11ms
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  01:42:10
+   Duration  133ms (transform 16ms, setup 12ms, import 27ms, tests 11ms, environment 0ms)
+

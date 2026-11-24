@@ -1,0 +1,127 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/release-workflow.spec.ts (7 tests | 6 failed) 8ms
+     × publishes through OIDC trusted publishing, never a stored token 3ms
+     × is triggered by v* tags only and checks out the full history 1ms
+     × runs the gates in order: typecheck, lint, tests, i18n, build, tag check, pack, tarball check, release, publish 2ms
+     × installs npm 11 before the consistency check and the publish 0ms
+     × publishes the scoped tarball to the npmjs registry with provenance 0ms
+     ✓ runs on every pull request and on pushes to master 0ms
+     × rehearses the release without publishing: build, pack, tarball check 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/release-workflow.spec.ts > release workflow (ADR-0026) > publishes through OIDC trusted publishing, never a stored token
+AssertionError: expected undefined to be 'write' // Object.is equality
+
+- Expected:
+"write"
+
++ Received:
+undefined
+
+ ❯ tests/release-workflow.spec.ts:55:45
+     53|
+     54|   it('publishes through OIDC trusted publishing, never a stored token'…
+     55|     expect(release.permissions['id-token']).toBe('write')
+       |                                             ^
+     56|     expect(release.permissions.contents).toBe('write')
+     57|     expect(release.text).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/release-workflow.spec.ts > release workflow (ADR-0026) > is triggered by v* tags only and checks out the full history
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/release-workflow.spec.ts:62:74
+     60|   it('is triggered by v* tags only and checks out the full history', (…
+     61|     expect(release.on).toEqual({ push: { tags: ['v*'] } })
+     62|     expect(release.with.some((options) => options['fetch-depth'] === 0…
+       |                                                                          ^
+     63|   })
+     64|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/release-workflow.spec.ts > release workflow (ADR-0026) > runs the gates in order: typecheck, lint, tests, i18n, build, tag check, pack, tarball check, release, publish
+AssertionError: expected [ 'typecheck', 'lint', 'tests', …(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "typecheck",
++   "lint",
++   "tests",
++   "i18n",
++   "tag consistency",
++   "tarball check",
++ ]
+
+ ❯ tests/release-workflow.spec.ts:82:82
+     80|       return { label, index }
+     81|     })
+     82|     expect(positions.filter((gate) => gate.index < 0).map((gate) => ga…
+       |                                                                                  ^
+     83|     const order = positions.map((gate) => gate.index)
+     84|     expect(order).toEqual([...order].sort((a, b) => a - b))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/release-workflow.spec.ts > release workflow (ADR-0026) > installs npm 11 before the consistency check and the publish
+AssertionError: expected -1 to be greater than -1
+ ❯ tests/release-workflow.spec.ts:89:19
+     87|   it('installs npm 11 before the consistency check and the publish', (…
+     88|     const npm11 = first(release.runs, /npm install -g npm@11$/)
+     89|     expect(npm11).toBeGreaterThan(-1)
+       |                   ^
+     90|     expect(npm11).toBeLessThan(first(release.runs, /npm publish /))
+     91|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/release-workflow.spec.ts > release workflow (ADR-0026) > publishes the scoped tarball to the npmjs registry with provenance
+AssertionError: expected 'npm publish ./dist-artifacts/maricgee…' to match /--provenance/
+
+- Expected:
+/--provenance/
+
++ Received:
+"npm publish ./dist-artifacts/maricgeer-dsh-websearch-*.tgz --registry https://registry.npmjs.org --access public"
+
+ ❯ tests/release-workflow.spec.ts:97:21
+     95|     expect(publish).toMatch(/\.\/dist-artifacts\/maricgeer-dsh-websear…
+     96|     expect(publish).toMatch(/--registry https:\/\/registry\.npmjs\.org…
+     97|     expect(publish).toMatch(/--provenance/)
+       |                     ^
+     98|     expect(publish).toMatch(/--access public/)
+     99|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/release-workflow.spec.ts > CI workflow > rehearses the release without publishing: build, pack, tarball check
+AssertionError: expected -1 to be greater than 5
+ ❯ tests/release-workflow.spec.ts:111:56
+    109|
+    110|   it('rehearses the release without publishing: build, pack, tarball c…
+    111|     expect(first(ci.runs, /node scripts\/pack\.mjs$/)).toBeGreaterThan…
+       |                                                        ^
+    112|     expect(ci.runs).toContain('node scripts/check-release.mjs --tarbal…
+    113|     expect(ci.runs.some((run) => /npm publish|gh release /.test(run)))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 1 passed (7)
+   Start at  02:35:08
+   Duration  145ms (transform 16ms, setup 12ms, import 39ms, tests 8ms, environment 0ms)
+

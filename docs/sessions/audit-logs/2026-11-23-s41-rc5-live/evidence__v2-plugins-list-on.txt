@@ -1,0 +1,13 @@
+- heading "内置插件配置" [level=3]
+- list:
+  - button "查看 子智能体": 子智能体
+  - generic: 设置子智能体的递归层级、数量和模型。
+  - button "查看 Agent 循环": Agent 循环
+  - generic: 控制 Agent 派发工具调用的方式。
+  - button "查看 终端": 终端
+  - generic: 限制每条命令最多能跑多久、最多输出多少内容。
+- heading "已安装插件" [level=3]
+- list:
+  - button "查看 dsh-websearch": dsh-websearch
+  - status
+  - switch "启用 dsh-websearch" [checked]

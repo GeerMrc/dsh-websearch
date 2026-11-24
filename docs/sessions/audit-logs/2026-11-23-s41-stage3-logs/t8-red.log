@@ -1,0 +1,25 @@
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ❯ tests/client/handover-watch.spec.tsx (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/client/handover-watch.spec.tsx [ tests/client/handover-watch.spec.tsx ]
+Error: Cannot find module '../../src/client/handover-watch.ts' imported from /Volumes/IPFSJK/Zcode/dsh-websearch/tests/client/handover-watch.spec.tsx
+ ❯ tests/client/handover-watch.spec.tsx:3:1
+      1| import { describe, expect, it, vi } from 'vitest'
+      2| import type { Context } from '@deepseek-ai/cordis'
+      3| import { BUNDLE_NAMES, PLUGIN_MANAGER_CHANGED, installHandoverWatch } …
+       | ^
+      4|
+      5| /**
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  02:02:52
+   Duration  114ms (transform 27ms, setup 12ms, import 0ms, tests 0ms, environment 0ms)
+

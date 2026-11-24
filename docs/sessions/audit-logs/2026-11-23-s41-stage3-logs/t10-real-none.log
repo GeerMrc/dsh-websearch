@@ -1,0 +1,3 @@
+$ node scripts/check-release.mjs
+check-release: nothing to check: pass --tag vX.Y.Z and/or --tarballs <dir>
+[ELIFECYCLE] Command failed with exit code 2.

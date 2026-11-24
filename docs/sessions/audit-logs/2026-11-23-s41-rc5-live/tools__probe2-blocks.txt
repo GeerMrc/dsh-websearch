@@ -1,0 +1,37 @@
+@@FILE src/client/handover-watch.ts
+@@OLD
+const probe = (message: string) => console.error(`[dshws-probe] ${message}`);
+@@NEW
+const probe = (message: string) => {
+  try { localStorage.setItem('dshws-probe', `${localStorage.getItem('dshws-probe') ?? ''}${Date.now()} ${message}\n`); } catch { /* storage unavailable in this context */ }
+  console.error(`[dshws-probe] ${message}`);
+};
+@@END
+@@OLD
+  return ctx.remote.$on(PLUGIN_MANAGER_CHANGED, () => {
+@@NEW
+  const unsubscribe = ctx.remote.$on(PLUGIN_MANAGER_CHANGED, () => {
+@@END
+@@OLD
+      warn(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  });
+}
+@@NEW
+      warn(`handover watch failed: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  });
+  return () => { probe('client: watch unsubscribed (client half torn down)'); unsubscribe(); };
+}
+@@END
+@@FILE src/index.ts
+@@OLD
+  ctx.inject(['settings'], (settingsCtx) => {
+    const settings = settingsCtx.settings as unknown as import('./handover.ts').HandoverSettings;
+@@NEW
+  ctx.effect(() => () => probeHost('host effect teardown fired'));
+  ctx.on('dispose', () => probeHost('host outer dispose fired (registered in apply)'));
+  ctx.inject(['settings'], (settingsCtx) => {
+    probeHost('host: settings injected, dispose hook being registered');
+    const settings = settingsCtx.settings as unknown as import('./handover.ts').HandoverSettings;
+@@END

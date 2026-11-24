@@ -1,0 +1,84 @@
+$ pnpm exec vitest run tests/patch.test.ts
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/patch.test.ts (10 tests) 3ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  03:08:48
+   Duration  87ms (transform 12ms, setup 10ms, import 8ms, tests 3ms, environment 0ms)
+
+exit=0
+$ pnpm exec vitest run tests/handover.spec.ts
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/handover.spec.ts (14 tests) 5ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  03:08:48
+   Duration  96ms (transform 17ms, setup 11ms, import 13ms, tests 5ms, environment 0ms)
+
+exit=0
+$ pnpm exec vitest run tests/client/handover-watch.spec.tsx
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/client/handover-watch.spec.tsx (19 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  03:08:49
+   Duration  117ms (transform 24ms, setup 11ms, import 21ms, tests 6ms, environment 0ms)
+
+exit=0
+$ pnpm exec vitest run tests/package-meta.spec.ts
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/package-meta.spec.ts (9 tests) 3ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  03:08:49
+   Duration  91ms (transform 13ms, setup 11ms, import 9ms, tests 3ms, environment 0ms)
+
+exit=0
+$ pnpm exec vitest run tests/check-release.spec.ts
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/check-release.spec.ts (17 tests) 414ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  03:08:50
+   Duration  517ms (transform 25ms, setup 11ms, import 23ms, tests 414ms, environment 0ms)
+
+exit=0
+$ pnpm exec vitest run tests/release-workflow.spec.ts
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/release-workflow.spec.ts (8 tests) 4ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  03:08:51
+   Duration  120ms (transform 16ms, setup 11ms, import 32ms, tests 4ms, environment 0ms)
+
+exit=0
+$ pnpm exec vitest run tests/peer-range.spec.ts
+
+ RUN  v4.1.11 /Volumes/IPFSJK/Zcode/dsh-websearch
+
+ ✓ tests/peer-range.spec.ts (23 tests) 11ms
+
+ Test Files  1 passed (1)
+      Tests  23 passed (23)
+   Start at  03:08:52
+   Duration  115ms (transform 15ms, setup 11ms, import 19ms, tests 11ms, environment 0ms)
+
+exit=0

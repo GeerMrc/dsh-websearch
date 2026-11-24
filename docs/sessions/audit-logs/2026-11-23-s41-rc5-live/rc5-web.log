@@ -1,0 +1,19 @@
+dsh web: http://127.0.0.1:3434/?token=<redacted>
+[dshws-probe] host: apply
+[dshws-probe] host: apply
+[dshws-probe] host: host: settings injected, dispose hook being registered
+[dshws-probe] host: host effect teardown fired
+[dshws-probe] host: apply
+[dshws-probe] host: settings injected; registering effect-teardown probes
+[dshws-probe] host: effect teardown fired
+[dshws-probe] host: web descriptor {"revision":3,"user":{"searchProvider":"dshws-tavily","fetchProvider":"dshws-fetch-gate"}}
+[dshws-probe] host: bound callback running
+[dshws-probe] host: direct mutate failed: Error: HMR transactions cannot be nested
+[dshws-probe] host: bound mutate failed: Error: HMR transactions cannot be nested
+[dshws-probe] host: apply
+[dshws-probe] host: settings injected; registering effect-teardown probes
+[dshws-probe] host: effect teardown fired
+[dshws-probe] host: web descriptor {"revision":3,"user":{"searchProvider":"dshws-tavily","fetchProvider":"dshws-fetch-gate"}}
+[dshws-probe] host: bound callback running
+[dshws-probe] host: direct mutate failed: Error: HMR transactions cannot be nested
+[dshws-probe] host: bound mutate failed: Error: HMR transactions cannot be nested

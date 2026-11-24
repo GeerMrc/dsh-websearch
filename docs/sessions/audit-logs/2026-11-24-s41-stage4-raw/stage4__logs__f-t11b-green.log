@@ -1,0 +1,15 @@
+$ git checkout -- .github/workflows/release.yml
+exit=0
+$ git status --short
+$ pnpm exec vitest run tests/release-workflow.spec.ts
+
+ RUN  v4.1.11 /private/tmp/dshws-s41/stage4/clone
+
+ ✓ tests/release-workflow.spec.ts (8 tests) 4ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  03:03:19
+   Duration  111ms (transform 15ms, setup 10ms, import 28ms, tests 4ms, environment 0ms)
+
+exit=0

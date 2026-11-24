@@ -1,0 +1,38 @@
+{
+ "file": ".github/workflows/release.yml",
+ "name": "Release",
+ "on": {
+  "push": {
+   "tags": [
+    "v*"
+   ]
+  }
+ },
+ "permissions": {
+  "contents": "write",
+  "id-token": "write"
+ },
+ "jobs": {
+  "release": {
+   "runsOn": "ubuntu-latest",
+   "steps": [
+    "1. [uses] actions/checkout@v4 {\"fetch-depth\":0}",
+    "2. [uses] pnpm/action-setup@v4",
+    "3. [uses] actions/setup-node@v4 {\"node-version\":22,\"cache\":\"pnpm\",\"registry-url\":\"https://registry.npmjs.org\"}",
+    "4. [run] pnpm install --frozen-lockfile",
+    "5. [run] pnpm run typecheck",
+    "6. [run] pnpm run lint",
+    "7. [run] pnpm test",
+    "8. [run] pnpm run check:i18n",
+    "9. [run] pnpm run build",
+    "10. [run] npm install -g npm@11",
+    "11. [run] node scripts/check-release.mjs --tag \"$GITHUB_REF_NAME\"",
+    "12. [run] node scripts/pack.mjs",
+    "13. [run] node scripts/check-release.mjs --tarballs dist-artifacts",
+    "14. [run] gh release create \"$GITHUB_REF_NAME\" --title \"$GITHUB_REF_NAME\" --generate-notes dist-artifacts/*.tgz || gh release upload \"$GITHUB_REF_NAME\" dist-artifacts/*.tgz --clobber | env={\"GH_TOKEN\":\"${{ github.token }}\"}",
+    "15. [run] id=publish | npm publish ./dist-artifacts/maricgeer-dsh-websearch-*.tgz --registry https://registry.npmjs.org --access public --provenance",
+    "16. [run] if=failure() && steps.publish.outcome == 'failure' | grep -hE ' [a-z]+ oidc ' \"$(npm config get cache)\"/_logs/*-debug-0.log || echo \"no trusted-publishing lines in npm's debug logs\""
+   ]
+  }
+ }
+}
