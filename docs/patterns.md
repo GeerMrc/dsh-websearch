@@ -73,3 +73,26 @@
 兄弟仓 P8 实录：同批推送分支+tag 曾不触发 workflow。本仓 runbook 原方案为 `git push --atomic origin master vX.Y.Z`。
 **定档**：主顺序改为**先推 master、确认 CI 绿、再推 tag**（最坏态=master 已推而 tag 未推=无发布、可安全重试 tag；
 tag 先行的坏态=发布了一个未经 CI 的提交）。atomic 仅在两步均不可行时使用且须人工盯 workflow 触发。
+
+## PC6. scoped npm 包安装须用双名别名（2026-11-24 v0.2.1 发布后实测）
+
+**场景**：npm 反抢注拒绝了裸包名，插件以 scoped 名发布（`@maricgeer/dsh-websearch`），但 bundle 插入行的 `name` 是裸名。
+
+**机制**（rc.5 resolver 实测）：
+- Loader 按插入行 `name` 经 `node_modules/<name>` 解析——scoped 直装后裸名目录不存在，启动报
+  `dsh-websearch failed to import: Cannot find package 'dsh-websearch'`、`1 entry did not activate`，插件整体不加载
+- pnpm 的 `minimumReleaseAge` 是**解析偏好而非硬门**（有豁免条目时除外）：新版本未过 24h 窗口时**静默解析到旧版本**
+  （实测无豁免的 profile add 拿到 0.2.0 而非 0.2.1，无任何告警）
+
+**配方**（装/升级 scoped 插件到 bare-name 槽位）：
+```sh
+'<launcher>' plugin --profile <p> add 'dsh-websearch@npm:@maricgeer/dsh-websearch@<ver>'
+# 依赖行变成 "dsh-websearch": "npm:@maricgeer/dsh-websearch@<ver>"，bundles 回裸名，node_modules/dsh-websearch 在位
+```
+- 前置：目标版本的 profile `pnpm-workspace.yaml` 加 `minimumReleaseAgeExclude` 条目（照既有格式逐版本钉），
+  否则静默拿到旧版
+- 验证：`node_modules/<bare>/package.json` 版本正确；启动日志零 `did not activate`；`--dump-config` 插件行在位
+
+**禁忌**：
+- ❌ 不要 `add @maricgeer/dsh-websearch`（scoped 直装）——插入行裸名解析失败，插件不加载
+- ❌ 不要凭"add 成功"判断装对——年龄门静默降级时 add 也成功，只是装的是旧版
