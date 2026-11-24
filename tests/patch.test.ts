@@ -17,9 +17,13 @@ const patch = readFileSync(new URL('../cordis.patch.yml', import.meta.url), 'utf
 const overrideIds = [...patch.matchAll(/^- id: (\S+)/gm)].map((match) => match[1])
 
 describe('bundle patch content (ADR-0013 装即接管, ADR-0024 接管设置页)', () => {
-  it('inserts the plugin row (组装面不变)', () => {
+  it('inserts the plugin row with the loader-entry name equal to the manifest name (client-modules pairing leg 1, v0.2.3)', () => {
     expect(patch).toContain('- id: dsh-websearch')
-    expect(patch).toContain('name: dsh-websearch')
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { name: string }
+    // The rc.5 client-modules rule is a three-way exact string equality:
+    // insert-row name == manifest name == the client bundle's registration id.
+    // Scoped names are YAML-quoted (a bare @-scalar does not parse).
+    expect(patch).toContain(`name: '${pkg.name}'`)
   })
 
   it('pins the web row config with both keys restated and no name guard', () => {

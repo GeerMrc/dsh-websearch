@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'tsdown'
 
 /**
@@ -7,12 +8,21 @@ import { defineConfig } from 'tsdown'
  * banner/footer/intro below wrap the bundle body into that contract, the same
  * way the in-repo `clientBundle` preset does (host `tsdown.client.ts:589-591`).
  *
+ * Registration id (v0.2.3): stamped from the package manifest name — the same
+ * rule as the host's shared preset (`packages/client/tsdown.client.ts`,
+ * `const id = manifest.name`). The rc.5 client-modules pairing is a three-way
+ * exact string equality (insert-row name == manifest name == this id); a
+ * hardcoded id silently orphaned the client half under the scoped npm name
+ * (the v0.2.1/v0.2.2 bug — see docs/patterns.md PC6).
+ *
  * Externals are the frozen module table: react basics come from
  * `PLATFORM_MODULES`, and `@deepseek-ai/dsh-client-ui-primitives` is requested
  * through the manifest's `dsh.client.external` (package.json). Bundling any
  * `@deepseek-ai/*` implementation would fork React contexts and host styles —
  * the build must keep them external, which `pnpm build:client` evidence greps.
  */
+const manifest = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { name: string }
+
 export default defineConfig({
   entry: ['src/client/index.ts'],
   outDir: 'lib',
@@ -35,7 +45,7 @@ export default defineConfig({
     // Serving channel is single-file: `/plugins/<id>/` carries exactly client.js.
     entryFileNames: 'client.js',
     inlineDynamicImports: true,
-    banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify('dsh-websearch')}, factory: (require) => {`,
+    banner: `window.__ModuleLoader__.load({ id: ${JSON.stringify(manifest.name)}, factory: (require) => {`,
     footer: 'return module.exports; } });',
     intro: 'var module = { exports: {} }; var exports = module.exports;',
   },

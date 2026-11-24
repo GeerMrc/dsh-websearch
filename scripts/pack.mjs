@@ -3,9 +3,14 @@
  * Dual-name tarball packer (S36 T8): produces both distribution names in one
  * call — the scoped npm name (`@maricgeer/dsh-websearch`, npm rejected the
  * bare name) and the bare name (`dsh-websearch`, the plugin registration id
- * the dsh client-modules runner requires for profile installs). The bare
- * pack temporarily rewrites package.json's name field; the file is restored
- * byte-identical even when the pack fails.
+ * the dsh client-modules runner requires for profile installs).
+ *
+ * v0.2.3: the bare pack temporarily rewrites ALL THREE identity legs — the
+ * package.json name field, the cordis.patch.yml insert-row name, and the
+ * client bundle's `__ModuleLoader__.load({ id })` registration literal in
+ * lib/client.js — because the rc.5 client-modules pairing is a three-way
+ * exact string equality (insert name == manifest name == registration id).
+ * Every flipped file is restored byte-identical even when the pack fails.
  *
  * Usage: node scripts/pack.mjs   (run `pnpm run build` first)
  */
@@ -17,6 +22,8 @@ import { dirname, join, resolve } from 'node:path'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pkgPath = join(repoRoot, 'package.json')
+const patchPath = join(repoRoot, 'cordis.patch.yml')
+const clientPath = join(repoRoot, 'lib', 'client.js')
 const nameField = /("name"\s*:\s*")[^"]+(")/
 
 /**
@@ -30,6 +37,61 @@ export function bareName(name) {
 }
 
 /**
+ * Rewrite the insert-row loader-entry name between forms. Scoped names are
+ * YAML-quoted (a bare @-scalar does not parse); bare names are unquoted.
+ * Fails loud when the scoped anchor is absent — a silent no-op here ships a
+ * tarball whose patch leg contradicts its manifest leg.
+ * @param text - cordis.patch.yml content.
+ * @param from - the name currently carried by the insert row.
+ * @param to - the name to write.
+ * @returns the rewritten patch text.
+ */
+export function flipPatchInsertName(text, from, to) {
+  const anchor = `name: '${from}'`
+  if (!text.includes(anchor)) {
+    throw new Error(`insert-row name anchor "${anchor}" not found; refusing to pack ${to}`)
+  }
+  return text.replace(anchor, `name: ${to}`)
+}
+
+/**
+ * Rewrite the client bundle's registration id literal between forms. Fails
+ * loud when the anchor is absent (no built client, or a changed banner
+ * format) — a silent no-op ships a client half that registers under the
+ * wrong id and is silently dropped by the host.
+ * @param text - lib/client.js content.
+ * @param from - the id currently built into the banner.
+ * @param to - the id to write.
+ * @returns the rewritten client bundle text.
+ */
+export function flipClientRegistrationId(text, from, to) {
+  const anchor = `id: ${JSON.stringify(from)},`
+  if (!text.includes(anchor)) {
+    throw new Error(`client registration id anchor "${anchor}" not found; refusing to pack ${to}`)
+  }
+  return text.replace(anchor, `id: ${JSON.stringify(to)},`)
+}
+
+/**
+ * Run `fn` with one file's content rewritten by `flip`, restoring the
+ * original bytes afterwards — including on failure (a failed pack must never
+ * leave a half-flipped tree).
+ * @param path - the file to rewrite.
+ * @param flip - `(text) => text` rewrite; throws on a missing anchor.
+ * @param fn - action to run under the flipped content (typically `npm pack`).
+ * @returns whatever `fn` resolves to; rethrows `fn`'s error after restoring.
+ */
+async function withFlippedFile(path, flip, fn) {
+  const original = await readFile(path, 'utf8')
+  await writeFile(path, flip(original))
+  try {
+    return await fn()
+  } finally {
+    await writeFile(path, original)
+  }
+}
+
+/**
  * Run `fn` with package.json's name field rewritten to `name`, restoring the
  * original bytes afterwards — including on failure (a failed pack must never
  * leave the manifest corrupted).
@@ -39,17 +101,30 @@ export function bareName(name) {
  * @returns whatever `fn` resolves to; rethrows `fn`'s error after restoring.
  */
 export async function withFlippedName(path, name, fn) {
-  const original = await readFile(path, 'utf8')
-  const flipped = original.replace(nameField, `$1${name}$2`)
-  if (flipped === original && !original.includes(`"name": "${name}"`)) {
-    throw new Error(`name field not found in ${path}; refusing to pack under ${name}`)
-  }
-  await writeFile(path, flipped)
-  try {
-    return await fn()
-  } finally {
-    await writeFile(path, original)
-  }
+  return withFlippedFile(path, (text) => {
+    const flipped = text.replace(nameField, `$1${name}$2`)
+    if (flipped === text && !text.includes(`"name": "${name}"`)) {
+      throw new Error(`name field not found in ${path}; refusing to pack under ${name}`)
+    }
+    return flipped
+  }, fn)
+}
+
+/**
+ * Run `fn` with ALL THREE identity legs flipped to the bare name (manifest,
+ * patch insert-row name, client registration id), restoring every file
+ * afterwards — including on failure.
+ * @param scoped - the scoped distribution name (the repo's current legs).
+ * @param bare - the bare distribution name to pack under.
+ * @param fn - action to run under the flipped identity (typically `npm pack`).
+ * @returns whatever `fn` resolves to; rethrows `fn`'s error after restoring.
+ */
+export async function withBareIdentity(scoped, bare, fn) {
+  return withFlippedName(pkgPath, bare, async () =>
+    withFlippedFile(patchPath, (text) => flipPatchInsertName(text, scoped, bare), async () =>
+      withFlippedFile(clientPath, (text) => flipClientRegistrationId(text, scoped, bare), fn),
+    ),
+  )
 }
 
 /**
@@ -79,7 +154,7 @@ async function main() {
   const scopedFile = npmPack()
   let bareFile
   if (bare !== scoped) {
-    bareFile = await withFlippedName(pkgPath, bare, () => npmPack())
+    bareFile = await withBareIdentity(scoped, bare, () => npmPack())
   }
   console.log(`packed ${scopedFile}${bareFile !== undefined ? ` + ${bareFile}` : ''} → dist-artifacts/`)
 }
