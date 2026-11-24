@@ -181,17 +181,17 @@ dsh --profile <profile> --dump-config | grep -n -A2 '^- id: ui-settings-web-sear
 
 ---
 
-## 问题 ⑥（插件作者向，非 bug）启用 HMR 的宿主上，bundle 被关闭后插件自己没有执行通道（S41 登记）
+## 问题 ⑥（插件作者向，非 bug）启用 HMR 的宿主上，bundle 被关闭后插件自己基本没有执行通道（S41 登记）
 
 ### 现象
 在插件页关闭一个 bundle 时，插件宿主侧由 `ctx.effect` 注册的 teardown 会运行，但其中经 `settings.mutate` 写配置被拒，宿主日志出现
-`HMR transactions cannot be nested`；由 `ctx.on('dispose')` 注册的处理器不运行；插件的客户端代码在收到 `plugin-manager/changed`
-之前已被退订。凡是设计成「关闭时由插件自己清理」的逻辑都不生效。
+`HMR transactions cannot be nested`；由 `ctx.on('dispose')` 注册的处理器不运行；插件的客户端代码多数在收到 `plugin-manager/changed`
+之前已被退订，少数存活并收到事件（S41 阶段 5：13 次里 2 次）。设计成「关闭时由插件自己清理」的逻辑因此不可靠。
 
 ### 影响版本（实测矩阵）
 | 宿主形态 | 结果 |
 |---|---|
-| 0.2.2-rc.5，web profile（HMR 启用） | ❌ 如上。2026-11-24 S41 实测，向量为插件页开关 |
+| 0.2.2-rc.5，web profile（HMR 启用） | 宿主侧如上。客户端守卫：13 次插件页关闭里 11 次在事件送达前被退订，2 次存活并收到事件，其中 1 次交还写入被接受（2026-11-24 S41）。判别条件未定位 |
 | 0.2.2-rc.5 桌面端 | ❔ 未实测。rc.5 的基础 patch 只在 headless、sdk、acp 三个 bundle 里禁用 `hmr` 行，而桌面端的插件页与设置保存都可用，据此判断桌面端同样启用 HMR |
 | 同一实例人为禁用 `hmr` 行 | 设置保存失败，不代表任何真实宿主 |
 

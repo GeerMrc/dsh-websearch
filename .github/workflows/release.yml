@@ -62,7 +62,7 @@ jobs:
         run: node scripts/check-release.mjs --tag "$GITHUB_REF_NAME"
       - name: Pack dual names
         run: node scripts/pack.mjs
-      - name: Tarball check (required files, no internal documents, no token values)
+      - name: Tarball check (required files, no internal documents; token values are scanned in the committed tree)
         run: node scripts/check-release.mjs --tarballs dist-artifacts
       - name: Create GitHub Release with both tarballs
         # upload fallback keeps reruns working when the release already exists

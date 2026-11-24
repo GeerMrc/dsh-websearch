@@ -47,8 +47,10 @@ tag 推送即发布确认点；发布由 OIDC 完成，且只有通过版本三�
 3. 一致性校验 `scripts/check-release.mjs` 在 tag 模式下断言：tag 形如 `vX.Y.Z` 且等于 `package.json` 版本；
    CHANGELOG 的首个日期二级标题含 `v<版本>`（历史条目里不带 `v` 的提法不算）；`USER_AGENT` 等于
    `dsh-websearch/<版本>`；tag 对象指向 HEAD，且 HEAD 被 `master` 包含。
-4. tarball 校验断言两份 tarball 都含运行必需文件与显示元信息文件，且不含内部治理文档与任何带值的
-   `token=`。非 tag 模式与 tarball 校验由 `ci.yml` 在每次 PR 与 master 推送上执行，使问题在打 tag 之前暴露。
+4. tarball 校验断言两份 tarball 都含运行必需文件与显示元信息文件，且不含内部治理文档。
+   〔2026-11-24 修订：带值的 `token=` 不在 tarball 里查，而是扫 HEAD 提交树里已提交的内容，即 tag 将要发布的；
+   未提交的改动不在内。本地这一次因此在提交之后跑才有效。〕
+   非 tag 模式与 tarball 校验由 `ci.yml` 在每次 PR 与 master 推送上执行，使问题在打 tag 之前暴露。
 5. 推送方式为 `git push --atomic origin master v<X.Y.Z>`，tag 为带注解 tag。master、远端 tag、npm 版本
    由同一次操作与同一条流水线产生。打 tag 之前先推送 feat 分支开草稿 PR，让 `ci.yml` 在候选提交上完成
    发布预演。

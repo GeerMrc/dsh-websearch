@@ -68,7 +68,8 @@ node scripts/pack.mjs
 node scripts/check-release.mjs --tarballs dist-artifacts
 ```
 
-判据：全部退出码 0。`--tarballs` 这一次即非 tag 模式：校验两个 tarball 的内容，并扫描被跟踪文件里的 host token 值。
+判据：全部退出码 0。`--tarballs` 这一次即非 tag 模式：校验两个 tarball 的内容，并扫描 HEAD 提交树里已提交的 host token 值。
+扫描不含未提交的改动，所以本地这一次要在提交之后跑才有效。
 随后来的是独立核验（Session 42 阶段 4），核验对象是版本变更后的提交。
 
 在单独的克隆里做本节，不要在主检出里做：`node scripts/pack.mjs` 会写当前检出的 `dist-artifacts/`，而主检出的这个目录里
