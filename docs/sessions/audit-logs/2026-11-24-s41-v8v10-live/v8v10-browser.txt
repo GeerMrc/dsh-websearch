@@ -1,0 +1,2 @@
+V8 after toggle OFF: {"officialCardBack":true,"switchOn":"false"}
+V10 final check (>60s after toggle): {"nav":true,"ready":"complete","switchState":"false"}
