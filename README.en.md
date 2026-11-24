@@ -179,6 +179,7 @@ Combination constraints (fail-loud: on 0.1.5/0.1.6 hosts the settings validate h
 - **Upgrades**: see [docs/upgrade.md](docs/upgrade.md).
 
 ## More docs
+- [docs/patterns.md](docs/patterns.md) — plugin-page intro-card and swap-verification patterns (PC1–PC3, reusable)
 - [docs/known-upstream-issues.md](docs/known-upstream-issues.md) — known upstream DSH issues register (zh; symptoms/workarounds/self-checks, incl. the fork fix-branch usage)
 
 - Architecture: [docs/00-architecture.md](docs/00-architecture.md)

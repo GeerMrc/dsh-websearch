@@ -179,6 +179,7 @@ dsh-websearch:
 - **升级**：见 [docs/upgrade.md](docs/upgrade.md)。
 
 ## 更多文档
+- [docs/patterns.md](docs/patterns.md) — 插件页介绍卡与换装验证范本（PC1–PC3，跨版本复用）
 - [docs/known-upstream-issues.md](docs/known-upstream-issues.md) —— 已知上游 DSH 问题登记表（现象/规避/自查命令，含 fork 修复分支用法）
 - [docs/desktop-adoption.md](docs/desktop-adoption.md) —— 官方桌面端全貌与采用实测（ADR-0023）
 - [docs/upstream-sync-sop.md](docs/upstream-sync-sop.md) —— 随官方上游（npm 线 + 桌面端）迭代的同步 SOP（监测/决策/守卫重放/双端验证/发版联动）
