@@ -111,3 +111,25 @@ describe('plugin display metadata (ADR-0025 插件页文档分离)', () => {
     expect(read(path)).not.toMatch(/<[a-z][^>]*>/i)
   })
 })
+
+describe('governance files are not clobbered (S41 incident guard)', () => {
+  /**
+   * Twice this session a whole-file rewrite script wrote a governance file's own path
+   * as its content (`writeFileSync(t = f, ...)` evaluation-order slip), and the clobbered
+   * file was committed. A governance file that equals its own path — or shrinks to a
+   * stub — must never reach a commit again.
+   */
+  it('keeps STATUS, the session record, the roadmap and the ledger above stub size and free of self-path content', () => {
+    const files = [
+      'docs/STATUS.md',
+      'docs/sessions/2026-11-23-session-41.md',
+      'docs/session-roadmap.md',
+      'docs/progress/progress-M7.md',
+    ]
+    for (const file of files) {
+      const text = read(file)
+      expect(text.length, file).toBeGreaterThan(2000)
+      expect(text.startsWith(file), `${file}: content is the file's own path`).toBe(false)
+    }
+  })
+})
