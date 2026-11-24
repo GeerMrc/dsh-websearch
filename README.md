@@ -47,12 +47,14 @@ dsh --profile web --dump-config
 **安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版、0.2.0-rc 线、0.2.2-rc.5 与 0.2.x 稳定版；0.1.8 与 0.3.x 不在域内）。**profile 安装唯一支持形态是裸名 tarball**（v0.2.2 起；PC6/M1 实测：npm scoped 名安装会静默丢失客户端半区——设置页「网页搜索」节与工具行徽标不渲染，宿主半区照常工作；0.2.2 起插件探测到此形态会在启动时把高声告警写入 `<DSH_HOME>/logs/dsh-websearch.log`，rc.5 宿主自身不输出插件日志）：
 
 ```sh
-# 方式一（推荐）：从本仓库发布页取裸名 tarball（dsh-websearch-<version>.tgz）
+# 方式一（推荐）：GitHub Release 裸名 tarball 一条命令直装（改版本号即升级）
+dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.2/dsh-websearch-0.2.2.tgz'
+# 方式二：发布页手动下载裸名 tarball 后本地安装
 dsh plugin --profile web add <dsh-websearch-tarball>
-# 方式二：从源码自行打包（dist-artifacts/ 里的裸名 tgz）
+# 方式三：从源码自行打包（dist-artifacts/ 里的裸名 tgz）
 git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
 pnpm install && pnpm run build && node scripts/pack.mjs
-# 方式三：profile package.json 依赖 file: 指向裸名 tarball 后 pnpm install
+# 方式四：profile package.json 依赖 file: 指向裸名 tarball 后 pnpm install
 ```
 
 scoped npm 包（https://www.npmjs.com/package/@maricgeer/dsh-websearch ；裸名 `dsh-websearch` 因 npm 防仿冒政策与既有包 `dsh-web-search` 过近被拒，故用 scope 分发）**只用于包管理器依赖解析与 registry 分发**（CI、e2e），不要装进 profile：`add @maricgeer/dsh-websearch` 宿主半区不加载，`dsh-websearch@npm:@maricgeer/dsh-websearch` 双名别名宿主半区可用但客户端半区静默缺失。另外 pnpm `minimumReleaseAge` 未加豁免时会**静默**解析到旧版本——registry 路径务必核对装到的版本号（PC6）。

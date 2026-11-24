@@ -48,12 +48,14 @@ dsh --profile web --dump-config
 **Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6/0.1.7 pre-release and stable lines, the 0.2.0-rc line, 0.2.2-rc.5, and 0.2.x stables; 0.1.8 and 0.3.x excluded). **The only supported profile-install form is the bare-name tarball** (from v0.2.2; measured in PC6/M1: an install under the scoped npm name silently loses the client half — the settings "Web Search" section and tool-row badges never render while the host half keeps working; from 0.2.2 the plugin detects that form at startup and writes a loud warning into `<DSH_HOME>/logs/dsh-websearch.log` — rc.5 hosts print no plugin logs of their own):
 
 ```sh
-# Option 1 (recommended): the bare-name tarball (dsh-websearch-<version>.tgz) from this repository's releases page
+# Option 1 (recommended): one-command install from the GitHub Release bare-name tarball (bump the version to upgrade)
+dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.2/dsh-websearch-0.2.2.tgz'
+# Option 2: download the bare-name tarball from the releases page, then install locally
 dsh plugin --profile web add <dsh-websearch-tarball>
-# Option 2: pack from source (the bare-name tgz lands in dist-artifacts/)
+# Option 3: pack from source (the bare-name tgz lands in dist-artifacts/)
 git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
 pnpm install && pnpm run build && node scripts/pack.mjs
-# Option 3: a file: dependency on the bare-name tarball in the profile package.json + pnpm install
+# Option 4: a file: dependency on the bare-name tarball in the profile package.json + pnpm install
 ```
 
 The scoped npm package (https://www.npmjs.com/package/@maricgeer/dsh-websearch — the bare name `dsh-websearch` was rejected by npm's typo-squatting policy as too similar to the existing `dsh-web-search`, hence the scoped distribution name) is **for dependency resolution and registry distribution only** (CI, e2e) — do not install it into a profile: `add @maricgeer/dsh-websearch` fails to load even the host half, and the `dsh-websearch@npm:@maricgeer/dsh-websearch` dual-name alias loads the host half but silently drops the client half. Also note pnpm's `minimumReleaseAge` **silently** resolves to an older version without an exclusion entry — always verify the installed version on registry paths (PC6).
