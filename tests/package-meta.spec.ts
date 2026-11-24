@@ -55,7 +55,7 @@ function structure(document: string): number[] {
     if (heading !== null) {
       closeSection()
       profile.push(heading[1]!.length)
-    } else if (/^- /.test(line)) {
+    } else if (line.startsWith('- ')) {
       listItems += 1
     } else if (line.startsWith('|')) {
       tableRows += 1
