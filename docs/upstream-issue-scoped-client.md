@@ -1,8 +1,9 @@
-# Upstream issue draft — S41 方案 C
+# Upstream issue — S41 方案 C（已外发）
 
-> **状态**：草稿（未提交）。提交目标：`deepseek-ai/deepseek-harness`。用户确认后才外发；
-> 提交后把链接补进 [known-upstream-issues.md](known-upstream-issues.md) 问题 ⑧。
-> 外发前自检：无本机路径、无内部 session 编号、复现步骤自包含、语气为「问规则」而非「报 bug 定罪」。
+> **状态**：已发出（2026-11-25，用户批准）。上游仓库 issues 关闭，改走 Discussions（Q&A 分类）：
+> https://github.com/deepseek-ai/deepseek-harness/discussions/14267
+> 链接已归档进 [known-upstream-issues.md](known-upstream-issues.md) 问题 ⑧。
+> 外发自检已过：无本机路径、无内部 session 编号、复现步骤自包含、语气为「问规则」而非「报 bug 定罪」。
 
 ---
 

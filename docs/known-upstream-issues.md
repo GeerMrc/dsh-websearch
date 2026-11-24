@@ -248,4 +248,5 @@ rc.5 把 `hmr`、`plugin-manager`、`config-editor`、`settings` 四行钉在同
 
 **技术沿革**：S41 PC6 实测链（npm 直装不加载 → 双名别名半残 → 裸名 tarball 全功能）+ M1 实验（三处身份一致仍不修复）定案；证据全文见 [session-41 记录](sessions/2026-11-23-session-41.md) 的 PC6 补充与「M1 实验结果」节。
 
-**上游 issue 登记**：草稿存 [docs/upstream-issue-scoped-client.md](upstream-issue-scoped-client.md)（英文，提交至 deepseek-ai/deepseek-harness；提交后此处补链接）。
+**上游 issue 登记**：草稿 [docs/upstream-issue-scoped-client.md](upstream-issue-scoped-client.md)；上游仓库 issues 关闭，已按用户 2026-11-25 批准改走 Discussions（Q&A 分类）发出：
+[deepseek-ai/deepseek-harness#14267](https://github.com/deepseek-ai/deepseek-harness/discussions/14267)。
