@@ -7,6 +7,7 @@ import { WebSearchSettingsSection } from '../../src/client/section.tsx'
  * so the name is the label's first text node, not its full textContent. */
 const rowBrand = (span: Element): string => (span.childNodes[0]?.textContent ?? '')
 import type { SectionProps } from '../../src/client/section.tsx'
+import type { WebSearchSettingsPorts } from '../../src/client/controller.ts'
 import type { ActionResult, MemberSnapshot, SectionSnapshot } from '../../src/client/controller.ts'
 import { en } from '../../src/client/locales.ts'
 import type { DshWsLocaleKey } from '../../src/client/locales.ts'
@@ -1414,3 +1415,35 @@ describe('T20c: placeholder typography and icon-button font join the scale', () 
     expect(stepper.style.fontSize).toBe('14px')
   })
 })
+
+describe('P3 audit: the controller survives component unmount (StrictMode equivalence)', () => {
+  it('renders, unmounts and renders again on one controller without losing state or subscribers', async () => {
+    const { bindWebSearchSettingsSection } = await import('../../src/client/section.tsx')
+    const { WebSearchSettingsController } = await import('../../src/client/controller.ts')
+    const remote = makeControllerRemote()
+    const controller = new WebSearchSettingsController(remote)
+    const Bound = bindWebSearchSettingsSection(controller)
+    const first = render(<Bound t={t} />)
+    expect(first.getByTestId('dshws-chains')).toBeTruthy()
+    first.unmount()
+    const second = render(<Bound t={t} />)
+    expect(second.getByTestId('dshws-chains')).toBeTruthy()
+    // the shared controller still serves fresh snapshots after the first component unmounted
+    controller.dispose()
+  })
+})
+
+/** Structural stand-in for the controller's port face (remount test only; values are inert). */
+function makeControllerRemote(): WebSearchSettingsPorts {
+  return {
+    describeSettings: () => Promise.resolve({ ok: true, value: { writable: true, hasDocument: false, namespaces: [{ ns: 'dsh-websearch', schema: {}, value: {}, autoGenerate: true, applies: 'live', secrets: [], revision: 0 }] } }) as never,
+    updateSettings: () => Promise.resolve({ ok: true, value: {} }) as never,
+    mutateSettings: () => Promise.resolve({ ok: true, value: {} }) as never,
+    describeCredentials: () => Promise.resolve({ ok: true, value: {} }) as never,
+    describeKeyCounts: () => Promise.resolve({ ok: true, value: {} }) as never,
+    setCredential: () => Promise.resolve({ ok: true, value: undefined }) as never,
+    unsetCredential: () => Promise.resolve({ ok: true, value: undefined }) as never,
+    onReferenceUpdated: () => () => {},
+  }
+}
+

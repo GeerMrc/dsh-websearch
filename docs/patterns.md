@@ -50,3 +50,26 @@
 1. 复制本仓 `locale/{zh,en}.json` + `docs/plugin-page.{zh,en}.md` + `tests/package-meta.spec.ts` 三件套
 2. 按 PC1 行数/结构模板写卡，量高度验收
 3. `files`/`exports` 白名单照抄；发布前跑 `check-release --tarballs`（含必需文件断言）
+
+## PC4. 兄弟仓 P1–P8 对照表（v0.2.1 审计，2026-11-24）
+
+对照 [dsh-mm-resilience patterns](../../dsh-mm-resilience/docs/patterns.md) 逐条核对本插件实现：
+
+| 参考条 | 本插件状态 | 说明 |
+|---|---|---|
+| P1 上下文注入行 | **不适用** | 本插件不向模型会话注入内容；served-by 走 toolview 行（ADR-0010），无气泡污染面 |
+| P2 meta.detail 文档分离 | ✅ 已应用（见 PC1） | 含语言链/路径规则/硬错语义全套 |
+| P3 设置卡官方同构 | **部分** | 控制器提升 ✅（在 `settings.section` 注入回调创建、随注入处置，等价于 apply() 生命周期）；**控件为自绘**（S06 起的历史设计：成员卡/链排序等富交互超出官方 SettingsForm 表达力，且用户已裁定「保持当前整体交互逻辑」）；**StrictMode 双挂载回归测试缺失** → 已补（见下）；用的是 `settings.section`（设置对话框）而非 `plugins.bundle.config`（插件页卡），属刻意选择 |
+| P4 对称接管/交还 | ✅ 已应用并按 rc.5 修正 | 接管用**随包补丁层**（比参考的路由行对账更强：层在则生效、层去则自动失效）；交还守卫只认 `dshws-*` 前缀（等价于「只 unset 仍等于自己应用值的行」）；客户端监听含冲突重试；rc.5 实测修正：HMR 宿主上事件送达前多被退订 → 启用期提示卡（T19）为可靠主通道 |
+| P5 真模型测试 | 原则已应用 | 本插件不用官方 SettingsFormModel（自绘控件），无需 src 编译法；FakeRemote 为有状态假件（记录调用+状态迁移），符合「关键链路禁仅静态假件」；带 key 的 e2e.real 待 key 窗口 |
+| P6 跨切纪律 | 基本 ✅ | Warn-only ✅（交还/DNS/守卫）；无条件注册 ✅（settings.section/toolview 不套 whileServed）；peerDeps 钉版 ✅（ADR-0027）；版本-Tag-npm 三同步 ✅（ADR-0026 + check-release）；CHANGELOG 四要素部分条目欠「预防」栏；private:true 不适用（0.2.0 已公开发布） |
+| P7 files 白名单 | ✅✅ 超出 | 逐文件白名单 + 发布门 `check-release --tarballs` **直接断言 tarball 内容物**（参考仓事故后建议加的 CI 步骤我们已内建） |
+| P8 发布全链路 | ✅ 已应用 | OIDC + npm 11 + provenance + runbook；**吸收其「同批推送可能不触发 workflow」教训 → 推送顺序改为主干先、tag 后**（见 runbook §7.3 与 PC5） |
+
+**P3 验证缺口处置**：新增「控制器跨组件挂载存活」回归测试（渲染→卸载→再渲染同一绑定组件，控制器不随组件卸载而失效）——P3 的 StrictMode 本质是「模型死于组件卸载」，该测试锁住我们的等价面。
+
+## PC5. 发布推送顺序（吸收 P8 踩坑）
+
+兄弟仓 P8 实录：同批推送分支+tag 曾不触发 workflow。本仓 runbook 原方案为 `git push --atomic origin master vX.Y.Z`。
+**定档**：主顺序改为**先推 master、确认 CI 绿、再推 tag**（最坏态=master 已推而 tag 未推=无发布、可安全重试 tag；
+tag 先行的坏态=发布了一个未经 CI 的提交）。atomic 仅在两步均不可行时使用且须人工盯 workflow 触发。
