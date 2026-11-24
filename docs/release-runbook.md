@@ -71,6 +71,10 @@ node scripts/check-release.mjs --tarballs dist-artifacts
 判据：全部退出码 0。`--tarballs` 这一次即非 tag 模式：校验两个 tarball 的内容，并扫描被跟踪文件里的 host token 值。
 随后来的是独立核验（Session 42 阶段 4），核验对象是版本变更后的提交。
 
+在单独的克隆里做本节，不要在主检出里做：`node scripts/pack.mjs` 会写当前检出的 `dist-artifacts/`，而主检出的这个目录里
+放着本机桌面端可能还在引用的裸名 tarball。本机 npm 是 10.x，流水线是 11.x，`npm pack` 的产物随 npm 版本不同，
+所以本地打出的 tarball 与发布出去的不是同一份字节。桌面端实测用的是本地这份；发布后按第 9 节核对 CI 打的那份。
+
 ## 6. 候选包装入桌面端实测（用户门控）
 
 备份 `~/.dsh/profiles/desktop` 的 `package.json`、`cordis.patch.yml`、`pnpm-lock.yaml`，用 app 内置命令装入
@@ -79,16 +83,23 @@ node scripts/check-release.mjs --tarballs dist-artifacts
 
 ## 7. 合并、打 tag、推送
 
-每一条带 ★ 的命令执行前单独取得用户确认。
+每一条带 ★ 的命令执行前单独取得用户确认。三段依次进行，前一段不过不进下一段。
 
 ```sh
-# 草稿 PR 预演（plan 048 步骤 2a）：推送 feat 分支并开草稿，等 ci.yml 在候选提交上跑完发布预演
+# 7.1 草稿 PR 预演（plan 048 步骤 2a）：让 ci.yml 在候选提交上跑发布预演
+git push -u origin <feat 分支>                                                 # ★ 公开推送，连同它带上的全部未推送提交
+gh pr create --draft --base master --head <feat 分支> --title "vX.Y.Z" --body "<说明>"
+gh pr checks --watch                                                           # 判据：CI 在 node 22 与 node 24 上都通过
+
+# 7.2 合并与 tag
 git checkout master
 git merge --ff-only <feat 分支>
 git tag -a vX.Y.Z -m "vX.Y.Z"                 # ★
 node scripts/check-release.mjs --tag vX.Y.Z   # 与流水线同一调用
 node scripts/pack.mjs
 node scripts/check-release.mjs --tarballs dist-artifacts
+
+# 7.3 推送
 git push --atomic origin master vX.Y.Z        # ★
 ```
 
@@ -118,6 +129,8 @@ git rev-parse 'vX.Y.Z^{}'
 - npm 的 `version` 等于 `X.Y.Z`，`dist.attestations` 含 provenance 条目。
 - GitHub Release 不是草稿、不是预发布，资产含 `maricgeer-dsh-websearch-X.Y.Z.tgz` 与 `dsh-websearch-X.Y.Z.tgz`。
 - 远端 tag 指向的提交等于本地 tag 指向的提交。
+- GitHub Release 里的裸名 tarball 是 CI 用 npm 11 打的，与桌面端实测用的本地那份不是同一份字节。下载后比对成员清单
+  （`tar -tzf <文件> | sort`），两份清单应当一致。
 
 `dist.attestations` 的字段形态取自 npm 注册表的通用返回，本包尚未有过带 provenance 的版本；首次发布后按实际所见修订本节。
 
@@ -136,8 +149,8 @@ git rev-parse 'vX.Y.Z^{}'
 | 输出里的字样 | 含义 | 处置 |
 |---|---|---|
 | `verbose oidc Failed token exchange request with body message: …`，随后 `ENEEDAUTH` | 注册表拒绝换取凭据：配置过期，或仓库名、工作流文件名、`repository.url` 不匹配 | 用户删除并重建配置（过期），或核对 P6、P7；然后 Re-run |
-| `Skipped because incorrect permissions for id-token within GitHub workflow` | 工作流缺 `id-token: write` | 契约测试已锁定这一项；仍出现说明 tag 所在提交的工作流被改过，修复要走新版本 |
-| `Skipped because no id_token available` | runner 没有提供 OIDC ID token | 确认 `runs-on` 是 GitHub 托管的 runner；npm 不支持自托管 runner |
+| `silly oidc Skipped because incorrect permissions for id-token within GitHub workflow` | 工作流缺 `id-token: write` | 契约测试已锁定这一项；仍出现说明 tag 所在提交的工作流被改过，修复要走新版本 |
+| `silly oidc Skipped because no id_token available` | runner 没有提供 OIDC ID token | 确认 `runs-on` 是 GitHub 托管的 runner；npm 不支持自托管 runner |
 | `cannot manage dist-tags` | npm 侧未授权该发布者管理 dist-tag | 用户在 npm 勾选 `Allow npm dist-tag`；然后 Re-run（ADR-0026 决策 8） |
 | `You cannot publish over the previously published versions` | 该版本已经在 npm 上（上一次运行在发布后才失败） | 按已发布处理，补做第 9 节核对 |
 | `Cannot implicitly apply the "latest" tag because previously published version … is higher` | 版本号低于 npm 上的最高版本 | 违反版本规则；修正版本号后以新 tag 重发 |
