@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { USER_AGENT } from '../../src/providers/shared.ts'
 import type { ExaMemberConfig } from '../../src/config.ts'
 import { MEMBER_ERROR_CODES } from '../../src/errors.ts'
 import {
@@ -258,7 +259,7 @@ describe('dshws-exa request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer exa-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
+    expect(headers['user-agent']).toBe(USER_AGENT)
     expect(JSON.parse(init.body as string)).toEqual({
       query: 'hello',
       type: 'auto',

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { USER_AGENT } from '../../src/providers/shared.ts'
 import type { FirecrawlMemberConfig } from '../../src/config.ts'
 import { MEMBER_ERROR_CODES } from '../../src/errors.ts'
 import {
@@ -240,7 +241,7 @@ describe('dshws-firecrawl search face (mock HTTP)', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer fc-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
+    expect(headers['user-agent']).toBe(USER_AGENT)
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', limit: 5, timeout: 20_000 })
   })
 

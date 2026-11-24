@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { USER_AGENT } from '../../src/providers/shared.ts'
 import { MEMBER_ERROR_CODES } from '../../src/errors.ts'
 import {
   ANYSEARCH_DEFAULT_BASE_URL,
@@ -122,7 +123,7 @@ describe('dshws-anysearch wire behavior (mock HTTP)', () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('https://anysearch.example/v1/search')
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer anysearch-fake-key')
-    expect(new Headers(init.headers).get('user-agent')).toBe('dsh-websearch/0.2.0')
+    expect(new Headers(init.headers).get('user-agent')).toBe(USER_AGENT)
     expect(JSON.parse(String(init.body))).toEqual({ query: 'hello', zone: 'cn' })
 
     const unzoned = makeProvider()

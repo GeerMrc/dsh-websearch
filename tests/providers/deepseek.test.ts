@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { USER_AGENT } from '../../src/providers/shared.ts'
 import type { WebSearchResult } from '@deepseek-ai/dsh-web'
 import type { DeepSeekMemberConfig } from '../../src/config.ts'
 import {
@@ -81,7 +82,7 @@ describe('dshws-deepseek request mapping', () => {
     expect(headers['authorization']).toBe('Bearer dk-key')
     expect(headers['anthropic-version']).toBe(DEEPSEEK_API_VERSION)
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
+    expect(headers['user-agent']).toBe(USER_AGENT)
     expect(JSON.parse(init.body as string)).toEqual({
       model: DEEPSEEK_DEFAULT_MODEL,
       max_tokens: DEEPSEEK_DEFAULT_MAX_TOKENS,

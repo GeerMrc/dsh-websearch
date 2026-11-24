@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { USER_AGENT } from '../../src/providers/shared.ts'
 import type { TavilyMemberConfig } from '../../src/config.ts'
 import { MEMBER_ERROR_CODES } from '../../src/errors.ts'
 import {
@@ -77,7 +78,7 @@ describe('dshws-tavily request mapping', () => {
     const headers = init.headers as Record<string, string>
     expect(headers['authorization']).toBe('Bearer tvly-key')
     expect(headers['content-type']).toBe('application/json')
-    expect(headers['user-agent']).toBe('dsh-websearch/0.2.0')
+    expect(headers['user-agent']).toBe(USER_AGENT)
     expect(JSON.parse(init.body as string)).toEqual({ query: 'hello', max_results: 5, include_answer: 'basic' })
   })
 
