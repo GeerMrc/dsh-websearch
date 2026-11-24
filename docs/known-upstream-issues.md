@@ -244,7 +244,7 @@ rc.5 把 `hmr`、`plugin-manager`、`config-editor`、`settings` 四行钉在同
 
 ### 自查
 
-启动图（`__DSH_BOOT__`）里客户端 row 在、combo URL 可 200，但设置节不渲染 ⇒ 即此约束；`node_modules/<插件>/package.json` 的 `name` 是 scoped 名即命中。
+启动图（`__DSH_BOOT__`）里客户端 row 在、combo URL 可 200，但设置节不渲染 ⇒ 即此约束；`node_modules/<插件>/package.json` 的 `name` 是 scoped 名即命中。**守卫退出条件**：上游采纳 scoped 第三方行（或给出等价修复）后，随下一版移除 `src/install-guard.ts` 及其 apply 接线。
 
 **技术沿革**：S41 PC6 实测链（npm 直装不加载 → 双名别名半残 → 裸名 tarball 全功能）+ M1 实验（三处身份一致仍不修复）定案；证据全文见 [session-41 记录](sessions/2026-11-23-session-41.md) 的 PC6 补充与「M1 实验结果」节。
 

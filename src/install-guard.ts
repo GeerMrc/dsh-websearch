@@ -9,6 +9,14 @@
  * warning instead. Only the two working forms stay quiet: the bare-name
  * tarball (manifest name is the plugin id) and a source checkout (`.git`
  * present — the dev form, where the client loads through the dev pipeline).
+ * Assumed forms: `.git` presence may also trigger on pnpm `file:` directory
+ * deps pointing at a git clone and on monorepo embeddings — both are
+ * source-tree shapes where a warning would be noise, not truth; npm/pnpm
+ * tarball installs never carry `.git`.
+ *
+ * Removal condition: delete this module (and its apply wiring) once the
+ * upstream pairing rule adopts scoped third-party rows — tracked as issue ⑧
+ * in docs/known-upstream-issues.md.
  *
  * @module dsh-websearch/install-guard
  */

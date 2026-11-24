@@ -33,8 +33,8 @@ describe('installFormWarning', () => {
   it('fires for a scoped npm install (no .git): names the lost UI and the bare-tarball fix', () => {
     const warning = installFormWarning(fakePackage('@maricgeer/dsh-websearch', false))
     expect(warning).toContain('@maricgeer/dsh-websearch')
-    expect(warning).toMatch(/settings page|settings section/i)
-    expect(warning).toMatch(/releases/i)
+    expect(warning).toContain('settings section and tool badges')
+    expect(warning).toContain('https://github.com/GeerMrc/dsh-websearch/releases')
   })
 
   it('stays quiet for the bare-name tarball form (manifest name is the plugin id)', () => {
@@ -46,8 +46,14 @@ describe('installFormWarning', () => {
   })
 
   it('stays quiet for this repo itself: scoped manifest, .git checkout (self-consistency)', () => {
-    const repoRoot = packageRootOf(import.meta.url === undefined ? '' : new URL('../src/index.ts', import.meta.url).href)
+    const repoRoot = packageRootOf(new URL('../src/index.ts', import.meta.url).href)
     expect(installFormWarning(repoRoot)).toBeUndefined()
+  })
+
+  it('stays quiet for a git worktree too: .git as a FILE (worktree pointer), not a directory', () => {
+    const root = fakePackage('@maricgeer/dsh-websearch', false)
+    writeFileSync(join(root, '.git'), 'gitdir: /elsewhere/main/.git\n')
+    expect(installFormWarning(root)).toBeUndefined()
   })
 
   it('throws on a package root without a manifest (strict probe; the caller decides to swallow)', () => {

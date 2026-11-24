@@ -118,8 +118,8 @@ describe('governance files are not clobbered (S41 incident guard)', () => {
    * hit this session and were committed: a whole-file rewrite wrote the file's
    * own path as its content (`writeFileSync(t = f, ...)` evaluation-order slip),
    * and an append script's broken quoting replaced 98 lines with the file path
-   * (patterns.md, incident 3). A file that equals its own path — or shrinks to
-   * a stub — must never reach a commit again.
+   * (patterns.md, the 5th incident of the class). A file that equals its own
+   * path — or shrinks to a stub — must never reach a commit again.
    */
   it('keeps the governance corpus above stub size and free of self-path content', () => {
     const files = [
