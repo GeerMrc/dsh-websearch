@@ -26,14 +26,14 @@ export declare function missingRequiredEntries(entries: readonly string[]): stri
 /** The tarball entries that must not ship, in tarball order. */
 export declare function forbiddenEntries(entries: readonly string[]): string[]
 
-/** The lines that carry a host token with its value, verbatim. */
+/** The `file:line` of every `git grep -n` line that carries a host token value; the content is never returned. */
 export declare function tokenFindings(text: string): string[]
 
 /**
  * Run the requested check groups plus the token scan.
  * @param argv - The command-line arguments after the script name.
  * @param cwd - The repository root to check.
- * @returns The problems found, each one sentence naming the offending file or value.
- * @throws When no check group was requested.
+ * @returns The problems found, each one sentence naming the offending file, line or value.
+ * @throws When no check group was requested, or when the token scan cannot run.
  */
 export declare function main(argv: readonly string[], cwd?: string): Promise<string[]>

@@ -114,13 +114,15 @@ describe('tarball rules', () => {
 })
 
 describe('token scan', () => {
-  it('reports lines carrying a host token value and ignores the redacted marker', () => {
+  it('locates lines carrying a host token value without repeating the value', () => {
     const text = [
-      'dsh web: http://127.0.0.1:3434/?token=<redacted>',
-      FAKE_TOKEN_URL,
-      'see https://example.invalid/?token=short',
+      'docs/notes.md:3:dsh web: http://127.0.0.1:3434/?token=<redacted>',
+      `evidence.log:1:${FAKE_TOKEN_URL}`,
+      'evidence.log:2:see https://example.invalid/?token=short',
     ].join('\n')
-    expect(tokenFindings(text)).toEqual([FAKE_TOKEN_URL])
+    const locations = tokenFindings(text)
+    expect(locations).toEqual(['evidence.log:1'])
+    expect(locations.join('\n')).not.toContain(FAKE_TOKEN)
   })
 })
 
@@ -198,7 +200,20 @@ describe('main', () => {
     })
     await packTarballs(dir, () => {})
     const problems = await main(['--tarballs', dir], repo)
-    expect(problems).toEqual([expect.stringMatching(/evidence\.log:1.*token=/)])
+    expect(problems).toEqual([expect.stringMatching(/^evidence\.log:1 carries a host token value/)])
+    // the gate's own output goes to CI logs, so it names the place and never the value
+    expect(problems.join('\n')).not.toContain(FAKE_TOKEN)
+  })
+
+  it('refuses to pass the token scan outside a git repository', async () => {
+    const outside = await mkdtemp(join(tmpdir(), 'dshws-release-nogit-'))
+    await writeFile(join(outside, 'package.json'), manifest(VERSION))
+    await packTarballs(dir, () => {})
+    try {
+      await expect(main(['--tarballs', dir], outside)).rejects.toThrow(/token scan did not run/)
+    } finally {
+      await rm(outside, { recursive: true, force: true })
+    }
   })
 
   it('fails when the tarballs are missing, incomplete or ship internal documents', async () => {

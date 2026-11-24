@@ -92,17 +92,27 @@ export function forbiddenEntries(entries) {
 }
 
 /**
- * List the lines that carry a host token with its value.
- * @param text - The lines a search over the tracked files returned.
- * @returns The offending lines, verbatim.
+ * Locate the lines that carry a host token with its value.
+ * @param text - The lines a `git grep -n` over the tracked files returned, each `file:line:content`.
+ * @returns The `file:line` of every offending line. The content is left out so that the value never reaches a log.
  */
 export function tokenFindings(text) {
-  return text.split('\n').filter((line) => TOKEN_VALUE.test(line))
+  const locations = []
+  for (const line of text.split('\n')) {
+    const location = /^([^:]+):\d+:/.exec(line)
+    if (location !== null && TOKEN_VALUE.test(line.slice(location[0].length))) locations.push(location[0].slice(0, -1))
+  }
+  return locations
+}
+
+/** Run a command and return its exit status with both output streams. */
+function run(command, args, cwd) {
+  return spawnSync(command, args, { cwd, encoding: 'utf8' })
 }
 
 /** Run a command, returning its stdout, or undefined when it exits non-zero. */
 function capture(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, encoding: 'utf8' })
+  const result = run(command, args, cwd)
   return result.status === 0 ? result.stdout : undefined
 }
 
@@ -168,18 +178,29 @@ function tarballProblems(dir, cwd) {
   return problems
 }
 
-/** Lines of the tracked files that carry a host token value. */
-function tokenProblems(cwd) {
-  const found = capture('git', ['grep', '-nE', TOKEN_VALUE.source], cwd)
-  return found === undefined ? [] : tokenFindings(found)
+/**
+ * Locations of the tracked lines that carry a host token value.
+ * @param cwd - The repository root to scan.
+ * @returns The `file:line` of every offending line.
+ * @throws When the scan itself cannot run, for example outside a git repository. `git grep` exits 1 both
+ *   for "no match" and for a fatal error, so only status 1 with a repository may read as clean.
+ */
+function tokenLocations(cwd) {
+  const result = run('git', ['grep', '-nE', TOKEN_VALUE.source], cwd)
+  if (result.status === 1) return []
+  if (result.status !== 0) {
+    const reason = result.stderr.trim().split('\n')[0]
+    throw new Error(`token scan did not run: git grep exited with ${result.status}${reason === '' ? '' : ` (${reason})`}`)
+  }
+  return tokenFindings(result.stdout)
 }
 
 /**
  * Run the requested check groups.
  * @param argv - The command-line arguments after the script name.
  * @param cwd - The repository root to check.
- * @returns The problems found, each one sentence naming the offending file or value.
- * @throws When no check group was requested.
+ * @returns The problems found, each one sentence naming the offending file, line or value.
+ * @throws When no check group was requested, or when the token scan cannot run.
  */
 export async function main(argv, cwd = process.cwd()) {
   const tagIndex = argv.indexOf('--tag')
@@ -190,7 +211,7 @@ export async function main(argv, cwd = process.cwd()) {
   const problems = []
   if (tag !== undefined) problems.push(...tagProblems(tag, cwd))
   if (tarballsDir !== undefined) problems.push(...tarballProblems(tarballsDir, cwd))
-  problems.push(...tokenProblems(cwd))
+  problems.push(...tokenLocations(cwd).map((location) => `${location} carries a host token value`))
   return problems
 }
 
