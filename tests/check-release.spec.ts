@@ -132,6 +132,7 @@ describe('token scan', () => {
     expect(() => tokenFiles('HEAD:evidence.log\0')).toThrow(/unexpected git grep output/)
     expect(() => tokenFiles('evidence.log\0 1\n'.replace('\0 ', '\0'))).toThrow(/unexpected git grep output/)
     expect(() => tokenFiles('HEAD:evidence.log\0many\n')).toThrow(/unexpected git grep output/)
+    expect(() => tokenFiles('HEAD:\0 3\n'.replace('\0 ', '\0'))).toThrow(/unexpected git grep output/)
   })
 })
 
@@ -283,6 +284,29 @@ describe('main', () => {
       'blob.bin carries a host token value (binary file)',
       'dir:x/evidence.log:1 carries a host token value',
     ])
+  })
+
+  it('gives every matching line of one file its own line number', async () => {
+    const repo = await makeRepo({
+      'package.json': manifest(VERSION),
+      'evidence.log': `first\n${FAKE_TOKEN_URL}\nplain\n  ${FAKE_TOKEN_URL}\n`,
+    })
+    await packTarballs(dir, () => {})
+    const problems = await main(['--tarballs', dir], repo)
+    expect(problems).toEqual(['evidence.log:2 carries a host token value', 'evidence.log:4 carries a host token value'])
+  })
+
+  it('finds token values next to bytes that are not valid UTF-8, as inside compressed or image files', async () => {
+    // Under a UTF-8 locale git's regex does not match a line that holds an invalid byte; the scan runs under LC_ALL=C.
+    const token = Buffer.from(FAKE_TOKEN_URL)
+    const repo = await makeRepo({
+      'package.json': manifest(VERSION),
+      'trailer.bin': new Uint8Array([...token, 0xff, 0x0a]),
+      'gzip-like.bin': new Uint8Array([0x1f, 0x8b, 0x08, 0x00, ...token, 0x0a]),
+    })
+    await packTarballs(dir, () => {})
+    const problems = await main(['--tarballs', dir], repo)
+    expect(problems).toEqual(['gzip-like.bin carries a host token value (binary file)', 'trailer.bin:1 carries a host token value'])
   })
 
   it('scans the committed tree only: a staged or an uncommitted token value is not reported', async () => {

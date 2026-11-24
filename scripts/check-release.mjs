@@ -104,7 +104,7 @@ export function tokenFiles(text) {
   const files = []
   for (const record of text.split('\n').filter((record) => record !== '')) {
     const [path, count, extra] = record.split('\0')
-    if (path === undefined || !path.startsWith('HEAD:') || count === undefined || !/^\d+$/.test(count) || extra !== undefined) {
+    if (path === undefined || path.length <= 'HEAD:'.length || !path.startsWith('HEAD:') || count === undefined || !/^\d+$/.test(count) || extra !== undefined) {
       throw new Error('token scan did not run: unexpected git grep output (expected path and count records)')
     }
     files.push({ path: path.slice('HEAD:'.length), count: Number(count) })
@@ -113,21 +113,29 @@ export function tokenFiles(text) {
 }
 
 /**
+ * The environment of the three `git grep` calls. Under a UTF-8 locale the regex does not match a
+ * line that holds a byte which is not valid UTF-8, which is what a token inside a compressed or
+ * image file looks like; `LC_ALL=C` makes every byte matchable.
+ */
+const GREP_ENV = { ...process.env, LC_ALL: 'C' }
+
+/**
  * Line numbers of the token values in one committed file.
  * @param path - Path in the HEAD tree.
  * @param cwd - The repository root.
- * @returns The line numbers, or undefined when git reports the file as binary.
+ * @returns The line numbers, or undefined when git reports the file as binary. Each record of the
+ *   per-file listing is `path NUL line number NUL content LF`, with the path repeated on every record.
  */
 function tokenLines(path, cwd) {
-  const result = run('git', ['grep', '-z', '-n', '-E', TOKEN_VALUE.source, 'HEAD', '--', `:(literal)${path}`], cwd)
-  const fields = (result.stdout ?? '').split('\0').filter((field) => field !== '')
-  if (fields[0]?.startsWith('Binary file ')) return undefined
-  return fields.filter((_, index) => index % 3 === 1).map(Number)
+  const result = run('git', ['grep', '-z', '-n', '-E', TOKEN_VALUE.source, 'HEAD', '--', `:(literal)${path}`], cwd, GREP_ENV)
+  const records = (result.stdout ?? '').split('\n').filter((record) => record !== '')
+  if (records[0]?.startsWith('Binary file ')) return undefined
+  return records.map((record) => Number(record.split('\0')[1]))
 }
 
-/** Run a command and return its exit status with both output streams. */
-function run(command, args, cwd) {
-  return spawnSync(command, args, { cwd, encoding: 'utf8' })
+/** Run a command and return its exit status with both output streams; `env` replaces the environment when given. */
+function run(command, args, cwd, env) {
+  return spawnSync(command, args, { cwd, encoding: 'utf8', ...(env === undefined ? {} : { env }) })
 }
 
 /** Run a command, returning its stdout, or undefined when it exits non-zero. */
@@ -209,7 +217,7 @@ function tarballProblems(dir, cwd) {
  *   is scanned rather than the working tree, where a deleted or unreadable tracked file reads as clean.
  */
 function tokenLocations(cwd) {
-  const result = run('git', ['grep', '-z', '--full-name', '-c', '-E', TOKEN_VALUE.source, 'HEAD', '--', '.'], cwd)
+  const result = run('git', ['grep', '-z', '--full-name', '-c', '-E', TOKEN_VALUE.source, 'HEAD', '--', '.'], cwd, GREP_ENV)
   if (result.error !== undefined) {
     throw new Error(`token scan did not run: git is not available (${result.error.message})`)
   }
@@ -218,11 +226,14 @@ function tokenLocations(cwd) {
   if (result.status !== 0) {
     throw new Error(`token scan did not run: git grep exited with ${result.status}${stderr === '' ? '' : ` (${stderr.split('\n')[0]})`}`)
   }
-  return tokenFiles(result.stdout).flatMap(({ path }) => {
+  const files = tokenFiles(result.stdout)
+  // Status 0 means at least one match, so an empty listing is an output the parser does not understand.
+  if (files.length === 0) throw new Error('token scan did not run: unexpected git grep output (empty listing after a match)')
+  return files.flatMap(({ path }) => {
     const lines = tokenLines(path, cwd)
     if (lines === undefined) return [`${path} carries a host token value (binary file)`]
-    // git listed the file, so an empty line list means the per-file pass did not read as expected.
-    if (lines.length === 0) return [`${path} carries a host token value (line not located)`]
+    // git listed the file, so a line list that is not all integers means the per-file pass did not read as expected.
+    if (lines.length === 0 || lines.some((line) => !Number.isInteger(line))) return [`${path} carries a host token value (line not located)`]
     return lines.map((line) => `${path}:${line} carries a host token value`)
   })
 }
