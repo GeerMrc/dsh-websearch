@@ -11,7 +11,7 @@ import {
   main,
   missingRequiredEntries,
   tagMatchesVersion,
-  tokenFindings,
+  tokenFiles,
   userAgentMatchesVersion,
 } from '../scripts/check-release.mjs'
 
@@ -54,9 +54,13 @@ async function packTarballs(dir: string, decorate: (stage: string) => Promise<vo
   return stage
 }
 
+/** Throwaway repositories made by `makeRepo` during the current test; removed in afterEach. */
+const createdRepos: string[] = []
+
 /** A throwaway git repository whose tracked files are the given map, committed on master. */
-async function makeRepo(files: Record<string, string>): Promise<string> {
+async function makeRepo(files: Record<string, string | Uint8Array>): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'dshws-release-'))
+  createdRepos.push(dir)
   for (const [path, content] of Object.entries(files)) {
     await mkdir(join(dir, path, '..'), { recursive: true })
     await writeFile(join(dir, path), content)
@@ -114,15 +118,20 @@ describe('tarball rules', () => {
 })
 
 describe('token scan', () => {
-  it('locates lines carrying a host token value without repeating the value', () => {
-    const text = [
-      'docs/notes.md:3:dsh web: http://127.0.0.1:3434/?token=<redacted>',
-      `evidence.log:1:${FAKE_TOKEN_URL}`,
-      'evidence.log:2:see https://example.invalid/?token=short',
-    ].join('\n')
-    const locations = tokenFindings(text)
-    expect(locations).toEqual(['evidence.log:1'])
-    expect(locations.join('\n')).not.toContain(FAKE_TOKEN)
+  it('reads the per-file counts of git grep -z -c without losing paths that contain colons', () => {
+    // `git grep -z -c <pattern> HEAD` emits `path NUL count LF` records, every path prefixed with the tree name.
+    const counts = ['HEAD:evidence.log\0 2\n'.replace('\0 ', '\0'), 'HEAD:dir:x/notes.md\0 1\n'.replace('\0 ', '\0'), 'HEAD:HEAD:lead/notes.md\0 1\n'.replace('\0 ', '\0')].join('')
+    expect(tokenFiles(counts)).toEqual([
+      { path: 'evidence.log', count: 2 },
+      { path: 'dir:x/notes.md', count: 1 },
+      { path: 'HEAD:lead/notes.md', count: 1 },
+    ])
+  })
+
+  it('refuses a listing whose fields do not come as a tree-prefixed path followed by a count', () => {
+    expect(() => tokenFiles('HEAD:evidence.log\0')).toThrow(/unexpected git grep output/)
+    expect(() => tokenFiles('evidence.log\0 1\n'.replace('\0 ', '\0'))).toThrow(/unexpected git grep output/)
+    expect(() => tokenFiles('HEAD:evidence.log\0many\n')).toThrow(/unexpected git grep output/)
   })
 })
 
@@ -135,6 +144,7 @@ describe('main', () => {
 
   afterEach(async () => {
     await rm(dir, { recursive: true, force: true })
+    for (const repo of createdRepos.splice(0)) await rm(repo, { recursive: true, force: true })
   })
 
   const manifest = (version: string) => JSON.stringify({ name: '@maricgeer/dsh-websearch', version }, null, 2)
@@ -257,6 +267,33 @@ describe('main', () => {
     await packTarballs(dir, () => {})
     const problems = await main(['--tarballs', dir], repo)
     expect(problems).toEqual(['evidence.log:1 carries a host token value'])
+  })
+
+  it('reports matches under paths that contain colons and in binary files, where a colon-split parser finds nothing', async () => {
+    const repo = await makeRepo({
+      'package.json': manifest(VERSION),
+      'dir:x/evidence.log': `${FAKE_TOKEN_URL}\n`,
+      'HEAD:lead/notes.md': `${FAKE_TOKEN_URL}\n`,
+      'blob.bin': new Uint8Array([0, 1, ...Buffer.from(FAKE_TOKEN_URL), 0]),
+    })
+    await packTarballs(dir, () => {})
+    const problems = await main(['--tarballs', dir], repo)
+    expect(problems).toEqual([
+      'HEAD:lead/notes.md:1 carries a host token value',
+      'blob.bin carries a host token value (binary file)',
+      'dir:x/evidence.log:1 carries a host token value',
+    ])
+  })
+
+  it('scans the committed tree only: a staged or an uncommitted token value is not reported', async () => {
+    // A tag publishes HEAD, so that is what the gate reads. Locally the check therefore has to
+    // run after the commit that would be tagged.
+    const repo = await makeRepo({ 'package.json': manifest(VERSION) })
+    await writeFile(join(repo, 'staged.log'), `${FAKE_TOKEN_URL}\n`)
+    git(repo, 'add', 'staged.log')
+    await writeFile(join(repo, 'unstaged.log'), `${FAKE_TOKEN_URL}\n`)
+    await packTarballs(dir, () => {})
+    await expect(main(['--tarballs', dir], repo)).resolves.toEqual([])
   })
 
   it('names the cause when git is not available, instead of failing on an accidental TypeError', async () => {

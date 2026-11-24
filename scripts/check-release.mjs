@@ -92,17 +92,37 @@ export function forbiddenEntries(entries) {
 }
 
 /**
- * Locate the lines that carry a host token with its value.
- * @param text - The lines a `git grep -n` over the tracked files returned, each `file:line:content`.
- * @returns The `file:line` of every offending line. The content is left out so that the value never reaches a log.
+ * Parse `git grep -z -c <pattern> HEAD`: `path NUL count LF` records in which every path carries
+ * the tree name as a prefix. The NUL after the path keeps a path that contains colons intact.
+ * @param text - The listing.
+ * @returns `{ path, count }` for every matching file, tree prefix removed, in git's order.
+ * @throws When two fields are not a tree-prefixed path followed by a count: a listing that cannot
+ *   be parsed must not read as "no match". The fields are not echoed; they are paths, but the
+ *   parser must never be the reason a value reaches a log.
  */
-export function tokenFindings(text) {
-  const locations = []
-  for (const line of text.split('\n')) {
-    const location = /^([^:]+):\d+:/.exec(line)
-    if (location !== null && TOKEN_VALUE.test(line.slice(location[0].length))) locations.push(location[0].slice(0, -1))
+export function tokenFiles(text) {
+  const files = []
+  for (const record of text.split('\n').filter((record) => record !== '')) {
+    const [path, count, extra] = record.split('\0')
+    if (path === undefined || !path.startsWith('HEAD:') || count === undefined || !/^\d+$/.test(count) || extra !== undefined) {
+      throw new Error('token scan did not run: unexpected git grep output (expected path and count records)')
+    }
+    files.push({ path: path.slice('HEAD:'.length), count: Number(count) })
   }
-  return locations
+  return files
+}
+
+/**
+ * Line numbers of the token values in one committed file.
+ * @param path - Path in the HEAD tree.
+ * @param cwd - The repository root.
+ * @returns The line numbers, or undefined when git reports the file as binary.
+ */
+function tokenLines(path, cwd) {
+  const result = run('git', ['grep', '-z', '-n', '-E', TOKEN_VALUE.source, 'HEAD', '--', `:(literal)${path}`], cwd)
+  const fields = (result.stdout ?? '').split('\0').filter((field) => field !== '')
+  if (fields[0]?.startsWith('Binary file ')) return undefined
+  return fields.filter((_, index) => index % 3 === 1).map(Number)
 }
 
 /** Run a command and return its exit status with both output streams. */
@@ -181,13 +201,15 @@ function tarballProblems(dir, cwd) {
 /**
  * Locations of the committed lines that carry a host token value.
  * @param cwd - The repository root to scan.
- * @returns The `file:line` of every offending line in the HEAD tree, which is what a tag would publish.
+ * @returns A location for every match in the HEAD tree, which is what a tag would publish: `file:line`
+ *   for text, the file alone for binary content. Only locations are built here, so the value never
+ *   reaches a log.
  * @throws When the scan itself cannot run: no git, no commit, or any `git grep` failure. `git grep`
  *   exits 1 for "no match", so only status 1 with nothing on stderr may read as clean. The HEAD tree
  *   is scanned rather than the working tree, where a deleted or unreadable tracked file reads as clean.
  */
 function tokenLocations(cwd) {
-  const result = run('git', ['grep', '--full-name', '-nE', TOKEN_VALUE.source, 'HEAD', '--', '.'], cwd)
+  const result = run('git', ['grep', '-z', '--full-name', '-c', '-E', TOKEN_VALUE.source, 'HEAD', '--', '.'], cwd)
   if (result.error !== undefined) {
     throw new Error(`token scan did not run: git is not available (${result.error.message})`)
   }
@@ -196,7 +218,13 @@ function tokenLocations(cwd) {
   if (result.status !== 0) {
     throw new Error(`token scan did not run: git grep exited with ${result.status}${stderr === '' ? '' : ` (${stderr.split('\n')[0]})`}`)
   }
-  return tokenFindings(result.stdout.replace(/^HEAD:/gm, ''))
+  return tokenFiles(result.stdout).flatMap(({ path }) => {
+    const lines = tokenLines(path, cwd)
+    if (lines === undefined) return [`${path} carries a host token value (binary file)`]
+    // git listed the file, so an empty line list means the per-file pass did not read as expected.
+    if (lines.length === 0) return [`${path} carries a host token value (line not located)`]
+    return lines.map((line) => `${path}:${line} carries a host token value`)
+  })
 }
 
 /**
@@ -215,7 +243,7 @@ export async function main(argv, cwd = process.cwd()) {
   const problems = []
   if (tag !== undefined) problems.push(...tagProblems(tag, cwd))
   if (tarballsDir !== undefined) problems.push(...tarballProblems(tarballsDir, cwd))
-  problems.push(...tokenLocations(cwd).map((location) => `${location} carries a host token value`))
+  problems.push(...tokenLocations(cwd))
   return problems
 }
 

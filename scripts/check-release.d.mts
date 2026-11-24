@@ -26,8 +26,8 @@ export declare function missingRequiredEntries(entries: readonly string[]): stri
 /** The tarball entries that must not ship, in tarball order. */
 export declare function forbiddenEntries(entries: readonly string[]): string[]
 
-/** The `file:line` of every `git grep -n` line that carries a host token value; the content is never returned. */
-export declare function tokenFindings(text: string): string[]
+/** `{ path, count }` for every file in the `git grep -z -c HEAD` listing that carries a host token value. */
+export declare function tokenFiles(text: string): { path: string; count: number }[]
 
 /**
  * Run the requested check groups plus the token scan.
