@@ -53,4 +53,3 @@ it is harmless (not measured on those lines).
 
 DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). On 0.1.5 and 0.1.6 hosts the startup log carries one extra warning about an unmatched patch entry of this plugin; it is harmless.
 
-Development, packaging and the full configuration reference are in the project README: https://github.com/GeerMrc/dsh-websearch
