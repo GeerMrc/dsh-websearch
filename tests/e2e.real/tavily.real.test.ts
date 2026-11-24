@@ -46,7 +46,12 @@ maybe('dshws-tavily real API', () => {
     const result = await provider.fetch({ url: 'https://example.com' })
     expect(result.statusCode).toBe(200)
     expect(result.body.kind).toBe('text')
-    if (result.body.kind === 'text') expect(result.body.content).toContain('Example Domain')
+    if (result.body.kind === 'text') {
+      // example.com now serves a multilingual IANA notice; assert the page's subject and
+      // structure, not its copy — the extract contract is 200 + text + substantive markdown.
+      expect(result.body.content.length).toBeGreaterThan(100)
+      expect(result.body.content).toMatch(/example/i)
+    }
   }, 30_000)
   it('error path: an invalid key rides the live 401 body detail in the error message (alignment checklist)', async () => {
     const provider = new TavilySearchProvider(resolveTavilyMemberOptions(
