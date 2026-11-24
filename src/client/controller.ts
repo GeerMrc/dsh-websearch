@@ -18,6 +18,8 @@
  */
 import type { CredentialInfo } from '@deepseek-ai/dsh-credentials'
 import type { SettingsDescribeValue, SettingsNamespaceView } from '@deepseek-ai/dsh-settings/types'
+import { pinnedSelections, planHandoverOps, WEB_NAMESPACE } from '../handover.ts'
+import type { SelectionUnset, SeamPin } from '../handover.ts'
 import { NS } from './locales.ts'
 import type { DnsStatusView, DnsTraceEntryView } from './dns-remote.ts'
 
@@ -35,6 +37,15 @@ export interface WebSearchSettingsPorts {
   updateSettings(
     ns: string,
     patch: Record<string, unknown>,
+    expectedRevision: number | undefined,
+  ): Promise<RemoteResult<SettingsNamespaceView>>
+  /**
+   * S41 enable-time handover: path-addressed edits on the `web` seam's user section — the
+   * client counterpart of the settings service's `mutate`, carrying `unset` ops.
+   */
+  mutateSettings(
+    ns: string,
+    ops: readonly SelectionUnset[],
     expectedRevision: number | undefined,
   ): Promise<RemoteResult<SettingsNamespaceView>>
   describeCredentials(refs: readonly string[]): Promise<RemoteResult<Record<string, CredentialInfo>>>
@@ -267,6 +278,11 @@ export interface SectionSnapshot {
   readonly dns: DnsSnapshot
   readonly revision: number | undefined
   readonly writable: boolean
+  /**
+   * S41 enable-time handover: user-layer selections on the `web` seam that name this plugin's
+   * providers. Empty while nothing outranks the bundle pins; one row per pin while the notice shows.
+   */
+  readonly seamPins: readonly SeamPin[]
 }
 
 /** Outcome of a user action; the component maps this to feedback copy. */
@@ -282,7 +298,7 @@ const EMPTY_COUNTS: ReadonlyMap<string, number> = new Map()
  * event) funnels here so the snapshot is always derived, never patched in
  * place.
  */
-function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, CredentialInfo>, counts: ReadonlyMap<string, number>, writable: boolean, revision: number | undefined, dnsStatus: DnsStatusView | undefined, dnsTrace: readonly DnsTraceEntryView[]): SectionSnapshot {
+function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, CredentialInfo>, counts: ReadonlyMap<string, number>, writable: boolean, revision: number | undefined, dnsStatus: DnsStatusView | undefined, dnsTrace: readonly DnsTraceEntryView[], seamPins: readonly SeamPin[] = []): SectionSnapshot {
   const members = MEMBERS.map((member) => {
     const section = value[member.key]
     const refName = section?.apiKeyEnv ?? member.defaultRef
@@ -380,6 +396,7 @@ function deriveSnapshot(value: SectionValue, facts: ReadonlyMap<string, Credenti
     },
     revision,
     writable,
+    seamPins,
   }
 }
 
@@ -395,6 +412,7 @@ export class WebSearchSettingsController {
   #writable = false
   #revision: number | undefined = undefined
   #snapshot: SectionSnapshot = deriveSnapshot(EMPTY_SECTION, EMPTY_FACTS, EMPTY_COUNTS, false, undefined, undefined, [])
+  #seamPins: readonly SeamPin[] = []
   #unsubscribe?: () => void
 
   constructor(ports: WebSearchSettingsPorts) {
@@ -424,8 +442,33 @@ export class WebSearchSettingsController {
       this.#value = (view?.value ?? {}) as SectionValue
       this.#revision = view?.revision
       this.#writable = described.value.writable
+      // S41 enable-time handover: pins read from the seam's raw USER section —
+      // a field's presence there marks it user-overridden, while the resolved
+      // `value` also folds in the bundle layer this plugin itself pins.
+      const seam = described.value.namespaces.find((candidate) => candidate.ns === WEB_NAMESPACE)
+      this.#seamPins = pinnedSelections(seam?.user)
       this.#recompute()
     }
+  }
+
+  /**
+   * S41 enable-time handover (ADR-0024, user ruling 2026-11-24): clear the seam's user-layer
+   * selections that name this plugin's providers, so the chain takes over again and disabling
+   * the plugin hands over cleanly. Re-describes first: the mutate carries the revision it read.
+   */
+  async clearSeamPins(): Promise<ActionResult> {
+    const described = await this.#ports.describeSettings()
+    if (!described.ok) return { ok: false }
+    const seam = described.value.namespaces.find((candidate) => candidate.ns === WEB_NAMESPACE)
+    const ops = planHandoverOps(seam?.user)
+    if (ops.length === 0) {
+      await this.#refreshSection()
+      return { ok: true }
+    }
+    const result = await this.#ports.mutateSettings(WEB_NAMESPACE, ops, seam?.revision)
+    if (!result.ok) return { ok: false }
+    await this.#refreshSection()
+    return { ok: true }
   }
 
   /** Detach the reference-updated subscription (the entry's disposer calls this). */
@@ -756,7 +799,7 @@ export class WebSearchSettingsController {
   }
 
   #recompute(): void {
-    this.#snapshot = deriveSnapshot(this.#value, this.#facts, this.#counts, this.#writable, this.#revision, this.#dnsStatus, this.#dnsTrace)
+    this.#snapshot = deriveSnapshot(this.#value, this.#facts, this.#counts, this.#writable, this.#revision, this.#dnsStatus, this.#dnsTrace, this.#seamPins)
     for (const listener of this.#listeners) listener()
   }
 }

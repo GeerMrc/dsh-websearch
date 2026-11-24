@@ -64,6 +64,8 @@ export interface SectionProps {
   onRecheckDns: () => Promise<ActionResult>
   /** S36 (plan 036): refresh the DNS remote face — fires when the DNS card expands (refreshCounts-on-expand precedent). */
   onRefreshDnsFace: () => Promise<void>
+  /** S41 enable-time handover (user ruling 2026-11-24): clear the seam's user-layer provider pins behind the notice. */
+  onClearSeamPins: () => Promise<ActionResult>
 }
 
 /**
@@ -103,6 +105,7 @@ export function bindWebSearchSettingsSection(controller: WebSearchSettingsContro
         onSetDnsNodes={(text) => controller.setDnsNodesText(text)}
         onRecheckDns={() => controller.recheckDns()}
         onRefreshDnsFace={() => controller.refreshDnsFace()}
+        onClearSeamPins={() => controller.clearSeamPins()}
       />
     )
   }
@@ -130,8 +133,13 @@ const SECTION_STYLE_CSS = `
 
 /** The section body (`t` arrives as the locale runtime's standard seat). */
 export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-websearch'>) {
-  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod } = props
+  const { t, snapshot, onSaveKey, onClearKey, onToggleEnabled, onMoveSearch, onSetKeySelection, onSetMaxUses, onSetFallbackMember, onSetFetchTakeover, onSetBaseURL, onSetMemberOption, onSetSearchCountry, onSetSearchLanguage, onSetSearchDomains, onMoveFetch, onRefreshKeyCounts, onSetDnsMode, onSetDnsPreset, onSetDnsNodes, onRecheckDns, onRefreshDnsFace, onSetDnsProbeMethod, onClearSeamPins } = props
   const [chainFeedback, setChainFeedback] = useState<'failed' | undefined>(undefined)
+  const [seamPinFeedback, setSeamPinFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
+  const clearSeamPins = async (): Promise<void> => {
+    const result = await onClearSeamPins()
+    setSeamPinFeedback(result.ok ? 'saved' : 'failed')
+  }
 
   const move = async (id: string, delta: -1 | 1): Promise<void> => {
     const result = await onMoveSearch(id, delta)
@@ -187,6 +195,32 @@ export function WebSearchSettingsSection(props: SectionProps & PropsLocale<'dsh-
         </h3>
         <p style={{ margin: 0, marginTop: 4, fontSize: 14, lineHeight: '22px', color: 'var(--dsw-alias-label-tertiary)' }}>{t('description')}</p>
       </div>
+      {/* S41 enable-time handover (user ruling 2026-11-24): a user-layer provider selection
+          saved on the official page outranks this bundle's pins — surfaced here with the
+          one-click clear, because the disable-time channel only fires occasionally. */}
+      {snapshot.seamPins.length > 0 ? (
+        <section data-testid="dshws-seam-pin-notice" data-dshws-card="" style={{ ...cardStyle, padding: '10px 14px', gap: 8, borderColor: 'var(--dsw-alias-state-error-primary)' }}>
+          <h4 style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--dsw-alias-state-error-primary)' }}>{t('seamPinTitle')}</h4>
+          <p style={{ ...hintStyle, margin: 0 }}>{t('seamPinBody')}</p>
+          <ul data-testid="dshws-seam-pin-list" style={{ margin: 0, paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {snapshot.seamPins.map((pin) => (
+              <li key={pin.field} data-testid={`dshws-seam-pin-${pin.field}`} style={{ fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+                {t(pin.field === 'searchProvider' ? 'seamPinFieldSearch' : 'seamPinFieldFetch')}
+                {': '}
+                <code>{pin.value}</code>
+              </li>
+            ))}
+          </ul>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button variant="outline" size="sm" data-testid="dshws-seam-pin-clear" aria-label={t('seamPinClear')} disabled={!snapshot.writable} onClick={() => void clearSeamPins()}>
+              {t('seamPinClear')}
+            </Button>
+            {seamPinFeedback ? (
+              <span role="status" data-testid="dshws-seam-pin-feedback" style={{ ...feedbackStyle, color: feedbackColor(seamPinFeedback === 'saved' ? 'saved' : 'failed') }}>{t(seamPinFeedback)}</span>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
       {/* Global area (S14c, user ruling): the chain card sits ABOVE the tools,
       always visible; the reorder rows only earn their place once a member is
       configured (S12a rationale), while the tail note, timeout, and the

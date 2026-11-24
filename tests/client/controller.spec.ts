@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 const waitFor = vi.waitFor
 import { WebSearchSettingsController } from '../../src/client/controller.ts'
 import type { WebSearchSettingsPorts } from '../../src/client/controller.ts'
+import type { SelectionUnset } from '../../src/handover.ts'
 import type { CredentialInfo } from '@deepseek-ai/dsh-credentials'
 import type {
   SettingsDescribeValue,
@@ -27,6 +28,13 @@ class FakeRemote {
   readonly updateCalls: { ns: string; patch: Record<string, unknown>; expectedRevision: number | undefined }[] = []
   failNextSet = false
   failNextUpdate = false
+  failNextMutate = false
+  /** Raw user section of the `web` seam namespace; `undefined` = no user override exists. */
+  webUser: Record<string, unknown> | undefined = undefined
+  /** Resolved value of the `web` namespace — bundle-layer pins ride here and must NOT read as user pins. */
+  webResolved: Record<string, unknown> = {}
+  webRevision = 3
+  readonly mutateCalls: { ns: string; ops: readonly unknown[]; expectedRevision: number | undefined }[] = []
   #referenceHandler?: (ref: string) => void
 
   describeSettings(): Promise<{ ok: true; value: SettingsDescribeValue } | { ok: false; error: unknown }> {
@@ -40,10 +48,39 @@ class FakeRemote {
         secrets: [],
         revision: this.revision,
       },
+      {
+        ns: 'web',
+        schema: {},
+        value: this.webResolved,
+        ...(this.webUser === undefined ? {} : { user: this.webUser }),
+        autoGenerate: true,
+        applies: 'live' as const,
+        secrets: [],
+        revision: this.webRevision,
+      },
     ]
     // Test fake: the section value is built as a plain record; the host type
     // wraps it in JsonValue, which this local shape satisfies structurally.
     return Promise.resolve({ ok: true, value: { writable: true, hasDocument: false, namespaces } as SettingsDescribeValue })
+  }
+
+  mutateSettings(
+    ns: string,
+    ops: readonly SelectionUnset[],
+    expectedRevision: number | undefined,
+  ): Promise<{ ok: true; value: SettingsNamespaceView } | { ok: false; error: unknown }> {
+    this.mutateCalls.push({ ns, ops, expectedRevision })
+    if (this.failNextMutate) return Promise.resolve({ ok: false, error: { code: 'settings/conflict' } })
+    if (ns === 'web') {
+      for (const op of ops) {
+        if (op.op === 'unset' && op.path.length === 1) delete this.webUser?.[op.path[0]]
+      }
+      this.webRevision += 1
+    }
+    return Promise.resolve({
+      ok: true,
+      value: { ns, schema: {}, value: {}, autoGenerate: true, applies: 'live' as const, secrets: [], revision: this.webRevision } as SettingsNamespaceView,
+    })
   }
 
   updateSettings(
@@ -119,6 +156,7 @@ function makePorts(remote: FakeRemote): WebSearchSettingsPorts {
   return {
     describeSettings: () => remote.describeSettings(),
     updateSettings: (ns, patch, expectedRevision) => remote.updateSettings(ns, patch, expectedRevision),
+    mutateSettings: (ns, ops, expectedRevision) => remote.mutateSettings(ns, ops, expectedRevision),
     describeCredentials: (refs) => remote.describeCredentials(refs),
     describeKeyCounts: (refs) => remote.describeKeyCounts(refs),
     setCredential: (ref, value) => remote.setCredential(ref, value),
@@ -724,5 +762,69 @@ describe('S21 T6: fetch chain controller', () => {
     await controller.refreshCounts()
     expect(controller.snapshot().members.find((m) => m.key === 'tavily')?.keyCount).toBe(1)
     remote.describeKeyCounts = original
+  })
+})
+
+describe('WebSearchSettingsController seam pins (S41 enable-time handover notice)', () => {
+  it('surfaces the web seam pins from the described user layer, in field order', async () => {
+    const remote = new FakeRemote()
+    remote.webUser = { searchProvider: 'dshws-tavily', fetchProvider: 'dshws-fetch-gate' }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().seamPins).toEqual([
+      { field: 'searchProvider', value: 'dshws-tavily' },
+      { field: 'fetchProvider', value: 'dshws-fetch-gate' },
+    ])
+  })
+
+  it('ignores official ids and a missing user layer', async () => {
+    const remote = new FakeRemote()
+    remote.webUser = { searchProvider: 'deepseek-search-api' }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().seamPins).toEqual([])
+  })
+
+  it('does not read the resolved value: bundle-layer pins are not user pins', async () => {
+    const remote = new FakeRemote()
+    remote.webResolved = { searchProvider: 'dshws-chain', fetchProvider: 'dshws-fetch-gate' }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    expect(controller.snapshot().seamPins).toEqual([])
+  })
+
+  it('clearSeamPins mutates the web namespace with the planned unsets at the described revision', async () => {
+    const remote = new FakeRemote()
+    remote.webUser = { searchProvider: 'dshws-tavily', fetchProvider: 'dshws-fetch-gate' }
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const result = await controller.clearSeamPins()
+    expect(result).toEqual({ ok: true })
+    expect(remote.mutateCalls).toEqual([{
+      ns: 'web',
+      ops: [{ op: 'unset', path: ['searchProvider'] }, { op: 'unset', path: ['fetchProvider'] }],
+      expectedRevision: 3,
+    }])
+    expect(controller.snapshot().seamPins).toEqual([])
+  })
+
+  it('clearSeamPins with no pins writes nothing and still refreshes', async () => {
+    const remote = new FakeRemote()
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const result = await controller.clearSeamPins()
+    expect(result).toEqual({ ok: true })
+    expect(remote.mutateCalls).toEqual([])
+  })
+
+  it('clearSeamPins failure reports not-ok and keeps the pins in the snapshot', async () => {
+    const remote = new FakeRemote()
+    remote.webUser = { searchProvider: 'dshws-tavily' }
+    remote.failNextMutate = true
+    const controller = new WebSearchSettingsController(makePorts(remote))
+    await controller.init()
+    const result = await controller.clearSeamPins()
+    expect(result).toEqual({ ok: false })
+    expect(controller.snapshot().seamPins).toEqual([{ field: 'searchProvider', value: 'dshws-tavily' }])
   })
 })

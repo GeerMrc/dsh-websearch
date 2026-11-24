@@ -96,7 +96,7 @@ function defaultMembers(): MemberSnapshot[] {
       ]
 }
 
-function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnapshot {
+function makeSnapshot(members: MemberSnapshot[] = defaultMembers(), overrides: Partial<SectionSnapshot> = {}): SectionSnapshot {
   const ORDERABLE = BUILT_IN.filter((id) => id !== 'dshws-deepseek')
   return {
     members,
@@ -117,6 +117,8 @@ function makeSnapshot(members: MemberSnapshot[] = defaultMembers()): SectionSnap
     dns: { mode: 'auto', preset: 'auto', probeMethod: 'tcp', nodesText: '', status: undefined, trace: [] },
     revision: 0,
     writable: true,
+    seamPins: [],
+    ...overrides,
   }
 }
 
@@ -144,6 +146,7 @@ function makeProps(overrides: Partial<SectionProps> = {}): SectionProps {
     onSetSearchDomains: vi.fn(async () => ({ ok: true }) as ActionResult),
     onMoveFetch: vi.fn(async () => ({ ok: true }) as ActionResult),
     onRefreshKeyCounts: vi.fn(async () => {}),
+    onClearSeamPins: vi.fn(async () => ({ ok: true }) as ActionResult),
     ...overrides,
   }
 }
@@ -1312,5 +1315,40 @@ describe('S36 T3: DNS resilience card — plugin-wide ⓘ+Tooltip alignment (pla
     fireEvent.click(screen.getByTestId('dshws-dns-card').querySelector('button[aria-expanded]')!)
     await waitFor(() => { expect(onRefresh).toHaveBeenCalledTimes(1) })
     rerender(<WebSearchSettingsSection t={t} {...makeProps({ onRefreshDnsFace: onRefresh } as Partial<SectionProps>)} />)
+  })
+})
+
+describe('seam pin notice (S41 handover route: enable-time notice + one-click clear)', () => {
+  const PINS = [
+    { field: 'searchProvider' as const, value: 'dshws-tavily' },
+    { field: 'fetchProvider' as const, value: 'dshws-fetch-gate' },
+  ]
+
+  it('renders the notice with one row per pinned field and drives the clear action', async () => {
+    const onClearSeamPins = vi.fn(async () => ({ ok: true }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(undefined, { seamPins: PINS }), onClearSeamPins })} t={t} />)
+    expect(screen.getByTestId('dshws-seam-pin-notice')).toBeTruthy()
+    expect(screen.getByTestId('dshws-seam-pin-searchProvider').textContent).toContain('dshws-tavily')
+    expect(screen.getByTestId('dshws-seam-pin-fetchProvider').textContent).toContain('dshws-fetch-gate')
+    fireEvent.click(screen.getByTestId('dshws-seam-pin-clear'))
+    await waitFor(() => expect(onClearSeamPins).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(screen.getByTestId('dshws-seam-pin-feedback').textContent).toBe(en.saved))
+  })
+
+  it('hides the notice when no seam pin is set', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    expect(screen.queryByTestId('dshws-seam-pin-notice')).toBeNull()
+  })
+
+  it('shows failure feedback when the clear action reports not-ok', async () => {
+    const onClearSeamPins = vi.fn(async () => ({ ok: false }) as ActionResult)
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(undefined, { seamPins: PINS }), onClearSeamPins })} t={t} />)
+    fireEvent.click(screen.getByTestId('dshws-seam-pin-clear'))
+    await waitFor(() => expect(screen.getByTestId('dshws-seam-pin-feedback').textContent).toBe(en.failed))
+  })
+
+  it('disables the clear action when the settings document is read-only', () => {
+    render(<WebSearchSettingsSection {...makeProps({ snapshot: makeSnapshot(undefined, { seamPins: PINS, writable: false }) })} t={t} />)
+    expect((screen.getByTestId('dshws-seam-pin-clear') as HTMLButtonElement).disabled).toBe(true)
   })
 })

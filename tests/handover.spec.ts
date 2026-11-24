@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { isPluginProviderId, planHandoverOps, revertHandover, WEB_NAMESPACE } from '../src/handover.ts'
-import type { HandoverSettings } from '../src/handover.ts'
+import { isPluginProviderId, pinnedSelections, planHandoverOps, revertHandover, WEB_NAMESPACE } from '../src/handover.ts'
+import type { HandoverSettings, SeamPin } from '../src/handover.ts'
 
 /**
  * Handover contract (ADR-0024 decisions 3–4): when the bundle goes away, the
@@ -129,5 +129,31 @@ describe('revertHandover', () => {
     await expect(revertHandover(settings, warn)).resolves.toBeUndefined()
     expect(warn).toHaveBeenCalledTimes(1)
     expect(String(warn.mock.calls[0]?.[0])).toMatch(/handover.*not volatile/)
+  })
+})
+
+describe('pinnedSelections', () => {
+  it('lists each user-layer selection that names a plugin provider with its field and value', () => {
+    expect(pinnedSelections({ searchProvider: 'dshws-tavily', fetchProvider: 'dshws-fetch-gate' }))
+      .toEqual<SeamPin[]>([
+        { field: 'searchProvider', value: 'dshws-tavily' },
+        { field: 'fetchProvider', value: 'dshws-fetch-gate' },
+      ])
+  })
+
+  it('lists one side alone and skips official or third-party ids', () => {
+    expect(pinnedSelections({ fetchProvider: 'dshws-fetch-gate' })).toEqual<SeamPin[]>([{ field: 'fetchProvider', value: 'dshws-fetch-gate' }])
+    expect(pinnedSelections({ searchProvider: 'deepseek-search-api', fetchProvider: 'http' })).toEqual<SeamPin[]>([])
+  })
+
+  it('plans nothing for a missing or non-object user layer', () => {
+    expect(pinnedSelections(undefined)).toEqual<SeamPin[]>([])
+    expect(pinnedSelections({})).toEqual<SeamPin[]>([])
+    expect(pinnedSelections('dshws-chain')).toEqual<SeamPin[]>([])
+  })
+
+  it('agrees with planHandoverOps: one unset per listed pin, in the same field order', () => {
+    const user = { searchProvider: 'dshws-tavily', fetchProvider: 'dshws-fetch-gate' }
+    expect(planHandoverOps(user)).toEqual(pinnedSelections(user).map((pin) => ({ op: 'unset', path: [pin.field] })))
   })
 })

@@ -41,6 +41,14 @@ export interface SelectionUnset {
   path: readonly string[];
 }
 
+/** One user-layer selection naming a plugin provider, as the settings page shows it. */
+export interface SeamPin {
+  /** Which of the seam's two selection fields carries the pin. */
+  field: 'searchProvider' | 'fetchProvider';
+  /** The pinned provider id (always carries the plugin prefix). */
+  value: string;
+}
+
 /**
  * Whether a value is the id of a provider this plugin registered.
  * @param value - A candidate provider id read from configuration.
@@ -51,6 +59,22 @@ export function isPluginProviderId(value: unknown): value is string {
 }
 
 /**
+ * List the user-layer selections that name a provider this plugin registered. Only the user layer
+ * is consulted: a selection that comes from the bundle layer leaves with the bundle and needs no
+ * handover. The enable-time notice renders one row per entry.
+ * @param user - The user section of the seam's settings descriptor.
+ * @returns The pinned selections, in field order.
+ */
+export function pinnedSelections(user: unknown): SeamPin[] {
+  if (typeof user !== 'object' || user === null) return []
+  const section = user as Record<string, unknown>
+  return SELECTION_KEYS.filter((key) => isPluginProviderId(section[key])).map((key) => ({
+    field: key,
+    value: section[key] as string,
+  }))
+}
+
+/**
  * Plan the edits that stop a user-layer selection from naming this plugin's providers.
  * Only the user layer is consulted: a selection that comes from the bundle layer
  * leaves with the bundle and needs no handover.
@@ -58,11 +82,7 @@ export function isPluginProviderId(value: unknown): value is string {
  * @returns One `unset` per selection key whose user value names a plugin provider, in field order.
  */
 export function planHandoverOps(user: unknown): SelectionUnset[] {
-  if (typeof user !== 'object' || user === null) return []
-  const section = user as Record<string, unknown>
-  return SELECTION_KEYS
-    .filter((key) => isPluginProviderId(section[key]))
-    .map((key) => ({ op: 'unset', path: [key] }))
+  return pinnedSelections(user).map((pin) => ({ op: 'unset', path: [pin.field] }))
 }
 
 /** Default reporter; callers with a host or client logger pass their own. */

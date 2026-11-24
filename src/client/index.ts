@@ -114,6 +114,10 @@ function adaptRemote(ctx: Context): WebSearchSettingsPorts {
       // types it JSON-valued (its own JsonValue union, which a client bundle
       // must not import at type level) — one cast at this boundary.
       remote.settings.update(ns, patch as Parameters<typeof remote.settings.update>[1], expectedRevision),
+    // S41 enable-time handover: path-addressed `unset` edits on the seam's user
+    // section; the readonly path narrows to the wire's mutable array here.
+    mutateSettings: (ns, ops, expectedRevision) =>
+      remote.settings.mutate(ns, ops as Parameters<typeof remote.settings.mutate>[1], expectedRevision),
     describeCredentials: (refs) => remote.credentials.describe([...refs]),
     describeKeyCounts: async (refs) => {
       try {

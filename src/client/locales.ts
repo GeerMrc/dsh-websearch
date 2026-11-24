@@ -29,6 +29,11 @@ export type DshWsLocaleKey =
   | 'saved'
   | 'cleared'
   | 'failed'
+  | 'seamPinTitle'
+  | 'seamPinBody'
+  | 'seamPinClear'
+  | 'seamPinFieldSearch'
+  | 'seamPinFieldFetch'
   | 'moveUp'
   | 'moveDown'
   | 'chainFloorDeepseekNote'
@@ -218,6 +223,11 @@ export const en: Record<DshWsLocaleKey, string> = {
   saved: 'Saved',
   cleared: 'Cleared',
   failed: 'Action failed',
+  seamPinTitle: 'A provider selection is pinned in the host layer',
+  seamPinBody: 'A choice saved on the official settings page still lives in the host layer and outranks this plugin: search and fetch go straight to the pinned member with no chain and no failover, and it would dangle if this plugin were disabled. Clearing it puts the chain back in charge and lets the official providers take over cleanly when this plugin is disabled.',
+  seamPinClear: 'Clear pinned selection',
+  seamPinFieldSearch: 'Web search provider',
+  seamPinFieldFetch: 'Web fetch provider',
   moveUp: 'Move up',
   moveDown: 'Move down',
   chainFloorDeepseekNote: 'No usable search tool — the next web_search will be served by the selected DeepSeek paid fallback.',
@@ -402,6 +412,11 @@ export const zh: Record<DshWsLocaleKey, string> = {
   saved: '已保存',
   cleared: '已清除',
   failed: '操作失败',
+  seamPinTitle: '宿主层钉死了提供方',
+  seamPinBody: '官方设置页保存过的选择仍写在宿主层，优先级高于本插件：搜索与抓取直连被钉死的成员，不走链、不降级；关闭本插件后它会变成悬空引用。清除后由本插件的链接管，关闭插件时官方提供方也能干净接管。',
+  seamPinClear: '清除钉值',
+  seamPinFieldSearch: '网页搜索提供方',
+  seamPinFieldFetch: '网页获取提供方',
   moveUp: '上移',
   moveDown: '下移',
   chainFloorDeepseekNote: '没有可用搜索工具——下一次 web_search 将由所选 DeepSeek 付费兜底服务。',
