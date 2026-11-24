@@ -1,3 +1,14 @@
+## 2026-11-25 — v0.2.2
+
+scoped npm 名安装静默半残的有声守卫与安装文档硬化（见下方 v0.2.2 条目）。
+
+## 2026-11-25 — scoped 安装有声守卫 + 安装文档硬化（v0.2.2）
+
+- **安装形态守卫**：插件启动时探测安装形态——包清单名为 scoped（如 `@maricgeer/dsh-websearch`）且非源码树时，把「客户端半区不被宿主采纳（设置页「网页搜索」节与工具行徽标不渲染）、宿主半区仍可用、去 Release 取裸名 tarball 重装」一行告警同时写入 `ctx.logger.warn` 与插件自有日志 `<DSH_HOME>/logs/dsh-websearch.log`（`[dshws-install]` 前缀；rc.5 宿主不输出插件 logger，文件日志是可靠通道）。裸名 tarball 与源码树静默；探测失败吞错不阻断装载。
+- **根因定案（M1 实验）**：宿主浏览器侧装载器对非 `@deepseek-ai` scoped 行的客户端配对是未文档化约束——插入行 id+name 与包清单三处身份全 scoped 一致仍不修复；本版守卫为止血方案，上游支持后移除（known-upstream-issues ⑧）。
+- **安装文档纠错**：README 中英撤下「npm registry（推荐）」与「功能与本地 tarball 完全一致」的错误声明——scoped 直装宿主半区不加载、双名别名客户端半区静默缺失；裸名 tarball 定为 profile 安装唯一支持形态，scoped npm 包限定依赖解析与 registry 分发（附 pnpm `minimumReleaseAge` 静默降级提示）。介绍卡中英「关闭与兼容」段各补一句安装形态提示。
+- **治理**：守卫测试扩展（真机双通道断言、apply 接线保险丝——vi.mock 间谍，删调用即红）；patterns.md PC6 定稿、dont-do 两条入册（静默改写第 5 起、分发身份三处对齐不修宿主配对）；独立审核 APPROVE WITH CHANGES 的全部发现处置在案。
+
 ## 2026-11-24 — v0.2.1
 
 接管官方「网页搜索与获取」、插件页用户文档分离、OIDC 发布链与上游 0.2.2-rc.5 对齐、交还提示卡一键清除、设置页控件排版统一（见上方 S41 条目）。
