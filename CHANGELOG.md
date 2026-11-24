@@ -1,3 +1,14 @@
+## 2026-11-25 — v0.2.3
+
+npm 包名直装全功能根修：客户端身份三腿对齐（见下方 v0.2.3 条目）。
+
+## 2026-11-25 — 客户端身份三腿对齐——npm scoped 直装全功能（v0.2.3）
+
+- **根修**：宿主 rc.5 客户端装载要求三方字符串精确相等（随包补丁 insert 行 `name` == 包清单 `name` == client bundle 注册 id）。此前 client 注册 id 硬编码裸名，scoped npm 安装静默丢失客户端半区。现 `tsdown.client.config.ts` 注册 id 从清单 name 盖戳（宿主共享预设同款）；补丁 insert name→`'@maricgeer/dsh-websearch'`；`pack.mjs` 裸名 tarball 三腿联动翻转（锚点校验+字节还原）。
+- **安装形态**：npm 包名直装（`add @maricgeer/dsh-websearch`）恢复为推荐；裸名 tarball（Release URL 一条命令）并列支持；双名别名结构性不支持（宿主 `nearestPackage` 要求清单名=可解析目录名）——文档明示勿用。
+- **移除 v0.2.2 安装守卫**：scoped 直装已为全功能形态，守卫前提失效且会误告警（M4 实测误报在案）。
+- **勘误与沉淀**：v0.2.2 的 M1 结论「宿主对 scoped 行不可修」被推翻——M1 漏翻 client 注册 id（三腿只对齐两条）。PC6 终版重写（三方相等真机制+三段定位史）、known-upstream-issues ⑧ 终版（约束可满足）、dont-do 勘误条目（实验完备性纪律：翻转配对涉及的每个身份面；在产反例优先于自己的负结果）。触发：用户以 dsh-mm-resilience（裸名 npm 直装全功能）质疑；三路独立取证（桌面 profile 差分/插件仓调查/rc.5 宿主源码定位）+ M4 实验（三腿手改全 scoped→设置节完整渲染）定案。
+
 ## 2026-11-25 — v0.2.2
 
 scoped npm 名安装静默半残的有声守卫与安装文档硬化（见下方 v0.2.2 条目）。
