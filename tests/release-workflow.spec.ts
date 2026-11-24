@@ -55,6 +55,7 @@ const first = (runs: string[], pattern: RegExp): number => runs.findIndex((run) 
 
 describe('release workflow (ADR-0026)', () => {
   const release = load('release.yml')
+  const ci = load('ci.yml')
 
   it('publishes through OIDC trusted publishing, never a stored token', () => {
     expect(release.permissions['id-token']).toBe('write')
@@ -114,6 +115,23 @@ describe('release workflow (ADR-0026)', () => {
     expect(release.steps[publish].id).toBe('publish')
     expect(diagnose).toBeGreaterThan(publish)
     expect(release.steps[diagnose].if).toBe("failure() && steps.publish.outcome == 'failure'")
+  })
+
+  it('keeps the checkout credentials out of every later step in both workflows', () => {
+    // the release job holds id-token: write and then installs dependencies and runs tests;
+    // the checkout token must not stay in the git config for that code to read
+    for (const workflow of [release, ci]) {
+      const checkouts = workflow.steps.filter((step) => step.uses?.startsWith('actions/checkout'))
+      expect(checkouts.length).toBeGreaterThan(0)
+      for (const step of checkouts) expect(step.with?.['persist-credentials']).toBe(false)
+    }
+  })
+
+  it('gives CI read-only permissions and asserts the npm version between installing it and publishing', () => {
+    expect(ci.permissions).toEqual({ contents: 'read' })
+    const versionCheck = first(release.runs, /npm --version/)
+    expect(versionCheck).toBeGreaterThan(first(release.runs, /npm install -g npm@11$/))
+    expect(versionCheck).toBeLessThan(first(release.runs, /npm publish /))
   })
 })
 

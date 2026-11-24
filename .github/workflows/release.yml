@@ -28,6 +28,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # the job goes on to install dependencies and run tests; the checkout
+          # token must not stay readable in the git configuration for that code
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -50,6 +53,11 @@ jobs:
       # dist-tag support needs npm >= 11.21, so track the 11.x line.
       - name: Install npm 11
         run: npm install -g npm@11
+      - name: Require npm 11.21 or newer
+        # `npm@11` tracks a line, not a floor: trusted publishing needs 11.5.1 and its dist-tag support 11.21.
+        run: |
+          node -e 'const [major, minor] = require("node:child_process").execFileSync("npm", ["--version"], { encoding: "utf8" }).trim().split(".").map(Number)
+          process.exit(major > 11 || (major === 11 && minor >= 21) ? 0 : 1)' || { echo "npm >= 11.21.0 required, found $(npm --version)"; exit 1; }
       - name: Tag consistency (tag, package.json, CHANGELOG, USER_AGENT; tag on master)
         run: node scripts/check-release.mjs --tag "$GITHUB_REF_NAME"
       - name: Pack dual names
