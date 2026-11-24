@@ -198,3 +198,9 @@
 - **正确**：整文件改写一律「读入 → 改 → 写回同一个已读入的变量」，路径与内容用不同的变量；写入后立即用行数或字节数断言（治理单源类文件尤甚）；提交前对被改文件做一次内容抽验，而不是只看 diff 状态标记。
 - **来源**：Session 41 T19 独立审核必改-1（提交 `2f72733`；T19 独立审核报告发现 1）；修复见其后的修正提交
 - **详见**：`docs/sessions/audit-logs/2026-11-24-s41-t19-review-r1.md`
+
+### ❌ 不要在 live-web 实测用例里断言公网页面的文案字面量
+
+- **错误**：三家 provider 的 extract 实测断言 `content.toContain('Example Domain')`——IANA 改版 example.com 为多语言通知页后两家用例失败，尽管链路本身（200 + text + markdown）完全正常；Firecrawl 同型用例只断言结构（长度>0）而幸免。
+- **正确**：live-web 断言只钉**结构**（statusCode、body.kind、truncated）+ **体量**（长度阈值）+ **主题词**（对大小写不敏感的 /example/i 一类），不钉页面 copy；页面文案是第三方随时可变的资产。
+- **来源**：Session 41 e2e.real 首次带 key 实跑（用户 2026-11-24 提供窗口）；修复见同日 test(s41-e2e) 提交
