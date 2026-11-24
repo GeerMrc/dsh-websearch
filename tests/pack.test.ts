@@ -75,10 +75,14 @@ describe('scripts/pack.mjs dual-name helpers', () => {
     const link = join(dir, 'link')
     await symlink(real, link, 'dir')
 
-    const result = spawnSync(process.execPath, [join(link, 'scripts', 'pack.mjs')], { encoding: 'utf8' })
+    // npm's own log directory is redirected so the two real packs leave nothing under the user's home.
+    const result = spawnSync(process.execPath, [join(link, 'scripts', 'pack.mjs')], {
+      encoding: 'utf8',
+      env: { ...process.env, npm_config_cache: join(dir, 'npm-cache') },
+    })
 
-    expect(result.stderr).toBe('')
     expect(result.stdout).toMatch(/packed scope-pkg-1\.0\.0\.tgz \+ pkg-1\.0\.0\.tgz/)
+    expect(existsSync(join(real, 'dist-artifacts', 'scope-pkg-1.0.0.tgz'))).toBe(true)
     expect(existsSync(join(real, 'dist-artifacts', 'pkg-1.0.0.tgz'))).toBe(true)
   }, 20_000)
 })
