@@ -716,6 +716,7 @@ S40 的已验锚点（来源：`docs/sessions/audit-logs/2026-11-23-s41-stage0-a
 | 锚点 | 所在 commit | 说明 |
 |---|---|---|
 | `cordis.patch.yml`、`tests/patch.test.ts` | `98fe583` | 阶段 4 第 1 至 3 轮连续核验 |
+| `src/client/section-styles.ts`、`section.tsx`、`member-card.tsx`（控件尺度统一） | `2addb17` | T20：契约用例 + rc.5 live DOM 实测 16 控件全 32px/14px/layer-1 |
 | `src/handover.ts`、`src/client/controller.ts`、`src/client/section.tsx`、`src/client/locales.ts`（交还提示卡） | `d86655e` | T19：先红后绿 + rc.5 实测两轮清除循环；独立审核待做 |
 | `scripts/check-release.mjs` 及其测试 | `f62e686` | 第 4 轮复核出 K1、K2 两处缺陷后修正；修正之后尚未经独立复核 |
 | `.github/workflows/release.yml`、`ci.yml`、`tests/release-workflow.spec.ts` | `d37e973`（`release.yml` 此后只改过一步的名字，至 `999b6c3`） | 第 4 轮复核：三项加固正确，契约测试对三项都有实断言，未引入新问题 |
