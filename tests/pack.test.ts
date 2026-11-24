@@ -75,6 +75,12 @@ describe('scripts/pack.mjs dual-name helpers', () => {
     expect(() => flipPatchInsertName(patch.replace(`name: '${scoped}'`, 'name: other'), scoped, bare))
       .toThrow(/insert-row name/)
 
+    // The reverse direction must re-quote scoped names: a bare @-scalar is
+    // invalid YAML and would make the host skip the whole overlay silently
+    // (M4 lesson — review finding 🟡-2).
+    const roundTrip = flipPatchInsertName(patchFlipped, bare, scoped)
+    expect(roundTrip).toContain(`name: '${scoped}'`)
+
     const client = 'window.__ModuleLoader__.load({\n\tid: "@scope/pkg",\n\tfactory: (require) => {'
     const clientFlipped = flipClientRegistrationId(client, scoped, bare)
     expect(clientFlipped).toContain('id: "pkg"')
@@ -109,7 +115,7 @@ describe('scripts/pack.mjs dual-name helpers', () => {
     expect(existsSync(bareTarball)).toBe(true)
 
     // The bare tarball must carry the bare identity on ALL three legs.
-    const bareExtract = spawnSync('tar', ['-xzOf', bareTarball, 'package/package.json', ], { encoding: 'utf8' })
+    const bareExtract = spawnSync('tar', ['-xzOf', bareTarball, 'package/package.json'], { encoding: 'utf8' })
     expect(bareExtract.stdout).toMatch(/"name":\s*"pkg"/)
     const barePatch = spawnSync('tar', ['-xzOf', bareTarball, 'package/cordis.patch.yml'], { encoding: 'utf8' })
     expect(barePatch.stdout).toContain('name: pkg')
@@ -128,5 +134,6 @@ describe('scripts/pack.mjs dual-name helpers', () => {
     // And the working tree is restored byte-identical on all three files.
     expect(await readFile(join(real, 'cordis.patch.yml'), 'utf8')).toContain(`name: '@scope/pkg'`)
     expect(await readFile(join(real, 'lib', 'client.js'), 'utf8')).toContain('id: "@scope/pkg"')
+    expect(await readFile(join(real, 'package.json'), 'utf8')).toContain('"name":"@scope/pkg"')
   }, 20_000)
 })

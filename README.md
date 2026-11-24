@@ -27,7 +27,7 @@
 
 ```sh
 # 1. 打包（仓库根）
-pnpm install && pnpm run build && node scripts/pack.mjs   # 双名 tarball：裸名 dsh-websearch-<ver>.tgz（profile 安装）+ scoped（npm）
+pnpm install && pnpm run build && node scripts/pack.mjs   # 双名 tarball：scoped（npm 名，可直装）+ 裸名 dsh-websearch-<ver>.tgz（备选）；三腿身份随名联动（v0.2.3）
 
 # 2. 安装进 web profile（装即接管，ADR-0013）
 dsh plugin --profile web add /path/to/dsh-websearch-<version>.tgz
@@ -50,7 +50,7 @@ dsh --profile web --dump-config
 # 方式一（推荐）：npm 包名直装（v0.2.3 起）
 dsh plugin --profile web add @maricgeer/dsh-websearch
 # 方式二：GitHub Release 裸名 tarball 一条命令直装（改版本号即升级）
-dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.2/dsh-websearch-0.2.2.tgz'
+dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.3/dsh-websearch-0.2.3.tgz'
 # 方式三：发布页手动下载裸名 tarball 后本地安装
 dsh plugin --profile web add <dsh-websearch-tarball>
 # 方式四：从源码自行打包（dist-artifacts/ 里的裸名 tgz）

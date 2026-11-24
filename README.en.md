@@ -27,7 +27,7 @@ Prereqs: host `dsh` >= 0.1.5-rc.1 (peer range `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alph
 
 ```sh
 # 1. Pack (repo root)
-pnpm install && pnpm run build && node scripts/pack.mjs   # dual tarballs: bare dsh-websearch-<ver>.tgz (profile installs) + scoped (npm)
+pnpm install && pnpm run build && node scripts/pack.mjs   # dual tarballs: scoped (npm name, directly installable) + bare dsh-websearch-<ver>.tgz (alternate); identity legs follow the name (v0.2.3)
 
 # 2. Install into the web profile (install-driven takeover, ADR-0013)
 dsh plugin --profile web add /path/to/dsh-websearch-<version>.tgz
@@ -51,7 +51,7 @@ dsh --profile web --dump-config
 # Option 1 (recommended): install by npm package name (from v0.2.3)
 dsh plugin --profile web add @maricgeer/dsh-websearch
 # Option 2: one-command install from the GitHub Release bare-name tarball (bump the version to upgrade)
-dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.2/dsh-websearch-0.2.2.tgz'
+dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.3/dsh-websearch-0.2.3.tgz'
 # Option 3: download the bare-name tarball from the releases page, then install locally
 dsh plugin --profile web add <dsh-websearch-tarball>
 # Option 4: pack from source (the bare-name tgz lands in dist-artifacts/)

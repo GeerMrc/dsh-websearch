@@ -47,11 +47,18 @@ export function bareName(name) {
  * @returns the rewritten patch text.
  */
 export function flipPatchInsertName(text, from, to) {
-  const anchor = `name: '${from}'`
-  if (!text.includes(anchor)) {
-    throw new Error(`insert-row name anchor "${anchor}" not found; refusing to pack ${to}`)
+  // The anchor is form-aware: scoped names live quoted in the patch, bare
+  // names unquoted; either direction must find its current form.
+  const quoted = `name: '${from}'`
+  const plain = `name: ${from}\n`
+  const anchor = text.includes(quoted) ? quoted : (text.includes(plain) ? plain : undefined)
+  if (anchor === undefined) {
+    throw new Error(`insert-row name anchor for "${from}" not found; refusing to pack ${to}`)
   }
-  return text.replace(anchor, `name: ${to}`)
+  // Scoped targets are re-quoted: a bare @-scalar is invalid YAML and makes
+  // the host skip the whole overlay silently (M4 lesson).
+  const target = to.startsWith('@') ? `name: '${to}'\n` : `name: ${to}\n`
+  return text.replace(anchor, target)
 }
 
 /**

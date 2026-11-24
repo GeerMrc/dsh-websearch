@@ -42,7 +42,8 @@
 - `file:` 安装必须指向**耐久路径**（`/tmp` 重启即失，生产 profile 会钉住该路径）
 - **同版本号换装**：运行中的实例继续沿用旧包的随包层——重启宿主，或在插件页把插件关一次再开
 - 详情页读本地目录**实时无缓存**：改了文档重换装（或重启）即生效；用版本号变更保证所有缓存面失效
-- 换装后核验三件套：依赖行指向新路径；`node_modules/<pkg>/locale/` 与 `docs/plugin-page.*.md` 在位；`--dump-config`（或用户层文件）未被波及
+- 换装后核验四件套：依赖行指向新路径/新版本；`node_modules/<pkg>/locale/` 与 `docs/plugin-page.*.md` 在位；
+  `--dump-config`（或用户层文件）未被波及；**身份三腿一致**（清单 name == 包内 insert name == client id，v0.2.3 起，见 PC6 排障速查）
 - 验证渲染：新开标签 → 设置/插件页 → 详情，用无障碍树（DOM snapshot）断言内容，用截图留档；判别「是否真在渲染 README」看 README 独有标记（快速开始/治理看板等）是否为零
 
 ## PC3. 未来新插件快速复用清单
@@ -50,6 +51,10 @@
 1. 复制本仓 `locale/{zh,en}.json` + `docs/plugin-page.{zh,en}.md` + `tests/package-meta.spec.ts` 三件套
 2. 按 PC1 行数/结构模板写卡，量高度验收
 3. `files`/`exports` 白名单照抄；发布前跑 `check-release --tarballs`（含必需文件断言）
+4. **身份三腿必检**（v0.2.3 起，PC6 正本）：client 构建盖戳 `id = manifest.name`（照抄本仓
+   `tsdown.client.config.ts`）；随包补丁 insert `name` = 清单名（scoped 记得 YAML 引号）；双名分发时
+   `pack.mjs` 三腿联动翻转（照抄本仓实现，含锚点校验）；`insert id` 独立稳定、不参与客户端配对
+5. 装载验收：npm 名直装 + 裸名 tarball 双形态各装一遍，设置节/详情页/徽标三面渲染 + `--dump-config` 零 skip
 
 ## PC4. 兄弟仓 P1–P8 对照表（v0.2.1 审计，2026-11-24）
 
@@ -105,6 +110,21 @@ insert 行的 `id` **不参与**客户端配对（mm-resilience `id≠name` 在�
 - 验证：装后核对 `node_modules/<包>/package.json` 版本；启动零 `did not activate`；设置节渲染+徽标在位
 - 装置三坑（实验时）：patch 里 scoped 名必须引号；profile 根 patch 的 config 行 `name` 也要随形态对齐
   （不齐会被跳过并告警）；bundles 列表条目=包清单名
+
+**四版演进表（统一复盘，2026-11-25）**：
+
+| 版本 | 形态/修法 | 结果 | 有效沉淀 |
+|---|---|---|---|
+| 0.2.0 | npm scoped 包（insert name/client id 均裸） | scoped 直装不加载；别名半残 | 「裸名才行」的**错误归因**起点 |
+| 0.2.1 | 双名别名当修法 | 只救宿主半区 | PC6 旧版错误配方（已废） |
+| 0.2.2 | 有声守卫（错误方向） | 坏形态有声、根因未动 | 守卫双通道（rc.5 不接插件 console exporter，插件自有日志才可靠）；实验假阴性排除法；M1 误判入 dont-do 勘误 |
+| 0.2.3 | **三腿对齐根修** | npm 直装/裸名 tarball 双形态全功能 | 本条目正本 |
+
+**排障速查**（症状 → 断哪条）：
+1. 设置节/徽标不渲染 → 依次查三腿：`node_modules/<包>/package.json` 的 `name` == 包内 `cordis.patch.yml` insert `name` == `lib/client.js` 首行 `id:` 字面量（任一不符即命中）
+2. 三腿一致仍不渲染 → 查装置面：profile 根 patch 的 config 行 `name` 是否随形态（不齐会被跳过并告警）、bundles 条目是否=包清单名、patch 里 scoped 名是否带引号
+3. 宿主半区都不加载 → insert `name` 指向的包名在 node_modules 解析不到（scoped 直装旧形态/目录名不符）
+4. 双名别名形态 → 直接判死（结构性），换 npm 直装或裸名 tarball
 
 **禁忌**：
 - ❌ 不要用双名别名法装 profile——结构性客户端半残（nearestPackage 要求清单名=可解析目录名）

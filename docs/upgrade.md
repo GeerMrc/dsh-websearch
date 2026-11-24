@@ -20,9 +20,9 @@
 
 前置：node ≥ 22.19（nvm 切换，**一律绝对路径启动**）；升级目标 tarball（双名打包：`node scripts/pack.mjs`，见步骤 1）。
 
-1. **打包**：`pnpm install && pnpm run build && node scripts/pack.mjs`——一次产出 scoped（npm 分发名）与裸名（profile 安装名）双 tarball 入 `dist-artifacts/`（裸名经临时翻转 package.json name、失败亦字节级还原；工艺细节见 S35 记录 T11 节）。
+1. **打包**：`pnpm install && pnpm run build && node scripts/pack.mjs`——一次产出 scoped（npm 名）与裸名（备选安装名）双 tarball 入 `dist-artifacts/`（v0.2.3 起**三腿联动翻转**：package.json name、cordis.patch.yml insert name、lib/client.js 注册 id 一起翻裸、失败亦字节级还原；客户端配对规则见 [patterns.md PC6](patterns.md)）。
    - **上游对齐确认（必做）**：按 [upstream-alignment-checklist.md](upstream-alignment-checklist.md) 逐成员 × 逐面 happy + error 双路核对——涉及上游 API 适配的变更缺格不得发版（[dont-do 入册](dont-do.md#上游适配验证纪律session-35-t11-入册用户裁定升级为常备门槛)）。
-2. **换包**：`dsh plugin --profile web remove dsh-websearch && dsh plugin --profile web add <新 tarball>`。同版本号会被跳过——预览场景须 bump 版本号再 pack。
+2. **换包**（v0.2.3 起两形态）：npm 名直装 `dsh plugin --profile web remove dsh-websearch && dsh plugin --profile web add '@maricgeer/dsh-websearch@<ver>'`（minimumReleaseAge 注意核对装到的版本），或 tarball `… add <新 tarball>`。同版本号会被跳过——预览场景须 bump 版本号再 pack。换装后按 PC2 核验四件套（含身份三腿一致）。
 3. **dump 对照**：`dsh --profile web --dump-config`——`searchProvider: dshws-chain` / `fetchProvider: dshws-fetch-gate` / insert 行三处落盘。
 4. **浏览器 reload**：插件 client 走 `/plugins/*?rev=` 运行时路由，换包后必须整页刷新。
 5. **凭据 gate**：设置页成员卡绿点 = credentials describe 就绪；配 key 后无需重启（热生效）。
