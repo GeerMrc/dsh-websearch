@@ -444,12 +444,14 @@ function StagedTextField(props: {
   noteKey: DshWsLocaleKey
   placeholder: string
   width: number
+  /** T20b: fill the row's free span instead of a fixed width (long comma lists). */
+  fill?: boolean
   centered?: boolean
   value: string | undefined
   onSet: (value: string) => Promise<ActionResult>
   lifted?: { draft: string | null, onDraftChange: (value: string | null) => void }
 }) {
-  const { t, testid, labelKey, noteKey, placeholder, width, centered, value, onSet, lifted } = props
+  const { t, testid, labelKey, noteKey, placeholder, width, fill, centered, value, onSet, lifted } = props
   const [draft, setDraft] = useLiftedDraft(lifted)
   const [feedback, setFeedback] = useAutoClearFeedback<'saved' | 'failed'>()
   const current = value ?? ''
@@ -464,7 +466,8 @@ function StagedTextField(props: {
           </button>
         </Tooltip>
       </span>
-      <span style={{ flex: 1 }} />
+      {/* T20b: a fill field takes over the spacer's span; fixed fields keep the label-…-control rhythm. */}
+      {fill === true ? null : <span style={{ flex: 1 }} />}
       <input
         aria-label={t(labelKey)}
         data-testid={testid}
@@ -474,7 +477,7 @@ function StagedTextField(props: {
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
         // T20: the staged fields join the section-wide control scale (32px tall,
         // 14px text, layer-1) instead of the smaller 28px inherited-font tribe.
-        style={{ ...fieldInputStyle, width, ...(centered === true ? { textAlign: 'center' as const } : {}) }}
+        style={{ ...fieldInputStyle, width, ...(fill === true ? { flex: 1, minWidth: width, maxWidth: 480 } : {}), ...(centered === true ? { textAlign: 'center' as const } : {}) }}
       />
       <Button
         variant="outline"
@@ -513,7 +516,8 @@ export function DomainField(props: {
       labelKey={kind === 'include' ? 'searchIncludeDomainsLabel' : 'searchExcludeDomainsLabel'}
       noteKey={kind === 'include' ? 'searchIncludeDomainsNote' : 'searchExcludeDomainsNote'}
       placeholder="example.com,foo.org"
-      width={200}
+      width={220}
+      fill
       value={value}
       onSet={(text) => onSet(kind, text)}
       lifted={lifted}
@@ -540,7 +544,7 @@ export function GeoField(props: {
       labelKey={labelKey}
       noteKey={noteKey}
       placeholder={placeholder}
-      width={88}
+      width={120}
       centered
       value={value}
       onSet={onSet}

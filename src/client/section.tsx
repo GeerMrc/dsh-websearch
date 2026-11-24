@@ -478,7 +478,7 @@ function MaxUsesRow(props: {
           aria-label={t('maxUsesLabel')}
           data-testid="dshws-max-uses-input"
           data-dshws-input=""
-          style={{ ...fieldInputStyle, width: 52, padding: '0 6px', textAlign: 'center' }}
+          style={{ ...fieldInputStyle, width: 64, padding: '0 6px', textAlign: 'center' }}
           value={draft === '' ? String(current) : draft}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
         />
