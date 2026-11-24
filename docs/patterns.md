@@ -74,39 +74,41 @@
 **定档**：主顺序改为**先推 master、确认 CI 绿、再推 tag**（最坏态=master 已推而 tag 未推=无发布、可安全重试 tag；
 tag 先行的坏态=发布了一个未经 CI 的提交）。atomic 仅在两步均不可行时使用且须人工盯 workflow 触发。
 
-## PC6. scoped npm 包名与客户端装载配对——profile 安装一律裸名 tarball（2026-11-25 定稿）
+## PC6. 客户端身份三腿对齐——npm scoped 直装全功能（2026-11-25 终版，v0.2.3；推翻同日早版「宿主不可修」结论）
 
-**场景**：npm 反抢注拒绝了裸包名，插件以 scoped 名发布（`@maricgeer/dsh-websearch`），但宿主按裸名
-插件 id（`dsh-websearch`）装载。三种 npm 安装形态实测两残一好：
+**场景**：npm 反抢注拒绝裸名，插件以 scoped 名发布（`@maricgeer/dsh-websearch`）。宿主 rc.5 的客户端装载要求
+**三方字符串精确相等**：随包补丁 insert 行 `name` == 包清单 `name` == client bundle 构建时打进
+`__ModuleLoader__.load({ id })` 的注册 id。任何一腿不一致 → 客户端半区（设置节/徽标）静默缺失，无任何报错。
+insert 行的 `id` **不参与**客户端配对（mm-resilience `id≠name` 在产实证），scoped 名在 URL/编码/查找全链不受损，
+无 `@deepseek-ai` 白名单（宿主自带 `@fixture/live-client` e2e 即 scoped 第三方全链生效）。
 
-| 安装形态 | 宿主半区 | 客户端半区 |
-|---|---|---|
-| scoped 直装 `add @maricgeer/dsh-websearch` | ❌ 不加载（裸名解析失败） | ❌ |
-| 双名别名 `dsh-websearch@npm:@maricgeer/dsh-websearch` | ✅ | ❌ 静默丢失（设置节消失、徽标不渲染） |
-| 裸名 tarball（pack 翻转 name）`file:…/dsh-websearch-<ver>.tgz` | ✅ | ✅ 全功能 |
+**定位史（三段，含一次误判）**：
+1. 0.2.1 时代：insert name=裸 + 清单 scoped + client id=裸（硬编码）→ 两腿不一致 → scoped 直装宿主半区不加载、
+   双名别名客户端静默缺失；裸名 tarball（pack 翻清单名）三腿恰好一致 → 全功能。误归因为「裸名才行」。
+2. **M1 误判**：翻转 insert id+name 与清单为 scoped 三处一致，仍不渲染 → 误判「宿主浏览器侧对 scoped 行不可修」。
+   漏因：**client bundle 注册 id 硬编码裸名没翻**（三腿只对齐两条）。教训入 dont-do（实验完备性）。
+3. **源码定案**（rc.5 标签树三路取证 + M4 实验）：读宿主 `packages/client/modules` 链——row 键=解析出的清单 name
+   （`nearestPackage` 要求与 entry name 逐字相等）；页面按 row id 建 entry、以 entry name import；
+   注册侧 `id = manifest.name`（宿主共享 tsdown 预设）。M4 手改三腿全 scoped → **设置节完整渲染**，证伪早版结论。
 
-**机制**（rc.5 实测链 + M1 实验 2026-11-25）：
-- 客户端模块表按包清单 name 建 row；浏览器侧 fiber/apply 要求 loader entry 的 id/name 与 graph row id
-  配对。对非 `@deepseek-ai` scoped 行该配对**不成立**——这是宿主客户端装载器的**未文档化约束**
-- **M1 判定（方案 A 之门未过）**：插入行 id+name 双双 scoped + 包清单 scoped + profile 真名安装，
-  三处身份完全一致，客户端半区**仍不渲染**（启动图有 row、combo 200，fiber/apply 不采纳）→
-  配对卡点不在插件可控的补丁身份，在宿主浏览器侧
-- pnpm `minimumReleaseAge` 是解析偏好而非硬门：未过年龄窗且无豁免条目时**静默解析到旧版本**，add 照样"成功"
+**v0.2.3 根修**：`tsdown.client.config.ts` 注册 id 从清单 name 盖戳；repo 补丁 insert name=scoped（YAML 引号）；
+`pack.mjs` 裸名打包三腿联动翻转（锚点校验+字节还原）。npm 直装/裸名 tarball 双形态全功能。
 
-**配方**（profile 安装/升级唯一支持路径）：
+**配方**（v0.2.3 起两形态皆可）：
 ```sh
-'<launcher>' plugin --profile <p> add 'file:/…/dsh-websearch-<ver>.tgz'   # 裸名 tarball
+'<launcher>' plugin --profile <p> add '@maricgeer/dsh-websearch'        # npm 直装（推荐）
+'<launcher>' plugin --profile <p> add 'file:/…/dsh-websearch-<ver>.tgz'  # 裸名 tarball（Release 资产/本地）
 ```
-- tarball 来源：GitHub Release 资产（双 tarball 里的裸名版）或耐久本地路径；**不要**用 registry scoped 包
-- 前置：目标版本的 profile `pnpm-workspace.yaml` 加 `minimumReleaseAgeExclude` 条目（仅 registry 安装相关）
-- pnpm 两个坑：`.tarball` 扩展名不被识别（须 `.tgz`）；同路径 file: 依赖命中 store 旧缓存（换新文件名击穿）
-- 验证：`node_modules/dsh-websearch/package.json` 的 name 是裸名且版本正确；启动日志零 `did not activate`；
-  设置页「网页搜索」节渲染 + 详情页/溯源徽标在位
-- scoped npm 包的正当用途：包管理器依赖解析与 registry 分发（CI、e2e），不做 profile 直装
+- pnpm 坑：`minimumReleaseAge` 无豁免时静默解析旧版（11.3x 对直加依赖自动写豁免）；`.tarball` 扩展名不识别；
+  同路径 file: 命中 store 旧缓存（换新文件名）
+- **双名别名结构性不支持**：裸目录 ≠ scoped 清单名，`nearestPackage` 必不匹配，客户端半区必缺——文档声明勿用
+- 验证：装后核对 `node_modules/<包>/package.json` 版本；启动零 `did not activate`；设置节渲染+徽标在位
+- 装置三坑（实验时）：patch 里 scoped 名必须引号；profile 根 patch 的 config 行 `name` 也要随形态对齐
+  （不齐会被跳过并告警）；bundles 列表条目=包清单名
 
 **禁忌**：
-- ❌ 不要 `add @maricgeer/dsh-websearch`（scoped 直装）——宿主半区都不加载
-- ❌ 不要用双名别名法装 profile——只修宿主半区，客户端静默半残（2026-11-25 实测定稿，替代 11-24 的旧结论）
-- ❌ 不要凭"add 成功/宿主能搜索"判断装对——年龄门静默降级与客户端半残都不在 add 的输出里
-- ❌ 不要再试插入行身份翻转修客户端半区——M1 已证伪（三处一致仍不渲染），等上游答复
+- ❌ 不要用双名别名法装 profile——结构性客户端半残（nearestPackage 要求清单名=可解析目录名）
+- ❌ 不要凭"add 成功/宿主能搜索"判断装对——年龄门静默降级不在 add 的输出里
+- ❌ 不要在没对齐**全部三腿**（含 client bundle 注册 id）前下「宿主不可修」结论——M1 教训
+- ❌ 改任何一腿身份时，三腿必须随分发形态联动（清单/insert name/client id），insert `id` 保持稳定不变
 

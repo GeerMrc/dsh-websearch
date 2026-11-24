@@ -44,20 +44,21 @@ dsh --profile web --dump-config
 
 ## 安装、升级与注意事项
 
-**安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版、0.2.0-rc 线、0.2.2-rc.5 与 0.2.x 稳定版；0.1.8 与 0.3.x 不在域内）。**profile 安装唯一支持形态是裸名 tarball**（v0.2.2 起；PC6/M1 实测：npm scoped 名安装会静默丢失客户端半区——设置页「网页搜索」节与工具行徽标不渲染，宿主半区照常工作；0.2.2 起插件探测到此形态会在启动时把高声告警写入 `<DSH_HOME>/logs/dsh-websearch.log`，rc.5 宿主自身不输出插件日志）：
+**安装**（宿主 peer 域见上——覆盖 0.1.5-rc 线、0.1.6 与 0.1.7 预发布线及未来 0.1.6/0.1.7 稳定版、0.2.0-rc 线、0.2.2-rc.5 与 0.2.x 稳定版；0.1.8 与 0.3.x 不在域内）。**v0.2.3 起 npm 包名直装为全功能支持形态**——根修了客户端身份三腿对齐（包清单 name == 随包补丁 insert name == client bundle 注册 id，PC6 终版）：
 
 ```sh
-# 方式一（推荐）：GitHub Release 裸名 tarball 一条命令直装（改版本号即升级）
+# 方式一（推荐）：npm 包名直装（v0.2.3 起）
+dsh plugin --profile web add @maricgeer/dsh-websearch
+# 方式二：GitHub Release 裸名 tarball 一条命令直装（改版本号即升级）
 dsh plugin --profile web add 'https://github.com/GeerMrc/dsh-websearch/releases/download/v0.2.2/dsh-websearch-0.2.2.tgz'
-# 方式二：发布页手动下载裸名 tarball 后本地安装
+# 方式三：发布页手动下载裸名 tarball 后本地安装
 dsh plugin --profile web add <dsh-websearch-tarball>
-# 方式三：从源码自行打包（dist-artifacts/ 里的裸名 tgz）
+# 方式四：从源码自行打包（dist-artifacts/ 里的裸名 tgz）
 git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
 pnpm install && pnpm run build && node scripts/pack.mjs
-# 方式四：profile package.json 依赖 file: 指向裸名 tarball 后 pnpm install
 ```
 
-scoped npm 包（https://www.npmjs.com/package/@maricgeer/dsh-websearch ；裸名 `dsh-websearch` 因 npm 防仿冒政策与既有包 `dsh-web-search` 过近被拒，故用 scope 分发）**只用于包管理器依赖解析与 registry 分发**（CI、e2e），不要装进 profile：`add @maricgeer/dsh-websearch` 宿主半区不加载，`dsh-websearch@npm:@maricgeer/dsh-websearch` 双名别名宿主半区可用但客户端半区静默缺失。另外 pnpm `minimumReleaseAge` 未加豁免时会**静默**解析到旧版本——registry 路径务必核对装到的版本号（PC6）。
+npm 包页：https://www.npmjs.com/package/@maricgeer/dsh-websearch （裸名 `dsh-websearch` 因 npm 防仿冒政策与既有包 `dsh-web-search` 过近被拒，故用 scope 分发——v0.2.3 起三种身份随 scoped 名对齐，直装即可）。两条注意：pnpm `minimumReleaseAge` 未加豁免时会**静默**解析到旧版本——装完核对版本号（pnpm 11.3x 对直加依赖自动写豁免条目）；**双名别名形态**（`dsh-websearch@npm:@maricgeer/dsh-websearch`）结构性不支持（宿主 `nearestPackage` 要求清单名与可解析目录名一致，别名的裸目录 ≠ scoped 清单名，客户端半区必缺）——不要用。
 
 安装即接管 web_search / web_fetch（bundle 钉扎安装序，后写者赢），并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）；卸载自动复原宿主默认与该页面。用户层另行保存的 `web` 选择不随卸载清除，见 FAQ。换包后浏览器整页刷新（client 走 `/plugins/*?rev=` 运行时路由）。
 

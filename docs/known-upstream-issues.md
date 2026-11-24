@@ -219,34 +219,34 @@ rc.5 把 `hmr`、`plugin-manager`、`config-editor`、`settings` 四行钉在同
 
 ---
 
-## 问题 ⑧（插件作者向，宿主未文档化约束）scoped 包名的第三方插件：客户端半区不被采纳（S41 v0.2.2 登记，M1 实测定案）
+## 问题 ⑧（插件作者向，宿主未文档化约束）客户端身份三腿必须逐字相等——scoped 第三方插件可全功能（S41 v0.2.3 终版，推翻 v0.2.2 的 M1 结论）
 
-### 现象
+### 现象（v0.2.2 及更早的分发形态下）
 
-以 npm scoped 包名（如 `@maricgeer/dsh-websearch`）装进 profile 的插件：宿主半区正常（provider 注册、搜索可用），但**客户端半区静默缺失**——设置页不出现插件的节、toolview 徽标不渲染。双名别名（`dsh-websearch@npm:@maricgeer/dsh-websearch`）只救回宿主半区，客户端半区同样缺失。
+以 npm scoped 包名装进 profile 时：宿主半区正常，但**客户端半区静默缺失**（设置节/徽标不渲染）。双名别名形态相同。曾据此（M1）误判为「宿主对 scoped 行不可修」。
 
 ### 影响版本
 
 | 宿主版本 | 状态 |
 |---|---|
-| 0.2.2-rc.5 | ❌ 实测复现（scoped 直装 / 双名别名 / M1 三处身份全 scoped 三种形态） |
-| 更早版本 | 未系统核对（0.2.0 双名别名形态未实测客户端半区） |
+| 0.2.2-rc.5 | 约束存在但**可满足**（源码定案 + M4 实测：三腿对齐后 scoped 形态全功能） |
+| 更早版本 | 未系统核对 |
 
-### 根因（M1 实验 2026-11-25）
+### 根因（rc.5 源码定案 + M4 实验 2026-11-25）
 
-宿主浏览器侧的客户端装载器把「loader entry 的 id/name」与「按**包清单 name** 建立的 graph row id」配对后才触发 fiber/apply；对非 `@deepseek-ai` 域的 scoped 行该配对不成立——**即使随包补丁插入行 id+name 与包清单名三处全部 scoped 一致**（M1），客户端半区仍不被采纳。对照组：同一包以裸名（manifest name = 插件 id）安装，全功能正常。这是未文档化约束：官方文档既没写「第三方插件必须裸名」，也没写 scoped 名的客户端装载规则。
+宿主客户端装载要求**三方字符串精确相等**：随包补丁 insert 行 `name` == 包清单 `name` == client bundle 构建时打进 `__ModuleLoader__.load({ id })` 的注册 id（宿主共享 tsdown 预设即 `id = manifest.name`）。row 键=解析出的清单 name（`nearestPackage` 要求与 entry name 逐字相等）；不一致时 row 不生成或注册不匹配 → 静默丢弃（宿主侧 `resolveMeta` 返 null 零诊断；页面侧仅 console warn）。**insert 行 `id` 不参与配对**；scoped 名（恰两段）在 URL/编码/查找全链不受损；无 `@deepseek-ai` 白名单（宿主 `@fixture/live-client` e2e 即 scoped 第三方全链生效）。本插件 v0.2.2 及更早的缺陷：client bundle 注册 id 硬编码裸名 + insert name 裸，与 scoped 清单名两腿不符。**双名别名形态仍结构性不支持**：裸目录装 scoped 清单包，`nearestPackage` 必不匹配。
 
 ### 怎么办
 
-1. 插件作者：**随包分发裸名 tarball**（pack 时翻转 package.json name；本仓 `scripts/pack.mjs` 即此法），npm scoped 包只作 registry 分发。
-2. 用户：从插件发布页取裸名 tarball 安装；装错形态时本插件 v0.2.2 起会在启动日志高声告警。
-3. 上游追问：已按 S41 方案 C 起草 issue（见下方登记），等官方给出 scoped 第三方插件的装载规则或修复。
+1. 插件作者：构建期用清单 name 盖戳 client 注册 id；补丁 insert name=清单名（scoped 加 YAML 引号）；裸名 tarball 分发时三腿联动翻转（本仓 v0.2.3 `tsdown.client.config.ts` + `scripts/pack.mjs` 即此法）。
+2. 用户：v0.2.3 起 npm 包名直装（`add @maricgeer/dsh-websearch`）与裸名 tarball 均全功能；双名别名勿用。
+3. 上游：追问帖已发（见下）；约束本身是「未文档化」而非「不可满足」——希望官方文档化三腿规则。
 
 ### 自查
 
-启动图（`__DSH_BOOT__`）里客户端 row 在、combo URL 可 200，但设置节不渲染 ⇒ 即此约束；`node_modules/<插件>/package.json` 的 `name` 是 scoped 名即命中。**守卫退出条件**：上游采纳 scoped 第三方行（或给出等价修复）后，随下一版移除 `src/install-guard.ts` 及其 apply 接线。
+设置节不渲染 + `node_modules/<包>/package.json` name ≠ 包内 `cordis.patch.yml` insert name 或 ≠ client bundle 首行 `id:` 字面量 ⇒ 即此约束。**v0.2.2 的安装守卫已随 v0.2.3 根修移除**（前提失效会误告警）。
 
-**技术沿革**：S41 PC6 实测链（npm 直装不加载 → 双名别名半残 → 裸名 tarball 全功能）+ M1 实验（三处身份一致仍不修复）定案；证据全文见 [session-41 记录](sessions/2026-11-23-session-41.md) 的 PC6 补充与「M1 实验结果」节。
+**技术沿革**：v0.2.2 时代 M1 实验（三处身份一致仍不渲染）曾定案「宿主不可修」——**该结论被同日用户质疑驱动复盘推翻**：M1 漏翻了 client bundle 注册 id（三腿只对齐两条）。证据全文见 [session-41 记录](sessions/2026-11-23-session-41.md) 的「M1 实验结果」与 v0.2.3 续记节。
 
 **上游 issue 登记**：草稿 [docs/upstream-issue-scoped-client.md](upstream-issue-scoped-client.md)；上游仓库 issues 关闭，已按用户 2026-11-25 批准改走 Discussions（Q&A 分类）发出：
 [deepseek-ai/deepseek-harness#14267](https://github.com/deepseek-ai/deepseek-harness/discussions/14267)。
