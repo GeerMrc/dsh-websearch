@@ -38,7 +38,7 @@ dsh --profile web --dump-config
 #    dsh-websearch insert 行出现
 ```
 
-**装即接管**：插件随包 `cordis.patch.yml` 钉 `searchProvider: dshws-chain` + `fetchProvider: dshws-fetch-gate`，并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）——`plugin add` 单命令即接管；关闭或卸载即复原组合，官方设置页随之恢复（0.2.2-rc.5 上经插件页开关实测；命令行卸载在 rc.5 上另行实测）。无需手写用户层 patch。用户层里另行保存过的 `web` 选择不随关闭或卸载清除，见 FAQ。
+**装即接管**：插件随包 `cordis.patch.yml` 钉 `searchProvider: dshws-chain` + `fetchProvider: dshws-fetch-gate`，并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）——`plugin add` 单命令即接管；关闭或卸载即复原组合，官方设置页随之恢复（0.2.2-rc.5 上经插件页开关实测；命令行卸载在 rc.5 上另行实测）。无需手写用户层 patch。用户层里另行保存过的 `web` 选择多数不随关闭清除、不随卸载清除，见 FAQ。
 
 **卸载**：`dsh plugin --profile web remove dsh-websearch`。已知残留（诚实披露）：settings 默认值与预设目录不随 remove 清理（无害，用户自撰同名目录永不覆写）。
 

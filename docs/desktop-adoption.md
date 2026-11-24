@@ -97,7 +97,7 @@
   （v0.2.0 加 S41 改动）装入后，`--dump-config` 的 `web` 行是两个 dshws 钉值，`ui-settings-web-search` 与 `web-search-deepseek` 为
   disabled；设置页「网页搜索」节照常渲染，DNS 卡显示 DoH 生效中；插件页开关关、开各一次，接管随层去层回；插件详情页显示本地化的
   标题、描述与用户文档。真实搜索与抓取没有在 rc.5 上实跑，需要 key 窗口。
-- **与 S40 判定的差异**：官方「网页搜索与获取」设置卡在 rc.5 不再随 `web-search-deepseek` 一同隐藏；插件被关闭后自己没有执行通道。
+- **与 S40 判定的差异**：官方「网页搜索与获取」设置卡在 rc.5 不再随 `web-search-deepseek` 一同隐藏；插件被关闭后宿主侧没有执行通道、客户端守卫偶发生效。
   两条见 [known-upstream-issues.md](known-upstream-issues.md) 的问题 ⑤ 与问题 ⑥。
 - **桌面 profile 本身未测**：按 rc.5 的基础 patch 推断桌面端启用 HMR，未在桌面 profile 上实测。候选包装入本机桌面端留到发布序列的
   步骤 1，经用户指令后执行。

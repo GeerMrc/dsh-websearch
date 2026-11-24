@@ -38,7 +38,7 @@ dsh --profile web --dump-config
 #    dsh-websearch insert row appears
 ```
 
-**Install-driven takeover**: the plugin ships a `cordis.patch.yml` pinning `searchProvider: dshws-chain` and `fetchProvider: dshws-fetch-gate`, and hides the built-in "Web search and fetch" settings page while it is enabled (ADR-0024) — `plugin add` takes over in one command; disabling or uninstalling the plugin restores the composition and that page (measured on 0.2.2-rc.5 through the Plugins-page switch; a command-line uninstall was measured separately on rc.5). No user-layer patch needed. A `web` selection saved separately in the user layer is not removed; see the FAQ.
+**Install-driven takeover**: the plugin ships a `cordis.patch.yml` pinning `searchProvider: dshws-chain` and `fetchProvider: dshws-fetch-gate`, and hides the built-in "Web search and fetch" settings page while it is enabled (ADR-0024) — `plugin add` takes over in one command; disabling or uninstalling the plugin restores the composition and that page (measured on 0.2.2-rc.5 through the Plugins-page switch; a command-line uninstall was measured separately on rc.5). No user-layer patch needed. A `web` selection saved separately in the user layer is mostly not removed when the plugin is disabled and is not removed on uninstall; see the FAQ.
 
 **Uninstall**: `dsh plugin --profile web remove dsh-websearch`. Known residue (honest disclosure): settings defaults and preset directories are not cleaned by remove (harmless; user-authored same-name directories are never overwritten).
 
