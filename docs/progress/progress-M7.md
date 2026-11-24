@@ -685,7 +685,7 @@ S40 的已验锚点（来源：`docs/sessions/audit-logs/2026-11-23-s41-stage0-a
 | 条目 | 判定 | 证据 |
 |---|---|---|
 | R1 接管 | PASS | 阶段 4 第 3 轮报告；rc.5 实测 V1、V2 前半句、V5（`audit-logs/2026-11-23-s41-rc5-live/`） |
-| R2 交还 | 未达成，待裁决 | 守卫的单元测试全绿；V7 在 rc.5 上是非确定性的（阶段 5：13 次关闭里 1 次清除）；路线选项见 session-41 记录「未完成 / 遗留」；V10 没有执行，V11 已由阶段 5 测通 |
+| R2 交还 | **达成（2026-11-24 裁决后重定义，见 plan 048 附录）**：启用期间提示加一键清除在 rc.5 上实测通过（T19，两轮清除循环）；关闭时尽力通道保留、非确定性有实测数字在案；逃生口可用 | 守卫的单元测试全绿；V7 在 rc.5 上是非确定性的（阶段 5：13 次关闭里 1 次清除）；路线选项见 session-41 记录「未完成 / 遗留」；V10 没有执行，V11 已由阶段 5 测通 |
 | R3 文档分离 | PASS | 阶段 4 第 3 轮报告；阶段 5 在 rc.5 上重做 V3 通过，用的是 `6de6a17` 之前的文案；之后改写的文案还欠一次渲染实测 |
 | R4 发布门 | PASS | 阶段 4 第 3 轮报告（契约测试、工作流实读、全新克隆八步预演）；其后的加固（`678cce1`、`d37e973`）经第 4 轮复核出两处缺陷，已在 `f62e686` 修正；修正之后尚未经独立复核 |
 | R5 上游对齐 | 受阻 | `tests/peer-range.spec.ts` 23 条通过；功能腿 F1–F4、带 key 的 e2e.real、对齐清单留痕都没有做 |
@@ -716,6 +716,7 @@ S40 的已验锚点（来源：`docs/sessions/audit-logs/2026-11-23-s41-stage0-a
 | 锚点 | 所在 commit | 说明 |
 |---|---|---|
 | `cordis.patch.yml`、`tests/patch.test.ts` | `98fe583` | 阶段 4 第 1 至 3 轮连续核验 |
+| `src/handover.ts`、`src/client/controller.ts`、`src/client/section.tsx`、`src/client/locales.ts`（交还提示卡） | `d86655e` | T19：先红后绿 + rc.5 实测两轮清除循环；独立审核待做 |
 | `scripts/check-release.mjs` 及其测试 | `f62e686` | 第 4 轮复核出 K1、K2 两处缺陷后修正；修正之后尚未经独立复核 |
 | `.github/workflows/release.yml`、`ci.yml`、`tests/release-workflow.spec.ts` | `d37e973`（`release.yml` 此后只改过一步的名字，至 `999b6c3`） | 第 4 轮复核：三项加固正确，契约测试对三项都有实断言，未引入新问题 |
 | `locale/`、`docs/plugin-page.{zh,en}.md` | `6de6a17` | 用户文档按阶段 5 实测改写；改写后的文案在 rc.5 上的渲染待下次实测 |

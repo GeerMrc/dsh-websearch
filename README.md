@@ -175,7 +175,7 @@ dsh-websearch:
 - **Perplexity 哪去了**：已移除（ADR-0017——无免费额度可申请，不满足准入标准）。存量 settings.yaml 的 `perplexity:` 残节无害（schema 透传），可手动清理。
 - **AnySearch 垂直面 tag/params 未实现**：待 key 探针（S22 登记）。
 - **官方「网页搜索与获取」设置页去哪了**：插件启用期间它被隐藏，由「设置 → 网页搜索」接管（ADR-0024）；关闭或卸载插件后自动恢复。设计上的逃生口：在 profile 的 `cordis.patch.yml` 写 `- id: ui-settings-web-search` 与 `disabled: false` 可强制显示官方页（与 dsh-subagent-plus 的做法一致；0.2.2-rc.5 上实测可用）。
-- **关闭插件后官方页显示「未加载」**：0.2.0 及更早版本里官方页可见，若在其中把提供方选定为本插件成员并保存，该选择写在用户层，优先于组合包层，关闭插件后成为悬空引用（`web_search` 报 `WEB_PROVIDER_CONFIGURED_MISSING`）。关闭插件后，在恢复出来的官方页重新选择提供方并保存即可清除（选「自动选择」加「本机直接获取」即回到默认）；也可以删除 profile `cordis.patch.yml` 里 `web` 行的 `searchProvider` 与 `fetchProvider`（两个一起删）后重启宿主。关闭时的自动交还在 rc.5 上不可靠：宿主 teardown 运行在 HMR 事务内、写入被拒，客户端守卫多数在事件送达前被卸载（13 次里 2 次存活，1 次写入成功），实测见 [session-41 记录](docs/sessions/2026-11-23-session-41.md)。
+- **关闭插件后官方页显示「未加载」**：0.2.0 及更早版本里官方页可见，若在其中把提供方选定为本插件成员并保存，该选择写在用户层，优先于组合包层，关闭插件后成为悬空引用（`web_search` 报 `WEB_PROVIDER_CONFIGURED_MISSING`）。插件启用期间检测到该选择时，「网页搜索」设置页顶部会出现提示卡，点「清除钉值」一键清除；关闭插件后在恢复出来的官方页重新选择并保存也可清除（选「自动选择」加「本机直接获取」即回到默认）；还可以删除 profile `cordis.patch.yml` 里 `web` 行的 `searchProvider` 与 `fetchProvider`（两个一起删）后重启宿主。关闭时的自动交还在 rc.5 上不可靠：宿主 teardown 运行在 HMR 事务内、写入被拒，客户端守卫多数在事件送达前被卸载（13 次里 2 次存活，1 次写入成功），实测见 [session-41 记录](docs/sessions/2026-11-23-session-41.md)。
 - **升级**：见 [docs/upgrade.md](docs/upgrade.md)。
 
 ## 更多文档

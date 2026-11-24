@@ -118,7 +118,7 @@ dsh-websearch:
 > 被禁用而消失，随包 patch 因此追加一行 `- id: ui-settings-web-search` / `disabled: true`。运行时行（`web`、`web-fetch-http`、
 > `web-deepseek-api`、`tool-web`）一律不禁用，关闭 bundle 后官方提供方随层恢复。rc.5 实测：接管与恢复随插件页开关对称成立。
 > 插件被关闭后宿主侧没有执行通道（启用 HMR 的宿主上，dispose 内写配置被拒），客户端守卫多数在事件送达前被卸载、偶发生效
-> （13 次里清除 1 次），所以「关闭时清除用户层的 `dshws-*` 钉值」在 rc.5 上不可靠，处置路线待定，ADR-0024 仍为 proposed。用户层的残留钉值优先于随包层，关闭后会让官方卡显示「（未加载）」；现状与
+> （13 次里清除 1 次），所以「关闭时清除用户层的 `dshws-*` 钉值」在 rc.5 上不可靠，处置路线已定（2026-11-24 用户裁决）：启用期间检测到钉值时设置页顶部提示并可一键清除（T19）。用户层的残留钉值优先于随包层，关闭后会让官方卡显示「（未加载）」；现状与
 > 手动清理方法见 [known-upstream-issues.md](known-upstream-issues.md) 问题 ⑤。插件页显示的标题、描述与用户文档改由
 > `locale/*.json` 的 `meta` 与 `docs/plugin-page.{zh,en}.md` 提供，README 只作开发文档。
 
@@ -177,7 +177,7 @@ dsh-websearch:
 | ADR-0021 | 跨上游 settings 模型双径适配（单一构建服务 0.1.5–0.1.7 三线） |
 | ADR-0022 | 进程级 DNS 韧性层（DoH 解析 + 出口预检 + 区域预设池） |
 | ADR-0023 | 官方桌面端采用与双 profile 适配策略 |
-| ADR-0024 | 官方「网页搜索与获取」设置页接管与对称交还（**proposed**：交还路线待用户裁决） |
+| ADR-0024 | 官方「网页搜索与获取」设置页接管与对称交还（accepted：启用期间提示加一键清除，关闭时尽力通道保留） |
 | ADR-0025 | 插件显示元信息与用户文档分离（`locale` 的 `meta` + `docs/plugin-page` 文档） |
 | ADR-0026 | 发布改用 OIDC trusted publishing 并加版本三同步门 |
 | ADR-0027 | 宿主兼容门语义（`includePrerelease: true`）与 peer 显式钉策略 |

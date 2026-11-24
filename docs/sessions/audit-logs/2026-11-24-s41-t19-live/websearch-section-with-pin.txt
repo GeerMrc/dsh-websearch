@@ -1,0 +1,346 @@
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话" [selected]:
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- banner
+- generic: 探索未至之境
+- generic: 预览版
+- button "选择工作区":
+  - generic: 默认工作区
+- button "标准模式":
+  - generic: 标准模式
+- textbox "描述你想要构建的内容, / 调用指令, @ 文件或对话"
+- generic: 描述你想要构建的内容, / 调用指令, @ 文件或对话
+- button "添加文件或调用指令":
+- button "访问模式，当前：工作区内修改":
+- button "请选择模型":
+  - generic: 请选择模型
+- button "发送消息" [disabled]:
+- tablist:
+  - tab "开始" [selected]:
+    - text: 开始
+  - button "分栏":
+  - button "全屏":
+  - button "收起右侧边栏":
+- button "工作区文件 浏览会话工作区的文件 ⌥ ⌘ P":
+  - generic: 工作区文件
+  - generic: 浏览会话工作区的文件
+  - generic: ⌥
+  - generic: ⌘
+  - generic: P
+- button "新建终端 在会话工作区运行命令"
+- generic: 新建终端
+- button "选择 Shell":
+- generic: 在会话工作区运行命令
+- generic: ⌃
+- generic: "`"
+- button "更多工具":
+  - generic: 更多工具
+- dialog "设置":
+  - generic: 设置
+  - navigation:
+    - button "通用设置":
+      - generic: 通用设置
+    - button "模型":
+      - generic: 模型
+    - button "内置插件":
+      - generic: 内置插件
+    - button "网页搜索" [active]:
+      - generic: 网页搜索
+    - button "Agent 预设":
+      - generic: Agent 预设
+  - button "打开配置文件"
+  - button "关闭":
+    - generic: 关闭
+  - heading "网页搜索 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。" [level=3]:
+    - text: 网页搜索
+    - button "管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。":
+  - paragraph: 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。
+  - heading "宿主层钉死了提供方" [level=4]
+  - paragraph: 官方设置页保存过的选择仍写在宿主层，优先级高于本插件：搜索与抓取直连被钉死的成员，不走链、不降级；关闭本插件后它会变成悬空引用。清除后由本插件的链接管，关闭插件时官方提供方也能干净接管。
+  - list:
+    - text: "网页搜索提供方:"
+    - code: dshws-tavily
+    - text: "网页获取提供方:"
+    - code: dshws-fetch-gate
+  - button "清除钉值"
+  - heading "搜索链" [level=4]
+  - button "链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Firecrawl → AnySearch。":
+  - button "详细配置":
+    - text: 详细配置
+  - button "Tavily 配置":
+    - img "未配置"
+    - strong: Tavily
+  - switch "Tavily 启用" [checked] [disabled]
+  - button "Exa 配置":
+    - img "未配置"
+    - strong: Exa
+  - switch "Exa 启用" [checked] [disabled]
+  - button "Firecrawl 配置":
+    - img "未配置"
+    - strong: Firecrawl
+  - switch "Firecrawl 启用" [checked] [disabled]
+  - button "AnySearch 配置":
+    - img "未配置"
+    - strong: AnySearch
+  - switch "AnySearch 启用" [checked] [disabled]
+  - button "接管 web_fetch（插件链） 配置":
+    - strong: 接管 web_fetch（插件链）
+    - button "开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。":
+  - switch "接管 web_fetch（插件链）" [checked]
+  - button "DNS 韧性 配置":
+    - img "DoH 生效中"
+    - strong: DNS 韧性
+    - button "为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。":
+  - switch "DNS 韧性 启用" [checked]
+  - status: 检出保留段证据——已启用
+  - paragraph: "证据: api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96"
+===== AFTER CLEAR CLICK =====
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话" [selected]:
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- banner
+- generic: 探索未至之境
+- generic: 预览版
+- button "选择工作区":
+  - generic: 默认工作区
+- button "标准模式":
+  - generic: 标准模式
+- textbox "描述你想要构建的内容, / 调用指令, @ 文件或对话"
+- generic: 描述你想要构建的内容, / 调用指令, @ 文件或对话
+- button "添加文件或调用指令":
+- button "访问模式，当前：工作区内修改":
+- button "请选择模型":
+  - generic: 请选择模型
+- button "发送消息" [disabled]:
+- tablist:
+  - tab "开始" [selected]:
+    - text: 开始
+  - button "分栏":
+  - button "全屏":
+  - button "收起右侧边栏":
+- button "工作区文件 浏览会话工作区的文件 ⌥ ⌘ P":
+  - generic: 工作区文件
+  - generic: 浏览会话工作区的文件
+  - generic: ⌥
+  - generic: ⌘
+  - generic: P
+- button "新建终端 在会话工作区运行命令"
+- generic: 新建终端
+- button "选择 Shell":
+- generic: 在会话工作区运行命令
+- generic: ⌃
+- generic: "`"
+- button "更多工具":
+  - generic: 更多工具
+- dialog "设置":
+  - generic: 设置
+  - navigation:
+    - button "通用设置":
+      - generic: 通用设置
+    - button "模型":
+      - generic: 模型
+    - button "内置插件":
+      - generic: 内置插件
+    - button "网页搜索":
+      - generic: 网页搜索
+    - button "Agent 预设":
+      - generic: Agent 预设
+  - button "打开配置文件"
+  - button "关闭":
+    - generic: 关闭
+  - heading "网页搜索 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。" [level=3]:
+    - text: 网页搜索
+    - button "管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。":
+  - paragraph: 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。
+  - heading "搜索链" [level=4]
+  - button "链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Firecrawl → AnySearch。":
+  - button "详细配置":
+    - text: 详细配置
+  - button "Tavily 配置":
+    - img "未配置"
+    - strong: Tavily
+  - switch "Tavily 启用" [checked] [disabled]
+  - button "Exa 配置":
+    - img "未配置"
+    - strong: Exa
+  - switch "Exa 启用" [checked] [disabled]
+  - button "Firecrawl 配置":
+    - img "未配置"
+    - strong: Firecrawl
+  - switch "Firecrawl 启用" [checked] [disabled]
+  - button "AnySearch 配置":
+    - img "未配置"
+    - strong: AnySearch
+  - switch "AnySearch 启用" [checked] [disabled]
+  - button "接管 web_fetch（插件链） 配置":
+    - strong: 接管 web_fetch（插件链）
+    - button "开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。":
+  - switch "接管 web_fetch（插件链）" [checked]
+  - button "DNS 韧性 配置":
+    - img "DoH 生效中"
+    - strong: DNS 韧性
+    - button "为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。":
+  - switch "DNS 韧性 启用" [checked]
+  - status: 检出保留段证据——已启用
+  - paragraph: "证据: api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96"
+===== SECOND CLEAR CYCLE =====
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话" [selected]:
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- banner
+- generic: 探索未至之境
+- generic: 预览版
+- button "选择工作区":
+  - generic: 默认工作区
+- button "标准模式":
+  - generic: 标准模式
+- textbox "描述你想要构建的内容, / 调用指令, @ 文件或对话"
+- generic: 描述你想要构建的内容, / 调用指令, @ 文件或对话
+- button "添加文件或调用指令":
+- button "访问模式，当前：工作区内修改":
+- button "请选择模型":
+  - generic: 请选择模型
+- button "发送消息" [disabled]:
+- tablist:
+  - tab "开始" [selected]:
+    - text: 开始
+  - button "分栏":
+  - button "全屏":
+  - button "收起右侧边栏":
+- button "工作区文件 浏览会话工作区的文件 ⌥ ⌘ P":
+  - generic: 工作区文件
+  - generic: 浏览会话工作区的文件
+  - generic: ⌥
+  - generic: ⌘
+  - generic: P
+- button "新建终端 在会话工作区运行命令"
+- generic: 新建终端
+- button "选择 Shell":
+- generic: 在会话工作区运行命令
+- generic: ⌃
+- generic: "`"
+- button "更多工具":
+  - generic: 更多工具
+- dialog "设置":
+  - generic: 设置
+  - navigation:
+    - button "通用设置":
+      - generic: 通用设置
+    - button "模型":
+      - generic: 模型
+    - button "内置插件":
+      - generic: 内置插件
+    - button "网页搜索":
+      - generic: 网页搜索
+    - button "Agent 预设":
+      - generic: Agent 预设
+  - button "打开配置文件"
+  - button "关闭":
+    - generic: 关闭
+  - heading "网页搜索 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。" [level=3]:
+    - text: 网页搜索
+    - button "管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。":
+  - paragraph: 管理搜索引擎优先级、API key、成员启停与 Web Fetch 链。已配置成员按链序依次尝试，失败自动降级到下一个。安装本插件即接管 web_search 与 web_fetch（卸载自动复原宿主默认）；接管开启时 web_fetch 由插件抓取链服务（下方开关控制）。
+  - heading "搜索链" [level=4]
+  - button "链序即主备序：首位是主搜索工具——失败先在其多把 key 间重试（至多 3 次尝试），再按序降级；末位就绪成员即链内兜底位（或被指定的兜底工具，锁定链尾）。内置默认序：Tavily → Exa → Firecrawl → AnySearch。":
+  - button "详细配置":
+    - text: 详细配置
+  - button "Tavily 配置":
+    - img "未配置"
+    - strong: Tavily
+  - switch "Tavily 启用" [checked] [disabled]
+  - button "Exa 配置":
+    - img "未配置"
+    - strong: Exa
+  - switch "Exa 启用" [checked] [disabled]
+  - button "Firecrawl 配置":
+    - img "未配置"
+    - strong: Firecrawl
+  - switch "Firecrawl 启用" [checked] [disabled]
+  - button "AnySearch 配置":
+    - img "未配置"
+    - strong: AnySearch
+  - switch "AnySearch 启用" [checked] [disabled]
+  - button "接管 web_fetch（插件链） 配置":
+    - strong: 接管 web_fetch（插件链）
+    - button "开：web_fetch 保持可见，由插件抓取链服务（Firecrawl/Tavily/AnySearch——云端提取，不受本机网络限制影响）。关：普通本机 HTTP 抓取。卸载插件后自动恢复官方。":
+  - switch "接管 web_fetch（插件链）" [checked]
+  - button "DNS 韧性 配置":
+    - img "DoH 生效中"
+    - strong: DNS 韧性
+    - button "为上方成员提供加密 DoH 解析与出口预检——绕过受限网络上的解析黑洞与 CDN 轮转超时。auto 模式仅在检出保留段证据时启用；干净网络保持系统解析零改动（零开销）。":
+  - switch "DNS 韧性 启用" [checked]
+  - status: 检出保留段证据——已启用
+  - paragraph: "证据: api.tavily.com→198.18.0.169 api.exa.ai→198.18.0.170 api.firecrawl.dev→198.18.0.171 api.anysearch.com→198.18.0.107 api.deepseek.com→198.18.0.96"

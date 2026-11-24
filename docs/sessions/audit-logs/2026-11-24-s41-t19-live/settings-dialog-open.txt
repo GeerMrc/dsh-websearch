@@ -1,0 +1,128 @@
+- button "新建会话":
+- button "收起侧边栏":
+- button "新建会话":
+  - generic: 新会话
+  - generic: ⌥
+  - generic: ⌘
+  - generic: "N"
+- navigation "全局面板":
+  - button "插件":
+    - generic: 插件
+  - button "自动化任务":
+    - generic: 自动化任务
+  - button "从侧边栏取消固定自动化任务":
+  - button "更多":
+    - generic: 更多
+- generic: 工作区
+- button "搜索会话":
+- textbox "搜索会话名称"
+- button "视图选项":
+- button "添加工作区":
+- tree "会话":
+  - treeitem "默认工作区" [expanded]:
+    - generic: 默认工作区
+  - treeitem "新会话" [selected]:
+    - generic: 新会话
+- button "账号菜单":
+  - generic: 更多
+- banner
+- generic: 探索未至之境
+- generic: 预览版
+- button "选择工作区":
+  - generic: 默认工作区
+- button "标准模式":
+  - generic: 标准模式
+- textbox "描述你想要构建的内容, / 调用指令, @ 文件或对话"
+- generic: 描述你想要构建的内容, / 调用指令, @ 文件或对话
+- button "添加文件或调用指令":
+- button "访问模式，当前：工作区内修改":
+- button "请选择模型":
+  - generic: 请选择模型
+- button "发送消息" [disabled]:
+- tablist:
+  - tab "开始" [selected]:
+    - text: 开始
+  - button "分栏":
+  - button "全屏":
+  - button "收起右侧边栏":
+- button "工作区文件 浏览会话工作区的文件 ⌥ ⌘ P":
+  - generic: 工作区文件
+  - generic: 浏览会话工作区的文件
+  - generic: ⌥
+  - generic: ⌘
+  - generic: P
+- button "新建终端 在会话工作区运行命令"
+- generic: 新建终端
+- button "选择 Shell":
+- generic: 在会话工作区运行命令
+- generic: ⌃
+- generic: "`"
+- button "更多工具":
+  - generic: 更多工具
+- dialog "设置":
+  - generic: 设置
+  - navigation:
+    - button "通用设置" [active]:
+      - generic: 通用设置
+    - button "模型":
+      - generic: 模型
+    - button "内置插件":
+      - generic: 内置插件
+    - button "网页搜索":
+      - generic: 网页搜索
+    - button "Agent 预设":
+      - generic: Agent 预设
+  - button "打开配置文件"
+  - button "关闭":
+    - generic: 关闭
+  - generic: 权限
+  - generic: 选择新会话的默认权限模式
+  - button "工作区内修改":
+    - text: 工作区内修改
+  - generic: 语言
+  - button "中文":
+    - text: 中文
+  - generic: 外观
+  - button "浅色":
+    - text: 浅色
+  - button "深色":
+    - text: 深色
+  - button "跟随系统" [pressed]:
+    - text: 跟随系统
+  - generic: 字号大小
+  - generic: 仅影响会话内容的字号
+  - generic: "14"
+  - button "增大字号":
+  - button "减小字号":
+  - generic: px
+  - button "更多字体设置":
+  - generic: 工作步骤展示
+  - generic: 选择希望看到多少工具调用细节
+  - button "详细":
+    - text: 详细
+  - generic: 工作步骤收起时机
+  - generic: 选择何时自动收起工作步骤
+  - button "回答结束后":
+    - text: 回答结束后
+  - generic: 收起后显示的回复
+  - generic: 工作步骤收起后，保留哪些助手回复
+  - button "全部回复":
+    - text: 全部回复
+  - generic: 显示代码工作视图
+  - generic: 开启后，显示轨迹、本轮代码差异，可选择完整的 Agent 预设切换
+  - switch "显示代码工作视图" [checked]
+  - generic: 快捷键
+  - paragraph: 查看和编辑当前可用的快捷键和输入操作
+  - button "编辑快捷键"
+  - generic: 繁忙时的发送行为
+  - generic: 智能体运行时 Enter 键和发送按钮的行为；Cmd/Ctrl+Enter 使用另一行为
+  - button "排队发送":
+    - text: 排队发送
+  - generic: 性能与用量
+  - generic: 选择性能与用量信息展示的详细程度
+  - button "详细":
+    - text: 详细
+  - generic: 在使用官方模型 API 时上传 Session Log
+  - generic: 帮助改进 DeepSeek 模型与产品
+  - switch "在使用官方模型 API 时上传 Session Log" [checked]
+  - generic: 当前版本：0.2.2-rc.5
