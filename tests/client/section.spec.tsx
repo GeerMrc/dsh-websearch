@@ -1352,3 +1352,49 @@ describe('seam pin notice (S41 handover route: enable-time notice + one-click cl
     expect((screen.getByTestId('dshws-seam-pin-clear') as HTMLButtonElement).disabled).toBe(true)
   })
 })
+
+describe('T20: one control scale across the whole section', () => {
+  /**
+   * The section's inputs, selects and steppers share one visual scale (32px tall,
+   * 14px text, 8px radius, layer-1 background). Before T20 the advanced-fold fields
+   * (maxUses stepper, geo/domain staged fields) ran on a smaller 28px inherited-font
+   * layer-2 tribe — the "some big, some small" the user reported. Every control the
+   * section renders carries data-dshws-input, so the whole surface is asserted at once.
+   */
+  function controlStyles(): { name: string; kind: string; fontSize: string; height: string; radius: string; background: string }[] {
+    return [...document.querySelectorAll('[data-dshws-input]')].map((element) => {
+      const style = (element as HTMLElement).style
+      // jsdom does not expand a `background` shorthand that also carries the select
+      // chevron image into backgroundColor; read the longhand first, then the shorthand.
+      const background = style.backgroundColor !== '' ? style.backgroundColor : style.background
+      return {
+        name: element.getAttribute('data-testid') ?? element.getAttribute('aria-label') ?? '(unnamed)',
+        kind: element.tagName.toLowerCase(),
+        fontSize: style.fontSize,
+        height: style.height,
+        radius: style.borderRadius,
+        background,
+      }
+    })
+  }
+
+  it('renders every text control on the shared 32px/14px/layer-1 scale (textarea font only)', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
+    expand('tavily')
+    const controls = controlStyles()
+    expect(controls.length).toBeGreaterThanOrEqual(10)
+    for (const control of controls) {
+      // The DNS nodes box is a multi-line textarea: same type scale, height stays auto.
+      if (control.kind === 'textarea') {
+        expect(control.fontSize).toBe('14px')
+        continue
+      }
+      expect({ name: control.name, kind: control.kind, fontSize: control.fontSize }).toEqual({ name: control.name, kind: control.kind, fontSize: '14px' })
+      expect({ name: control.name, height: control.height }).toEqual({ name: control.name, height: '32px' })
+      expect({ name: control.name, radius: control.radius }).toEqual({ name: control.name, radius: '8px' })
+      // The select's serialized shorthand carries its chevron image; the layer token is the invariant.
+      expect(`${control.name}: ${control.background}`).toContain('var(--dsw-alias-bg-layer-1)')
+    }
+  })
+})

@@ -81,6 +81,21 @@ export const fieldInputStyle = {
   color: 'var(--dsw-alias-label-primary)',
 } as const
 
+/**
+ * T20: one compact-row label face — the staged fields in the advanced fold and the
+ * maxUses stepper row share it, so every "label left, control right" row reads alike
+ * (the member-card field labels keep {@link fieldLabelStyle} with its ⓘ spacing).
+ */
+export const rowLabelStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  fontSize: 12,
+  lineHeight: '18px',
+  fontWeight: 500,
+  color: 'var(--dsw-alias-label-secondary)',
+} as const
+
 /** Page-header info anchor (12b): the single key-format note seat. */
 export const infoButtonStyle = {
   display: 'inline-flex',

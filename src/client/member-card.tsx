@@ -22,6 +22,7 @@ import {
   groupHeaderStyle,
   fieldLabelStyle,
   fieldInputStyle,
+  rowLabelStyle,
   infoButtonStyle,
   feedbackColor,
   feedbackStyle,
@@ -455,7 +456,7 @@ function StagedTextField(props: {
   const shown = draft ?? current
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+      <span style={rowLabelStyle}>
         {t(labelKey)}
         <Tooltip label={t(noteKey)} side="bottom" delayMs={400} maxWidth={380}>
           <button type="button" aria-label={t(noteKey)} style={infoButtonStyle}>
@@ -471,7 +472,9 @@ function StagedTextField(props: {
         placeholder={placeholder}
         value={shown}
         onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
-        style={{ width, height: 28, padding: '0 8px', ...(centered === true ? { textAlign: 'center' as const } : {}), borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
+        // T20: the staged fields join the section-wide control scale (32px tall,
+        // 14px text, layer-1) instead of the smaller 28px inherited-font tribe.
+        style={{ ...fieldInputStyle, width, ...(centered === true ? { textAlign: 'center' as const } : {}) }}
       />
       <Button
         variant="outline"

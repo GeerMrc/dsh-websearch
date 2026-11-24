@@ -18,6 +18,8 @@ import {
   chainIndexStyle,
   roleChipStyle,
   moveButtonStyle,
+  rowLabelStyle,
+  fieldInputStyle,
   useAutoClearFeedback,
   useLiftedDraft,
 } from './section-styles.ts'
@@ -444,7 +446,7 @@ function MaxUsesRow(props: {
   const stepDown = (): void => setDraft(String(snap((draft.trim() === '' ? current : parsed) - STEP_USES)))
   return (
     <div data-testid="dshws-max-uses" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>
+      <span style={rowLabelStyle}>
         {t('maxUsesLabel')}
         <Tooltip label={hint} side="bottom" delayMs={400} maxWidth={320}>
           <button type="button" aria-label={hint} style={infoButtonStyle}>
@@ -454,7 +456,9 @@ function MaxUsesRow(props: {
       </span>
       <span style={{ flex: 1 }} />
       {/* S14g: fixed compact width (the 100%-flex inputStyle made the border
-      stretch across the row) + custom steppers snapping to steps of 5. */}
+          stretch across the row) + custom steppers snapping to steps of 5.
+          T20: the box joins the section-wide 32px/14px scale; the steppers run
+          at the standard 28px icon-button size instead of a one-off 22px. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button
           type="button"
@@ -462,7 +466,7 @@ function MaxUsesRow(props: {
           data-testid="dshws-max-uses-down"
           onClick={stepDown}
           disabled={!valid}
-          style={{ ...moveButtonStyle, width: 22, height: 22 }}
+          style={moveButtonStyle}
         >
           −
         </button>
@@ -474,7 +478,7 @@ function MaxUsesRow(props: {
           aria-label={t('maxUsesLabel')}
           data-testid="dshws-max-uses-input"
           data-dshws-input=""
-          style={{ width: 52, height: 28, padding: '0 6px', textAlign: 'center', borderRadius: 8, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'inherit', font: 'inherit' }}
+          style={{ ...fieldInputStyle, width: 52, padding: '0 6px', textAlign: 'center' }}
           value={draft === '' ? String(current) : draft}
           onChange={(event) => { setDraft(event.target.value); setFeedback(undefined) }}
         />
@@ -484,7 +488,7 @@ function MaxUsesRow(props: {
           data-testid="dshws-max-uses-up"
           onClick={stepUp}
           disabled={!valid}
-          style={{ ...moveButtonStyle, width: 22, height: 22 }}
+          style={moveButtonStyle}
         >
           +
         </button>
