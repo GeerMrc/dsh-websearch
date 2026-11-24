@@ -102,12 +102,15 @@ node scripts/check-release.mjs --tag vX.Y.Z   # 与流水线同一调用
 node scripts/pack.mjs
 node scripts/check-release.mjs --tarballs dist-artifacts
 
-# 7.3 推送
-git push --atomic origin master vX.Y.Z        # ★
+# 7.3 推送（PC5：主干先、tag 后）
+
+git push origin master                          # ★ 先推主干，等 CI（node 22/24）全绿
+git push origin vX.Y.Z                          # ★ 再推 tag 触发 Release
 ```
 
-`--atomic` 使 master 与 tag 要么同时更新、要么都不更新。tag 指向快进后的 `master` 顶端，也就是第 5 节核验过的提交。
-推送会同时触发 `CI`（master）与 `Release`（tag）两条工作流。
+顺序依据 `docs/patterns.md` PC5（兄弟仓实测过同批推送不触发 workflow）：先主干后 tag 的最坏态是「主干已推、tag 未推」＝
+无发布、可安全重试；tag 先行的坏态是发布未经 CI 的提交。`git push --atomic` 仅在两步均不可行时使用，且推送后必须人工
+确认 Release 工作流已触发（Actions 页），未触发则停下排查，不得移动 tag。
 
 ## 8. 流水线做什么
 
