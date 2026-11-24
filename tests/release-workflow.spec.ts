@@ -92,6 +92,7 @@ describe('release workflow (ADR-0026)', () => {
   it('installs npm 11 before the consistency check and the publish', () => {
     const npm11 = first(release.runs, /npm install -g npm@11$/)
     expect(npm11).toBeGreaterThan(-1)
+    expect(npm11).toBeLessThan(first(release.runs, /node scripts\/check-release\.mjs --tag "\$GITHUB_REF_NAME"$/))
     expect(npm11).toBeLessThan(first(release.runs, /npm publish /))
   })
 

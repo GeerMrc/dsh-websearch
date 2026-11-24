@@ -165,6 +165,16 @@ describe('main', () => {
     expect(problems).toEqual([expect.stringMatching(/CHANGELOG.*first dated heading.*v0\.2\.1/)])
   })
 
+  it('fails the tag checks when the tag does not exist yet', async () => {
+    const repo = await makeRepo({
+      'package.json': manifest(VERSION),
+      'CHANGELOG.md': `## 2026-11-25 — v${VERSION}\n`,
+      'src/providers/shared.ts': userAgent(VERSION),
+    })
+    const problems = await main(['--tag', `v${VERSION}`], repo)
+    expect(problems).toEqual([expect.stringMatching(/^tag v0\.2\.1 does not exist in this repository$/)])
+  })
+
   it('fails the tag checks when the tag names a version the manifest does not carry', async () => {
     const repo = await makeRepo({
       'package.json': manifest('0.2.0'),

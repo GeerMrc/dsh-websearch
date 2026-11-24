@@ -32,9 +32,37 @@ function isValidDetailPath(path: string): boolean {
   return segments.length >= 2 && segments.every((segment) => segment !== '' && segment !== '.' && segment !== '..')
 }
 
-/** Heading levels of a Markdown document, in order; a language-independent outline. */
-function outline(document: string): number[] {
-  return [...document.matchAll(/^(#{1,6}) /gm)].map((match) => match[1]!.length)
+/**
+ * Structural profile of a Markdown document, in order: each heading level, then
+ * the number of list items and of table rows in the section it opens. Heading
+ * levels alone would not notice a bullet or a table row present in one language
+ * only.
+ */
+function structure(document: string): number[] {
+  const profile: number[] = []
+  let inCode = false
+  let listItems = 0
+  let tableRows = 0
+  const closeSection = (): void => {
+    profile.push(listItems, tableRows)
+    listItems = 0
+    tableRows = 0
+  }
+  for (const line of document.split('\n')) {
+    if (line.startsWith('```')) inCode = !inCode
+    if (inCode) continue
+    const heading = /^(#{1,6}) /.exec(line)
+    if (heading !== null) {
+      closeSection()
+      profile.push(heading[1]!.length)
+    } else if (/^- /.test(line)) {
+      listItems += 1
+    } else if (line.startsWith('|')) {
+      tableRows += 1
+    }
+  }
+  closeSection()
+  return profile
 }
 
 describe('plugin display metadata (ADR-0025 插件页文档分离)', () => {
@@ -66,10 +94,17 @@ describe('plugin display metadata (ADR-0025 插件页文档分离)', () => {
   })
 
   it('keeps the two user documents structurally aligned', () => {
-    const zh = outline(read(USER_DOCUMENTS.zh))
-    const en = outline(read(USER_DOCUMENTS.en))
+    const zh = structure(read(USER_DOCUMENTS.zh))
+    const en = structure(read(USER_DOCUMENTS.en))
     expect(zh.length).toBeGreaterThan(3)
     expect(en).toEqual(zh)
+  })
+
+  it('notices a list item or a table row present in one language only', () => {
+    // the profile's own negative control: a heading-only comparison would not tell these apart
+    expect(structure('# 标题\n- 一\n')).not.toEqual(structure('# Title\n- one\n- two\n'))
+    expect(structure('# 标题\n| a |\n')).not.toEqual(structure('# Title\n| a |\n| b |\n'))
+    expect(structure('# 标题\n- 一\n```sh\n- 不是列表项\n```\n')).toEqual(structure('# Title\n- one\n```sh\n- not a list item\n```\n'))
   })
 
   it.each(Object.entries(USER_DOCUMENTS))('keeps %s free of raw HTML, which the plugin page omits', (_lang, path) => {
