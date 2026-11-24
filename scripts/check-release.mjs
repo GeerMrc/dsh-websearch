@@ -11,8 +11,8 @@
  * group must be requested: a run that checks nothing must not report success.
  */
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readFileSync, realpathSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** Files both distribution tarballs must carry; the plugin page breaks without the locale and user documents. */
@@ -215,7 +215,19 @@ export async function main(argv, cwd = process.cwd()) {
   return problems
 }
 
-const isDirectRun = process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]
+/**
+ * Whether this module is the process entry point. Both paths go through realpath: Node resolves
+ * `import.meta.url` through symlinks but leaves `process.argv[1]` as typed, and on macOS `/tmp`
+ * is a symlink to `/private/tmp`. A literal comparison made the gate exit 0 unchecked from such a path.
+ */
+function isEntryPoint() {
+  const invoked = process.argv[1]
+  if (invoked === undefined) return false
+  const script = resolve(invoked)
+  return existsSync(script) && realpathSync(script) === realpathSync(fileURLToPath(import.meta.url))
+}
+
+const isDirectRun = isEntryPoint()
 if (isDirectRun) {
   main(process.argv.slice(2)).then((problems) => {
     for (const problem of problems) console.error(`check-release: ${problem}`)

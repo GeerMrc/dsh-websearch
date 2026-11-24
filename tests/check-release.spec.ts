@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -223,6 +223,26 @@ describe('main', () => {
       await expect(main(['--tarballs', dir], outside)).rejects.toThrow(/token scan did not run/)
     } finally {
       await rm(outside, { recursive: true, force: true })
+    }
+  })
+
+  it('still runs as a command when its path goes through a symlink, instead of exiting 0 unchecked', async () => {
+    // Node resolves `import.meta.url` through symlinks but leaves `process.argv[1]` as typed
+    // (macOS: /tmp → /private/tmp). An entry-point test that compares the two literally turns the
+    // gate into a silent no-op for every clone under such a path.
+    const repo = await makeRepo({ 'package.json': manifest('0.2.0') })
+    const real = await mkdtemp(join(tmpdir(), 'dshws-release-real-'))
+    const link = `${real}-link`
+    await symlink(real, link, 'dir')
+    await copyFile(new URL('../scripts/check-release.mjs', import.meta.url), join(real, 'check-release.mjs'))
+    try {
+      const result = spawnSync(process.execPath, [join(link, 'check-release.mjs'), '--tag', `v${VERSION}`], { cwd: repo, encoding: 'utf8' })
+      expect(result.status).toBe(1)
+      expect(result.stderr).toMatch(/does not name the package\.json version/)
+    } finally {
+      await rm(link, { force: true })
+      await rm(real, { recursive: true, force: true })
+      await rm(repo, { recursive: true, force: true })
     }
   })
 
