@@ -71,25 +71,33 @@ describe('packageRootOf', () => {
 })
 
 describe('warnInstallForm', () => {
-  it('warns through the ctx logger for the scoped install form', () => {
+  it('warns through BOTH channels for the scoped install form: ctx.logger.warn and the plugin-owned file log (rc.5 hosts attach no console exporter — chain-log.ts)', () => {
     const warn = vi.fn()
+    const fileLines: string[] = []
     const root = fakePackage('@maricgeer/dsh-websearch', false)
-    warnInstallForm({ logger: { warn } }, `file://${root}/lib/index.js`)
+    warnInstallForm({ logger: { warn } }, (line) => void fileLines.push(line), `file://${root}/lib/index.js`)
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]![0]).toContain('@maricgeer/dsh-websearch')
+    expect(fileLines).toHaveLength(1)
+    expect(fileLines[0]).toMatch(/^\[dshws-install\] /)
+    expect(fileLines[0]).toContain('@maricgeer/dsh-websearch')
   })
 
-  it('is silent in the source checkout (no warn call at all)', () => {
+  it('is silent in the source checkout (neither channel fires)', () => {
     const warn = vi.fn()
-    warnInstallForm({ logger: { warn } }, new URL('../src/index.ts', import.meta.url).href)
+    const fileLines: string[] = []
+    warnInstallForm({ logger: { warn } }, (line) => void fileLines.push(line), new URL('../src/index.ts', import.meta.url).href)
     expect(warn).not.toHaveBeenCalled()
+    expect(fileLines).toHaveLength(0)
   })
 
   it('swallows an unreadable manifest — diagnostics must never keep the plugin from loading', () => {
     const warn = vi.fn()
+    const fileLines: string[] = []
     const bare = mkdtempSync(join(tmpdir(), 'dshws-nopkg2-'))
     roots.push(bare)
-    expect(() => warnInstallForm({ logger: { warn } }, `file://${bare}/lib/index.js`)).not.toThrow()
+    expect(() => warnInstallForm({ logger: { warn } }, (line) => void fileLines.push(line), `file://${bare}/lib/index.js`)).not.toThrow()
     expect(warn).not.toHaveBeenCalled()
+    expect(fileLines).toHaveLength(0)
   })
 })

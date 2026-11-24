@@ -54,12 +54,17 @@ export function installFormWarning(pkgRoot: string): string | undefined {
 
 /**
  * Probe the install form at plugin startup and warn loudly on the scoped
- * npm form. Best-effort diagnostics: an unreadable manifest leaves the guard
- * silent rather than failing the plugin — the host half must always load.
+ * npm form, through BOTH channels: `ctx.logger.warn` (hosts that attach a
+ * console exporter — rc.5 web/desktop attach none) and the plugin-owned
+ * file log (`<dshHome>/logs/dsh-websearch.log`, the one channel every host
+ * form surfaces — see chain-log.ts). Best-effort diagnostics: an unreadable
+ * manifest leaves the guard silent rather than failing the plugin — the
+ * host half must always load.
  * @param ctx - any context exposing a `logger.warn`.
+ * @param fileLog - the plugin's chain-file sink (append one line).
  * @param moduleUrl - `import.meta.url` of the plugin entry module.
  */
-export function warnInstallForm(ctx: { logger: GuardLogger }, moduleUrl: string): void {
+export function warnInstallForm(ctx: { logger: GuardLogger }, fileLog: (line: string) => void, moduleUrl: string): void {
   let warning: string | undefined
   try {
     warning = installFormWarning(packageRootOf(moduleUrl))
@@ -67,5 +72,7 @@ export function warnInstallForm(ctx: { logger: GuardLogger }, moduleUrl: string)
     // Diagnostics only — see the JSDoc: never block apply on the probe.
     return
   }
-  if (warning !== undefined) ctx.logger.warn(warning)
+  if (warning === undefined) return
+  ctx.logger.warn(warning)
+  fileLog(`[dshws-install] ${warning}`)
 }

@@ -136,7 +136,10 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   // v0.2.2 Plan B (PC6/M1): a profile install under the scoped npm name
   // silently loses the client half on current dsh hosts — one loud warn at
   // startup, before anything else; the host half keeps working either way.
-  warnInstallForm(ctx, import.meta.url)
+  // The sink is created first: rc.5 hosts attach no console exporter, so the
+  // plugin-owned file log is the one channel the warning reliably reaches.
+  const fileLog = createChainFileLog(config.chainLogFile !== false)
+  warnInstallForm(ctx, fileLog, import.meta.url)
   // One unwrap per apply: plain fields pass through, 0.1.7+ volatile handles
   // snapshot here for the initial state (ADR-0021 — live re-reads flow
   // through the settings path, not this object).
@@ -175,7 +178,6 @@ export function apply(ctx: Context, config: ConfigRuntime): void {
   }
 
   const credentials = ctx.credentials
-  const fileLog = createChainFileLog(config.chainLogFile !== false)
   const fetchTakeoverActive = (): boolean => live.current().fetchTakeover !== false
 
   // S35 (ADR-0022): the DNS resilience layer — process-level dns.lookup

@@ -15,6 +15,6 @@ Settings → Web Search: API keys on the member cards (stored locally only), dra
 
 ## Off and compatibility
 
-**The list switch hands back to the built-ins and restores on re-enable**; the detail page's "enable component" switch only deactivates the plugin itself (a state with no settings entry — switch it back on there). Compatible with DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). **Install from the bare-name tarball on the releases page** — the scoped npm name cannot produce the settings UI (the host says so in its startup log).
+**The list switch hands back to the built-ins and restores on re-enable**; the detail page's "enable component" switch only deactivates the plugin itself (a state with no settings entry — switch it back on there). Compatible with DSH 0.1.5-rc.1 through 0.2.x (0.2.2-rc.5 included). **Install from the bare-name tarball on the releases page** — the scoped npm name cannot produce the settings UI (the startup log says so if the form is wrong).
 
 Issues and releases: https://github.com/GeerMrc/dsh-websearch
