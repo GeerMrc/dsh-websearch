@@ -157,3 +157,37 @@
 - **错误**：直接 `pnpm run build` 撞陈旧 `lib/` 产物（tsdown RESOLVE_ERROR 报 exports 子路径缺失）；清了 lib 又撞 `.pnpm/node_modules` 里旧布局包的 hoisted 符号链接（acp-demo/dsh-examples/landlock 家族，pnpm 与 clean 均不修剪）与未跟踪残渣目录（`native/landlock-run/`，重构前遗留）——同一目标连续五关。
 - **正确**：换树/久未构建先 `pnpm run clean`；投影/解析报包 ENOENT 时按「symlink 且 target 缺失或无 package.json」精确清扫 `.pnpm/node_modules` 顶层与 @scope 两层；疑似残渣目录先 `git ls-files <dir>` 确认零跟踪再删。完整 runbook 见 upstream-sync-sop §3/§6。
 - **来源**：S40 T3 五关全过程（audit-logs/2026-09-30-s40-desktop-adoption/ build-full→dev-desktop11 时序）。
+
+## 证据与凭据、结论的写法（Session 41 入册；三轮独立核验与一轮交叉验证抓获）
+
+### ❌ 不要在测试夹具里贴真实的令牌或密钥字面量
+
+- **错误**：把 scratch 实例的真实进程令牌当作测试数据写进 `tests/check-release.spec.ts` 的三行字面量，随提交进了历史；发布预演的令牌扫描抓到时已经提交了两回。
+- **正确**：夹具里的敏感值一律用插值拼出合成字面量，让文件里没有可被匹配的 `token=<值>`；发布门的扫描覆盖 `tests/`，不给任何目录开豁免；证据归档前先遮蔽。
+- **来源**：Session 41 T11、`3eebf97`；audit-logs `2026-11-23-s41-stage3-logs/`
+- **详见**：`docs/decisions/adr-0026-oidc-release-and-three-sync-gate.md` 决策 4
+
+### ❌ 不要把少数几次观测写成全称结论，也不要因为「没实测」就删掉一句面向用户的说法
+
+- **错误**：探针里 2 次看到客户端守卫在事件前被退订，就记成「在 rc.5 上从不触发」；审核指出用户文档里一句清除钉值的说法没有实测，执行者没有去测，而是把它删了。阶段 5 独立实测 13 次：2 次存活、1 次写入成功；那句话是对的。
+- **正确**：写下「从不」「一定」之前先数样本量，样本少就写「多数」并标明次数；被指出没有实测，就去做实测，测不了就标「未验证」，不删也不留。
+- **来源**：Session 41 T5p、阶段 4 第 1 轮 F3、阶段 5 第 1 轮 #1 与 #18；audit-logs `2026-11-24-s41-stage5-r1.md`
+- **详见**：`docs/sessions/2026-11-23-session-41.md` 的 T5p 与 T15 条目
+
+### ❌ 不要改了共享入口之后只跑相关子集，也不要只看门墙的退出码
+
+- **错误**：客户端入口接入交还守卫后，每个任务只跑了自己的测试文件，全量测试红了 9 个提交才被阶段 4 抓到；同一时期 lint 有 1 条警告，执行者只看退出码，记录里写「退出码 0」。
+- **正确**：改动了被多处依赖的入口（如 `src/client/index.ts` 的 `apply`），就跑所有导入它的测试文件；门墙的读数写「退出码加数字」，lint 写明警告数。
+- **来源**：Session 41 阶段 4 第 1 轮 F1、第 2 轮 N1；`5e1b792`、`21c637d`
+
+### ❌ 不要把决定技术路线的宿主行为建立在继承来的说法上
+
+- **错误**：「桌面端没有 HMR」承自兄弟仓，没有在目标宿主版本上核实；T6、T8 两条通道都建在这个前提上。
+- **正确**：凡是决定路线的宿主行为，先读目标 tag 的源码，再在该版本的实例上实测；兄弟仓的「已验证」只算线索。
+- **来源**：Session 41 T5p；`docs/decisions/adr-0024-takeover-and-symmetric-handover.md` 的 Status 与决策 4
+
+### ❌ 不要用 `pnpm add` 给严格 lockfile 的仓库加依赖而不核对 diff
+
+- **错误**：`pnpm add -D <包>` 触发 pnpm 的时间敏感解析，顺带升级了四个无关的传递依赖，lockfile 出现大片无关变更。
+- **正确**：手改 `package.json`，只把需要的 lockfile 条目并进去；在干净目录里对冻结安装做正反两个方向的验证（正向退出码 0，旧 lockfile 配新清单必须报过期）。
+- **来源**：Session 41 T3

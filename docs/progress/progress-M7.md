@@ -668,15 +668,52 @@ S40 的已验锚点（来源：`docs/sessions/audit-logs/2026-11-23-s41-stage0-a
 
 | 锚点 | 所在 commit | 说明 |
 |---|---|---|
-| `docs/desktop-adoption.md` 在盘，三形态实测节完整 | `ede714d` | 抽验吻合数与偏差项见来源文件；偏差登记为延后项 |
-| `docs/upstream-sync-sop.md` 在盘，七节 | `ede714d` | 2026-11-24 由 S41 T2b 修订 §1、§2、§4、§7，修订后待 S41 阶段 4 重验 |
+| `docs/desktop-adoption.md` 在盘，三形态实测节完整 | `ede714d`，S41 修订至 `cdd2894` | S41 T13 增 rc.5 复核；阶段 4 第 3 轮判 R7 PASS。抽验吻合数见来源文件 |
+| `docs/upstream-sync-sop.md` 在盘，七节 | `ede714d`，S41 修订至 `3f14a69` | S41 T2b 与阶段 4 修正后，双语义判定、六件套枚举、归档前脱敏三项经阶段 4 第 2、3 轮复核成立 |
 | `docs/decisions/adr-0023-desktop-adoption-dual-profile.md` 在盘，D1–D4 | `65a4479` | S41 加前提勘正注，指向 ADR-0027 |
-| `docs/known-upstream-issues.md`、`docs/dont-do.md` 在盘 | `ede714d` | known-upstream-issues 于 2026-11-24 由 S41 T2b 更新现势 |
-| `.github/workflows/release.yml` / `ci.yml`、`scripts/pack.mjs`、`cordis.patch.yml`、`src/index.ts` | `6b5330d` / `5f4908f` / `4608a1a` / `045c497` / `d2d9e8a` | 基线提交 `26b646e` 时产品代码相对各自 commit 零 diff |
+| `docs/known-upstream-issues.md` 在盘 | `ede714d`，S41 修订至 `61b2f0e` | S41 回填 rc.5 的行，新增问题 ⑤⑥⑦ |
+| `docs/dont-do.md` 在盘 | S41 之前的内容未被 S41 改动；S41 新增一节在文末 | 新增五条，见文件末尾 |
+| `.github/workflows/release.yml` / `ci.yml`、`scripts/pack.mjs`、`cordis.patch.yml`、`src/index.ts` | `6b5330d` / `5f4908f` / `4608a1a` / `045c497` / `d2d9e8a` | 基线 `26b646e` 时零 diff。S41 改了前四项（至 `d37e973`、`9dfee75`、`98fe583`），`src/index.ts` 仍未变；S41 的改动见下方 S41 锚点 |
 
 ## S41 批次台账（2026-11-23/24，接管官方「网页搜索与获取」设置页 + 插件页文档分离 + OIDC 发布自动化）
 
-计划：plan 048（`docs/plans/2026-11-23-048-s41-takeover-docsplit-oidc-plan.md`）。任务表、债务变动与新增锚点随 session 推进回填，收官时在阶段 6 定稿。
+计划：plan 048（`docs/plans/2026-11-23-048-s41-takeover-docsplit-oidc-plan.md`）。状态：**T0–T16 已执行，未收官**——R2、R5、R6、R8 等待
+用户裁决；工作在分支 `feat/s41-takeover-docsplit-oidc` 上，未推送。数字只写在本节与 audit-log，其他文件以指针引用。
 
-- 阶段 0 独立审核：PASS；正本 `docs/sessions/audit-logs/2026-11-23-s41-stage0-audit-of-s40.md`，基线数字见同文件 e 项。
-- 阶段 2 独立审核：三轮，终为 APPROVED；正本 `docs/sessions/audit-logs/2026-11-23-s41-stage2-plan-review-r1.md` 至 `r3.md`。
+### 验收证据（对 plan 048 的 R1–R8）
+
+| 条目 | 判定 | 证据 |
+|---|---|---|
+| R1 接管 | PASS | 阶段 4 第 3 轮报告；rc.5 实测 V1、V2 前半句、V5（`audit-logs/2026-11-23-s41-rc5-live/`） |
+| R2 交还 | 未达成，待裁决 | 守卫的单元测试全绿；V7 在 rc.5 上是非确定性的（阶段 5：13 次关闭里 1 次清除）；路线选项见 session-41 记录「未完成 / 遗留」 |
+| R3 文档分离 | PASS | 阶段 4 第 3 轮报告；阶段 5 用现行文案在 rc.5 上重做 V3 通过 |
+| R4 发布门 | PASS | 阶段 4 第 3 轮报告（契约测试、工作流实读、全新克隆八步预演）；其后的加固（`678cce1`、`d37e973`）的独立复核见下方「收尾确认」 |
+| R5 上游对齐 | 受阻 | `tests/peer-range.spec.ts` 23 条通过；功能腿 F1–F4、带 key 的 e2e.real、对齐清单留痕都没有做 |
+| R6 rc.5 实测 | 未达成，待裁决 | V1、V2 前半句、V3、V5 通过；V7 非确定性；逃生口（V11）由阶段 5 测通；V8、V10 没有执行 |
+| R7 文档 | PASS | 阶段 4 第 3 轮报告 |
+| R8 治理 | 部分 | 记录十节齐全；roadmap 编号 42 行待用户确认 |
+
+### 全量门与独立审核
+
+- 全量门的实测数字按轮次记在各 audit-log。T16 收尾前主 Agent 亲跑的一次记在这里：typecheck、check:i18n、build 均为退出码 0；
+  lint 0 警告 0 错误；`pnpm test` 715 通过 / 17 跳过（732）。
+- 阶段 0 → PASS；阶段 2 → 三轮，终为 APPROVED；阶段 4 → 三轮，NEEDS REVISION（剩余必改依赖用户裁决）；阶段 5 → 第 1 轮
+  NEEDS REVISION，必改已处置，属提前执行、待追认。audit-log 都在 `docs/sessions/audit-logs/`：`2026-11-23-s41-stage0-*`、
+  `2026-11-23-s41-stage2-plan-review-r1` 至 `r3`、`2026-11-24-s41-stage4-verify-r1` 至 `r3`、`2026-11-24-s41-stage5-r1`。
+
+### 债务变动
+
+- 阶段 0 的 🟡×10：9 项已处置；🟡-3（未推送历史里的 token 值）待用户裁决。scratch 实例已停止，该令牌已失效。
+- 新增待裁决：交还路线（连带 T6、T8 的去留）、阶段 5 提前执行的追认、受阻分支例外。
+- 新增延后（🟢）：第三方 action 钉到提交哈希；两份 tarball 的成员比对与裸名包 `name` 核对；tarball 成员改精确白名单；
+  `tests/patch.test.ts` 改用解析器读 YAML；`revertHandover` 没有生产调用点；生产包换装后的「包元数据错误」待带重启的确认；
+  系统临时目录里 219 个测试遗留目录。
+
+### S41 新增的已验锚点
+
+| 锚点 | 所在 commit | 说明 |
+|---|---|---|
+| `cordis.patch.yml`、`tests/patch.test.ts` | `98fe583` | 阶段 4 第 1 至 3 轮连续核验 |
+| `scripts/check-release.mjs` 及其测试 | `678cce1` | 阶段 4 第 3 轮之后的加固，复核结果见 session-41 记录的 T16 条目 |
+| `.github/workflows/release.yml`、`ci.yml`、`tests/release-workflow.spec.ts` | `d37e973` | 同上 |
+| `locale/`、`docs/plugin-page.{zh,en}.md` | `6de6a17` | 用户文档按阶段 5 实测改写；改写后的文案在 rc.5 上的渲染待下次实测 |
