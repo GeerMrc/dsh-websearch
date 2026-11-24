@@ -4,9 +4,11 @@ import { BUNDLE_NAMES, PLUGIN_MANAGER_CHANGED, WATCH_FACES, installHandoverWatch
 
 /**
  * Client handover watch (ADR-0024 decision 4). The Host forwards
- * `plugin-manager/changed` after every plugin-manager operation and the Web
- * client stays alive across a bundle switch, which is the only channel on
- * hosts without HMR. Both host faces are optional and are requested through an
+ * `plugin-manager/changed` after every plugin-manager operation, and a Web
+ * client that is still subscribed when the event arrives can act on it.
+ * Measured on 0.2.2-rc.5, the watch is stopped before the event arrives in
+ * most bundle switches and survives in a few, so it is a best-effort channel.
+ * Both host faces are optional and are requested through an
  * inject: on rc.5 the plugin-manager Remote is served shortly AFTER this
  * plugin's apply, so a one-shot lookup would miss it. On each event the watch
  * checks whether this bundle is still enabled; once it is not, it clears the

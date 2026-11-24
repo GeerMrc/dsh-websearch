@@ -6,9 +6,10 @@
  * name this plugin's providers (see `../handover.ts`), re-reading once when the
  * Host refuses the write.
  *
- * Measured on 0.2.2-rc.5: the watch is stopped before the event arrives, so it
- * never fires there, and no shipped host is known where it does. The module and
- * its tests stay until the handover route is decided (ADR-0024, still proposed).
+ * Measured on 0.2.2-rc.5: in most bundle switches (11 of 13) the watch is
+ * stopped before the event arrives. In the other two it survived and received
+ * the event, and its write was accepted once, clearing the pin. What separates
+ * the two is not known, so this is a best-effort channel and never the only one.
  *
  * Both host faces are optional. They are requested through one inject, which
  * waits: on rc.5 the plugin-manager Remote is served shortly after this

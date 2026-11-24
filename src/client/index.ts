@@ -48,8 +48,9 @@ export function apply(ctx: Context): void {
   const t = ctx.locale.bind(NS)
   ctx.effect(() => ctx.locale.register(NS, { zh, en }))
   // S41 (ADR-0024): hand the seam's selection back once this bundle is switched
-  // off. Measured on 0.2.2-rc.5: the watch is stopped before the event arrives,
-  // so it does not fire there; hosts lacking either face subscribe to nothing.
+  // off. Measured on 0.2.2-rc.5 the watch is usually stopped before the event
+  // arrives and fires only occasionally (see the module); a host lacking either
+  // face subscribes to nothing.
   ctx.effect(() => installHandoverWatch(ctx))
   // S35 T9: the toolview rows read the sanitized DNS ring through the shared
   // store; this entry owns the Context, so it registers the pull (a host
