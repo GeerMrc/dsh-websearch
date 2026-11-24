@@ -1,4 +1,6 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { spawnSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { copyFile, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -61,4 +63,22 @@ describe('scripts/pack.mjs dual-name helpers', () => {
       .rejects.toThrow(/name field/)
     expect(await readFile(pkgPath, 'utf8')).toBe(original)
   })
+
+  it('still packs when invoked through a symlinked path, instead of exiting 0 with nothing packed', async () => {
+    // Node resolves `import.meta.url` through symlinks but leaves `process.argv[1]` as typed
+    // (macOS: /tmp → /private/tmp). A literal entry-point comparison turned the packer into a
+    // silent no-op for every clone under such a path.
+    const real = join(dir, 'real')
+    await mkdir(join(real, 'scripts'), { recursive: true })
+    await writeFile(join(real, 'package.json'), '{"name":"@scope/pkg","version":"1.0.0"}\n')
+    await copyFile(new URL('../scripts/pack.mjs', import.meta.url), join(real, 'scripts', 'pack.mjs'))
+    const link = join(dir, 'link')
+    await symlink(real, link, 'dir')
+
+    const result = spawnSync(process.execPath, [join(link, 'scripts', 'pack.mjs')], { encoding: 'utf8' })
+
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toMatch(/packed scope-pkg-1\.0\.0\.tgz \+ pkg-1\.0\.0\.tgz/)
+    expect(existsSync(join(real, 'dist-artifacts', 'pkg-1.0.0.tgz'))).toBe(true)
+  }, 20_000)
 })

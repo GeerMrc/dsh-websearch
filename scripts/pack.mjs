@@ -9,10 +9,11 @@
  *
  * Usage: node scripts/pack.mjs   (run `pnpm run build` first)
  */
+import { existsSync, realpathSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pkgPath = join(repoRoot, 'package.json')
@@ -83,7 +84,18 @@ async function main() {
   console.log(`packed ${scopedFile}${bareFile !== undefined ? ` + ${bareFile}` : ''} → dist-artifacts/`)
 }
 
-const isDirectRun = process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]
-if (isDirectRun) {
+/**
+ * Whether this module is the process entry point. Both paths go through realpath: Node resolves
+ * `import.meta.url` through symlinks but leaves `process.argv[1]` as typed, and on macOS `/tmp`
+ * is a symlink to `/private/tmp`. A literal comparison made the packer exit 0 with nothing packed.
+ */
+function isEntryPoint() {
+  const invoked = process.argv[1]
+  if (invoked === undefined) return false
+  const script = resolve(invoked)
+  return existsSync(script) && realpathSync(script) === realpathSync(fileURLToPath(import.meta.url))
+}
+
+if (isEntryPoint()) {
   await main()
 }
