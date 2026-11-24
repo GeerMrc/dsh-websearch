@@ -1398,3 +1398,19 @@ describe('T20: one control scale across the whole section', () => {
     }
   })
 })
+
+describe('T20c: placeholder typography and icon-button font join the scale', () => {
+  it('styles every input placeholder with the design token, not the browser default gray', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    const styleBlock = document.querySelector('style[data-dshws-styles]')?.textContent ?? ''
+    expect(styleBlock).toMatch(/\[data-dshws-input\]::placeholder\s*{[^}]*color:\s*var\(--dsw-alias-label-tertiary\)/)
+    expect(styleBlock).toMatch(/\[data-dshws-input\]::placeholder\s*{[^}]*font-size:\s*14px/)
+  })
+
+  it('renders icon buttons with an explicit font instead of the 13.33px control default', () => {
+    render(<WebSearchSettingsSection {...makeProps()} t={t} />)
+    openAdvanced()
+    const stepper = screen.getByTestId('dshws-max-uses-down') as HTMLButtonElement
+    expect(stepper.style.fontSize).toBe('14px')
+  })
+})

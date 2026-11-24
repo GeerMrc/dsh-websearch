@@ -127,6 +127,10 @@ const SECTION_STYLE_CSS = `
 [data-dshws-card-body] { border-top: 1px solid var(--dsw-alias-border-l2); margin: 0 2px; padding-top: 8px; }
 [data-dshws-input]:focus { border-color: var(--dsw-alias-brand-primary); outline: none; }
 [data-dshws-focusable]:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: -2px; }
+/* T20c: placeholders carry the section's type scale and color token — the browser's
+   default gray (rgb(117,117,117)) read as a second, smaller-looking font next to
+   full-color values; opacity 1 keeps the token's own contrast in both themes. */
+[data-dshws-input]::placeholder { color: var(--dsw-alias-label-tertiary); font-size: 14px; font-family: inherit; opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   [data-dshws-card] { transition: none; }
   [data-dshws-chevron] { transition: none !important; }

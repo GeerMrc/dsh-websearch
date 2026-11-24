@@ -224,6 +224,10 @@ export const moveButtonStyle = {
   borderRadius: 6,
   background: 'transparent',
   color: 'var(--dsw-alias-label-secondary)',
+  // T20c: a <button> does not inherit the section font — without this the glyph
+  // fell back to the control default 13.33px while every text control ran 14px.
+  font: 'inherit',
+  fontSize: 14,
 } as const
 
 /**
