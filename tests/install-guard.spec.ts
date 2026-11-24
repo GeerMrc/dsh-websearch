@@ -1,0 +1,95 @@
+/**
+ * Install-form guard tests (v0.2.2 Plan B): a profile install under the
+ * scoped npm name silently loses the client half on current dsh hosts
+ * (PC6/M1, 2026-11-25) — the guard turns that silent half-install into a
+ * loud startup warning while the host half keeps working. The dev tree
+ * (a source checkout with `.git`) and the bare-name tarball stay quiet.
+ *
+ * @module tests/install-guard
+ */
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { installFormWarning, packageRootOf, warnInstallForm } from '../src/install-guard.ts'
+
+/** Scratch package roots created per test; removed in afterEach. */
+const roots: string[] = []
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
+})
+
+/** Lay down a minimal package dir with the given manifest name and `.git` presence. */
+function fakePackage(name: string, vcs: boolean): string {
+  const root = mkdtempSync(join(tmpdir(), 'dshws-guard-'))
+  roots.push(root)
+  writeFileSync(join(root, 'package.json'), JSON.stringify({ name, version: '0.0.0-test' }))
+  if (vcs) mkdirSync(join(root, '.git'))
+  return root
+}
+
+describe('installFormWarning', () => {
+  it('fires for a scoped npm install (no .git): names the lost UI and the bare-tarball fix', () => {
+    const warning = installFormWarning(fakePackage('@maricgeer/dsh-websearch', false))
+    expect(warning).toContain('@maricgeer/dsh-websearch')
+    expect(warning).toMatch(/settings page|settings section/i)
+    expect(warning).toMatch(/releases/i)
+  })
+
+  it('stays quiet for the bare-name tarball form (manifest name is the plugin id)', () => {
+    expect(installFormWarning(fakePackage('dsh-websearch', false))).toBeUndefined()
+  })
+
+  it('stays quiet for a source checkout (scoped name but .git present — the dev form)', () => {
+    expect(installFormWarning(fakePackage('@maricgeer/dsh-websearch', true))).toBeUndefined()
+  })
+
+  it('stays quiet for this repo itself: scoped manifest, .git checkout (self-consistency)', () => {
+    const repoRoot = packageRootOf(import.meta.url === undefined ? '' : new URL('../src/index.ts', import.meta.url).href)
+    expect(installFormWarning(repoRoot)).toBeUndefined()
+  })
+
+  it('throws on a package root without a manifest (strict probe; the caller decides to swallow)', () => {
+    const bare = mkdtempSync(join(tmpdir(), 'dshws-nopkg-'))
+    roots.push(bare)
+    expect(() => installFormWarning(bare)).toThrow()
+  })
+})
+
+describe('packageRootOf', () => {
+  it('resolves a lib/<entry>.js module URL to the package root (installed form)', () => {
+    expect(packageRootOf('file:///pnpm/store/x/node_modules/@maricgeer/dsh-websearch/lib/index.js'))
+      .toBe('/pnpm/store/x/node_modules/@maricgeer/dsh-websearch')
+  })
+
+  it('resolves a src/<entry>.ts module URL to the repo root (source form, same depth)', () => {
+    // fileURLToPath of a directory URL keeps a trailing slash; packageRootOf returns a clean path.
+    const repoRoot = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '')
+    expect(packageRootOf(new URL('../src/index.ts', import.meta.url).href)).toBe(repoRoot)
+  })
+})
+
+describe('warnInstallForm', () => {
+  it('warns through the ctx logger for the scoped install form', () => {
+    const warn = vi.fn()
+    const root = fakePackage('@maricgeer/dsh-websearch', false)
+    warnInstallForm({ logger: { warn } }, `file://${root}/lib/index.js`)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]![0]).toContain('@maricgeer/dsh-websearch')
+  })
+
+  it('is silent in the source checkout (no warn call at all)', () => {
+    const warn = vi.fn()
+    warnInstallForm({ logger: { warn } }, new URL('../src/index.ts', import.meta.url).href)
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('swallows an unreadable manifest — diagnostics must never keep the plugin from loading', () => {
+    const warn = vi.fn()
+    const bare = mkdtempSync(join(tmpdir(), 'dshws-nopkg2-'))
+    roots.push(bare)
+    expect(() => warnInstallForm({ logger: { warn } }, `file://${bare}/lib/index.js`)).not.toThrow()
+    expect(warn).not.toHaveBeenCalled()
+  })
+})

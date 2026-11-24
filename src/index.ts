@@ -28,6 +28,7 @@ import { ChainFetchProvider, ChainSearchProvider, MemberRegistry } from './chain
 import { createChainFileLog } from './chain-log.ts'
 import { clearAllSearchOnlyPresets } from './preset-authoring.ts'
 import { FetchGateProvider } from './fetch-gate.ts'
+import { warnInstallForm } from './install-guard.ts'
 import type { MemberGates } from './chain/core.ts'
 import { Config, materializeConfig, resolveConfig ,
   MEMBER_ID_TO_KEY,
@@ -132,6 +133,10 @@ function throwMissingChain(): never {
 }
 
 export function apply(ctx: Context, config: ConfigRuntime): void {
+  // v0.2.2 Plan B (PC6/M1): a profile install under the scoped npm name
+  // silently loses the client half on current dsh hosts — one loud warn at
+  // startup, before anything else; the host half keeps working either way.
+  warnInstallForm(ctx, import.meta.url)
   // One unwrap per apply: plain fields pass through, 0.1.7+ volatile handles
   // snapshot here for the initial state (ADR-0021 — live re-reads flow
   // through the settings path, not this object).

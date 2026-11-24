@@ -45,24 +45,18 @@ dsh --profile web --dump-config
 
 ## Install, upgrade, and notes
 
-**Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6/0.1.7 pre-release and stable lines, the 0.2.0-rc line, 0.2.2-rc.5, and 0.2.x stables; 0.1.8 and 0.3.x excluded):
-
-Option 1 (npm registry, recommended):
+**Install** (peer range as above — covers the 0.1.5-rc line, the 0.1.6/0.1.7 pre-release and stable lines, the 0.2.0-rc line, 0.2.2-rc.5, and 0.2.x stables; 0.1.8 and 0.3.x excluded). **The only supported profile-install form is the bare-name tarball** (from v0.2.2; measured in PC6/M1: an install under the scoped npm name silently loses the client half — the settings "Web Search" section and tool-row badges never render while the host half keeps working; from 0.2.2 the plugin warns loudly at startup when it detects that form):
 
 ```sh
-dsh plugin --profile web add @maricgeer/dsh-websearch
-```
-
-(npm page: https://www.npmjs.com/package/@maricgeer/dsh-websearch — the bare name `dsh-websearch` was rejected by npm's typo-squatting policy as too similar to the existing `dsh-web-search`, hence the scoped distribution name; the plugin registers as `dsh-websearch` either way, identical behavior to a local tarball install)
-
-```sh
-# Option 1: grab the tarball from this repository's releases page
+# Option 1 (recommended): the bare-name tarball (dsh-websearch-<version>.tgz) from this repository's releases page
 dsh plugin --profile web add <dsh-websearch-tarball>
-# Option 2: pack from source
+# Option 2: pack from source (the bare-name tgz lands in dist-artifacts/)
 git clone https://github.com/GeerMrc/dsh-websearch.git && cd dsh-websearch
-pnpm install && pnpm run build && node scripts/pack.mjs   # dual tarballs into dist-artifacts/
-# Option 3: a file: tarball dependency in the profile package.json + pnpm install
+pnpm install && pnpm run build && node scripts/pack.mjs
+# Option 3: a file: dependency on the bare-name tarball in the profile package.json + pnpm install
 ```
+
+The scoped npm package (https://www.npmjs.com/package/@maricgeer/dsh-websearch — the bare name `dsh-websearch` was rejected by npm's typo-squatting policy as too similar to the existing `dsh-web-search`, hence the scoped distribution name) is **for dependency resolution and registry distribution only** (CI, e2e) — do not install it into a profile: `add @maricgeer/dsh-websearch` fails to load even the host half, and the `dsh-websearch@npm:@maricgeer/dsh-websearch` dual-name alias loads the host half but silently drops the client half. Also note pnpm's `minimumReleaseAge` **silently** resolves to an older version without an exclusion entry — always verify the installed version on registry paths (PC6).
 
 Installing takes over web_search / web_fetch (bundle-pinned install order, last writer wins) and hides the built-in "Web search and fetch" settings page while the plugin is enabled (ADR-0024); uninstalling restores the host defaults and that page. A `web` selection saved separately in the user layer is not removed by uninstall; see the FAQ. Reload the page after swapping the package (the client bundle is served from `/plugins/*?rev=` runtime routes).
 

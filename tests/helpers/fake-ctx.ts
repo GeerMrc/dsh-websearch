@@ -18,7 +18,7 @@ interface SettingsHooks {
 }
 
 export interface FakeCtx {
-  logger: { info: (message: string) => void }
+  logger: { info: (message: string) => void, warn: (message: string) => void }
   web: {
     registerSearchProvider: (provider: WebSearchProvider) => () => void
     registerFetchProvider: (provider: WebFetchProvider) => () => void
@@ -51,6 +51,8 @@ export interface FakeCtxHandle {
   readonly configured: Set<string>
   /** Every logger.info line, in order (chain observability assertions). */
   readonly logLines: string[]
+  /** Every logger.warn line, in order (install-guard assertions). */
+  readonly warnLines: string[]
   emitUpdated(ref: string): void
   /** Simulate a committed settings section: the service re-reads the source, then notifies. */
   commitSettings(section: unknown): void
@@ -65,11 +67,12 @@ export function fakeCtx(options?: { withSettings?: boolean; values?: Record<stri
   const configured = new Set<string>()
   const eventHandlers = new Set<(ref: CredentialRef) => void>()
   const logLines: string[] = []
+  const warnLines: string[] = []
   const values: Record<string, string> = options?.values ?? {}
   let settingsHooks: SettingsHooks | undefined
   const teardowns: Array<() => void> = []
   const ctx: FakeCtx = {
-    logger: { info: (message) => void logLines.push(message) },
+    logger: { info: (message) => void logLines.push(message), warn: (message) => void warnLines.push(message) },
     effect: (setup) => {
       teardowns.push(setup())
     },
@@ -131,6 +134,7 @@ export function fakeCtx(options?: { withSettings?: boolean; values?: Record<stri
     providers,
     configured,
     logLines,
+    warnLines,
     emitUpdated,
     commitSettings,
     /** Run the recorded effect teardowns in reverse order (S35 dns-layer restore assertions). */

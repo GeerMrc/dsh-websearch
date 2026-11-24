@@ -66,6 +66,12 @@ describe('apply assembly', () => {
     expect(name).toBe('dsh-websearch')
     expect(inject).toEqual(['web', 'credentials'])
   })
+
+  it('the install-form guard stays silent in this source checkout (v0.2.2 Plan B wiring)', () => {
+    const { ctx, warnLines } = fakeCtx()
+    apply(ctx as unknown as Context, {})
+    expect(warnLines).toEqual([])
+  })
 })
 
 describe('ADR-0014 fallback participation (quadrant pins)', () => {

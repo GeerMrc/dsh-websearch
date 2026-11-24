@@ -111,9 +111,9 @@
 
 ### ❌ 不要在 agent/自动化 shell 里裸用 PATH 解析的 node 启动 DSH 实例——必须 nvm 绝对路径
 
-- **错误**：重启 3423 实例时直接 `node --import tsx/esm apps/cli/src/bin.ts web …`，agent 沙箱 shell 的 PATH 将 `node` 解析到 v20.18.3（低于 engines `^22.19 || >=24`）：进程**静默秒退、退出码 0、零输出**——无任何报错，极易误诊为沙箱拦截/key 文件权限/配置损坏（本次曾疑 key 权限，实测权限未动）。家族先例：S33 lefthook 在 node20 下崩溃（CHANGELOG 2026-09-26）。
-- **正确**：一切实例启停/构建/打包命令显式用 nvm 绝对路径（`/Users/aibot/.nvm/versions/node/v22.23.2/bin/node`；含 `PATH=` 前缀方式给 pnpm script 传导）；遇「秒退+零输出」先 `node -v` 核版本，再做沙箱最小监听复现，最后才查配置层。
-- **来源**：S35 T11-D 事故复盘（session-35 记录 T11-D 节：排除法全程留痕）。
+- **错误**：重启 3423 实例时直接 `node --import tsx/esm apps/cli/src/bin.ts web …`，agent 沙箱 shell 的 PATH 将 `node` 解析到 v20.18.3（低于 engines `^22.19 || >=24`）：进程**静默秒退、退出码 0、零输出**——无任何报错，极易误诊为沙箱拦截/key 文件权限/配置损坏（本次曾疑 key 权限，实测权限未动）。家族先例：S33 lefthook 在 node20 下崩溃（CHANGELOG 2026-09-26）。变体（2026-11-25）：vitest **forks worker 也经 PATH 解析 node**——主进程用 22 绝对路径启动仍不够，PATH 首位是 20 时 jsdom 环境 worker 起不来（`html-encoding-sniffer` require ESM 报 ERR_REQUIRE_ESM），表现为「若干 Unhandled Errors + jsdom 用例整文件消失」，极易误诊为依赖漂移或 lockfile 损坏。
+- **正确**：一切实例启停/构建/打包/测试命令先 `export PATH=/Users/aibot/.nvm/versions/node/v22.23.2/bin:$PATH` 再跑（或全程 nvm 绝对路径 + PATH 前缀双保险）；遇「秒退+零输出」或「jsdom 用例整文件消失/ERR_REQUIRE_ESM」先 `node -v` 与 `PATH` 首位核版本，再做沙箱最小监听复现，最后才查配置层。
+- **来源**：S35 T11-D 事故复盘（session-35 记录 T11-D 节：排除法全程留痕）；变体来自 S41 v0.2.2 T23 全量门排查（CI 同 lockfile 全绿对照定位）。
 
 ## 上游适配验证纪律（Session 35 T11 入册；用户裁定升级为常备门槛）
 
