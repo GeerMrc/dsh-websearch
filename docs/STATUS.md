@@ -1,1 +1,124 @@
-docs/STATUS.md
+# STATUS — dsh-websearch 进度单点看板
+
+> **用途**：回答三个问题的**唯一权威**文件——「现在做到哪了」「下一个 session 做什么」
+> 「活跃债务有哪些」。人工可读优先：一行一棒、指针下钻，不堆审计细节。
+>
+> **单源规则**：本文件是「现在到哪」的唯一权威；roadmap 是任务源（每棒 WBS/验收细节），
+> progress 是台账细节（债务/已验锚点），两者的状态表述以本文件为准。状态唯一写入点：
+> ① session 启动时——台账新增本棒行（🚧）+ 当前位置块刷新；② 阶段 6 原子收尾——本文件
+> 台账行 ✅ + 当前位置块刷新 + roadmap 同行 ✅，三者同一收尾动作内完成，**禁止在任何工件
+> 尚未落盘时提前预写收官状态**。
+>
+> **受控词表**：阶段/里程碑名称只能使用下方「里程碑总览」登记的名称；新增/改名走 ADR 级
+> 变更并同步全部引用。session 记录「当前项目状态快照」的「当前阶段」字段必须使用词表项。
+>
+> **悬空引用规则**：本文件（及 progress/roadmap）的收官条目只能引用**已存在**的文件；指向
+> 尚不存在文件的前瞻表述只能由生成该文件的 session 自己在其记录/接力指令中给出，且须标注
+> 🚧 生成中。
+
+## 里程碑总览（受控词表 + 状态）
+
+| 里程碑 | 可验证定义 | 状态 |
+|---|---|---|
+| M1 治理与规划定稿 | 治理产物齐备且占位符清零，计划过独立审核与人工终审 | ✅ 2026-09-02 |
+| M2 可行性定谳 | GUI 形态、安装链路、交付形态有实测结论，ADR-0006/0007 定稿 | ✅ 2026-09-02 |
+| M3 宿主包完备 | 五 provider + 链 + 凭据/设置全绿，安装端到端可复现 | 🚧（机械面 ✅ S03-S05b；余用户 with-key 槽位回填——不阻塞 S12） |
+| M4 设置页完备 | GUI 全流程（配 key→启停→排序→热生效）浏览器实测通过 | ✅ 2026-09-02（S06 配 key/启停 + S07 排序 = 浏览器六断言；热生效 = S05a 实测 + S07 热链序回归，复合证据 plan 007 D6） |
+| M5 交付就绪 | e2e 收口全绿，文档自洽可复现 | ✅ 2026-09-13（e2e 腿 S08 + 文档腿 S26〔Tier B〕；真实搜索实证 S27 生产重建回填——2026-09-23 S32 T1 补账勘正） |
+| M6 上游验收通过 | 用户在上游全新构建上完成验收清单 | ⏳（准备棒 = S16，2026-09-04 重排编号） |
+| M7 功能扩展 | 每成员多 APIKEY 池 + anysearch 第六成员 + 设置页 UI/UX 对齐 + session 溯源徽标（ADR-0008〔superseded→0011〕/0009/0010/0011/0012）+ 装即接管（ADR-0013）+ DNS 韧性层（S35，ADR-0022） | ✅ 2026-09-28 二次收官（S35 完成：DNS 韧性层全量落地 + 逐工具实测 8/8 + plans 035-044 + 阶段4/5 二轮 PASS/COMPLETE；v0.2.0 定版发版面随 S36 呈批）；首段 S09-S14 + S14a 2026-09-06 收官 |
+
+## Session 台账（一行一棒）
+
+| Session | 日期 | 一句话目标 | 状态 | 关键交付（指针） | 债务增减 |
+|---|---|---|---|---|---|
+| 01 | 2026-09-02 | 治理套件安装 + 架构/WBS 定稿过审 | ✅ | docs/sessions/2026-09-02-session-01.md（规划四件套 + 治理套件安装 + 两轮审核 APPROVED） | 🟢+2 |
+| 02 | 2026-09-02 | Spike：外置 client half + 安装链路 + 交付形态定谳 | ✅ | docs/sessions/2026-09-02-session-02.md（五假设全定谳 + ADR-0006/0007 + 阶段 2 两轮审核 APPROVED） | 🟡-1（T0 清偿 `410d58f`）🟢+1（L-3） |
+| 03 | 2026-09-02 | 插件宿主骨架 + 链式 meta-provider | ✅ | docs/sessions/2026-09-02-session-03.md（包骨架 ADR-0007 + 链语义 8 项红→绿 + fetch 同构；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+3→0（T0 清偿 `c691caa`）🟢-1（L-3 清偿 `35969f0`） |
+| 04 | 2026-09-02 | deepseek/tavily provider + 凭据接线（S03 假面替换） | ✅ | docs/sessions/2026-09-02-session-04.md（双 provider + CredentialGate + 假面替换 + 热刷新端到端；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（T0 清偿 `4fc4187`）🟢-2（假面 `b351d42`、L-1 deepseek 半清偿 `af3d9b7`） |
+| 05a | 2026-09-02 | exa/perplexity/firecrawl 三 provider + settings 节 | ✅ | docs/sessions/2026-09-02-session-05a.md（五成员收编 L-1 全清 + settings 热改链序/超时/启停 + D7 壳透传修正；阶段 2 两轮审核 APPROVED；阶段 4/5 PASS/COMPLETE） | 🟢-1（L-1 全清 `730ef40`/`d4842a1`/`9a4eb74`） |
+| 05b | 2026-09-02 | 安装端到端 + 卸载复原（M3 收官棒） | ✅ | docs/sessions/2026-09-02-session-05b.md（安装/接线/复原三态 dump 对照 + boot 加载 + 隔离审计；**发现并修复 manifest 平铺键缺陷**；阶段 2 两轮审核 APPROVED + 用户真实批准；阶段 4/5 PASS/COMPLETE） | 🟡+1→0（Y-1 T0 清偿）+ dont-do 第三条沉淀 |
+| 06 | 2026-09-02 | 「网页搜索」设置页骨架 | ✅ | docs/sessions/2026-09-02-session-06.md（client half 端到端：构建契约 + 5 provider 卡 + 双链只读 + 浏览器六断言；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE 含 🟡 提交态清偿；基线 184\|6(190)） | 🟡+1→0（stage45 抓获提交态不自洽，`899e2fd` 清偿）🟢 观察×4 注记 |
+| 07 | 2026-09-02 | 优先级排序 + 覆盖标记 + i18n | ✅ | docs/sessions/2026-09-02-session-07.md（搜索链排序写 settings + 钉死覆盖标记（settings 层 D1）+ check:i18n 门禁两脚本 + 浏览器六断言；阶段 2 两轮审核 APPROVED 7/7 + 阶段 4/5 PASS/COMPLETE；M4 ✅） | 🟡+2→0（阶段 0 登记，T0 `0180c95` 清偿）+🟡+1→0（~/.dsh 口径，记录措辞处置 + dont-do 第四条）🟢 新登记×2（fetch 排序/恢复默认） |
+| 08 | 2026-09-02 | e2e 场景收口 | ✅ | docs/sessions/2026-09-02-session-08.md（loopback 七场景 + 到达序/摘要/署名断言 + 链级真实 API smoke 自跳；阶段 2 两轮审核 APPROVED + **阶段 2.5 用户真实批准** + 阶段 4/5 PASS/COMPLETE；src 零变更兑现；M5 e2e 腿 ✅） | 🟡+1→0（assemble 泄漏缺口，T8 加固清偿）+🟡 lint warning（T1 残留，T6 门墙抓获清偿） |
+| 09 | 2026-09-03 | 多 APIKEY 池 + 选择策略 | ✅ | docs/sessions/2026-09-03-session-09.md（extraApiKeyEnvs 多 ref 池 + keySelection 三策略 + wire 级轮换实证 + GUI 多 key 列表 + settings 热通路；阶段 2 两轮审核 APPROVED + 阶段 4/5 PASS/COMPLETE；provider 零改动兑现） | 🟡+1→0（阶段 0 抓获 roadmap M5 尾注漏刷，T0 穷举清偿）+🟡+1→0（T10 抓获台账算术 +30→+34，T11 更正）+🟢×3 注记 |
+| 10 | 2026-09-03 | anysearch 第六成员 | ✅ | docs/sessions/2026-09-03-session-10.md（信封规格 HTTP 自实现 + content→snippet 补映射 + BUILT_IN 尾部追加 + 第 6 卡 + 池化自动享用 + 共存语义在档；阶段 2 **三轮**审核 APPROVED + 阶段 4/5 PASS/COMPLETE） | 🟡+1→0（门墙表 lint files 45→47 转录勘误，T10 清偿）+🟢 新登记（anysearch fetch 面 v1 不做） |
+| 11 | 2026-09-03 | 验收反馈调整（开关置灰 + 单槽逗号值 + 过滤未配置） | ✅ | docs/sessions/2026-09-03-session-11.md（reconstructed 补落 2026-09-04；ADR-0011 改判 + 开关置灰 + 过滤 + 可见序列交换 + keyFieldNote；技术面全绿经 S12 阶段 0 复核亲证；收官证据链缺口由 S12 修复批闭合） | S12 阶段 0 审定 **BLOCKED**（🔴×2 收官证据链 + 🟡×9）——🔴/🟡 全部由 S12 T0/T3/T5/T7/T8 认领闭合 |
+| 12 | 2026-09-04 | 设置页 UI/UX 对齐（用户反馈四项）+ S11 治理修复批 | ✅ | docs/sessions/2026-09-04-session-12.md（四项 ⓘ hover/开关色/品牌名+边界/默认序说明 + S11 记录补落/roadmap 重排/案卷闭合；阶段 2 两轮 APPROVED + 2.5 第 4 次 + 阶段 4/5 PASS/COMPLETE） | 承接 S11 🔴×2+🟡×9 全清偿（T8 复验闭合）；新抓获 🟡×3（T8 记录类）T9 勘正；🟢 维持 |
+| 12a | 2026-09-04 | 设置页布局系统性重构（用户二轮反馈四点） | ✅ | docs/sessions/2026-09-04-session-12a.md（成员卡纵向结构/输入独占行/hint 格式化文案/链区块未配置隐藏/紧凑链卡/fetchChain 展示移除/页头 intro；阶段 2 两轮 APPROVED + 2.5 第 5 次 + 阶段 4/5 PASS/COMPLETE） | 二轮反馈 🟡×1 全清偿；T5 抓获 🟡×2 记录类 T6 勘正；新登记 🟢×2 |
+| 12b | 2026-09-04 | 设置页信息收敛 + DeepSeek 双配置澄清（用户三轮反馈） | ✅ | docs/sessions/2026-09-04-session-12b.md（页头单图标/DeepSeek 澄清 badge/两级调用逻辑文档化 + S13 移交；阶段 2 两轮 APPROVED + 2.5 第 6 次 + 阶段 4/5 PASS/COMPLETE） | 三轮反馈 🟡×2 全清偿；T5 抓获 🟡×1 T6 补守卫 |
+| 13 | 2026-09-04 | 优先级策略棒：ADR-0012 定谳 + keySelection GUI 控件 + 两级调用顺序说明 UI | ✅ | docs/sessions/2026-09-04-session-13.md（ADR-0012 变体 B 不放回随机〔升序 Fisher-Yates〕+ 成员卡三段控件 + 两级语义 hint；阶段 2 两轮 APPROVED + 2.5 默认批准披露 + 阶段 4/5 PASS/COMPLETE + 🟡×1 清偿复验 CONFIRMED） | 承接 🟡×1（记录缺节）T0 清偿；T6 抓获 🟡×1（sameMultiset）当场清偿复验 CONFIRMED；🟢+1（钉牌断言缺口→S14/S15） |
+| 14 | 2026-09-06 | fetch 兜底调研 + session 溯源徽标（ADR-0010 落地） | ✅ | docs/sessions/2026-09-06-session-14.md（toolview 接管 priority -1 + 自绘同构卡两级回退 + fetch/余额 v2 调研注记 + 钉牌断言清偿；阶段 2 单轮 APPROVED + 2.5 默认批准披露 + 阶段 4/5 PASS/COMPLETE；**M7 收官棒**） | 🟢 清偿×2（dont-do webview 家族入册 T0 / 钉牌断言 T2）；🟢 新登记×1（badge 超长 id 观察） |
+| 14a | 2026-09-06 | 装即接管 web_search（插行棒，ADR-0013） | ✅ | docs/sessions/2026-09-06-session-14a.md（随包 patch 钉 search / fetch 留 http / remove 单命令复原 / 用户层终裁；方向 = 用户裁定 B + ExitPlanMode 批准 + 阶段 4/5 PASS/COMPLETE 含独立重演） | 🟡 清偿×1（L-2 缺项勘注 T0）；🟢 新登记×2 观察（AMBIGUOUS 语义精化/发版清单实体） |
+| 14b | 2026-09-06 | DeepSeek 兜底行重构 + 审计修复（插行棒，用户产品裁定） | ✅ | docs/sessions/2026-09-06-session-14b.md（兜底行 ⓘ+付费开关+无 key 面 + 链块两修复 + 错误文案纠偏 + architecture 注记 + 台账勘注；阶段 4/5 PASS/COMPLETE + 探针 + 滚动截图补拍） | 🟡 清偿×4（阶段 0 审计发现全收口）；🟢 新登记×1（badge 死分支→S15） |
+| 14c | 2026-09-06 | 全局置顶+折叠区+恒链尾+maxUses+官方退役（插行棒，用户五决策点确认） | ✅ | docs/sessions/2026-09-06-session-14c.md（全局卡置顶含 maxUses 宿主同款/五卡折叠/恒链尾语义/官方 web-search-deepseek 随包退役；阶段 4/5 PASS/COMPLETE + 🟡×2 当场清偿 + 浏览器全要素亲见含官方卡消失） | 🟡 清偿×2（阶段 4/5 抓获）；🟢×3 注记 |
+| 14d | 2026-09-07 | 兜底二选一（默认无兜底）+ maxUses 修正 + ⓘ/脱敏（插行棒，用户三项反馈） | ✅ | docs/sessions/2026-09-07-session-14d.md（deepseek.enabled 默认 false 付费 opt-in + maxUses 默认 10 {N} 同步 + 兜底行两段 choice + 标题 ⓘ=description + placeholder 多 key + 脱敏） | 红线一次当场 amend |
+| 14e | 2026-09-07 | 免费 fetch 搜索兜底（DDG）+ 二选一自动默认 + ! 徽标（插行棒，方向修正） | ✅ | docs/sessions/2026-09-07-session-14e.md（dshws-fetch-search 免 key 成员+fallbackProvider auto+链 hint 徽标化） | — |
+| 14f | 2026-09-07 | 徽标化微批（pill 删除+居中） | ✅ | commit 79eeda3（浏览器 pillGone+flex center 亲证） | — |
+| 14g | 2026-09-07 | maxUses 输入框收窄+步进钮微批 | ✅ | commit 408dc12（浏览器 94px/±点击 10→15 亲证） | — |
+| 14h | 2026-09-07 | ! 徽标位置+尺寸微批 | ✅ | commit e2d274c（16px 对齐 ⓘ14px + 标题紧随亲证） | — |
+| 14i | 2026-09-07 | 审核修复批（写后重 describe + 兜底行 v2） | ✅ | commit 3483764（浏览器切换后绿点跟随亲证；保存卡住根因修复） | — |
+| 14j | 2026-09-07 | 标题恢复+输入框收窄微批 | ✅ | commit 03abec5（titleFound/66px 亲证） | — |
+| 14k | 2026-09-07 | 整头展开+端点字段微批（官方对齐） | ✅ | commit 6b7839d（展开态 apiKey+接口地址亲证） | — |
+| 14l | 2026-09-07 | 展开区网格对齐微批 | ✅ | commit 6c2d710（3 grid 行/标签列单 x 亲证） | — |
+| 14m | 2026-09-07 | 展开区宿主形态复刻（用户批评重做） | ✅ | commit 36c7060（label/input 同 x、32px/r8 亲证） | — |
+| 14n | 2026-09-07 | Key 策略循环 chip + 默认轮询 | ✅ | commit ef5791a（三连击循环+持久化亲证） | — |
+| 14o | 2026-09-07 | 成员反馈自动消隐微批 | ✅ | commit 2db4065（已清除 0.7s 在/3.3s 自灭亲证） | — |
+| 14p | 2026-09-07 | 端点占位=默认 URL（用户建议） | ✅ | commit 9a25b76（tavily/exa 占位亲证） | — |
+| 14q | 2026-09-07 | APIKEY 输入明文化（用户裁定） | ✅ | commit f7b1d8c（typing 明文亲证） | — |
+| 14r | 2026-09-07 | 保存即脱敏+就绪入链+key 级重试（用户三项） | ✅ | commit 73796a6（三项浏览器端到端亲证） | ADR-0012「失败不回牌」注记需 S15 勘注（重试语义升级） |
+| 14s | 2026-09-07 | 徽标展开态+反馈时序配色（用户三项） | ✅ | commit a53fce2（两态+新文案亲证） | — |
+| 14t | 2026-09-07 | 徽标位置终调（标签后） | ✅ | commit d2ce699（badgeInLabel 亲证） | — |
+| 14u | 2026-09-07 | 质量收口棒：双深审 🔴×3+🟡×5 全清（重试机制定稿） | ✅ | merge 后 master HEAD；门墙 315\|9(324)/exit0/48 keys；复审 PASS（初审 BLOCKED→清偿复验 CONFIRMED） | 无挂账；S15 文档面归属在 plan 014u |
+| 14v | 2026-09-08 | 实测报错取证插棒：DDG 202 反爬壳单列报错 + UA 头（S15 前） | ✅ | merge 后 master HEAD；门墙 317\|9(326)/exit0；复审 PASS（🔴×0 🟡×0，探针红） | web_fetch non-public-IP=宿主SSRF×fake-ip 非插件（plan 014v 定性正本；S15 手册披露） |
+| 14w | 2026-09-08 | 主备链可验证交付：wire 级 e2e 正本 + 链卡主备徽标 + B2 v2 落档 + 手册素材 | ✅ | merge 后 master HEAD；门墙 320\|9(329)/exit0/50 keys；复审 PASS（两针探针真红 + 纯呈现核验） | B2 v2 启动包 + 暖启动预热入 🟢 池；S15 素材全就绪 |
+| 14x | 2026-09-09 | 兜底重构 0.2.0（ADR-0014）：删免费 fetch 地板 + 兜底工具显式指定 + DeepSeek 条件参与 | ✅ | merge 后 master HEAD；三轮计划审核 + 复审 BLOCKED→清偿→复验 PASS；门墙 330\|9(339)/exit0/52 keys | breaking：零 key 诚实报错/付费触达默认消失/存量值自动归一；S15 按新语义撰写 |
+| 14y | 2026-09-09 | 混合 key 池治愈：4xx 二分（凭据类 401/403 换 key 重试/请求类直降）+ UI 微批 | ✅ | 真实 key 池实测触发（as_sk_d3df… 401 失效毒化池）；TDD 三钉 + loopback wire 钉；333\|9(342) exit0 | 用户待办：更换失效 key；S14u「确定性 4xx」前提对独立凭据池不成立已勘正 |
+| 14z | 2026-09-09 | web_fetch 移除（插件停注 fetch 链 + 实例预设覆写）+ 链路文件日志 + key draw 追踪 | ✅ | 新预设会话实测：工具面无 web_fetch；文件日志完整回溯（draw/401 换 key/降级/兜底/served-by）；337\|9(346) exit0 | 默认裁定披露（未获答取 A+文件日志）；🟢 轨迹页可见 v2 |
+| 14z2 | 2026-09-09 | 装即接管：运行时自动生成仅搜索预设 + settings 切默认（替代手动预设切换，用户裁定预设方式不专业） | ✅ | 静态钉 default 有砖机风险（缺预设→会话创建抛错）已排除；实测：不动选择器新会话即仅插件搜索、无 web_fetch；343\|9(352) | 卸载残留（settings 默认+预设目录）诚实披露；用户自撰同名目录永不覆写 |
+| 15a | 2026-09-09 | 全模式 web_fetch 接管 0.2.1：多预设副本 + fetch-gate 网关 | ✅ | docs/sessions/2026-09-09-session-15a.md（reconstructed 2026-09-10）；已被 15b 简化取代——副本层移除，网关独立承担 | — |
+| 15b | 2026-09-09 | 网关-only 接管 0.2.2 | ✅ | docs/sessions/2026-09-09-session-15b.md（reconstructed 2026-09-10）；已被 15c 取代——网关拦截层退役，restrict 在更前端面隐藏工具 | — |
+| 15c | 2026-09-09 | web_fetch 彻底隐藏 via 官方 tools.restrict() API（终版） | ✅ | docs/sessions/2026-09-09-session-15c.md（reconstructed 2026-09-10）；实测：标准模式新会话模型确认"没有 web_fetch"、零报错零引导、仅调 web_search；354\|9(363) | 官方 API 零维护开销；对全部预设/模式自动生效 |
+| 16-p0 | 2026-09-10 | API 对齐 P0 修复级：Exa highlights 迁移 + Firecrawl timeout + 6 UA 统一 + web_fetch 债务标记 | ✅ | docs/sessions/2026-09-10-session-16p0.md（reconstructed 2026-09-10）；master d996d3d；357\|9(366) exit0；**lint 实为 3w（S17 阶段 0 勘正，T0 清偿）** | web_fetch 🟡 登记；P1 为下一棒（roadmap S17 ⏳） |
+| 17 | 2026-09-10 | P1 高价值参数批（14 参数全链路 + 成员 options 热化统一 + 通用语言/区域入口 ADR-0015） | ✅ | docs/sessions/2026-09-10-session-17.md；0.3.0；全量 **399\|13(412) exit0**；浏览器全要素亲见 + firecrawl tbs 真实通过（2160ms）；阶段 4 R1-R6 PASS / 阶段 5 COMPLETE | 阶段 0 🟡×4 T0 清偿 + web_fetch 评估收口；🟡 Perplexity Sonar 日落→S18；Tavily/Exa/Perplexity 真实参数实测无 key 归用户择机 |
+| 18 | 2026-09-10 | Perplexity Agent API 迁移（Sonar 日落应对，2026-09-27 前） | ✅ | docs/sessions/2026-09-10-session-18.md；0.3.1；全量 **401\|13(414) exit0**；config 面零改动亲证；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | **🟡 Sonar 日落已清偿**；真实 Perplexity 实测无 key 降级（断言就绪，补 key 零改动闭合）〔勘注：随 S19 移除转历史档〕 |
+| 19 | 2026-09-10 | 完整移除 dshws-perplexity 成员（用户终裁：免费额度准入标准 ADR-0017） | ✅ | docs/sessions/2026-09-10-session-19.md；0.4.0 breaking；全量 **377\|11(388) exit0**；R1 功能性残留 0（legacy 基建豁免）；阶段 4 R1-R5 全 PASS / 阶段 5 COMPLETE | S18 观察×2 moot 翻账；残尸节 🟢 登记（S15 README 提示）；union 内联 🟢 |
+| 20 | 2026-09-10 | P2 中价值参数批（用户裁定先于 S15；S16 审计批次） | ✅ | docs/sessions/2026-09-10-session-20.md；0.5.0；终态全量 **398\|11(409) exit0**；守卫清单六条全测试在档；阶段 4 R4 FAIL→清偿 / 阶段 5 F-1→清偿 | Tavily/Exa 真实实测无 key 披露；🟢×2 新登记（union 扩面/number kind） |
+| 21 | 2026-09-10 | web_fetch 全模式多链接管（用户主计划重排第 1 棒：fetch 链三家 + 两态开关 + restrict 移除） | ✅ | docs/sessions/2026-09-10-session-21.md；0.6.0；全量 **415\|13(428) exit0**；AnySearch extract 实测 1,048ms；浏览器亲验通过 | **web_fetch 🟡 翻账**；阶段 4 R5 FAIL→T9 清偿 |
+| 25 | 2026-09-12 | 采纳上游 0.1.5-rc.2：插件 0.9.0 + 3423 分级上线（八项兼容清单 PASS + 真实搜索验证；生产零接触） | ✅（至 T6） | docs/sessions/2026-09-12-session-25.md；0.9.0；448\|13(461) exit0 | **T6 人工验证待用户确认**；T7 生产批待明确指令 |
+| 26 | 2026-09-12 | 定档批：生产就绪规范化（用户主计划批准 + T6 确认；T7 生产批下棒） | ✅ | docs/sessions/2026-09-12-session-26.md；**v0.1.0 定档（ADR-0020 + tag）**；全量 449\|13(462) exit0；阶段 4/5 独立 PASS（audit-log 2026-09-13）；README zh/en + upgrade + architecture v2.0 交付（走通 Tier B PASS）；59 分支删尽 + 敏感扫描零 | 下一棒 S27 = T7 生产批（用户指令后） |
+| 27 | 2026-09-13 | 生产切换批（T7：重建 ~/.dsh + worktree 供版 0.1.5-rc.2 + 插件 v0.1.0 上生产；保留三件/其余全清——用户 2.5 批准路线 B） | ✅ | docs/sessions/2026-09-13-session-27.md；横幅 0.1.5-rc.2-fb2cf4b9 + dump 三接线 + 四成员绿点 + **生产真实搜索 served-by: dshws-tavily（多 key 轮换）**；阶段 0/2/4/5 全 PASS | 遗留：2 条验证会话 + dsh-harness-015 工作区留检验；主树 merge 降 housekeeping 棒 |
+| 28 | 2026-09-13 | 徽标解耦微批（served-by 全卡扫描 + web_fetch 徽标；版本回折 v0.1.0 基线——用户裁定） | ✅ | 补账记录 docs/sessions/2026-09-16-sessions-28-31-backfill.md（commits 9e6591c/e9dce94；tag v0.1.0 移钉 e9dce94；当日漏登 CHANGELOG 已补） | 无新债（治理欠账由 S32 T1 补账清偿） |
+| 29 | 2026-09-16 | v0.1.1：设置页展开态 APIKEY 计数徽标（自有 Typert remote `dshws-websearch`） | ✅ | 补账记录同上；CHANGELOG 2026-09-16 Key 计数徽标批条目；全量 476 passed；3423 GUI 全过 + 四工具计数实测（5/1/2/5） | 🟢 三项通路定谳注记在档 |
+| 30 | 2026-09-16 | 上游 0.1.6-alpha.1 适配（文档面）+ 3423/3080 供版树切换（016a1 worktree） | ✅ | 补账记录同上；CHANGELOG 2026-09-16 上游适配批条目；**S30 semver 断言误判（erratum 已随 S32 T1 落盘；peer 放宽转 S32 T3）** | 🟡 生产 profile 死 tgz 路径（/tmp 已清）——S32 T7 处置 |
+| 31 | 2026-09-16 | 开源发布批：LICENSE/README 三方式/敏感扫描/公开仓库 | ✅ | 补账记录同上；CHANGELOG 2026-09-16 开源发布批条目；github.com/GeerMrc/dsh-websearch（master+tags v0.1.0/v0.1.1） | 无新债 |
+| 32 | 2026-09-23 | 上游全跨度升级适配批（0.1.5-rc.3/0.1.6-alpha.2/0.1.7-alpha.2 + 生产死 tgz 修复——用户三裁定） | ✅ | docs/sessions/2026-09-23-session-32.md；v0.1.2 定版（门墙 480\|13(493) 全绿，阶段 4 复跑一致）；ADR-0021 双径 + Note s32 矩阵 + 演练证据库；生产 3080=v0.1.2@016a1；阶段 4 PASS / 阶段 5 COMPLETE-WITH-NOTES 八必修全落 | 🟡×4 全清偿；🟢+3（exclude 清理/volatile path 测试/复合证据注记）；B 线工具腿 BLOCKED-by-upstream 留档 |
+| 32a | 2026-09-23 | 会话后增补批（用户即时指令）：README 上游缺陷注记 e43fb22 / npm 发布+改名 @maricgeer 57b7f97 / 生产切树 016a1→017a2 2b2f1c0 | ✅ | CHANGELOG 三条目 + audit-log prod-switch-017a2 + Release v0.1.2 双 tarball；npm@0.1.2 拉装冒烟过（当时网络尚通）；治理欠账由 S33 T1 本批补齐 | 网络债：github/npmjs 09-26 起不可达（环境，见 S33 T0） |
+| 33 | 2026-09-26 | 随上游 0.1.7-rc.1/rc.2 迭代适配批（多版本全跨度 + fork 修复审计 + 发布与生产切换呈批——用户四裁定） | ✅ | docs/sessions/2026-09-26-session-33.md；v0.1.3 定版（零源码适配；门墙 480\|13(493)）；npm@0.1.3 已发布（GitHub 腿网络受阻续试）；fork 修复收编 fix/readonly-stack-rc2（回归 235/235）；三线演练全 PASS；生产切换已执行（用户批准；备份先行 237M；正本 audit-log prod-switch-rc2） | 🟡×4 全清；🟢+3（README 前置串/tail 清理/GitHub 腿收尾确认——第三项已随 c8057be 闭合） |
+| 34 | 2026-09-26 | 上游问题经验沉淀文档批（用户指令：README/Tag/文档沉淀 fork 修复经验供小白复用+推送远端） | ✅ | docs/sessions/2026-09-26-session-34.md；docs/known-upstream-issues.md（三问题登记表）+README zh/en 联动+Release v0.1.3 notes 块；阶段2 APPROVED/阶段4 PASS | 🟢 沿 S33（README 前置串+占位链接+tail 清理——**归属随 v0.2.0**〔S35 T0 勘正，原「随 0.1.4」〕；npm 包内 README 漂移随发版消除；Release/fork 远端活体目验——已由 S35 阶段 0 亲验销项） |
+| 35 | 2026-09-27 | DNS 韧性层批 v0.2.0（进程级 DoH 解析+出口预检+区域预设池+Inspect trace；用户主计划批准+四裁定） | ✅ | docs/sessions/2026-09-27-session-35.md（含 plans 039-044 补登记 + T11-A/B/C/D 测试腿全录）；plan 035 R1-R8（R6 截图腿 zh/dark 亲验、en/light 随 S36 补；R8 治理收官本动作）+ plans 036/037/038 ✅ + 增补链 039-044（含 30bfc59 诚实回滚）；阶段4/5 二轮 **PASS/COMPLETE**（audit-logs 2026-09-28-s35-stage4-full-verification.md + …-stage5-crossvalidation.md；S-1/F-1/F-2 当批清偿）；逐工具实测 8/8 + 用户窗口级联降级实录；dd5a9df+f8e0a3f 双错误保真修复；rc.15 双名脚本化（scripts/pack.mjs）；全套件 593/593（阶段4 时点 592，S-1 用例后 593——收官批勘正） | 🟡 清零（S34 四债 T0 清偿）；🟢 新增：DNS chip 轮询/onSetDnsScope 清瘦余项/request_id 增强（正本 plan 035 债务表）；v0.2.0 定版/发版/生产切换随 S36（高危门控不变） |
+| 36 | 2026-09-28 | S35 收官 + CI 就绪与 v0.2.0 归档准备（用户三线指令：经验沉淀/GitHub+npm CI/清场定版；推送与发布逐项确认门控） | ✅ | docs/sessions/2026-09-28-session-36.md；阶段 0 独立审核 S35 现状 **PASS 有条件→三红全清**（audit-logs 2026-09-28-s36-stage0-audit-of-s35.md；T8 提前清 R-1/R-2、T1 清 R-3）；用户决策三裁定（gh secret set 注入/tag v* 全自动/仅 master+tag 推送）；阶段4 PASS（🔴 client 面 typecheck 阻塞当批清偿→双面 0）+ 阶段5 COMPLETE；v0.2.0 定版 + master 合并全绿 593/593 + 3423 清场运行 0.2.0 + CI/secret/失败恢复 runbook 就绪 | 🟢 新增：pack.mjs name 键加固/real-tier 网络窗调度（未完成节有归属指针） |
+| 37 | 2026-09-28 | 上游对齐二轮 + 代码质量批 + 流程立宪（四路独立审计驱动；plan 045 rev2）〔**版本终审裁定 2026-09-28：S37 成果并入单一 v0.2.0 发布，v0.3.0 撤销**〕 | ✅ | docs/sessions/2026-09-28-session-37.md；audit-logs s37-t0-gate-baseline + s37-stage45-review；2 个确定性 400 修复（Tavily 枚举/Exa 守卫）+ 信封三补齐 + 质量批（去重核心 -187，R6 诚实裁定）+ **AGENTS.md 上游适配强制流程立宪**；v0.3.0 定版全绿 601/601 | 🟢 alexandria 到期（2026-11-16）等见 plan 045 债务节；**候令：人工实测确认 → 单一 v0.2.0 发布序列** |
+| 39 | 2026-09-30 | 生产端全栈升级批（用户指令：上游最新 DSH+插件最新，备份→演练→正式三段） | ✅ | docs/sessions/2026-09-30-session-39.md；audit-logs/2026-09-30-s39-host-upgrade-rehearsal-and-switch.log；全量备份 240M（dsh-ops-backups/3080-full-pre-020rc2-host-*）；演练场 3425 全绿（兼容门/旧会话渲染/链序/搜索+抓取+错误路径降级活体）；正式切换 **3080 = 020rc2 守卫树（0.2.0-rc.2+fork）+ 插件 v0.2.0**（pid 77804——S40 阶段 0 审核勘正：77445 为切换时初值，02:54 日志重挂后 77804 在役）；两级回滚位在案 | 零新增债；树级回滚注记（切换后新会话回滚旧宿主或不可读——数据级备份覆盖切换前态） |
+| 40 | 2026-09-30 | 官方桌面端采用批（用户指令：桌面端调研×三形态验证×插件桌面适配×上游同步规范；plan 047 两轮独立计划审核+2.5 终审） | ✅ | docs/sessions/2026-09-30-session-40.md；docs/desktop-adoption.md + upstream-sync-sop.md + ADR-0023 + README 桌面条目 + KUI①S40 复查行 + dont-do×4；官方桌面端定谳 = 官方仓 Electron 壳（0.2.0-rc.2 三平台，feed/签名/公证/更新通道实测）；**插件 v0.2.0 桌面端双端适配全绿**（安装矢量=内置 launcher 直调；官方端四成员 Configured/会话共享 46+/DNS DoH 活体；peer 域内**免发版**）；T3 源码构建五关排障 runbook；阶段4 PASS-WITH-NOTES（🟡 b52b6db 清偿）+ 阶段5 COMPLETE-WITH-NOTES（清单全处置）；audit-logs s40-desktop-adoption(17 工件)+stage4/stage5 记录 | 🟢×3：桌面真实搜索腿未实跑（三处声明覆盖）/desktop profile 钉 file: tgz（npm spec 为正）/Windows 未实装（边界声明）；**候令：feat 分支合入 master+推送** |
+| 38 | 2026-09-30 | DSH 0.2.0-rc 适配批·v0.2.0 重定标准备（用户指令 2026-09-29：上游更新先适配、流程化实测后重打 v0.2.0；plan 046 rev1）+ 推送批（用户放行 2026-09-30 + VPS 隧道指示） | ✅ | docs/sessions/2026-09-30-session-38.md（含推送执行录三事件）；audit-logs s38-stage0-audit-of-s37 + t0-terminal-gate + t1-satisfies-matrix + t3-drill×2 + t4-7leg-matrix + t4b-e2e-real；peer 六包扩钉（0.2.0-rc.1/rc.2/>=0.2.0 <0.3.0，双语义矩阵含负控）；3434 演练 + 3423 切守卫树七腿异题矩阵 **7/7**（29 served-by 零失败）+ e2e.real 错误路径 **4/4**；阶段4 全绿 607\|17(624) + tsc/lint/i18n 0 错；阶段5 三正交 COMPLETE；422 深度二次排查（用户质询）=非未对齐 bug·四方证据+裸 curl 复现+换 key 无关+瞬时窗口自愈，新发现 AnySearch 422 承载漂移已吸收；known-upstream-issues ① 增 0.2.0-rc 行 + checklist 漂移注记；**推送批**：master `6b5330d`+tag `v0.2.0`+fork `fix/readonly-stack-020rc2` 经 VPS SOCKS 隧道全落，CI/Release 双 success，GitHub Release v0.2.0 双 tarball + npm 0.2.0 发布（pack.mjs mkdir 与 npm publish `./` 前缀两 CI 缺陷当批修复） | 零新增债；**候令：npm 拉装核验 → 3080 切换 → 清场** |
+| 41 | 2026-11-23 | 接管官方「网页搜索与获取」设置页 + 对称交还、插件页文档分离、OIDC 发布自动化、上游 0.2.2-rc.5 对齐（用户指令；plan 048） | 🚧 | docs/sessions/2026-11-23-session-41.md；plan 048 | T0–T16 与 T19 已执行，未收官：R1、R2（重定义后）、R3、R4、R7 通过，R5、R6、R8 待用户裁决（见 session-41 记录） |
+| 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
+| 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
+| 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
+| 23 | 2026-09-11 | UI/UX 全面对齐 DSH 0.8.0（差距清单 D1-D18 驱动；双审两轮 PASS-WITH-NOTES/COMPLETE-WITH-NOTES；4 豁免裁定 + Models 方言锚定） | ✅ | docs/sessions/2026-09-11-session-23.md；0.8.0；全量 **447\|13(460) exit0**；i18n 141；浏览器双主题亲验（chevron/pill/草稿折叠存活/style 块规则） | 阶段 4 缺陷×3 当场清偿（a6ddf2c）；S15 素材接线（plan 023 §0） |
+| 22b | 2026-09-11 | 设置页折叠化 0.7.2（用户反馈插行：接管卡成员卡式折叠 + 搜索链「详细配置」子折叠默认收起） | ✅ | docs/sessions/2026-09-11-session-22b.md；0.7.2；全量 **443\|13(456) exit0**；浏览器亲验（默认收起截图/展开内容齐） | — |
+| 22a | 2026-09-11 | Web Fetch 链 UI 修正批 0.7.1（用户四项反馈插行：chip wrap 修复/区块迁至接管开关下 ON-only/更名 Web Fetch 链/连点排序 conflict 重试） | ✅ | docs/sessions/2026-09-11-session-22a.md；0.7.1；全量 **442\|13(455) exit0**；浏览器亲验（单行排版截图/两态/连点×5 ok） | — |
+| 22 | 2026-09-10 | P3 对齐批 0.7.0 + 全功能一致性深度审核（四家官方文档 diff；roadmap 重排插行） | ✅ | docs/sessions/2026-09-10-session-22.md；0.7.0；全量 **439\|13(452) exit0**；i18n 138；守卫活体双态浏览器亲证；阶段 0 抓获 S21 🔴（stage2 正本悬空）T0 清偿 | 🟢 新登记：AnySearch 垂直面 tag/params 待 key 探针（Note s17 §8）+ plan 020 §87 勘正 |
+
+## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
+
+- **当前 session**: Session 41 🚧（接管官方「网页搜索与获取」设置页 / 插件页文档分离 / OIDC 发布自动化 / 上游 0.2.2-rc.5 对齐；plan 048；分支 feat/s41-takeover-docsplit-oidc，未推送）。已执行到 T19，未收官：交还路线已裁决并落地（启用期间提示卡加一键清除，rc.5 实测通过，ADR-0024 accepted）；仍等待用户裁决阶段 5/6 提前执行的追认、受阻分支例外、token 历史、草稿 PR、Session 42 拆分（见 docs/sessions/2026-11-23-session-41.md）。
+- **发布面**: npm latest = v0.2.0（@maricgeer/dsh-websearch），tag v0.2.0；origin/master = `619b99c1`。本地 master 另含 S40 的合并提交，未推送；S41 的工作在 feature 分支上，同样未推送。版本号没有变。
+- **上游现势**: 本机官方桌面 app = 0.2.2-rc.5（2026-11-18 自动更新）；npm `next`、`alpha` 与桌面 feed 的版本见 audit-logs/2026-11-23-s41-stage0-audit-of-s40.md 的 g 项。
+- **运行环境现势**: 3080、3423、19387 均无监听（机器 2026-10-11 重启后未拉起）；S41 的 rc.5 scratch 实例（3434）已在收尾时停止。
+- **所处里程碑**: M7 功能扩展（S41 棒）；M3 宿主包完备（🚧 机械面 ✅）；M6 上游验收通过 ⏳（准备棒 S16）
+- **上一棒**: Session 40（docs/sessions/2026-09-30-session-40.md）
+- **下一棒候选**: Session 42（版本号变更与发布序列；roadmap 编号 42 行待用户确认）
+- **活跃债务**: 🔴×0；🟡×1（未推送历史里的 token 值，待用户裁决）；另有待裁决 6 项（交还路线、阶段 5 与阶段 6 提前执行的追认、受阻分支例外、token 历史、草稿 PR、Session 42 拆分）与延后项若干，正本在 docs/progress/progress-M7.md 的 S41 台账
+- **更新时间**: 2026-11-24（S41 T19 后修复 STATUS；未收官）
