@@ -33,10 +33,10 @@
 | stage4__logs__f-t10-red-green.log | 1594 | 7d9e1fec0b6da573 | 阶段 4 第 1 轮核验 Agent 的原始输出 f-t10-red-green.log |
 | stage4__logs__f-t11b-green.log | 404 | 10346177dd0b472f | 阶段 4 第 1 轮核验 Agent 的原始输出 f-t11b-green.log |
 | stage4__logs__f-t11b-red.log | 2039 | d13ba4fb6d6de562 | 阶段 4 第 1 轮核验 Agent 的原始输出 f-t11b-red.log |
-| stage4__logs__red-v1-dump-config.yml | 46678 | 998bf81c2d74b041 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v1-dump-config.yml |
-| stage4__logs__red-v5-dump-config-off.yml | 46548 | b2b2e0864378d09a | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v5-dump-config-off.yml |
-| stage4__logs__red-v6-dump-config-on.yml | 46853 | 80f4bcde55046c69 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v6-dump-config-on.yml |
-| stage4__logs__red-v7-dump-off-before-fix.yml | 46713 | a5d4cfa78bbc46f7 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v7-dump-off-before-fix.yml |
-| stage4__logs__red-v7-dump-seeded.yml | 46962 | e9947dfb2d8e30c2 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v7-dump-seeded.yml |
+| — | 46678 | 998bf81c2d74b041 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v1-dump-config.yml（未归档：与 rc5-live 里的 evidence__v1-dump-config.yml 逐字节相同） |
+| — | 46548 | b2b2e0864378d09a | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v5-dump-config-off.yml（未归档：与 rc5-live 里的 evidence__v5-dump-config-off.yml 逐字节相同） |
+| — | 46853 | 80f4bcde55046c69 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v6-dump-config-on.yml（未归档：与 rc5-live 里的 evidence__v6-dump-config-on.yml 逐字节相同） |
+| — | 46713 | a5d4cfa78bbc46f7 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v7-dump-off-before-fix.yml（未归档：与 rc5-live 里的 evidence__v7-dump-off-before-fix.yml 逐字节相同） |
+| — | 46962 | e9947dfb2d8e30c2 | 阶段 4 第 1 轮核验 Agent 的原始输出 red-v7-dump-seeded.yml（未归档：与 rc5-live 里的 evidence__v7-dump-seeded.yml 逐字节相同） |
 
 归档时对全部归档文本做了模式扫描（令牌值、密钥形态、Bearer 值、JWT、凭据赋值），命中数为 0。

@@ -2,11 +2,12 @@
 
 来源是仓库外的 scratch 目录 `/tmp/dshws-s41/`（实例停止后即不存在）。文件名里的 `__` 对应原路径的分隔符。
 `token=` 后的宿主进程令牌值已替换为 `<redacted>`，其余内容逐字节照搬。「原文件 sha256 前 16 位」取自遮蔽前的原文件。
-空文件不归档，只在这里登记。T5p 矩阵里标「无原始文件」的格子，这里补不出来：浏览器侧读数与 47 毫秒时序当时只留在会话的工具输出里。
+空文件不归档，只在这里登记。T5p 矩阵的原文没有逐格标注哪些格子缺原始文件。缺原始文件的是三格：浏览器侧读数、命令行卸载后的 dump、47 毫秒时序，
+它们当时只留在会话的工具输出里（见 session 记录 T14 条目的 F17）。阶段 5 重测的结果另行追加。
 
 | 归档文件 | 原文件字节数 | 原文件 sha256 前 16 位 | 内容 |
 |---|---|---|---|
-| evidence__README.md | 2792 | a808c0dab501c6d7 | 证据索引（执行期原版） |
+| evidence__README.md | 2792 | a808c0dab501c6d7 | 证据索引（执行期原版）。其中把 V4 与 V6 都记成 PASS：V4 只有叙述、没有快照，V6 只有配置半句有 dump；逐项状态以 session 记录的 T12 条目为准 |
 | evidence__t5p-probe-matrix.md | 3070 | df6a40247144c215 | T5p 探针矩阵：形态 × 向量 × 通道结论 |
 | evidence__v1-dump-config.yml | 46678 | 998bf81c2d74b041 | V1：插件启用时的 --dump-config 全量 |
 | evidence/v1-dump-config.stderr | — | 0（空文件，未归档） | V1：dump 的 stderr |
@@ -52,15 +53,6 @@
 | evidence__t5p-cli-remove2.log | 151 | 936c8f4891674010 | T5p：命令行移除（第 2 次） |
 | evidence__t5p-cli-add2.log | 550 | e7c031e714172925 | T5p：命令行装入（第 2 次） |
 | evidence__t5p-cli-remove3.log | 151 | 7e2ce5e6e412ddff | T5p：命令行移除（第 3 次） |
-| evidence__fresh-clone-rehearsal.log | 2148 | eb7ec6f630c2b0e0 | T11：本地预演（首次为全新克隆；日志是同一克隆目录推进到 3eebf97 后的重跑） |
-| evidence__t13-doc-tests.log | 472 | 433e4f6ce78e2a1b | T13：读取文档与工作流的 5 个测试文件 |
-| evidence__f1-red.log | 3628 | 70400d051ea0dd6d | F1：两个客户端入口测试修复前（红） |
-| evidence__f1-green.log | 332 | 28c3c50fe29e760a | F1：两个客户端入口测试修复后（绿） |
-| evidence__f1-full.log | 8679 | 455cdacdb046bffb | F1：修复后的全量测试（703 通过 / 17 跳过） |
-| evidence__f24-red.log | 2670 | 554dfc65f03745cd | F24：发布门经符号链接路径调用的用例，修复前（红：退出码 0、未检查） |
-| evidence__f24-green.log | 271 | a809f1bb2668fe69 | F24：同上，修复后（绿） |
-| evidence__f24b-red.log | 1503 | 4322513739cc38bb | F24：pack.mjs 经符号链接路径调用的用例，修复前（红：什么都没打包） |
-| evidence__f24b-green.log | 367 | b6d480bbc117716b | F24：同上，修复后（绿） |
 | rc5-web.log | 1208 | a6d28ce7e5f7e737 | scratch rc.5 实例的标准输出：启动地址与探针的宿主侧日志（遮蔽 1 处令牌值） |
 | rc5-web-nohmr.log | 393 | 321b1a1f08e24b36 | 形态 N scratch 实例的标准输出（遮蔽 1 处令牌值） |
 | tools__probe-patch.mjs | 3698 | 5c1cf8014326d501 | 探针源码（第 1 轮）：往构建产物里打补丁的脚本 |

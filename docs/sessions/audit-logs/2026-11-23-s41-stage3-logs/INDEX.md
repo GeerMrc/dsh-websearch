@@ -3,6 +3,8 @@
 来源是仓库外的 scratch 目录 `/tmp/dshws-s41/`。文件名即原文件名：`t<N>-red` 是该任务修复前的红证，`t<N>-green` 是修复后的绿证，
 `f<N>-*` 是阶段 4 第 1 轮核验后各条修正的日志，`frozen*`、`fresh-*` 是 T3 对 lockfile 的正反验证。
 令牌值已替换为 `<redacted>`；`f9-red.log` 里被遮蔽的两处是测试夹具插值拼出的合成值，不是真实令牌。
+「原文件 sha256 前 16 位」取自遮蔽前的原文件，做过遮蔽的文件无法由归档文件复算，其余文件可以。
+rc.5 实测本身的证据（dump、页面无障碍树、探针日志）在 `../2026-11-23-s41-rc5-live/`，这里只有任务级的红证与绿证。
 
 | 归档文件 | 原文件字节数 | 原文件 sha256 前 16 位 | 内容 |
 |---|---|---|---|
@@ -72,6 +74,7 @@
 | t10-tsc.log | — | 0（空文件，未归档） | 任务日志 t10-tsc.log |
 | t11-fix-tsc.log | — | 0（空文件，未归档） | 任务日志 t11-fix-tsc.log |
 | t11-fix.log | 271 | a39083335828f2a3 | 任务日志 t11-fix.log |
+| t11-fresh-clone-rehearsal.log | 2148 | eb7ec6f630c2b0e0 | 任务日志 t11-fresh-clone-rehearsal.log |
 | t11-frozen.log | 52 | 5af78008a9aa33b0 | 任务日志 t11-frozen.log |
 | t11-green.log | 267 | 0e13287214c0e0ae | 任务日志 t11-green.log |
 | t11-install.log | 344 | b99d2beb56590ac2 | 任务日志 t11-install.log |
@@ -82,5 +85,6 @@
 | t11b-red.log | 1795 | f48c77d0d0435961 | 任务日志 t11b-red.log |
 | t11b-typecheck.log | 55 | 54e880f9cb3c7c7e | 任务日志 t11b-typecheck.log |
 | t13-doc-tests.log | 472 | 433e4f6ce78e2a1b | 任务日志 t13-doc-tests.log |
+| t14-full2-test.log | 8791 | fb71024a89684da1 | 任务日志 t14-full2-test.log |
 
 归档时对全部归档文本做了模式扫描（令牌值、密钥形态、Bearer 值、JWT、凭据赋值），命中数为 0。
