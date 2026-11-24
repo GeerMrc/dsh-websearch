@@ -5,7 +5,9 @@ import { satisfies } from 'semver'
 /**
  * Peer-domain contract (ADR-0027). The host compatibility gate evaluates plugin
  * peers with `includePrerelease: true`, so an explicit pre-release pin is not a
- * gate requirement: it is the record that this version was rehearsed. Every
+ * gate requirement: it is the record that this version was rehearsed. The
+ * 0.2.2-rc.5 pin is provisional: only install and the takeover switch are
+ * measured on it so far, its search and fetch leg is still to do. Every
  * `@deepseek-ai/dsh-*` peer range is asserted in three classes:
  *
  * - rehearsed, or a stable version inside the declared window: admitted under both
@@ -23,7 +25,10 @@ const peers = Object.entries(pkg.peerDependencies).filter(([name]) => name.start
 /** Options the host gate passes to `semver.satisfies` (plugin-compatibility.ts). */
 const GATE = { includePrerelease: true } as const
 
-/** Versions carrying an explicit pin because they were rehearsed (S32, S33, S38, S41). */
+/**
+ * Versions carrying an explicit pin: rehearsed on S32, S33 and S38; 0.2.2-rc.5
+ * is pinned on S41's install and takeover evidence alone.
+ */
 const REHEARSED = [
   '0.1.5-rc.1', '0.1.5-rc.2', '0.1.5-rc.3',
   '0.1.6-alpha.1', '0.1.6-alpha.2',

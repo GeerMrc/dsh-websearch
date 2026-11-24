@@ -23,7 +23,7 @@
 > 1. `dsh` **0.1.6-alpha.2**：任意工具调用崩溃 `TOOL_RUNTIME_SCHEDULER.prepare`——避开该版本（用 0.1.5-rc.x / 0.1.6-alpha.1 / 0.1.7+）。
 > 2. `dsh` **0.1.7-alpha.2/rc.1（rc.2 半修）**：tsx 源码启动下宿主启动期报 `Plugin metadata … TypeError: Cannot assign to read only property 'stack'`——npm 安装/构建产物用户不受影响；源码启动用户可用 [fork 修复分支](https://github.com/GeerMrc/deepseek-harness/tree/fix/readonly-stack-rc2)。
 
-前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.2-rc.5 || >=0.2.0 <0.3.0`（S32/S33/S38/S41 全跨度——显式钉的是已演练预发布版，范围由 `tests/peer-range.spec.ts` 按两种 semver 语义守护；0.1.8 稳定线未演练仍排除。宿主兼容门按 `includePrerelease` 放行 0.2.x 预发布，显式钉是「已演练」的记录而非过门条件，见 ADR-0027））、node ≥ 22.19。
+前置：宿主 `dsh` ≥ 0.1.5-rc.1（peer 域 `>=0.1.5-rc.1 <0.1.8 || 0.1.6-alpha.1 || 0.1.6-alpha.2 || 0.1.7-alpha.1 || 0.1.7-alpha.2 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.2-rc.5 || >=0.2.0 <0.3.0`（S32/S33/S38/S41 全跨度——显式钉的是已演练的预发布版，范围由 `tests/peer-range.spec.ts` 按两种 semver 语义守护；0.1.8 稳定线未演练仍排除。其中 0.2.2-rc.5 只做完了装入与接管开关的实测，搜索与抓取的功能腿待做。宿主兼容门按 `includePrerelease` 放行 0.2.x 预发布，显式钉是「已演练」的记录而非过门条件，见 ADR-0027））、node ≥ 22.19。
 
 ```sh
 # 1. 打包（仓库根）
@@ -38,7 +38,7 @@ dsh --profile web --dump-config
 #    dsh-websearch insert 行出现
 ```
 
-**装即接管**：插件随包 `cordis.patch.yml` 钉 `searchProvider: dshws-chain` + `fetchProvider: dshws-fetch-gate`，并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）——`plugin add` 单命令即接管，`plugin remove` 单命令复原组合（dump diff 零输出），官方设置页随之恢复。无需手写用户层 patch。用户层里另行保存过的 `web` 选择不随卸载清除，见 FAQ。
+**装即接管**：插件随包 `cordis.patch.yml` 钉 `searchProvider: dshws-chain` + `fetchProvider: dshws-fetch-gate`，并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）——`plugin add` 单命令即接管；关闭或卸载即复原组合，官方设置页随之恢复（0.2.2-rc.5 上经插件页开关实测；卸载走同一套层机制，命令行卸载在 rc.5 上未单独实测）。无需手写用户层 patch。用户层里另行保存过的 `web` 选择不随关闭或卸载清除，见 FAQ。
 
 **卸载**：`dsh plugin --profile web remove dsh-websearch`。已知残留（诚实披露）：settings 默认值与预设目录不随 remove 清理（无害，用户自撰同名目录永不覆写）。
 
@@ -63,7 +63,7 @@ pnpm install && pnpm run build && node scripts/pack.mjs   # 双名 tarball 入 d
 # 方式三：profile package.json 依赖 file: 指向 tarball 后 pnpm install
 ```
 
-安装即接管 web_search / web_fetch（bundle 钉扎安装序，后写者赢）；卸载自动复原宿主默认。换包后浏览器整页刷新（client 走 `/plugins/*?rev=` 运行时路由）。
+安装即接管 web_search / web_fetch（bundle 钉扎安装序，后写者赢），并在启用期间隐藏官方「网页搜索与获取」设置页（ADR-0024）；卸载自动复原宿主默认与该页面。用户层另行保存的 `web` 选择不随卸载清除，见 FAQ。换包后浏览器整页刷新（client 走 `/plugins/*?rev=` 运行时路由）。
 
 **升级**：完整演练手册见 [docs/upgrade.md](docs/upgrade.md)（打包→换包→dump 对照→GUI 冒烟→搜索→降级六步 + 发版前上游对齐确认）。同版本号换包会被跳过——预览场景先 bump 版本。
 
@@ -170,12 +170,12 @@ dsh-websearch:
 
 ## FAQ / 已知行为
 
-- **官方桌面端（Electron app）能用本插件吗**：能。桌面端与 web 端共用 `~/.dsh`（key/会话/工作区直接共享），插件按 profile 隔离需各自安装：桌面端用 app 内置命令装 `'/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh' plugin --profile desktop add @maricgeer/dsh-websearch`（装完重启 app）。**app 自动更新后插件可能失效/拒装——这是预期行为**（更新会替换捆绑运行时，预发布版本不在插件兼容域时被 peer 门拦下）：自查 `'<同上 launcher>' plugin --profile desktop add @maricgeer/dsh-websearch` 重装即可；仍失败说明需要等插件适配新版（见 [known-upstream-issues](docs/known-upstream-issues.md) 与 [desktop-adoption](docs/desktop-adoption.md)）。
+- **官方桌面端（Electron app）能用本插件吗**：能。桌面端与 web 端共用 `~/.dsh`（key/会话/工作区直接共享），插件按 profile 隔离需各自安装：桌面端用 app 内置命令装 `'/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh' plugin --profile desktop add @maricgeer/dsh-websearch`（装完重启 app）。**app 自动更新后插件可能失效/拒装——这是预期行为**（更新会替换捆绑运行时：宿主兼容门按 `includePrerelease` 放行 0.2.x 预发布，插件不会被拒装，但上游改了接口时插件可能失效）：自查 `'<同上 launcher>' plugin --profile desktop add @maricgeer/dsh-websearch` 重装即可；仍失败说明需要等插件适配新版（见 [known-upstream-issues](docs/known-upstream-issues.md) 与 [desktop-adoption](docs/desktop-adoption.md)）。
 - **官方 web_fetch 在代理环境报错**：宿主 SSRF 硬防护 × TUN fake-ip 所致（非本插件 bug）。开 `fetchTakeover` 走云端 extract 链即绕开。
 - **Perplexity 哪去了**：已移除（ADR-0017——无免费额度可申请，不满足准入标准）。存量 settings.yaml 的 `perplexity:` 残节无害（schema 透传），可手动清理。
 - **AnySearch 垂直面 tag/params 未实现**：待 key 探针（S22 登记）。
-- **官方「网页搜索与获取」设置页去哪了**：插件启用期间它被隐藏，由「设置 → 网页搜索」接管（ADR-0024）；关闭或卸载插件后自动恢复。要临时调出官方页，在 profile 的 `cordis.patch.yml` 写 `- id: ui-settings-web-search` 与 `disabled: false`。
-- **关闭插件后官方页显示「未加载」**：0.2.0 及更早版本里官方页可见，若在其中把提供方选定为本插件成员并保存，该选择写在用户层，优先于组合包层，关闭插件后成为悬空引用（`web_search` 报 `WEB_PROVIDER_CONFIGURED_MISSING`）。在恢复出来的官方页重新选择提供方即可；手动清理是删除 profile `cordis.patch.yml` 里 `web` 行的 `searchProvider` 与 `fetchProvider`。关闭时自动交还在 rc.5 上没有属于插件的可用通道（宿主 teardown 运行在 HMR 事务内，浏览器半区在事件送达前卸载），实测见 [session-41 记录](docs/sessions/2026-11-23-session-41.md)。
+- **官方「网页搜索与获取」设置页去哪了**：插件启用期间它被隐藏，由「设置 → 网页搜索」接管（ADR-0024）；关闭或卸载插件后自动恢复。设计上的逃生口：在 profile 的 `cordis.patch.yml` 写 `- id: ui-settings-web-search` 与 `disabled: false` 可强制显示官方页（与 dsh-subagent-plus 的做法一致；在 0.2.2-rc.5 上尚未实测）。
+- **关闭插件后官方页显示「未加载」**：0.2.0 及更早版本里官方页可见，若在其中把提供方选定为本插件成员并保存，该选择写在用户层，优先于组合包层，关闭插件后成为悬空引用（`web_search` 报 `WEB_PROVIDER_CONFIGURED_MISSING`）。清除方法是删除 profile `cordis.patch.yml` 里 `web` 行的 `searchProvider` 与 `fetchProvider`（两个一起删）后重启宿主。关闭时自动交还在 rc.5 上没有属于插件的可用通道（宿主 teardown 运行在 HMR 事务内，浏览器半区在事件送达前卸载），实测见 [session-41 记录](docs/sessions/2026-11-23-session-41.md)。
 - **升级**：见 [docs/upgrade.md](docs/upgrade.md)。
 
 ## 更多文档
