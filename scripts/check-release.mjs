@@ -7,8 +7,8 @@
  *   node scripts/check-release.mjs --tag vX.Y.Z       tag, manifest, changelog, user agent, tag placement
  *   node scripts/check-release.mjs --tarballs <dir>   contents of both distribution tarballs
  *
- * Every run also scans the tracked files for host token values. At least one
- * group must be requested: a run that checks nothing must not report success.
+ * Every run also scans the committed tree (HEAD) for host token values. At least
+ * one group must be requested: a run that checks nothing must not report success.
  */
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, realpathSync } from 'node:fs'
@@ -179,20 +179,24 @@ function tarballProblems(dir, cwd) {
 }
 
 /**
- * Locations of the tracked lines that carry a host token value.
+ * Locations of the committed lines that carry a host token value.
  * @param cwd - The repository root to scan.
- * @returns The `file:line` of every offending line.
- * @throws When the scan itself cannot run, for example outside a git repository. `git grep` exits 1 both
- *   for "no match" and for a fatal error, so only status 1 with a repository may read as clean.
+ * @returns The `file:line` of every offending line in the HEAD tree, which is what a tag would publish.
+ * @throws When the scan itself cannot run: no git, no commit, or any `git grep` failure. `git grep`
+ *   exits 1 for "no match", so only status 1 with nothing on stderr may read as clean. The HEAD tree
+ *   is scanned rather than the working tree, where a deleted or unreadable tracked file reads as clean.
  */
 function tokenLocations(cwd) {
-  const result = run('git', ['grep', '-nE', TOKEN_VALUE.source], cwd)
-  if (result.status === 1) return []
-  if (result.status !== 0) {
-    const reason = result.stderr.trim().split('\n')[0]
-    throw new Error(`token scan did not run: git grep exited with ${result.status}${reason === '' ? '' : ` (${reason})`}`)
+  const result = run('git', ['grep', '--full-name', '-nE', TOKEN_VALUE.source, 'HEAD', '--', '.'], cwd)
+  if (result.error !== undefined) {
+    throw new Error(`token scan did not run: git is not available (${result.error.message})`)
   }
-  return tokenFindings(result.stdout)
+  const stderr = (result.stderr ?? '').trim()
+  if (result.status === 1 && stderr === '') return []
+  if (result.status !== 0) {
+    throw new Error(`token scan did not run: git grep exited with ${result.status}${stderr === '' ? '' : ` (${stderr.split('\n')[0]})`}`)
+  }
+  return tokenFindings(result.stdout.replace(/^HEAD:/gm, ''))
 }
 
 /**

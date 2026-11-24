@@ -246,6 +246,39 @@ describe('main', () => {
     }
   })
 
+  it('still finds a token value in a tracked file that is missing from the working tree', async () => {
+    // The scan covers the committed tree, which is what a tag would publish; a
+    // working-tree search reads a deleted or unreadable file as clean.
+    const repo = await makeRepo({
+      'package.json': manifest(VERSION),
+      'evidence.log': `${FAKE_TOKEN_URL}\n`,
+    })
+    await rm(join(repo, 'evidence.log'))
+    await packTarballs(dir, () => {})
+    const problems = await main(['--tarballs', dir], repo)
+    expect(problems).toEqual(['evidence.log:1 carries a host token value'])
+  })
+
+  it('names the cause when git is not available, instead of failing on an accidental TypeError', async () => {
+    const repo = await makeRepo({ 'package.json': manifest(VERSION) })
+    const real = await mkdtemp(join(tmpdir(), 'dshws-release-nogit-bin-'))
+    const emptyPath = join(real, 'empty-bin')
+    await mkdir(emptyPath)
+    await copyFile(new URL('../scripts/check-release.mjs', import.meta.url), join(real, 'check-release.mjs'))
+    try {
+      const result = spawnSync(process.execPath, [join(real, 'check-release.mjs'), '--tarballs', dir], {
+        cwd: repo,
+        encoding: 'utf8',
+        env: { PATH: emptyPath },
+      })
+      expect(result.status).toBe(2)
+      expect(result.stderr).toMatch(/token scan did not run: git is not available/)
+    } finally {
+      await rm(real, { recursive: true, force: true })
+      await rm(repo, { recursive: true, force: true })
+    }
+  })
+
   it('fails when the tarballs are missing, incomplete or ship internal documents', async () => {
     const repo = await makeRepo({ 'package.json': manifest(VERSION) })
     const stage = join(dir, 'stage', 'package')
