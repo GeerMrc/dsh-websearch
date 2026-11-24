@@ -102,7 +102,7 @@
 | 39 | 2026-09-30 | 生产端全栈升级批（用户指令：上游最新 DSH+插件最新，备份→演练→正式三段） | ✅ | docs/sessions/2026-09-30-session-39.md；audit-logs/2026-09-30-s39-host-upgrade-rehearsal-and-switch.log；全量备份 240M（dsh-ops-backups/3080-full-pre-020rc2-host-*）；演练场 3425 全绿（兼容门/旧会话渲染/链序/搜索+抓取+错误路径降级活体）；正式切换 **3080 = 020rc2 守卫树（0.2.0-rc.2+fork）+ 插件 v0.2.0**（pid 77804——S40 阶段 0 审核勘正：77445 为切换时初值，02:54 日志重挂后 77804 在役）；两级回滚位在案 | 零新增债；树级回滚注记（切换后新会话回滚旧宿主或不可读——数据级备份覆盖切换前态） |
 | 40 | 2026-09-30 | 官方桌面端采用批（用户指令：桌面端调研×三形态验证×插件桌面适配×上游同步规范；plan 047 两轮独立计划审核+2.5 终审） | ✅ | docs/sessions/2026-09-30-session-40.md；docs/desktop-adoption.md + upstream-sync-sop.md + ADR-0023 + README 桌面条目 + KUI①S40 复查行 + dont-do×4；官方桌面端定谳 = 官方仓 Electron 壳（0.2.0-rc.2 三平台，feed/签名/公证/更新通道实测）；**插件 v0.2.0 桌面端双端适配全绿**（安装矢量=内置 launcher 直调；官方端四成员 Configured/会话共享 46+/DNS DoH 活体；peer 域内**免发版**）；T3 源码构建五关排障 runbook；阶段4 PASS-WITH-NOTES（🟡 b52b6db 清偿）+ 阶段5 COMPLETE-WITH-NOTES（清单全处置）；audit-logs s40-desktop-adoption(17 工件)+stage4/stage5 记录 | 🟢×3：桌面真实搜索腿未实跑（三处声明覆盖）/desktop profile 钉 file: tgz（npm spec 为正）/Windows 未实装（边界声明）；**候令：feat 分支合入 master+推送** |
 | 38 | 2026-09-30 | DSH 0.2.0-rc 适配批·v0.2.0 重定标准备（用户指令 2026-09-29：上游更新先适配、流程化实测后重打 v0.2.0；plan 046 rev1）+ 推送批（用户放行 2026-09-30 + VPS 隧道指示） | ✅ | docs/sessions/2026-09-30-session-38.md（含推送执行录三事件）；audit-logs s38-stage0-audit-of-s37 + t0-terminal-gate + t1-satisfies-matrix + t3-drill×2 + t4-7leg-matrix + t4b-e2e-real；peer 六包扩钉（0.2.0-rc.1/rc.2/>=0.2.0 <0.3.0，双语义矩阵含负控）；3434 演练 + 3423 切守卫树七腿异题矩阵 **7/7**（29 served-by 零失败）+ e2e.real 错误路径 **4/4**；阶段4 全绿 607\|17(624) + tsc/lint/i18n 0 错；阶段5 三正交 COMPLETE；422 深度二次排查（用户质询）=非未对齐 bug·四方证据+裸 curl 复现+换 key 无关+瞬时窗口自愈，新发现 AnySearch 422 承载漂移已吸收；known-upstream-issues ① 增 0.2.0-rc 行 + checklist 漂移注记；**推送批**：master `6b5330d`+tag `v0.2.0`+fork `fix/readonly-stack-020rc2` 经 VPS SOCKS 隧道全落，CI/Release 双 success，GitHub Release v0.2.0 双 tarball + npm 0.2.0 发布（pack.mjs mkdir 与 npm publish `./` 前缀两 CI 缺陷当批修复） | 零新增债；**候令：npm 拉装核验 → 3080 切换 → 清场** |
-| 41 | 2026-11-23 | 接管官方「网页搜索与获取」设置页 + 对称交还、插件页文档分离、OIDC 发布自动化、上游 0.2.2-rc.5 对齐（用户指令；plan 048） | 🚧 | docs/sessions/2026-11-23-session-41.md；plan 048 | ✅ 全部完成（2026-11-24）：R1–R8 全绿 + T17/T18 发版——npm 0.2.1 带 provenance 上线（见 session-41 记录） |
+| 41 | 2026-11-23 | 接管官方「网页搜索与获取」设置页 + 对称交还、插件页文档分离、OIDC 发布自动化、上游 0.2.2-rc.5 对齐（用户指令；plan 048）；v0.2.2 增补（npm 安装半残修复：M1 定案 + 方案 B 守卫 + 上游 Discussions#14267） | ✅ | docs/sessions/2026-11-23-session-41.md；plan 048 | ✅ 全部完成（2026-11-24）：R1–R8 全绿 + T17/T18 发版——npm 0.2.1 带 provenance 上线；**✅ v0.2.2 增补完成（2026-11-25）**：M1 证伪方案 A → 守卫双通道（2a20de7）+ 独立审核全处置（78530b3）+ 三重审核（scratch 双向/Agent/用户桌面四清单+session-665d4c66 证据）→ **npm 0.2.2 带 provenance 上线、GitHub Release v0.2.2 双 tarball、tag→master 一致**；上游 Discussions#14267 待答复（守卫退出条件挂在问题⑧） |
 | 24 | 2026-09-12 | DSH 上游 0.1.5-rc.2 升级预演（生产零接触；worktree 全绿 + 插件 spike d43997a 全绿 + 3424 实测全要素） | ✅（预演） | 正本在 feat/s24-upgrade-015 分支（67ba76d）；报告 /tmp/dshws-s24/upgrade-assessment-report.html | **待用户决策 A 采纳/B 暂缓/C 放弃**（含 anysearch peer 与 Session V3 两项生产前提） |
 | 23b | 2026-09-11 | Key 行内联（双保存修复）+ 兜底入详细配置 0.8.2（用户反馈微批；**配置模型裁定 C 落档 Note s23a §6**） | ✅ | docs/sessions/2026-09-11-session-23b.md；0.8.2；全量 **448\|13(461) exit0**；浏览器四项亲证（截图） | — |
 | 23a | 2026-09-11 | 配置模型深研 + 真实 API 实测 + 成员卡重排 0.8.1（用户插行；矩阵 20/20；三路径已裁定 **C 维持现状**（Note s23a §6）） | ✅ | docs/sessions/2026-09-11-session-23a.md；0.8.1；全量 **448\|13(461) exit0**；报告 /tmp/dshws-s23a/config-model-report.html | 🟢 新登记×2→当场清偿；S15 顺延（plan 015 已批准） |
@@ -113,12 +113,12 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 41 🚧（接管官方「网页搜索与获取」设置页 / 插件页文档分离 / OIDC 发布自动化 / 上游 0.2.2-rc.5 对齐；plan 048；分支 feat/s41-takeover-docsplit-oidc，未推送）。已收官（2026-11-24）：v0.2.1 已发布（npm latest + GitHub Release，OIDC provenance）；R1–R8 全绿；e2e.real 19/3/22；V8/V10 补测通过；生产端已装 0.2.1（见 docs/sessions/2026-11-23-session-41.md）。
-- **发布面**: npm latest = v0.2.0（@maricgeer/dsh-websearch），tag v0.2.0；origin/master = `619b99c1`。本地 master 另含 S40 的合并提交，未推送；S41 的工作在 feature 分支上，同样未推送。版本号没有变。
-- **上游现势**: 本机官方桌面 app = 0.2.2-rc.5（2026-11-18 自动更新）；npm `next`、`alpha` 与桌面 feed 的版本见 audit-logs/2026-11-23-s41-stage0-audit-of-s40.md 的 g 项。
-- **运行环境现势**: 3080、3423、19387 均无监听（机器 2026-10-11 重启后未拉起）；S41 的 rc.5 scratch 实例（3434）已在收尾时停止。
+- **当前 session**: Session 41 ✅（plan 048 四主题 + v0.2.2 增补全部完成）。收官（2026-11-24）：v0.2.1 发布（npm latest + Release，OIDC provenance）；R1–R8 全绿；e2e.real 19/3/22；V8/V10 补测通过。**v0.2.2 增补收官（2026-11-25）**：M1 定案（scoped 身份不修宿主装载配对）→ 方案 B 守卫双通道 + 安装文档纠错 → 三重审核（Agent APPROVE WITH CHANGES 全处置 / scratch 双向实测 / 用户桌面四清单+session-665d4c66 证据）→ v0.2.2 发布（npm 0.2.2+provenance、Release 双 tarball、tag→23f5911∈master）；上游 Discussions#14267 已发待答复（见 docs/sessions/2026-11-23-session-41.md 续记）。
+- **发布面**: npm latest = v0.2.2（@maricgeer/dsh-websearch，带 provenance），tag v0.2.2 → master `23f5911`；origin/master = `0f23075`。生产桌面端已装裸名 0.2.2（dsh-candidates 路径，用户实测通过）。
+- **上游现势**: 本机官方桌面 app = 0.2.2-rc.5（2026-11-18 自动更新）；npm `next`、`alpha` 与桌面 feed 的版本见 audit-logs/2026-11-23-s41-stage0-audit-of-s40.md 的 g 项；scoped 客户端装载配对之问已发 Discussions#14267。
+- **运行环境现势**: 3080、3423、19387 均无监听；S41 的 rc.5 scratch 实例（3434）在跑裸名 0.2.2-test.3（与发布同码，守卫/文档已含）。
 - **所处里程碑**: M7 功能扩展（S41 棒）；M3 宿主包完备（🚧 机械面 ✅）；M6 上游验收通过 ⏳（准备棒 S16）
 - **上一棒**: Session 40（docs/sessions/2026-09-30-session-40.md）
-- **下一棒候选**: Session 42（版本号变更与发布序列；roadmap 编号 42 行待用户确认）
-- **活跃债务**: 🔴×0；🟡×1（未推送历史里的 token 值，待用户裁决）；另有待裁决 6 项（交还路线、阶段 5 与阶段 6 提前执行的追认、受阻分支例外、token 历史、草稿 PR、Session 42 拆分）与延后项若干，正本在 docs/progress/progress-M7.md 的 S41 台账
-- **更新时间**: 2026-11-24（S41 收官：v0.2.1 发布）
+- **下一棒候选**: Session 42（上游答复后的守卫退出评估 / minimumReleaseAge 豁免维护 / 其余待裁决 6 项；roadmap 编号 42 行待用户确认）
+- **活跃债务**: 🔴×0；🟡×1（未推送历史里的 token 值，待用户裁决）；待裁决 6 项与延后项正本在 docs/progress/progress-M7.md 的 S41 台账（Session 42 拆分项已并入下一棒候选描述）
+- **更新时间**: 2026-11-25（S41 v0.2.2 增补收官：npm 0.2.2 发布）
