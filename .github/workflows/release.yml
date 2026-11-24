@@ -67,10 +67,10 @@ jobs:
         # parses as an npm spec (GitHub shorthand) and fails via git ls-remote
         run: npm publish ./dist-artifacts/maricgeer-dsh-websearch-*.tgz --registry https://registry.npmjs.org --access public --provenance
       - name: Show npm's trusted-publishing diagnosis when the publish fails
-        # npm reports a failed token exchange only at verbose level in its debug log
-        # and then fails with a generic ENEEDAUTH. The log stays on the runner, so a
-        # re-run (which reads the workflow from the tagged commit) cannot recover it.
-        # Only lines from npm's oidc logger are printed: they carry the registry's
-        # reason and no credential value.
+        # npm reports a failed token exchange only at verbose or silly level in its
+        # debug log and then fails with a generic ENEEDAUTH. The log stays on the
+        # runner, so a re-run (which reads the workflow from the tagged commit)
+        # cannot recover it. Only lines that name npm's oidc logger are printed:
+        # they carry the registry's reason and no credential value.
         if: "failure() && steps.publish.outcome == 'failure'"
         run: grep -hE ' [a-z]+ oidc ' "$(npm config get cache)"/_logs/*-debug-0.log || echo "no trusted-publishing lines in npm's debug logs"

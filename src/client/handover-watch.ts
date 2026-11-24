@@ -1,13 +1,14 @@
 /**
  * Client handover watch (ADR-0024 decision 4).
  *
- * The Host forwards `plugin-manager/changed` after every plugin-manager
- * operation, and the Web client stays alive across a bundle switch — the only
- * channel on hosts without HMR, where switching a bundle off does not unload
- * its fibers. On each event the watch asks whether this bundle is still
- * enabled; once it is not, it clears the seam's user-layer selections that name
- * this plugin's providers (see `../handover.ts`), re-reading once when the Host
- * refuses the write.
+ * On each `plugin-manager/changed` event the watch asks whether this bundle is
+ * still enabled; once it is not, it clears the seam's user-layer selections that
+ * name this plugin's providers (see `../handover.ts`), re-reading once when the
+ * Host refuses the write.
+ *
+ * Measured on 0.2.2-rc.5: the watch is stopped before the event arrives, so it
+ * never fires there, and no shipped host is known where it does. The module and
+ * its tests stay until the handover route is decided (ADR-0024, still proposed).
  *
  * Both host faces are optional. They are requested through one inject, which
  * waits: on rc.5 the plugin-manager Remote is served shortly after this
