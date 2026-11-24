@@ -216,3 +216,36 @@ rc.5 把 `hmr`、`plugin-manager`、`config-editor`、`settings` 四行钉在同
   列表里的开关关了再开也不复位。恢复办法是回详情页把该开关打开。
 - **profile 里留有某插件的设置行时，关闭或卸载该插件后 `--dump-config` 的 stderr 多一行
   `patch: entry "<插件>" not found`。** 退出码仍是 0，重新启用后消失，可以忽略。
+
+---
+
+## 问题 ⑧（插件作者向，宿主未文档化约束）scoped 包名的第三方插件：客户端半区不被采纳（S41 v0.2.2 登记，M1 实测定案）
+
+### 现象
+
+以 npm scoped 包名（如 `@maricgeer/dsh-websearch`）装进 profile 的插件：宿主半区正常（provider 注册、搜索可用），但**客户端半区静默缺失**——设置页不出现插件的节、toolview 徽标不渲染。双名别名（`dsh-websearch@npm:@maricgeer/dsh-websearch`）只救回宿主半区，客户端半区同样缺失。
+
+### 影响版本
+
+| 宿主版本 | 状态 |
+|---|---|
+| 0.2.2-rc.5 | ❌ 实测复现（scoped 直装 / 双名别名 / M1 三处身份全 scoped 三种形态） |
+| 更早版本 | 未系统核对（0.2.0 双名别名形态未实测客户端半区） |
+
+### 根因（M1 实验 2026-11-25）
+
+宿主浏览器侧的客户端装载器把「loader entry 的 id/name」与「按**包清单 name** 建立的 graph row id」配对后才触发 fiber/apply；对非 `@deepseek-ai` 域的 scoped 行该配对不成立——**即使随包补丁插入行 id+name 与包清单名三处全部 scoped 一致**（M1），客户端半区仍不被采纳。对照组：同一包以裸名（manifest name = 插件 id）安装，全功能正常。这是未文档化约束：官方文档既没写「第三方插件必须裸名」，也没写 scoped 名的客户端装载规则。
+
+### 怎么办
+
+1. 插件作者：**随包分发裸名 tarball**（pack 时翻转 package.json name；本仓 `scripts/pack.mjs` 即此法），npm scoped 包只作 registry 分发。
+2. 用户：从插件发布页取裸名 tarball 安装；装错形态时本插件 v0.2.2 起会在启动日志高声告警。
+3. 上游追问：已按 S41 方案 C 起草 issue（见下方登记），等官方给出 scoped 第三方插件的装载规则或修复。
+
+### 自查
+
+启动图（`__DSH_BOOT__`）里客户端 row 在、combo URL 可 200，但设置节不渲染 ⇒ 即此约束；`node_modules/<插件>/package.json` 的 `name` 是 scoped 名即命中。
+
+**技术沿革**：S41 PC6 实测链（npm 直装不加载 → 双名别名半残 → 裸名 tarball 全功能）+ M1 实验（三处身份一致仍不修复）定案；证据全文见 [session-41 记录](sessions/2026-11-23-session-41.md) 的 PC6 补充与「M1 实验结果」节。
+
+**上游 issue 登记**：草稿存 [docs/upstream-issue-scoped-client.md](upstream-issue-scoped-client.md)（英文，提交至 deepseek-ai/deepseek-harness；提交后此处补链接）。
