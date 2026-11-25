@@ -165,10 +165,12 @@ v0.3.0 双版本方案当日撤销；v0.2.0 tag 三度重打）。0.1.x 时代�
   不双版本并行、不同号两义**。澄清事实：本仓正式线 0.1.0→0.2.3 全连续无跳号、无 pre-release tag；混乱集中在
   定档前内部号段与 tag 操作，非发布号本身
 - **tag 纪律**：推送后不移动、不 `tag -f`、不删除重推（I4）；tag 必须指向 master 上的提交且=流水线构建的那个
-  提交（I2，check-release 机器断言）；稳定三元组（`v\d+\.\d+\.\d+`），rc/alpha 一律拒——**插件不用 pre-release 发布**
+  提交（I2，check-release 机器断言；物证面细则见 PC11）；稳定三元组（`v\d+\.\d+\.\d+`），rc/alpha 一律拒——
+  **插件不用 pre-release 发布**
 - **一处变更三处同步**：版本号=一个提交改 package.json/USER_AGENT/CHANGELOG 首个日期标题，机器门兜底
-- **宿主版本混乱外溢**（背景事实）：宿主 dsh-v* 线 41 tag 全预发布、两处跳号（无 0.1.4）、两处乱序（rc.3/rc.5
-  迟打）→ 插件 peer 域被迫逐枚举宿主预发布版本；应对=upstream-sync-sop 监测三线+显式钉扎（ADR-0027）
+- **宿主版本混乱外溢**（背景事实）：宿主 dsh-v* 线 42 tag 全预发布、两处跳号（无 0.1.4、无 0.2.2-alpha.1）、
+  两处乱序（0.1.5-rc.3/0.2.1-rc.5 迟打）→ 插件 peer 域被迫逐枚举宿主预发布版本；应对=upstream-sync-sop
+  监测三线+显式钉扎（ADR-0027）
 
 **E1–E7 事件史速查**（完整取证见 session-41 记录 v0.2.3 续记）：
 
@@ -177,9 +179,9 @@ v0.3.0 双版本方案当日撤销；v0.2.0 tag 三度重打）。0.1.x 时代�
 | E1 | 内部编号 0.2.0–0.9.0 整体重置回 0.1.0 | ADR-0020 定档；号未外发无伤害 |
 | E2 | v0.1.0 tag 移钉+0.1.1 回折 | I4/P4+check-release tag==HEAD |
 | E3 | v0.3.0 双版本方案撤销（同日三折） | I3 版本一批只变一次+用户终审 |
-| E4 | v0.2.0 tag 三度重打（workflow 未触发/ENOENT） | CI 发布预演+PC5 主干先+§10 失败表 |
-| E5 | 身份分叉→三腿不齐→0.2.1–0.2.3 灭火 | PC6 三腿机制+三腿发布门（PC7/T2） |
-| E6 | 0.1.x 发布产物不齐（无 Release/单资产/未上 npm） | release.yml 双 tarball 自动建制+§9 核对 |
+| E4 | v0.2.0 tag 三度重打（workflow 未触发/ENOENT；均发生在零发布产物窗口，I4 未破） | CI 发布预演+PC5 主干先+§10 失败表 |
+| E5 | 身份分叉→三腿不齐→0.2.1–0.2.3 灭火 | PC6 三腿机制+三腿发布门（check-release --tarballs） |
+| E6 | 0.1.0–0.1.1 发布产物不齐（无 Release/单资产/未上 npm；0.1.2 起补齐） | release.yml 双 tarball 自动建制+§9 核对 |
 | E7 | 宿主版本混乱外溢 | upstream-sync-sop+peer 显式钉扎 |
 
 **禁忌**：
@@ -196,7 +198,7 @@ v0.3.0 双版本方案当日撤销；v0.2.0 tag 三度重打）。0.1.x 时代�
 折叠细行（图标+标题，点击展开正文）；投影层对自定义 kind 一等支持（`{role:'inject', label: kind 字符串}`），
 `KNOWN_FORMS` 含 instructions/catalog/snapshot/notice/relay/recall 六形态。
 
-**配方**（插件侧）：
+**配方**（插件侧；字段级细节与完整代码示例回查 mm-resilience P1 原文）：
 1. `agent/pre-step` 回调中**不改用户消息**，构造 `{role:'user', content, source:{kind:'<命名空间化-kind>', form:'notice'}}`
    追加到 `decision.messages`
 2. 无内容返回 `null`——不产生行
@@ -209,7 +211,7 @@ ADR-0010）——但本条为 DSH 通用规范，后续任何注入需求（如�
 - ❌ 不要把注入文本写进用户消息的 content（气泡污染，用户实测否决）
 - ❌ 不要用替换式上下文（会被丢弃）；不要隐身注入（违反「模型可见⟺日志记录」铁律）
 
-## PC10. npm 账号与发布侧规范——trusted publishing、Passkey 2FA、冻结纪律（吸收 runbook §3/§10、mm-resilience P8、ADR-0026；2026-11-25 入册）
+## PC10. npm 账号与发布侧规范——trusted publishing、Passkey 2FA、冻结纪律（吸收 runbook §3/§10、mm-resilience P8、ADR-0026、用户级 npm 账号纪律〔~/.zcode/AGENTS.md 2026-11-02 定型〕；2026-11-25 入册）
 
 **场景**：npm 侧的账号形态与操作纪律——2026 年 npm 认证体系大改后，旧习惯（验证器 TOTP/长期 token）全部失效或被禁。
 
@@ -217,12 +219,13 @@ ADR-0010）——但本条为 DSH 通用规范，后续任何注入需求（如�
 - **trusted publishing 配置**（npmjs → Settings → Publishing access）：绑 GitHub 仓+工作流文件名+环境；
   **新建配置 2 天内必须完成首次成功发布**否则过期重建；`Allow npm dist-tag` 权限项含义未知→不勾，
   首发被拒时停下来人工处理而非改用 token
-- **2FA 唯一形态=通行密钥（Passkey）**：npm 已关闭新 TOTP 注册；恢复码只用于网页自救不能当 `--otp`；
-  **agent 无 TTY 跑发布必败**（EOTP）——发布命令必须在用户交互终端执行（本仓已由 OIDC 流水线根治）
+- **2FA 唯一形态=通行密钥（Passkey）**：npm 已关闭新 TOTP 注册；恢复码只用于网页自救不能当 `--otp`
+  〔用户级 npm 纪律〕；**agent 无 TTY 跑发布必败**（EOTP）——发布命令必须在用户交互终端执行（本仓已由
+  OIDC 流水线根治）
 - **禁 bypass-2FA granular token**：删除类当场被拒，2027-01 起彻底失去直接发布资格；CI 无人值守用
   trusted publishing（OIDC），不用 token
-- **冻结纪律**：连续敏感操作失败（反复 unpublish/建 token/2FA 切换）触发账号临时冻结 24–72h——失败后停手
-  隔天再试，冻结期间任何触碰可能重置冷却
+- **冻结纪律**〔用户级 npm 纪律〕：连续敏感操作失败（反复 unpublish/建 token/2FA 切换）触发账号临时冻结
+  24–72h——失败后停手隔天再试，冻结期间任何触碰可能重置冷却
 - **registry 纪律**：本机默认 npmmirror，一切 npmjs 操作显式 `--registry https://registry.npmjs.org`
   （流水线内 registry 双钉：setup-node `registry-url` + 发布命令 `--registry`）
 - **发布窗口**：npm publish 成功后有 **Validating 后处理窗**（数分钟，registry 页面可见）——属正常传播延迟，

@@ -172,13 +172,6 @@ function capture(command, args, cwd) {
   return result.status === 0 ? result.stdout : undefined
 }
 
-/** Names of the two distribution tarballs a version produces (scripts/pack.mjs). */
-function tarballNames(name, version) {
-  const scoped = `${name.replace(/^@/, '').replace('/', '-')}-${version}.tgz`
-  const bare = `${name.split('/').pop()}-${version}.tgz`
-  return scoped === bare ? [scoped] : [scoped, bare]
-}
-
 /**
  * The distribution forms a version produces: each tarball filename paired with the manifest
  * name it must carry (scripts/pack.mjs flips all three identity legs to the bare name for the
