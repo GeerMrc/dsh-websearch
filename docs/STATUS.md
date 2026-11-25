@@ -113,12 +113,12 @@
 
 ## 当前位置块（session 启动 + 阶段 6 收尾各刷新一次）
 
-- **当前 session**: Session 41 ✅（plan 048 四主题 + v0.2.2 增补全部完成）。收官（2026-11-24）：v0.2.1 发布（npm latest + Release，OIDC provenance）；R1–R8 全绿；e2e.real 19/3/22；V8/V10 补测通过。**v0.2.2 增补收官（2026-11-25）**：M1 定案（scoped 身份不修宿主装载配对）→ 方案 B 守卫双通道 + 安装文档纠错 → 三重审核（Agent APPROVE WITH CHANGES 全处置 / scratch 双向实测 / 用户桌面四清单+session-665d4c66 证据）→ v0.2.2 发布（npm 0.2.2+provenance、Release 双 tarball、tag→23f5911∈master）；上游 Discussions#14267 已发待答复（见 docs/sessions/2026-11-23-session-41.md 续记）。
-- **发布面**: npm latest = v0.2.2（@maricgeer/dsh-websearch，带 provenance），tag v0.2.2 → master `23f5911`；origin/master = `0f23075`。生产桌面端已装裸名 0.2.2（dsh-candidates 路径，用户实测通过）。
+- **当前 session**: Session 41 ✅（plan 048 四主题 + v0.2.2/v0.2.3 增补全部完成）。**v0.2.3 根修收官（2026-11-25）**：用户以 dsh-mm-resilience 在产反例质疑 → 三路独立取证 + M4 实验推翻 M1「宿主不可修」误判 → **客户端身份三腿对齐根修**（tsdown 盖戳/patch scoped/pack 三腿翻转，突变实验 5/5 护栏）→ 守卫移除 → 用户桌面实测✅（v0.2.3 scoped 形态徽标+详情卡+session-5878f797）→ **npm 0.2.3 发布（latest+provenance+attestations）、npm 名直装全功能交付**。完整演进与沉淀正本：PC6 四版演进表+排障速查。
+- **发布面**: npm latest = v0.2.3（@maricgeer/dsh-websearch，带 provenance/attestations），tag v0.2.3 → master `d5d1294`；origin/master = `d5d1294`。生产桌面端已装 0.2.3 scoped 形态（file: tarball=发布同位，实测通过；registry 形态可一条命令切换）。
 - **上游现势**: 本机官方桌面 app = 0.2.2-rc.5（2026-11-18 自动更新）；npm `next`、`alpha` 与桌面 feed 的版本见 audit-logs/2026-11-23-s41-stage0-audit-of-s40.md 的 g 项；scoped 客户端装载配对之问已发 Discussions#14267。
 - **运行环境现势**: 3080、3423、19387 均无监听；S41 的 rc.5 scratch 实例（3434）在跑裸名 0.2.2-test.3（与发布同码，守卫/文档已含）。
 - **所处里程碑**: M7 功能扩展（S41 棒）；M3 宿主包完备（🚧 机械面 ✅）；M6 上游验收通过 ⏳（准备棒 S16）
 - **上一棒**: Session 40（docs/sessions/2026-09-30-session-40.md）
 - **下一棒候选**: Session 42（上游答复后的守卫退出评估 / minimumReleaseAge 豁免维护 / 其余待裁决 6 项；roadmap 编号 42 行待用户确认）
 - **活跃债务**: 🔴×0；🟡×1（未推送历史里的 token 值，待用户裁决）；待裁决 6 项与延后项正本在 docs/progress/progress-M7.md 的 S41 台账（Session 42 拆分项已并入下一棒候选描述）
-- **更新时间**: 2026-11-25（S41 v0.2.2 增补收官：npm 0.2.2 发布）
+- **更新时间**: 2026-11-25（S41 v0.2.3 根修收官：npm 名直装全功能交付）
