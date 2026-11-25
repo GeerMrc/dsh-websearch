@@ -132,3 +132,123 @@ insert 行的 `id` **不参与**客户端配对（mm-resilience `id≠name` 在�
 - ❌ 不要在没对齐**全部三腿**（含 client bundle 注册 id）前下「宿主不可修」结论——M1 教训
 - ❌ 改任何一腿身份时，三腿必须随分发形态联动（清单/insert name/client id），insert `id` 保持稳定不变
 
+## PC7. 发布链全流程编排——本地验证→独立审核→用户终审→master 先→tag★→OIDC→三方核验（吸收 runbook §2/§5–§11、mm-resilience P8；2026-11-25 入册）
+
+**场景**：DSH 独立插件的版本发布是一条多角色链路，任何一环省略都会重演历史事故（v0.2.0 tag 三度重打、
+v0.2.1–0.2.3 五小时三连发灭火）。本条把 [release-runbook.md](release-runbook.md) 的操作正本收编为开发者纪律链。
+
+**纪律链八环**（每环有明确产物，跳环=事故源）：
+1. **本地全门**：typecheck（双 face）/lint/全量测试/i18n/build/pack/check-release——与流水线同序同参
+2. **真机实测**：scratch 双形态矩阵 + 生产桌面端装入四清单（用户实测回执留 session id）
+3. **推送前独立审核**：独立 Agent 审核代码与文档（APPROVE WITH CHANGES 须全处置），执行与审核不同上下文
+4. **用户版本终审**：版本号变更时点=用户终审通过并明确确认（确认原文入 session 记录）；一个批次只变一次
+5. **master 先推**：确认 CI 全绿后才碰 tag（PC5；坏态=发布未经 CI 的提交）
+6. **tag 单独确认（★）**：附注 tag 指向 master 上的提交，推送前向用户单独确认
+7. **OIDC 自动发布**：tag push 触发流水线全量门+一致性门+tarball 门→npm publish --provenance
+8. **发布后三方核验**：npm version+attestations、GitHub Release 双 tarball 非草稿、远端 tag==本地 tag；
+   npm 有 **Validating 传播窗**（数分钟），轮询勿慌
+
+**失败处置**：tag 已公开后任何失败**不移动 tag、不 --force、不手工 npm publish**——修复后以更高补丁号重发。
+
+**禁忌**：
+- ❌ 不要为省事跳独立审核或真机实测直推（v0.2.2 错向守卫正是缺了「在产反例」交叉验证的产物）
+- ❌ 不要在用户终审前碰版本号/CHANGELOG 发布态（v0.3.0 双版本方案被撤销的教训，见 PC8-E3）
+- ❌ 不要同批推 master+tag 后不看 CI 就等发布（workflow 可能未触发，v0.2.0 实录）
+
+## PC8. 版本号演进纪律——semver 阶梯与 tag 不可变（吸收 ADR-0020、runbook I2–I4；2026-11-25 入册）
+
+**场景**：早期版本管理混乱（定档前内部编号 0.2.0→0.9.0 跑完 15 批后整体重置回 0.1.0；v0.1.0 tag 移钉+版本回折；
+v0.3.0 双版本方案当日撤销；v0.2.0 tag 三度重打）。0.1.x 时代上述门全部不存在；S41 起四处一致性门+纪律立宪。
+
+**规则**：
+- **阶梯**：补丁位细迭代（v0.0.1→v0.0.2→…→v0.1.0→v0.1.1…）；minor 仅限特大架构扩展（ADR-0020）；**不跳号、
+  不双版本并行、不同号两义**。澄清事实：本仓正式线 0.1.0→0.2.3 全连续无跳号、无 pre-release tag；混乱集中在
+  定档前内部号段与 tag 操作，非发布号本身
+- **tag 纪律**：推送后不移动、不 `tag -f`、不删除重推（I4）；tag 必须指向 master 上的提交且=流水线构建的那个
+  提交（I2，check-release 机器断言）；稳定三元组（`v\d+\.\d+\.\d+`），rc/alpha 一律拒——**插件不用 pre-release 发布**
+- **一处变更三处同步**：版本号=一个提交改 package.json/USER_AGENT/CHANGELOG 首个日期标题，机器门兜底
+- **宿主版本混乱外溢**（背景事实）：宿主 dsh-v* 线 41 tag 全预发布、两处跳号（无 0.1.4）、两处乱序（rc.3/rc.5
+  迟打）→ 插件 peer 域被迫逐枚举宿主预发布版本；应对=upstream-sync-sop 监测三线+显式钉扎（ADR-0027）
+
+**E1–E7 事件史速查**（完整取证见 session-41 记录 v0.2.3 续记）：
+
+| # | 事件 | 已有防线 |
+|---|---|---|
+| E1 | 内部编号 0.2.0–0.9.0 整体重置回 0.1.0 | ADR-0020 定档；号未外发无伤害 |
+| E2 | v0.1.0 tag 移钉+0.1.1 回折 | I4/P4+check-release tag==HEAD |
+| E3 | v0.3.0 双版本方案撤销（同日三折） | I3 版本一批只变一次+用户终审 |
+| E4 | v0.2.0 tag 三度重打（workflow 未触发/ENOENT） | CI 发布预演+PC5 主干先+§10 失败表 |
+| E5 | 身份分叉→三腿不齐→0.2.1–0.2.3 灭火 | PC6 三腿机制+三腿发布门（PC7/T2） |
+| E6 | 0.1.x 发布产物不齐（无 Release/单资产/未上 npm） | release.yml 双 tarball 自动建制+§9 核对 |
+| E7 | 宿主版本混乱外溢 | upstream-sync-sop+peer 显式钉扎 |
+
+**禁忌**：
+- ❌ 不要随意 tag/改版本号——一个功能完成≠一个版本；版本是用户终审的裁决物不是开发的进度条
+- ❌ 不要重打/移动已推送的 tag（git 不校验覆推，纪律与 check-release 是唯一防线）
+- ❌ 不要在 CHANGELOG 埋历史版本号——一致性门只认首个日期标题
+
+## PC9. 上下文注入行——后端注入内容走官方折叠行（吸收 mm-resilience P1；DSH 通用规范；2026-11-25 入册）
+
+**场景**：插件需向模型注入描述/标签等上下文，但**不能污染用户的聊天气泡**——前端与原生 DSH 交互一致原则
+（mm-resilience P1，用户实测否决项）。
+
+**机制**（DSH 聊天窗渲染规则）：`source.kind ≠ 'user'` 的 `user/message` 一律渲染为「上下文注入行」——
+折叠细行（图标+标题，点击展开正文）；投影层对自定义 kind 一等支持（`{role:'inject', label: kind 字符串}`），
+`KNOWN_FORMS` 含 instructions/catalog/snapshot/notice/relay/recall 六形态。
+
+**配方**（插件侧）：
+1. `agent/pre-step` 回调中**不改用户消息**，构造 `{role:'user', content, source:{kind:'<命名空间化-kind>', form:'notice'}}`
+   追加到 `decision.messages`
+2. 无内容返回 `null`——不产生行
+3. kind 一律命名空间化（如 `dshws-xxx`），避免与其他插件投影冲突
+
+**本仓适用性注记**：dsh-websearch 当前**不向模型会话注入内容**（served-by 溯源走 `tool.call.toolview` 工具卡，
+ADR-0010）——但本条为 DSH 通用规范，后续任何注入需求（如搜索策略提示）必须走本配方。
+
+**禁忌**：
+- ❌ 不要把注入文本写进用户消息的 content（气泡污染，用户实测否决）
+- ❌ 不要用替换式上下文（会被丢弃）；不要隐身注入（违反「模型可见⟺日志记录」铁律）
+
+## PC10. npm 账号与发布侧规范——trusted publishing、Passkey 2FA、冻结纪律（吸收 runbook §3/§10、mm-resilience P8、ADR-0026；2026-11-25 入册）
+
+**场景**：npm 侧的账号形态与操作纪律——2026 年 npm 认证体系大改后，旧习惯（验证器 TOTP/长期 token）全部失效或被禁。
+
+**规则**：
+- **trusted publishing 配置**（npmjs → Settings → Publishing access）：绑 GitHub 仓+工作流文件名+环境；
+  **新建配置 2 天内必须完成首次成功发布**否则过期重建；`Allow npm dist-tag` 权限项含义未知→不勾，
+  首发被拒时停下来人工处理而非改用 token
+- **2FA 唯一形态=通行密钥（Passkey）**：npm 已关闭新 TOTP 注册；恢复码只用于网页自救不能当 `--otp`；
+  **agent 无 TTY 跑发布必败**（EOTP）——发布命令必须在用户交互终端执行（本仓已由 OIDC 流水线根治）
+- **禁 bypass-2FA granular token**：删除类当场被拒，2027-01 起彻底失去直接发布资格；CI 无人值守用
+  trusted publishing（OIDC），不用 token
+- **冻结纪律**：连续敏感操作失败（反复 unpublish/建 token/2FA 切换）触发账号临时冻结 24–72h——失败后停手
+  隔天再试，冻结期间任何触碰可能重置冷却
+- **registry 纪律**：本机默认 npmmirror，一切 npmjs 操作显式 `--registry https://registry.npmjs.org`
+  （流水线内 registry 双钉：setup-node `registry-url` + 发布命令 `--registry`）
+- **发布窗口**：npm publish 成功后有 **Validating 后处理窗**（数分钟，registry 页面可见）——属正常传播延迟，
+  轮询 `npm view <pkg> version` 至转正即可，勿重复发布
+
+**禁忌**：
+- ❌ 不要在 agent/无 TTY 环境跑任何 npm 写操作（认证 URL 随进程消亡）
+- ❌ 不要为「快一点」建 bypass token——见冻结纪律与 2027 大限
+- ❌ 不要凭一次 `npm publish` 退出码 0 就宣布上线——Validating 窗内版本不可安装，三方核验须等转正
+
+## PC11. GitHub 版本管理——tag 不变量、草稿 PR 预演、分支生命周期（吸收 runbook §7/§9/§11；2026-11-25 入册）
+
+**场景**：GitHub 侧的版本物证管理——tag/Release/分支三件套与 npm 版本的一致性是发布可信度的外显。
+
+**规则**：
+- **tag 不变量**：I2 tag=master 上被流水线构建的那个提交（check-release 断言 `tag^{commit}==HEAD` 且 HEAD
+  ∈ master）；I4 推送后不可变——公开 tag 移动=信任破坏，失败只能加补丁号重发
+- **草稿 PR 发布预演**：发布序列前开草稿 PR 跑一遍 CI（发布预演含 pack+tarball 门）——打包类缺陷在打 tag
+  前暴露（v0.2.0 的 pack.mjs ENOENT 类）
+- **分支生命周期**：feat/<session>-<主题> 单线开发→合 master 即删；不发版批次（纯 docs/门加固）直接 master
+  就位，下个版本自然带上——**不要为文档提交单独发版**
+- **Release 核对**：非草稿非预发布、双 tarball 资产在位（scoped+裸名）、由流水线机器人建制（人工手建是
+  0.1.x 时代遗留，产物不齐的 E6 教训）；发布后核对远端 tag SHA==本地
+
+**禁忌**：
+- ❌ 不要手建 GitHub Release（资产易缺漏；release.yml 双 tarball 自动建制）
+- ❌ 不要让 feat 分支长存漂移（下个 session 基线失真）
+- ❌ 不要把「tag 已推但发布失败」当回滚信号去动 tag——修完加补丁号（§10 失败表）
+
