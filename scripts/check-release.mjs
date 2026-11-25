@@ -92,6 +92,34 @@ export function forbiddenEntries(entries) {
 }
 
 /**
+ * Problems when the three client-identity legs inside one distribution tarball disagree (PC6,
+ * v0.2.3): the dsh client-modules pairing is a three-way exact string equality — insert-row
+ * `name` == manifest `name` == the client bundle's `__ModuleLoader__.load({ id })` registration
+ * id. A drifting leg silently drops the client half on dsh hosts, so the release gate rejects
+ * it before a tag is pushed.
+ * @param manifestName - The `name` field of the tarball's own package.json.
+ * @param patchText - The tarball's cordis.patch.yml text.
+ * @param clientText - The tarball's lib/client.js text (the banner sits in the first bytes).
+ * @returns One problem per drifting or unreadable leg.
+ */
+export function identityProblems(manifestName, patchText, clientText) {
+  const problems = []
+  const patchName = patchText.match(/- insert:\s*\n\s*- id: [^\n]+\n\s*name: '?([^\n']+)'?/)?.[1]?.trim()
+  if (patchName === undefined || patchName === '') {
+    problems.push('cordis.patch.yml: insert-row name not found (three-way client identity, PC6)')
+  } else if (patchName !== manifestName) {
+    problems.push(`cordis.patch.yml: insert-row name "${patchName}" does not match the manifest name "${manifestName}" (three-way client identity, PC6)`)
+  }
+  const clientId = clientText.slice(0, 500).match(/id:\s*"([^"]+)"/)?.[1]
+  if (clientId === undefined) {
+    problems.push('lib/client.js: __ModuleLoader__ registration id not found (three-way client identity, PC6)')
+  } else if (clientId !== manifestName) {
+    problems.push(`lib/client.js: registration id "${clientId}" does not match the manifest name "${manifestName}" (three-way client identity, PC6)`)
+  }
+  return problems
+}
+
+/**
  * Parse `git grep -z -c <pattern> HEAD`: `path NUL count LF` records in which every path carries
  * the tree name as a prefix. The NUL after the path keeps a path that contains colons intact.
  * @param text - The listing.
@@ -151,11 +179,31 @@ function tarballNames(name, version) {
   return scoped === bare ? [scoped] : [scoped, bare]
 }
 
+/**
+ * The distribution forms a version produces: each tarball filename paired with the manifest
+ * name it must carry (scripts/pack.mjs flips all three identity legs to the bare name for the
+ * bare tarball). A bare name input yields one form.
+ * @param name - The package.json name.
+ * @param version - The package.json version.
+ * @returns `[filename, expectedManifestName]` pairs.
+ */
+function tarballForms(name, version) {
+  const bareName = name.split('/').pop()
+  const scopedFile = `${name.replace(/^@/, '').replace('/', '-')}-${version}.tgz`
+  const bareFile = `${bareName}-${version}.tgz`
+  return scopedFile === bareFile ? [[scopedFile, name]] : [[scopedFile, name], [bareFile, bareName]]
+}
+
 /** Members of a tarball with the `package/` prefix and directory entries removed. */
 function tarballEntries(file) {
   const listing = capture('tar', ['-tzf', file], process.cwd())
   if (listing === undefined) return undefined
   return listing.split('\n').filter((line) => line !== '' && !line.endsWith('/')).map((line) => line.replace(/^package\//, ''))
+}
+
+/** The text of one member of a tarball, or undefined when extraction fails. */
+function tarballText(file, entry) {
+  return capture('tar', ['-xzOf', file, `package/${entry}`], process.cwd())
 }
 
 /** Problems found in the tag group: identity of tag, manifest, changelog, user agent and tag placement. */
@@ -185,11 +233,12 @@ function tagProblems(tag, cwd) {
   return problems
 }
 
-/** Problems found in the tarball group: presence, required entries, forbidden entries. */
+/** Problems found in the tarball group: presence, required entries, forbidden entries, and the
+ * three-way client identity (PC6) — each distribution form must carry its identity on all legs. */
 function tarballProblems(dir, cwd) {
   const pkg = JSON.parse(readFileSync(join(cwd, 'package.json'), 'utf8'))
   const problems = []
-  for (const name of tarballNames(pkg.name, pkg.version)) {
+  for (const [name, expectedManifestName] of tarballForms(pkg.name, pkg.version)) {
     const file = join(dir, name)
     if (!existsSync(file)) {
       problems.push(`${name}: tarball not found in ${dir}`)
@@ -202,6 +251,24 @@ function tarballProblems(dir, cwd) {
     }
     for (const entry of missingRequiredEntries(entries)) problems.push(`${name}: missing ${entry}`)
     for (const entry of forbiddenEntries(entries)) problems.push(`${name}: ships internal file ${entry}`)
+    const manifestText = tarballText(file, 'package.json')
+    const patchText = tarballText(file, 'cordis.patch.yml')
+    const clientText = tarballText(file, 'lib/client.js')
+    if (manifestText === undefined || patchText === undefined || clientText === undefined) {
+      problems.push(`${name}: identity legs cannot be read (three-way client identity, PC6)`)
+      continue
+    }
+    let manifestName
+    try {
+      manifestName = JSON.parse(manifestText).name
+    } catch {
+      manifestName = undefined
+    }
+    if (manifestName !== expectedManifestName) {
+      problems.push(`${name}: manifest name "${manifestName}" does not match the ${expectedManifestName.includes('/') ? 'scoped' : 'bare'} distribution form "${expectedManifestName}"`)
+      continue
+    }
+    problems.push(...identityProblems(manifestName, patchText, clientText).map((problem) => `${name}: ${problem}`))
   }
   return problems
 }

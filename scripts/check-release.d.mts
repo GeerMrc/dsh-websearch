@@ -26,6 +26,12 @@ export declare function missingRequiredEntries(entries: readonly string[]): stri
 /** The tarball entries that must not ship, in tarball order. */
 export declare function forbiddenEntries(entries: readonly string[]): string[]
 
+/**
+ * Problems when the three client-identity legs inside one distribution tarball disagree
+ * (PC6, v0.2.3): insert-row name == manifest name == the client bundle registration id.
+ */
+export declare function identityProblems(manifestName: string, patchText: string, clientText: string): string[]
+
 /** `{ path, count }` for every file in the `git grep -z -c HEAD` listing that carries a host token value. */
 export declare function tokenFiles(text: string): { path: string; count: number }[]
 

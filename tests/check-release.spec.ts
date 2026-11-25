@@ -8,6 +8,7 @@ import {
   REQUIRED_ENTRIES,
   changelogHasVersion,
   forbiddenEntries,
+  identityProblems,
   main,
   missingRequiredEntries,
   tagMatchesVersion,
@@ -40,18 +41,26 @@ function git(cwd: string, ...args: string[]): void {
  * Stage every required entry under `<dir>/stage/package`, let `decorate` add or
  * change files, then pack the two distribution tarballs for VERSION into `<dir>`.
  */
-async function packTarballs(dir: string, decorate: (stage: string) => Promise<void> | void): Promise<string> {
-  const stage = join(dir, 'stage', 'package')
-  for (const entry of REQUIRED_ENTRIES) {
-    await mkdir(join(stage, entry, '..'), { recursive: true })
-    await writeFile(join(stage, entry), 'x')
-  }
-  await decorate(stage)
-  for (const name of [`maricgeer-dsh-websearch-${VERSION}.tgz`, `dsh-websearch-${VERSION}.tgz`]) {
-    const result = spawnSync('tar', ['-czf', join(dir, name), 'package'], { cwd: join(dir, 'stage'), encoding: 'utf8' })
+async function packTarballs(dir: string, decorate: (stage: string, form: 'scoped' | 'bare') => Promise<void> | void = () => {}): Promise<void> {
+  // Both distribution forms, each carrying its own three identity legs (PC6):
+  // the scoped tarball all-scoped, the bare tarball all-bare.
+  const forms = [
+    { form: 'scoped' as const, file: `maricgeer-dsh-websearch-${VERSION}.tgz`, name: '@maricgeer/dsh-websearch' },
+    { form: 'bare' as const, file: `dsh-websearch-${VERSION}.tgz`, name: 'dsh-websearch' },
+  ]
+  for (const { form, file, name } of forms) {
+    const stage = join(dir, 'stage', form, 'package')
+    for (const entry of REQUIRED_ENTRIES) {
+      await mkdir(join(stage, entry, '..'), { recursive: true })
+      await writeFile(join(stage, entry), 'x')
+    }
+    await writeFile(join(stage, 'package.json'), JSON.stringify({ name, version: VERSION }, null, 2))
+    await writeFile(join(stage, 'cordis.patch.yml'), `- insert:\n    - id: dsh-websearch\n      name: ${name.startsWith('@') ? `'${name}'` : name}\n`)
+    await writeFile(join(stage, 'lib', 'client.js'), `window.__ModuleLoader__.load({\n\tid: ${JSON.stringify(name)},\n\tfactory: (require) => { /* body */ return module.exports; } });\n`)
+    await decorate(stage, form)
+    const result = spawnSync('tar', ['-czf', join(dir, file), 'package'], { cwd: join(dir, 'stage', form), encoding: 'utf8' })
     if (result.status !== 0) throw new Error(result.stderr)
   }
-  return stage
 }
 
 /** Throwaway repositories made by `makeRepo` during the current test; removed in afterEach. */
@@ -114,6 +123,36 @@ describe('tarball rules', () => {
     expect(forbiddenEntries(['docs/plugin-page.zh.md', 'docs/plugin-page.en.md', 'lib/index.js'])).toEqual([])
     expect(forbiddenEntries(['docs/sessions/2026-11-23-session-41.md'])).toEqual(['docs/sessions/2026-11-23-session-41.md'])
     expect(forbiddenEntries(['src/index.ts', 'tests/patch.test.ts', 'scripts/pack.mjs'])).toHaveLength(3)
+  })
+})
+
+describe('identity rules (three-way client identity, PC6)', () => {
+  const scoped = '@maricgeer/dsh-websearch'
+  const scopedPatch = `- insert:\n    - id: dsh-websearch\n      name: '${scoped}'\n`
+  const barePatch = `- insert:\n    - id: dsh-websearch\n      name: dsh-websearch\n`
+  const client = (id: string) => `window.__ModuleLoader__.load({\n\tid: ${JSON.stringify(id)},\n\tfactory: (require) => {`
+
+  it('accepts matching legs in both quoting forms (scoped quoted, bare unquoted)', () => {
+    expect(identityProblems(scoped, scopedPatch, client(scoped))).toEqual([])
+    expect(identityProblems('dsh-websearch', barePatch, client('dsh-websearch'))).toEqual([])
+  })
+
+  it('rejects a drifting insert-row name or client registration id, naming the leg', () => {
+    expect(identityProblems(scoped, barePatch, client(scoped))).toEqual([
+      `cordis.patch.yml: insert-row name "dsh-websearch" does not match the manifest name "${scoped}" (three-way client identity, PC6)`,
+    ])
+    expect(identityProblems(scoped, scopedPatch, client('dsh-websearch'))).toEqual([
+      `lib/client.js: registration id "dsh-websearch" does not match the manifest name "${scoped}" (three-way client identity, PC6)`,
+    ])
+  })
+
+  it('rejects unreadable legs rather than passing silently', () => {
+    expect(identityProblems(scoped, 'nameless', client(scoped))).toEqual([
+      'cordis.patch.yml: insert-row name not found (three-way client identity, PC6)',
+    ])
+    expect(identityProblems(scoped, scopedPatch, 'no banner')).toEqual([
+      'lib/client.js: __ModuleLoader__ registration id not found (three-way client identity, PC6)',
+    ])
   })
 })
 
@@ -229,12 +268,46 @@ describe('main', () => {
   it('refuses to pass the token scan outside a git repository', async () => {
     const outside = await mkdtemp(join(tmpdir(), 'dshws-release-nogit-'))
     await writeFile(join(outside, 'package.json'), manifest(VERSION))
-    await packTarballs(dir, () => {})
+    await packTarballs(dir)
     try {
       await expect(main(['--tarballs', dir], outside)).rejects.toThrow(/token scan did not run/)
     } finally {
       await rm(outside, { recursive: true, force: true })
     }
+  })
+
+  it('accepts tarballs whose three identity legs agree with their distribution form', async () => {
+    const repo = await makeRepo({ 'package.json': manifest(VERSION) })
+    await packTarballs(dir)
+    await expect(main(['--tarballs', dir], repo)).resolves.toEqual([])
+  })
+
+  it('rejects a tarball whose insert-row name departs from its manifest name (integration negative control)', async () => {
+    const repo = await makeRepo({ 'package.json': manifest(VERSION) })
+    await packTarballs(dir, async (stage, form) => {
+      if (form === 'scoped') {
+        // A drifted leg: the scoped tarball's patch still carries the bare name.
+        await writeFile(join(stage, 'cordis.patch.yml'), `- insert:\n    - id: dsh-websearch\n      name: dsh-websearch\n`)
+      }
+    })
+    const problems = await main(['--tarballs', dir], repo)
+    expect(problems).toEqual([
+      expect.stringMatching(/maricgeer-dsh-websearch-0\.2\.1\.tgz: cordis\.patch\.yml: insert-row name "dsh-websearch" does not match the manifest name "@maricgeer\/dsh-websearch"/),
+    ])
+  })
+
+  it('rejects a tarball whose manifest name departs from its distribution form', async () => {
+    const repo = await makeRepo({ 'package.json': manifest(VERSION) })
+    await packTarballs(dir, async (stage, form) => {
+      if (form === 'bare') {
+        // The bare tarball must carry the bare identity; a scoped manifest inside defeats the form.
+        await writeFile(join(stage, 'package.json'), JSON.stringify({ name: '@maricgeer/dsh-websearch', version: VERSION }, null, 2))
+      }
+    })
+    const problems = await main(['--tarballs', dir], repo)
+    expect(problems).toEqual([
+      expect.stringMatching(/dsh-websearch-0\.2\.1\.tgz: manifest name "@maricgeer\/dsh-websearch" does not match the bare distribution form "dsh-websearch"/),
+    ])
   })
 
   it('still runs as a command when its path goes through a symlink, instead of exiting 0 unchecked', async () => {
